@@ -1,145 +1,241 @@
 <div class="chat-container">
-  <!-- Bouton retour -->
-  <div class="chat-header">
-    <button mat-icon-button routerLink="/dashboard">
+  <!-- Header -->
+  <mat-toolbar color="primary" class="chat-header">
+    <button mat-icon-button routerLink="/user">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span class="header-title">Messages</span>
-  </div>
+    <span>Messages</span>
+    <span class="spacer"></span>
+    <button mat-icon-button (click)="navigateToSendMoney()" matTooltip="Envoyer de l'argent">
+      <mat-icon>attach_money</mat-icon>
+    </button>
+  </mat-toolbar>
 
   <div class="chat-content">
-    <!-- Sidebar des conversations -->
-    <div class="conversations-sidebar">
+    <!-- Liste des conversations -->
+    <div class="conversations-sidebar" [class.hidden]="selectedConversation">
       <div class="search-box">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Rechercher un contact</mat-label>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Rechercher une conversation</mat-label>
           <input matInput placeholder="Nom ou email...">
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
       </div>
 
-      <mat-list>
-        <mat-list-item *ngFor="let conv of conversations" 
-                       (click)="selectConversation(conv)"
-                       [class.active]="selectedConversation?.userId === conv.userId"
-                       class="conversation-item">
-          <div matListItemAvatar class="avatar-circle">
-            {{ conv.name.charAt(0) }}
-          </div>
-          <div matListItemTitle>{{ conv.name }}</div>
-          <div matListItemLine class="last-message">{{ conv.lastMessage?.content || 'Aucun message' }}</div>
-          <div class="conversation-time">{{ conv.lastMessageTime | date:'HH:mm' }}</div>
-        </mat-list-item>
-      </mat-list>
+      <div class="conversations-list" *ngIf="!isLoading; else loading">
+        <mat-list>
+          <mat-list-item 
+            *ngFor="let conv of conversations" 
+            class="conversation-item"
+            [class.active]="selectedConversation?.userId === conv.userId"
+            (click)="selectConversation(conv)">
+            
+            <div class="conversation-avatar" [style.background]="getAvatarColor(conv.firstName)">
+              {{ getInitials(conv.firstName, conv.lastName) }}
+              <span class="online-indicator" [class.online]="conv.isOnline"></span>
+            </div>
+            
+            <div class="conversation-info">
+              <div class="conversation-header">
+                <span class="conversation-name">{{ conv.firstName }} {{ conv.lastName }}</span>
+                <span class="conversation-time">{{ conv.lastMessageTime | date:'HH:mm' }}</span>
+              </div>
+              <div class="conversation-preview">
+                <span class="last-message">{{ conv.lastMessage ? conv.lastMessage.content : 'Nouvelle conversation' }}</span>
+                <span class="unread-badge" *ngIf="conv.unreadCount > 0">{{ conv.unreadCount }}</span>
+              </div>
+            </div>
+          </mat-list-item>
+        </mat-list>
+
+        <div *ngIf="conversations.length === 0" class="empty-conversations">
+          <mat-icon>chat</mat-icon>
+          <h3>Aucune conversation</h3>
+          <p>Commencez à discuter avec vos amis</p>
+          <button mat-raised-button color="primary" routerLink="/friends">
+            <mat-icon>people</mat-icon>
+            Voir mes amis
+          </button>
+        </div>
+      </div>
+
+      <ng-template #loading>
+        <div class="loading-spinner">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      </ng-template>
     </div>
 
-    <!-- Zone de chat principale -->
+    <!-- Zone de chat -->
     <div class="chat-area" *ngIf="selectedConversation; else noChat">
+      <!-- En-tête du chat -->
       <div class="chat-area-header">
-        <div class="user-info">
-          <div class="avatar-circle">{{ selectedConversation.name.charAt(0) }}</div>
-          <div>
-            <div class="user-name">{{ selectedConversation.name }}</div>
-            <div class="typing-indicator" *ngIf="isTyping">tape un message...</div>
+        <button class="back-button" (click)="selectedConversation = null">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div class="chat-user-info">
+          <div class="chat-user-avatar" [style.background]="getAvatarColor(selectedConversation.firstName)">
+            {{ getInitials(selectedConversation.firstName, selectedConversation.lastName) }}
+            <span class="online-indicator" [class.online]="selectedConversation.isOnline"></span>
+          </div>
+          <div class="chat-user-details">
+            <div class="chat-user-name">
+              {{ selectedConversation.firstName }} {{ selectedConversation.lastName }}
+            </div>
+            <div class="chat-user-status">
+              <span *ngIf="selectedConversation.isOnline">En ligne</span>
+              <span *ngIf="!selectedConversation.isOnline">{{ formatLastSeen(selectedConversation.lastSeen) }}</span>
+              <span *ngIf="isTyping" class="typing-indicator">tape un message...</span>
+            </div>
           </div>
         </div>
-        <div class="call-buttons">
-          <button mat-icon-button color="primary" (click)="startCall('audio')">
+
+        <div class="chat-actions">
+          <button mat-icon-button (click)="startCall('audio')" matTooltip="Appel audio">
             <mat-icon>call</mat-icon>
           </button>
-          <button mat-icon-button color="primary" (click)="startCall('video')">
+          <button mat-icon-button (click)="startCall('video')" matTooltip="Appel vidéo">
             <mat-icon>videocam</mat-icon>
           </button>
+          <button mat-icon-button [matMenuTriggerFor]="chatMenu" matTooltip="Plus d'options">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #chatMenu="matMenu">
+            <button mat-menu-item (click)="sendMoney()">
+              <mat-icon>attach_money</mat-icon>
+              <span>Envoyer de l'argent</span>
+            </button>
+            <button mat-menu-item [routerLink]="['/profile', selectedConversation.userId]">
+              <mat-icon>person</mat-icon>
+              <span>Voir le profil</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>
+              <mat-icon>block</mat-icon>
+              <span>Bloquer</span>
+            </button>
+          </mat-menu>
         </div>
       </div>
 
+      <!-- Messages -->
       <div class="messages-container" #messageContainer>
-        <div *ngFor="let message of messages" 
-             [class.sent]="message.senderId === currentUser?.id"
-             [class.received]="message.senderId !== currentUser?.id"
-             class="message">
-          <div class="message-content">
-            <ng-container [ngSwitch]="message.type">
-              <div *ngSwitchCase="'text'" class="message-text">{{ message.content }}</div>
-              <div *ngSwitchCase="'emoji'" class="message-emoji">{{ message.emoji }}</div>
-              <div *ngSwitchCase="'image'">
-                <img [src]="getSafeUrl(message.fileUrl)" class="message-image" alt="">
+        <div *ngIf="isLoadingMore" class="messages-loading">
+          <mat-spinner diameter="30"></mat-spinner>
+        </div>
+
+        <div *ngFor="let message of messages" class="message-wrapper">
+          <div class="message" [class.sent]="message.senderId === currentUserId">
+            <div class="message-content">
+              <!-- Message texte -->
+              <div *ngIf="message.type === 'text'" class="message-text">
+                {{ message.content }}
               </div>
-              <div *ngSwitchCase="'file'">
-                <a [href]="message.fileUrl" target="_blank" class="message-file">
+
+              <!-- Emoji -->
+              <div *ngIf="message.type === 'emoji'" class="message-emoji">
+                {{ message.emoji }}
+              </div>
+
+              <!-- Image -->
+              <div *ngIf="message.type === 'image'" class="message-image">
+                <ng-container *ngIf="message.fileUrl; else noImage">
+                  <img 
+                    [src]="message.fileUrl" 
+                    alt="Image" 
+                    (click)="openImage(message.fileUrl)"
+                    (error)="message.fileUrl = undefined">
+                </ng-container>
+                <ng-template #noImage>
+                  <div class="image-error">
+                    <mat-icon>broken_image</mat-icon>
+                    <span>Image non disponible</span>
+                  </div>
+                </ng-template>
+              </div>
+
+              <!-- Fichier -->
+              <div *ngIf="message.type === 'file'" class="message-file">
+                <a [href]="message.fileUrl" target="_blank">
                   <mat-icon>attach_file</mat-icon>
-                  {{ message.fileName }}
+                  <span>{{ message.fileName }}</span>
                 </a>
               </div>
-              <div *ngSwitchCase="'voice'">
-                <audio controls [src]="message.fileUrl"></audio>
+
+              <!-- Transfert d'argent -->
+              <div *ngIf="message.type === 'money'" class="message-money">
+                <mat-icon>attach_money</mat-icon>
+                <div class="money-details">
+                  <span class="money-amount">{{ message.moneyTransfer?.amount | number }} Ar</span>
+                  <span class="money-status" [class.completed]="message.moneyTransfer?.status === 'completed'">
+                    {{ message.moneyTransfer?.status }}
+                  </span>
+                </div>
               </div>
-            </ng-container>
-            <div class="message-time">{{ message.createdAt | date:'HH:mm' }}</div>
+
+              <div class="message-meta">
+                <span class="message-time">{{ formatMessageTime(message.createdAt) }}</span>
+                <mat-icon *ngIf="message.senderId === currentUserId" class="message-status">
+                  {{ message.isRead ? 'done_all' : 'done' }}
+                </mat-icon>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="message-input">
-        <button mat-icon-button (click)="sendFile()">
-          <mat-icon>attach_file</mat-icon>
-        </button>
-        <button mat-icon-button (click)="emojiPickerVisible = !emojiPickerVisible">
+      <!-- Zone de saisie -->
+      <div class="message-input-area">
+        <button mat-icon-button (click)="showEmojiPicker = !showEmojiPicker">
           <mat-icon>emoji_emotions</mat-icon>
         </button>
-        
-        <mat-form-field appearance="outline" class="message-field">
-          <input matInput [formControl]="newMessage" 
-                 placeholder="Écrivez votre message..."
-                 (keyup.enter)="sendMessage()"
-                 (input)="onTyping()">
+
+        <button mat-icon-button (click)="uploadFile()">
+          <mat-icon>attach_file</mat-icon>
+        </button>
+
+        <mat-form-field appearance="outline" class="message-input">
+          <input 
+            matInput 
+            [(ngModel)]="newMessage" 
+            (keyup.enter)="sendMessage()"
+            (input)="onTyping()"
+            placeholder="Écrivez votre message...">
         </mat-form-field>
 
-        <button mat-mini-fab color="primary" (click)="sendMessage()">
+        <button 
+          mat-mini-fab 
+          color="primary" 
+          (click)="sendMessage()"
+          [disabled]="!newMessage.trim() || isSending">
           <mat-icon>send</mat-icon>
         </button>
+
+        <!-- Picker d'émojis simple -->
+        <div class="emoji-picker" *ngIf="showEmojiPicker">
+          <button mat-mini-fab (click)="sendEmoji('😊')">😊</button>
+          <button mat-mini-fab (click)="sendEmoji('😂')">😂</button>
+          <button mat-mini-fab (click)="sendEmoji('❤️')">❤️</button>
+          <button mat-mini-fab (click)="sendEmoji('👍')">👍</button>
+          <button mat-mini-fab (click)="sendEmoji('🎉')">🎉</button>
+          <button mat-mini-fab (click)="sendEmoji('🔥')">🔥</button>
+        </div>
       </div>
 
-      <!-- Simple emoji picker -->
-      <div class="emoji-picker" *ngIf="emojiPickerVisible">
-        <button mat-mini-fab (click)="sendEmoji('😊')">😊</button>
-        <button mat-mini-fab (click)="sendEmoji('😂')">😂</button>
-        <button mat-mini-fab (click)="sendEmoji('❤️')">❤️</button>
-        <button mat-mini-fab (click)="sendEmoji('👍')">👍</button>
-        <button mat-mini-fab (click)="sendEmoji('🎉')">🎉</button>
-      </div>
+      <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)">
     </div>
 
     <ng-template #noChat>
       <div class="no-chat-selected">
         <mat-icon>chat</mat-icon>
-        <h3>Sélectionnez une conversation</h3>
-        <p>Choisissez un contact pour commencer à discuter</p>
+        <h3>Messages</h3>
+        <p>Sélectionnez une conversation pour commencer à discuter</p>
+        <button mat-raised-button color="primary" routerLink="/friends">
+          <mat-icon>person_add</mat-icon>
+          Trouver des amis
+        </button>
       </div>
     </ng-template>
   </div>
 </div>
-
-<!-- Modal pour les appels -->
-<div class="call-overlay" *ngIf="isCallActive">
-  <div class="videos-container">
-    <div class="remote-video">
-      <div class="video-placeholder">
-        <mat-icon>videocam</mat-icon>
-        <p>Appel {{ callType === 'video' ? 'vidéo' : 'audio' }} en cours...</p>
-      </div>
-    </div>
-    <div class="local-video">
-      <div class="video-placeholder small">
-        <mat-icon>videocam</mat-icon>
-      </div>
-    </div>
-  </div>
-  <div class="call-controls">
-    <button mat-fab color="warn" class="end-call" (click)="endCall()">
-      <mat-icon>call_end</mat-icon>
-    </button>
-  </div>
-</div>
-
-<input type="file" #fileInput style="display: none" (change)="onFileSelected($event)">

@@ -12,6 +12,7 @@ import { MobileMoneyComponent } from './components/mobile-money/mobile-money.com
 import { FriendsComponent } from './components/friends/friends.component';
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
+import { UserSettingsComponent } from './components/user/settings/settings.component';
 
 export const routes: Routes = [
   // Routes publiques
@@ -58,6 +59,8 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin/settings/settings.component').then(m => m.AdminSettingsComponent),
     canActivate: [AdminGuard]
   },
+
+  { path: 'user/settings', component: UserSettingsComponent, canActivate: [AuthGuard] },
 
   // Redirection pour les routes non trouvées
   { path: '**', redirectTo: '/login' }

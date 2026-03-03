@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
@@ -17,217 +17,247 @@ export interface Message {
   fileSize?: number;
   emoji?: string;
   isRead: boolean;
+  isDelivered: boolean;
   createdAt: Date;
   moneyTransfer?: {
     amount: number;
-    status: string;
+    status: 'pending' | 'completed' | 'failed';
+    transactionId?: string;
+  };
+  sender?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profilePicture?: string;
   };
 }
 
 export interface Conversation {
   userId: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   profilePicture?: string;
   lastMessage: Message;
   lastMessageTime: Date;
   unreadCount: number;
-  online: boolean;
+  isOnline: boolean;
+  lastSeen?: Date;
 }
 
-export interface ChatUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  profilePicture?: string;
+export interface TypingIndicator {
+  userId: string;
+  isTyping: boolean;
+}
+
+export interface CallSignal {
+  type: 'video' | 'audio';
+  signal: any;
+  callerId: string;
+  callerName: string;
 }
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-export class ChatService {
+export class ChatService implements OnDestroy {
   private socket: Socket | null = null;
-  private apiUrl = environment.apiUrl;
-  private socketUrl = environment.socketUrl || environment.apiUrl; // Fallback à apiUrl si socketUrl n'existe pas
+  private apiUrl = `${environment.apiUrl}/chat`;
+  private socketUrl = environment.socketUrl || environment.apiUrl;
+  
+  // Observables
+  private newMessageSubject = new BehaviorSubject<Message | null>(null);
+  private typingSubject = new BehaviorSubject<TypingIndicator | null>(null);
+  private onlineStatusSubject = new BehaviorSubject<{ userId: string; isOnline: boolean; lastSeen?: Date } | null>(null);
+  private callSignalSubject = new BehaviorSubject<CallSignal | null>(null);
+  
+  public newMessage$ = this.newMessageSubject.asObservable();
+  public typing$ = this.typingSubject.asObservable();
+  public onlineStatus$ = this.onlineStatusSubject.asObservable();
+  public callSignal$ = this.callSignalSubject.asObservable();
+
+  private currentUserId: string = '';
 
   constructor(
-    private http: HttpClient, 
+    private http: HttpClient,
     private authService: AuthService,
     private notificationService: NotificationService
   ) {
+    const user = this.authService.getCurrentUser();
+    this.currentUserId = user?.id || '';
     this.connectSocket();
   }
 
+  ngOnDestroy() {
+    this.disconnect();
+  }
+
+  /**
+   * Connexion au socket
+   */
   private connectSocket(): void {
     const token = this.authService.getToken();
     
-    if (token) {
-      try {
-        this.socket = io(this.socketUrl, {
-          auth: { token },
-          transports: ['websocket'],
-          reconnection: true,
-          reconnectionAttempts: 5
-        });
+    if (!token) return;
 
-        this.socket.on('connect', () => {
-          console.log('Socket connected');
-        });
+    try {
+      this.socket = io(this.socketUrl, {
+        auth: { token },
+        transports: ['websocket'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+      });
 
-        this.socket.on('connect_error', (error) => {
-          console.error('Socket connection error:', error);
-        });
+      this.socket.on('connect', () => {
+        console.log('Socket connecté');
+      });
 
-        this.socket.on('disconnect', () => {
-          console.log('Socket disconnected');
-        });
-      } catch (error) {
-        console.error('Failed to connect socket:', error);
-      }
+      this.socket.on('newMessage', (message: Message) => {
+        this.newMessageSubject.next(message);
+        this.playNotificationSound();
+        
+        if (document.hidden) {
+          this.showBrowserNotification(message);
+        }
+      });
+
+      this.socket.on('typing', (data: TypingIndicator) => {
+        this.typingSubject.next(data);
+      });
+
+      this.socket.on('userStatus', (data: { userId: string; isOnline: boolean; lastSeen?: Date }) => {
+        this.onlineStatusSubject.next(data);
+      });
+
+      this.socket.on('callSignal', (data: CallSignal) => {
+        this.callSignalSubject.next(data);
+      });
+
+    } catch (error) {
+      console.error('Erreur de connexion socket:', error);
     }
   }
 
-  // Socket events
-  onNewMessage(): Observable<Message> {
-    return new Observable(observer => {
-      if (this.socket) {
-        this.socket.on('newMessage', (message: Message) => {
-          observer.next(message);
-        });
-      }
-    });
+  /**
+   * Récupérer les conversations
+   */
+  getConversations(): Observable<Conversation[]> {
+    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`);
   }
 
-  onMessageSent(): Observable<Message> {
-    return new Observable(observer => {
-      if (this.socket) {
-        this.socket.on('messageSent', (message: Message) => {
-          observer.next(message);
-        });
-      }
-    });
+  /**
+   * Récupérer les messages avec un utilisateur
+   */
+  getMessages(userId: string): Observable<Message[]> {
+    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`);
   }
 
-  onUserTyping(): Observable<{ userId: string; isTyping: boolean }> {
-    return new Observable(observer => {
-      if (this.socket) {
-        this.socket.on('userTyping', (data) => {
-          observer.next(data);
-        });
-      }
-    });
-  }
-
-  onUserOnline(): Observable<{ userId: string; online: boolean }> {
-    return new Observable(observer => {
-      if (this.socket) {
-        this.socket.on('userOnline', (data) => {
-          observer.next(data);
-        });
-      }
-    });
-  }
-
-  onIncomingCall(): Observable<{ callerId: string; type: 'video' | 'audio'; signal: any }> {
-    return new Observable(observer => {
-      if (this.socket) {
-        this.socket.on('incomingCall', (data) => {
-          observer.next(data);
-        });
-      }
-    });
-  }
-
-  onCallAccepted(): Observable<{ signal: any }> {
-    return new Observable(observer => {
-      if (this.socket) {
-        this.socket.on('callAccepted', (data) => {
-          observer.next(data);
-        });
-      }
-    });
-  }
-
-  onIceCandidate(): Observable<{ candidate: any }> {
-    return new Observable(observer => {
-      if (this.socket) {
-        this.socket.on('iceCandidate', (data) => {
-          observer.next(data);
-        });
-      }
-    });
-  }
-
-  onCallFailed(): Observable<{ message: string }> {
-    return new Observable(observer => {
-      if (this.socket) {
-        this.socket.on('callFailed', (data) => {
-          observer.next(data);
-        });
-      }
-    });
-  }
-
-  // Emit events
-  sendMessage(message: { receiverId: string; type: string; content?: string; fileUrl?: string; fileName?: string; fileSize?: number; emoji?: string }): void {
+  /**
+   * Envoyer un message
+   */
+  sendMessage(message: {
+    receiverId: string;
+    type: 'text' | 'image' | 'file' | 'voice' | 'emoji' | 'money';
+    content?: string;
+    fileUrl?: string;
+    fileName?: string;
+    fileSize?: number;
+    emoji?: string;
+    moneyTransfer?: {
+      amount: number;
+    };
+  }): void {
     if (this.socket) {
       this.socket.emit('sendMessage', message);
     } else {
-      console.warn('Socket not connected, message not sent');
+      // Fallback HTTP si socket non connecté
+      this.http.post(`${this.apiUrl}/send`, message).subscribe();
     }
   }
 
+  /**
+   * Envoyer un indicateur de frappe
+   */
   sendTyping(receiverId: string, isTyping: boolean): void {
     if (this.socket) {
       this.socket.emit('typing', { receiverId, isTyping });
     }
   }
 
+  /**
+   * Marquer les messages comme lus
+   */
+  markAsRead(senderId: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {});
+  }
+
+  /**
+   * Uploader un fichier
+   */
+  uploadFile(file: File): Observable<{ url: string; fileName: string; fileSize: number }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    return this.http.post<{ url: string; fileName: string; fileSize: number }>(
+      `${this.apiUrl}/upload`,
+      formData
+    );
+  }
+
+  /**
+   * Démarrer un appel
+   */
   startCall(receiverId: string, type: 'video' | 'audio'): void {
     if (this.socket) {
       this.socket.emit('startCall', { receiverId, type });
     }
   }
 
-  acceptCall(callerId: string, signal: any): void {
-    if (this.socket) {
-      this.socket.emit('acceptCall', { callerId, signal });
+  /**
+   * Rechercher des utilisateurs
+   */
+  searchUsers(query: string): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/users/search?q=${query}`);
+  }
+
+  /**
+   * Jouer un son de notification
+   */
+  private playNotificationSound(): void {
+    try {
+      const audio = new Audio('/assets/sounds/notification.mp3');
+      audio.play().catch(() => {});
+    } catch (error) {}
+  }
+
+  /**
+   * Afficher une notification du navigateur
+   */
+  private showBrowserNotification(message: Message): void {
+    if (!('Notification' in window)) return;
+
+    if (Notification.permission === 'granted') {
+      new Notification('Nouveau message', {
+        body: message.content || 'Vous avez reçu un message',
+        icon: '/assets/icons/icon-72x72.png'
+      });
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission();
     }
   }
 
-  sendIceCandidate(userId: string, candidate: any): void {
-    if (this.socket) {
-      this.socket.emit('iceCandidate', { userId, candidate });
+  /**
+   * Demander la permission de notification
+   */
+  requestNotificationPermission(): void {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
     }
   }
 
-  // HTTP requests
-  getConversations(): Observable<Conversation[]> {
-    return this.http.get<Conversation[]>(`${this.apiUrl}/chat/conversations`);
-  }
-
-  getMessages(userId: string): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/chat/messages/${userId}`);
-  }
-
-  uploadFile(file: File): Observable<{ url: string; fileName: string; fileSize: number }> {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    return this.http.post<{ url: string; fileName: string; fileSize: number }>(
-      `${this.apiUrl}/chat/upload`, 
-      formData
-    );
-  }
-
-  searchUsers(query: string): Observable<ChatUser[]> {
-    return this.http.get<ChatUser[]>(`${this.apiUrl}/users/search?q=${query}`);
-  }
-
-  markAsRead(senderId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/chat/read/${senderId}`, {});
-  }
-
+  /**
+   * Déconnecter le socket
+   */
   disconnect(): void {
     if (this.socket) {
       this.socket.disconnect();

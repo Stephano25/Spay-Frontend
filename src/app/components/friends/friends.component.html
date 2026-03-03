@@ -1,100 +1,228 @@
 <div class="friends-container">
+  <!-- Header -->
   <mat-toolbar color="primary">
-    <button mat-icon-button routerLink="/dashboard">
+    <button mat-icon-button routerLink="/user">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <span>Mes Amis</span>
     <span class="spacer"></span>
-    <button mat-icon-button (click)="showAddFriend = !showAddFriend">
+    <button mat-icon-button (click)="showAddFriend = !showAddFriend" matTooltip="Ajouter un ami">
       <mat-icon>person_add</mat-icon>
     </button>
   </mat-toolbar>
 
   <div class="friends-content">
+    <!-- Loading spinner -->
+    <div class="loading-container" *ngIf="isLoading">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Chargement de vos amis...</p>
+    </div>
+
     <!-- Formulaire d'ajout d'ami -->
     <mat-card *ngIf="showAddFriend" class="add-friend-card">
       <mat-card-header>
-        <mat-card-title>Ajouter un ami</mat-card-title>
+        <mat-card-title>
+          <mat-icon>person_add</mat-icon>
+          Ajouter un ami
+        </mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <div class="add-methods">
-          <button mat-raised-button color="primary" (click)="scanQRCode()">
-            <mat-icon>qr_code_scanner</mat-icon>
-            Scanner QR Code
-          </button>
-          <div class="or-divider">ou</div>
+        <div class="search-section">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email ou téléphone</mat-label>
-            <input matInput [(ngModel)]="newFriendContact" placeholder="ami@email.com ou 0341234567">
+            <mat-label>Rechercher par email ou téléphone</mat-label>
+            <input 
+              matInput 
+              [(ngModel)]="searchQuery" 
+              (ngModelChange)="onSearch()"
+              placeholder="exemple@email.com ou 0341234567">
+            <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
-          <button mat-raised-button color="accent" (click)="addFriend()" [disabled]="!newFriendContact">
-            <mat-icon>send</mat-icon>
-            Envoyer une invitation
-          </button>
+
+          <div class="search-results" *ngIf="searchResults.length > 0">
+            <h4>Résultats de la recherche</h4>
+            <mat-list>
+              <mat-list-item *ngFor="let user of searchResults">
+                <div class="search-item">
+                  <div class="user-avatar" [style.background]="getAvatarColor(user.firstName)">
+                    {{ getInitials(user.firstName, user.lastName) }}
+                  </div>
+                  <div class="user-info">
+                    <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+                    <div class="user-email">{{ user.email }}</div>
+                  </div>
+                  <div class="user-action">
+                    <ng-container [ngSwitch]="true">
+                      <button 
+                        *ngSwitchCase="user.isFriend" 
+                        mat-stroked-button 
+                        disabled>
+                        <mat-icon>check</mat-icon>
+                        Déjà ami
+                      </button>
+                      <button 
+                        *ngSwitchCase="user.hasPendingRequest" 
+                        mat-stroked-button 
+                        disabled>
+                        <mat-icon>hourglass_empty</mat-icon>
+                        Demande envoyée
+                      </button>
+                      <button 
+                        *ngSwitchDefault 
+                        mat-raised-button 
+                        color="primary"
+                        (click)="sendFriendRequest(user.id)">
+                        <mat-icon>person_add</mat-icon>
+                        Ajouter
+                      </button>
+                    </ng-container>
+                  </div>
+                </div>
+              </mat-list-item>
+            </mat-list>
+          </div>
+
+          <div class="suggestions" *ngIf="suggestions.length > 0 && !searchQuery">
+            <h4>Suggestions</h4>
+            <mat-list>
+              <mat-list-item *ngFor="let user of suggestions">
+                <div class="search-item">
+                  <div class="user-avatar" [style.background]="getAvatarColor(user.firstName)">
+                    {{ getInitials(user.firstName, user.lastName) }}
+                  </div>
+                  <div class="user-info">
+                    <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+                    <div class="user-email">{{ user.email }}</div>
+                  </div>
+                  <div class="user-action">
+                    <button 
+                      mat-raised-button 
+                      color="primary"
+                      (click)="sendFriendRequest(user.id)">
+                      <mat-icon>person_add</mat-icon>
+                      Ajouter
+                    </button>
+                  </div>
+                </div>
+              </mat-list-item>
+            </mat-list>
+          </div>
         </div>
       </mat-card-content>
     </mat-card>
 
-    <!-- Liste des amis -->
-    <mat-tab-group>
-      <mat-tab label="Mes amis ({{friends.length}})">
-        <mat-list class="friends-list">
-          <mat-list-item *ngFor="let friend of friends" class="friend-item">
-            <div class="friend-content">
-              <div class="friend-avatar" [style.background]="friend.color">
-                {{ friend.name.charAt(0) }}
-              </div>
-              <div class="friend-info">
-                <div class="friend-name">{{ friend.name }}</div>
-                <div class="friend-email">{{ friend.email }}</div>
-              </div>
-              <div class="friend-actions">
-                <button mat-icon-button [matMenuTriggerFor]="friendMenu">
-                  <mat-icon>more_vert</mat-icon>
-                </button>
-                <mat-menu #friendMenu="matMenu">
-                  <button mat-menu-item (click)="sendMoney(friend)">
-                    <mat-icon>attach_money</mat-icon>
-                    <span>Envoyer de l'argent</span>
-                  </button>
-                  <button mat-menu-item (click)="startChat(friend)">
+    <!-- Onglets -->
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="friends-tabs">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>people</mat-icon>
+          Mes amis
+          <span class="tab-badge" *ngIf="friends.length > 0">{{ friends.length }}</span>
+        </ng-template>
+        
+        <div class="tab-content">
+          <mat-list class="friends-list">
+            <mat-list-item *ngFor="let friend of friends" class="friend-item">
+              <div class="friend-content">
+                <div class="friend-avatar" [style.background]="getAvatarColor(friend.friend?.firstName || '')">
+                  {{ getInitials(friend.friend?.firstName || '', friend.friend?.lastName || '') }}
+                  <span class="online-indicator" [class.online]="friend.friend?.isOnline"></span>
+                </div>
+                <div class="friend-info">
+                  <div class="friend-name">
+                    {{ friend.friend?.firstName }} {{ friend.friend?.lastName }}
+                    <span class="friend-status" *ngIf="!friend.friend?.isOnline">
+                      • {{ formatLastSeen(friend.friend?.lastSeen) }}
+                    </span>
+                  </div>
+                  <div class="friend-email">{{ friend.friend?.email }}</div>
+                  <div class="friend-phone">{{ friend.friend?.phoneNumber }}</div>
+                </div>
+                <div class="friend-actions">
+                  <button mat-icon-button (click)="chatWithFriend(friend.friend?.id || '')" matTooltip="Discuter">
                     <mat-icon>chat</mat-icon>
-                    <span>Discuter</span>
                   </button>
-                  <button mat-menu-item (click)="removeFriend(friend)">
-                    <mat-icon color="warn">delete</mat-icon>
-                    <span>Supprimer</span>
+                  <button mat-icon-button (click)="sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')" matTooltip="Envoyer de l'argent">
+                    <mat-icon>attach_money</mat-icon>
                   </button>
-                </mat-menu>
+                  <button mat-icon-button [matMenuTriggerFor]="friendMenu" matTooltip="Plus d'options">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #friendMenu="matMenu">
+                    <button mat-menu-item (click)="viewFriendProfile(friend.friend?.id || '')">
+                      <mat-icon>person</mat-icon>
+                      <span>Voir le profil</span>
+                    </button>
+                    <button mat-menu-item (click)="chatWithFriend(friend.friend?.id || '')">
+                      <mat-icon>chat</mat-icon>
+                      <span>Discuter</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')">
+                      <mat-icon>attach_money</mat-icon>
+                      <span>Envoyer de l'argent</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="removeFriend(friend.id)" color="warn">
+                      <mat-icon color="warn">delete</mat-icon>
+                      <span>Supprimer</span>
+                    </button>
+                  </mat-menu>
+                </div>
               </div>
+            </mat-list-item>
+
+            <div *ngIf="friends.length === 0" class="empty-state">
+              <mat-icon>people_outline</mat-icon>
+              <h3>Aucun ami pour le moment</h3>
+              <p>Commencez par ajouter des amis en utilisant le bouton +</p>
+              <button mat-raised-button color="primary" (click)="showAddFriend = true">
+                <mat-icon>person_add</mat-icon>
+                Ajouter un ami
+              </button>
             </div>
-          </mat-list-item>
-        </mat-list>
+          </mat-list>
+        </div>
       </mat-tab>
 
-      <mat-tab label="Invitations en attente ({{pendingInvitations.length}})">
-        <mat-list class="friends-list">
-          <mat-list-item *ngFor="let invite of pendingInvitations" class="friend-item">
-            <div class="friend-content">
-              <div class="friend-avatar" [style.background]="'#ff9800'">
-                {{ invite.name.charAt(0) }}
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>notifications</mat-icon>
+          Demandes
+          <span class="tab-badge warning" *ngIf="friendRequests.length > 0">{{ friendRequests.length }}</span>
+        </ng-template>
+        
+        <div class="tab-content">
+          <mat-list class="requests-list">
+            <mat-list-item *ngFor="let request of friendRequests" class="request-item">
+              <div class="request-content">
+                <div class="request-avatar" [style.background]="getAvatarColor(request.sender?.firstName || '')">
+                  {{ getInitials(request.sender?.firstName || '', request.sender?.lastName || '') }}
+                </div>
+                <div class="request-info">
+                  <div class="request-name">{{ request.sender?.firstName }} {{ request.sender?.lastName }}</div>
+                  <div class="request-email">{{ request.sender?.email }}</div>
+                  <div class="request-date">Demande reçue le {{ request.createdAt | date:'dd/MM/yyyy' }}</div>
+                </div>
+                <div class="request-actions">
+                  <button mat-raised-button color="primary" (click)="acceptRequest(request.id)">
+                    <mat-icon>check</mat-icon>
+                    Accepter
+                  </button>
+                  <button mat-stroked-button (click)="declineRequest(request.id)">
+                    <mat-icon>close</mat-icon>
+                    Refuser
+                  </button>
+                </div>
               </div>
-              <div class="friend-info">
-                <div class="friend-name">{{ invite.name }}</div>
-                <div class="friend-email">{{ invite.email }}</div>
-              </div>
-              <div class="friend-actions">
-                <button mat-raised-button color="primary" (click)="acceptInvitation(invite)">
-                  <mat-icon>check</mat-icon>
-                  Accepter
-                </button>
-                <button mat-icon-button color="warn" (click)="declineInvitation(invite)">
-                  <mat-icon>close</mat-icon>
-                </button>
-              </div>
+            </mat-list-item>
+
+            <div *ngIf="friendRequests.length === 0" class="empty-state">
+              <mat-icon>notifications_none</mat-icon>
+              <h3>Aucune demande en attente</h3>
+              <p>Vous n'avez pas de demande d'ami pour le moment</p>
             </div>
-          </mat-list-item>
-        </mat-list>
+          </mat-list>
+        </div>
       </mat-tab>
     </mat-tab-group>
   </div>

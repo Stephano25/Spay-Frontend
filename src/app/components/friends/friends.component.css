@@ -13,96 +13,258 @@
   padding: 0 20px;
 }
 
-.add-friend-card {
-  margin-bottom: 20px;
-}
-
-.add-methods {
+.loading-container {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  padding: 10px 0;
-}
-
-.or-divider {
-  text-align: center;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 20px;
   color: #666;
-  font-size: 14px;
-  position: relative;
 }
 
-.or-divider::before,
-.or-divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 45%;
-  height: 1px;
-  background: #e0e0e0;
+.add-friend-card {
+  margin-bottom: 24px;
+  border-radius: 16px;
 }
 
-.or-divider::before {
-  left: 0;
+.add-friend-card mat-card-header {
+  padding: 16px 16px 0;
 }
 
-.or-divider::after {
-  right: 0;
+.add-friend-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
 }
 
 .full-width {
   width: 100%;
 }
 
-.friends-list {
-  background: white;
-  border-radius: 8px;
-  margin-top: 10px;
+.search-section {
+  margin-top: 16px;
 }
 
-.friend-item {
-  height: auto !important;
-  border-bottom: 1px solid #f0f0f0;
+.search-results, .suggestions {
+  margin-top: 20px;
 }
 
-.friend-item:last-child {
-  border-bottom: none;
+.search-results h4, .suggestions h4 {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 12px;
 }
 
-.friend-content {
+.search-item {
   display: flex;
   align-items: center;
   gap: 15px;
   width: 100%;
-  padding: 10px 0;
+  padding: 8px 0;
 }
 
-.friend-avatar {
-  width: 50px;
-  height: 50px;
+.user-avatar {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 20px;
   font-weight: bold;
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
-.friend-info {
+.user-info {
   flex: 1;
 }
 
-.friend-name {
+.user-name {
   font-weight: 500;
-  font-size: 16px;
+  color: #333;
+  margin-bottom: 4px;
 }
 
-.friend-email {
+.user-email {
   font-size: 12px;
   color: #666;
 }
 
+.user-action button {
+  white-space: nowrap;
+}
+
+.friends-tabs {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.tab-badge {
+  background: #667eea;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  margin-left: 8px;
+}
+
+.tab-badge.warning {
+  background: #ff9800;
+}
+
+.tab-content {
+  padding: 16px;
+}
+
+.friends-list, .requests-list {
+  background: transparent;
+}
+
+.friend-item, .request-item {
+  height: auto !important;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.friend-content, .request-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+}
+
+.friend-avatar, .request-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.online-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ccc;
+  border: 2px solid white;
+}
+
+.online-indicator.online {
+  background: #4caf50;
+}
+
+.friend-info, .request-info {
+  flex: 1;
+}
+
+.friend-name, .request-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.friend-status {
+  font-size: 12px;
+  color: #999;
+  font-weight: normal;
+}
+
+.friend-email, .request-email {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.friend-phone {
+  font-size: 12px;
+  color: #999;
+}
+
+.request-date {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+
 .friend-actions {
   display: flex;
-  gap: 5px;
+  gap: 4px;
+}
+
+.request-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.request-actions button {
+  white-space: nowrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: #999;
+}
+
+.empty-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: #ddd;
+}
+
+.empty-state h3 {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+  .friend-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .friend-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .request-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .request-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .request-actions button {
+    flex: 1;
+  }
 }

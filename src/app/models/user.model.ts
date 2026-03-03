@@ -12,7 +12,7 @@ export interface User {
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;
-  permissions?: string[]; // Pour les admins
+  bio?: string;
 }
 
 export interface LoginResponse {
@@ -20,10 +20,10 @@ export interface LoginResponse {
   token: string;
 }
 
-export interface RegisterData {
-  email: string;
-  password: string;
+export interface RegisterData { // Bien exporté
   firstName: string;
   lastName: string;
+  email: string;
+  password: string;
   phoneNumber?: string;
 }

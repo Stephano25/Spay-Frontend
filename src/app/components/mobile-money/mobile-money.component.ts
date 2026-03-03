@@ -38,8 +38,8 @@ import { MatDividerModule } from '@angular/material/divider'; // AJOUTER CET IMP
 export class MobileMoneyComponent {
   mobileMoneyForm: FormGroup;
   operators = [
-    { id: 'airtel', name: 'Airtel Money', icon: 'phone_android', color: '#e60000', code: '032', prefix: '032' },
-    { id: 'orange', name: 'Orange Money', icon: 'phone_android', color: '#ff7900', code: '034', prefix: '034' },
+    { id: 'airtel', name: 'Airtel Money', icon: 'phone_android', color: '#e60000', code: '033', prefix: '033' },
+    { id: 'orange', name: 'Orange Money', icon: 'phone_android', color: '#ff7900', code: '032', prefix: '032' },
     { id: 'mvola', name: 'MVola', icon: 'phone_android', color: '#e91e63', code: '034', prefix: '034' }
   ];
   selectedOperator: any = null;

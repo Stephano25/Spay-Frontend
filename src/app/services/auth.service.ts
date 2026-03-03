@@ -4,35 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
-
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  profilePicture?: string;
-  balance: number;
-  qrCode: string;
-  friends: string[];
-  role: 'user' | 'admin' | 'super_admin';
-  isActive: boolean;
-  createdAt: Date;
-  lastLogin?: Date;
-}
-
-export interface LoginResponse {
-  user: User;
-  token: string;
-}
-
-export interface RegisterData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  phoneNumber?: string;
-}
+import { User, LoginResponse } from '../models/user.model'; // Retirer RegisterData d'ici
 
 @Injectable({
   providedIn: 'root',
@@ -56,7 +28,8 @@ export class AuthService {
     isActive: true,
     createdAt: new Date('2026-01-01'),
     lastLogin: new Date(),
-    profilePicture: 'assets/admin-avatar.png'
+    profilePicture: 'assets/admin-avatar.png',
+    bio: 'Administrateur du système'
   };
 
   private readonly DEFAULT_ADMIN_PASSWORD = 'spaye@2026';
@@ -77,7 +50,6 @@ export class AuthService {
       try {
         const user = JSON.parse(savedUser);
         
-        // Vérifier si l'utilisateur a des données valides
         if (!user || !user.id || user.balance === undefined) {
           console.log('Utilisateur invalide, déconnexion');
           this.logout();
@@ -93,7 +65,6 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    // Admin par défaut
     if (email === this.DEFAULT_ADMIN.email && password === this.DEFAULT_ADMIN_PASSWORD) {
       const response: LoginResponse = {
         user: this.DEFAULT_ADMIN,
@@ -115,7 +86,6 @@ export class AuthService {
       });
     }
 
-    // Appel API normal
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         localStorage.setItem('token', response.token);
@@ -138,8 +108,7 @@ export class AuthService {
     );
   }
 
-  register(userData: RegisterData): Observable<LoginResponse> {
-    // Simulation pour le développement
+  register(userData: any): Observable<LoginResponse> {
     const mockUser: User = {
       id: 'user_' + Date.now(),
       email: userData.email,
@@ -151,7 +120,8 @@ export class AuthService {
       friends: [],
       role: 'user',
       isActive: true,
-      createdAt: new Date()
+      createdAt: new Date(),
+      bio: ''
     };
 
     const mockResponse: LoginResponse = {
@@ -174,18 +144,46 @@ export class AuthService {
     });
   }
 
+  /**
+   * Mettre à jour le profil utilisateur
+   */
+  updateProfile(userData: Partial<User>): Observable<User> {
+    const currentUser = this.currentUserSubject.value;
+    if (!currentUser) {
+      return throwError(() => new Error('Utilisateur non connecté'));
+    }
+
+    // Simuler une mise à jour (à remplacer par un appel API réel)
+    const updatedUser = { ...currentUser, ...userData };
+    
+    return new Observable(observer => {
+      setTimeout(() => {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        this.currentUserSubject.next(updatedUser);
+        observer.next(updatedUser);
+        observer.complete();
+      }, 500);
+    });
+  }
+
+  /**
+   * Changer le mot de passe
+   */
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    return new Observable(observer => {
+      setTimeout(() => {
+        this.notificationService.showSuccess('Mot de passe modifié avec succès');
+        observer.next({ success: true });
+        observer.complete();
+      }, 500);
+    });
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     this.currentUserSubject.next(null);
     this.notificationService.showInfo('Vous êtes déconnecté');
-    this.router.navigate(['/login']);
-  }
-
-  forceLogout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
