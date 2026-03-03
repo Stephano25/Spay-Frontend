@@ -47,13 +47,11 @@ export class LoginComponent {
         this.loginForm.value.email,
         this.loginForm.value.password
       ).subscribe({
-        next: () => this.router.navigate(['/dashboard']),
+        next: () => {
+          // La redirection est gérée dans le service
+        },
         error: (err) => alert('Erreur de connexion: ' + err.message)
       });
     }
-  }
-
-  googleLogin() {
-    this.authService.googleLogin();
   }
 }

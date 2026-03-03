@@ -3,18 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { NotificationService } from './notification.service';
-
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  profilePicture?: string;
-  balance: number;
-  qrCode: string;
-  friends: string[];
-}
+import { environment } from '../../environments/environment';
+import { User } from '../models/user.model';
 
 export interface LoginResponse {
   user: User;
@@ -25,7 +15,7 @@ export interface LoginResponse {
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/auth';
+  private apiUrl = `${environment.apiUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser = this.currentUserSubject.asObservable();
 
@@ -45,9 +35,6 @@ export class AuthService {
       try {
         const user = JSON.parse(savedUser);
         this.currentUserSubject.next(user);
-        this.validateToken().subscribe({
-          error: () => this.logout()
-        });
       } catch (e) {
         this.logout();
       }
@@ -60,7 +47,14 @@ export class AuthService {
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-        this.notificationService.showSuccess('Connexion réussie !');
+        
+        if (response.user.role === 'admin') {
+          this.router.navigate(['/admin']);
+          this.notificationService.showSuccess('Bienvenue administrateur !');
+        } else {
+          this.router.navigate(['/user']);
+          this.notificationService.showSuccess('Connexion réussie !');
+        }
       }),
       catchError(error => {
         this.notificationService.showError(error.error?.message || 'Erreur de connexion');
@@ -76,6 +70,7 @@ export class AuthService {
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
         this.notificationService.showSuccess('Inscription réussie !');
+        this.router.navigate(['/user']);
       }),
       catchError(error => {
         this.notificationService.showError(error.error?.message || "Erreur d'inscription");
@@ -84,9 +79,10 @@ export class AuthService {
     );
   }
 
-  googleLogin(): void {
-    window.location.href = `${this.apiUrl}/google`;
-  }
+  // Supprimer googleLogin() ou le commenter si non utilisé
+  // googleLogin(): void {
+  //   window.location.href = `${this.apiUrl}/google`;
+  // }
 
   logout(): void {
     localStorage.removeItem('token');
@@ -104,8 +100,18 @@ export class AuthService {
     return !!this.getToken();
   }
 
-  private validateToken(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/validate`);
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.value;
+  }
+
+  isAdmin(): boolean {
+    const user = this.currentUserSubject.value;
+    return user?.role === 'admin';
+  }
+
+  isUser(): boolean {
+    const user = this.currentUserSubject.value;
+    return user?.role === 'user';
   }
 
   updateProfile(userData: Partial<User>): Observable<User> {
@@ -117,27 +123,6 @@ export class AuthService {
       }),
       catchError(error => {
         this.notificationService.showError('Erreur lors de la mise à jour');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  uploadProfilePicture(file: File): Observable<{ profilePicture: string }> {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    return this.http.post<{ profilePicture: string }>(`${this.apiUrl}/profile/picture`, formData).pipe(
-      tap(response => {
-        const currentUser = this.currentUserSubject.value;
-        if (currentUser) {
-          currentUser.profilePicture = response.profilePicture;
-          localStorage.setItem('user', JSON.stringify(currentUser));
-          this.currentUserSubject.next(currentUser);
-        }
-        this.notificationService.showSuccess('Photo de profil mise à jour');
-      }),
-      catchError(error => {
-        this.notificationService.showError("Erreur lors de l'upload");
         return throwError(() => error);
       })
     );
