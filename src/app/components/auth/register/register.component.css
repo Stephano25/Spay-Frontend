@@ -80,8 +80,14 @@ mat-card-subtitle {
 }
 
 .terms {
-  margin: 25px 0;
-  font-size: 14px;
+  margin: 25px 0 20px;
+}
+
+.terms-error {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
 }
 
 .terms a {

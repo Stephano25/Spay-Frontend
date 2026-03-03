@@ -131,6 +131,33 @@
   color: #333;
 }
 
+.navigation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  font-size: 14px;
+  background: white;
+  color: #333;
+  border-radius: 12px;
+}
+
+.nav-button:hover {
+  background: #f0f0f0;
+}
+
+.nav-button mat-icon {
+  font-size: 18px;
+}
+
 .stats-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -189,12 +216,22 @@
 
 .transactions-card mat-card-header {
   padding: 20px 20px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .transactions-card mat-card-title {
   font-size: 18px;
   font-weight: 500;
   color: #333;
+}
+
+.view-all-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
 }
 
 .transactions-list {
@@ -282,18 +319,6 @@
   height: 48px;
   margin-bottom: 16px;
   color: #ddd;
-}
-
-mat-card-actions {
-  padding: 8px 16px 20px;
-  display: flex;
-  justify-content: center;
-}
-
-mat-card-actions button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 @media (max-width: 480px) {

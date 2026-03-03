@@ -9,7 +9,7 @@ import { TransactionService } from '../../services/transaction.service';
 
 // Models
 import { User } from '../../models/user.model';
-import { DashboardStats } from '../../models/transaction.model'; // CORRECT: import depuis transaction.model
+import { DashboardStats } from '../../models/transaction.model';
 
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -82,6 +82,7 @@ export class UserComponent implements OnInit, OnDestroy {
     );
   }
 
+  // Méthodes de navigation
   navigateToScan(): void {
     this.router.navigate(['/scan-pay']);
   }
@@ -104,6 +105,14 @@ export class UserComponent implements OnInit, OnDestroy {
 
   navigateToTransactions(): void {
     this.router.navigate(['/transactions']);
+  }
+
+  navigateToStats(): void {
+    this.router.navigate(['/stats']);
+  }
+
+  navigateToProfile(): void {
+    this.router.navigate(['/profile']);
   }
 
   logout(): void {

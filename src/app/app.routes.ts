@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './components/auth/login/login.component';
 import { RegisterComponent } from './components/auth/register/register.component';
 import { UserComponent } from './components/user/user.component';
-import { AdminComponent } from './components/admin/admin.component'; // Vérifier ce chemin
+import { AdminComponent } from './components/admin/admin.component';
 import { AdminDashboardComponent } from './components/admin/dashboard/admin-dashboard.component';
 import { ChatComponent } from './components/chat/chat.component';
 import { TransactionsComponent } from './components/transactions/transactions.component';
@@ -14,11 +14,12 @@ import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
+  // Routes publiques
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   
-  // Routes utilisateur
+  // Routes utilisateur (protégées par AuthGuard)
   { path: 'user', component: UserComponent, canActivate: [AuthGuard] },
   { path: 'chat', component: ChatComponent, canActivate: [AuthGuard] },
   { path: 'transactions', component: TransactionsComponent, canActivate: [AuthGuard] },
@@ -27,7 +28,7 @@ export const routes: Routes = [
   { path: 'mobile-money', component: MobileMoneyComponent, canActivate: [AuthGuard] },
   { path: 'friends', component: FriendsComponent, canActivate: [AuthGuard] },
 
-  // Routes admin
+  // Routes admin (protégées par AdminGuard)
   { 
     path: 'admin', 
     component: AdminComponent,
@@ -58,5 +59,6 @@ export const routes: Routes = [
     canActivate: [AdminGuard]
   },
 
+  // Redirection pour les routes non trouvées
   { path: '**', redirectTo: '/login' }
 ];

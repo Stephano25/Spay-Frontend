@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../../services/auth.service';
+import { AuthService, RegisterData } from '../../../services/auth.service';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -11,7 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatCheckboxModule } from '@angular/material/checkbox'; // AJOUTER CET IMPORT
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-register',
@@ -26,7 +26,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox'; // AJOUTER CET I
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatCheckboxModule // AJOUTER ICI
+    MatCheckboxModule
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
@@ -36,13 +36,13 @@ export class RegisterComponent {
   isLoading = false;
   hidePassword = true;
   hideConfirmPassword = true;
-  acceptTerms = false;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {
+    // Rediriger si déjà connecté
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/user']);
     }
@@ -55,20 +55,27 @@ export class RegisterComponent {
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
       acceptTerms: [false, [Validators.requiredTrue]]
-    }, { validator: this.passwordMatchValidator });
+    }, { validators: this.passwordMatchValidator });
   }
 
-  passwordMatchValidator(g: FormGroup) {
-    const password = g.get('password')?.value;
-    const confirmPassword = g.get('confirmPassword')?.value;
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
     return password === confirmPassword ? null : { mismatch: true };
   }
 
   onSubmit(): void {
-    if (this.registerForm.invalid) return;
+    if (this.registerForm.invalid) {
+      // Marquer tous les champs comme touchés pour afficher les erreurs
+      Object.keys(this.registerForm.controls).forEach(key => {
+        this.registerForm.get(key)?.markAsTouched();
+      });
+      return;
+    }
 
     this.isLoading = true;
-    const userData = {
+    
+    const userData: RegisterData = {
       firstName: this.registerForm.value.firstName,
       lastName: this.registerForm.value.lastName,
       email: this.registerForm.value.email,
@@ -77,8 +84,11 @@ export class RegisterComponent {
     };
 
     this.authService.register(userData).subscribe({
-      next: () => {},
-      error: (error) => {
+      next: (response) => {
+        console.log('Inscription réussie', response);
+        // Redirection déjà gérée dans le service
+      },
+      error: (error: any) => {
         console.error('Erreur inscription', error);
         this.isLoading = false;
       },
@@ -88,10 +98,12 @@ export class RegisterComponent {
     });
   }
 
+  // Getters pour faciliter l'accès aux champs dans le template
   get firstName() { return this.registerForm.get('firstName'); }
   get lastName() { return this.registerForm.get('lastName'); }
   get email() { return this.registerForm.get('email'); }
   get phoneNumber() { return this.registerForm.get('phoneNumber'); }
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
+  get acceptTerms() { return this.registerForm.get('acceptTerms'); }
 }

@@ -19,10 +19,10 @@
               <mat-label>Prénom</mat-label>
               <input matInput formControlName="firstName" placeholder="Jean">
               <mat-icon matSuffix>person</mat-icon>
-              <mat-error *ngIf="firstName?.hasError('required')">
+              <mat-error *ngIf="firstName?.hasError('required') && firstName?.touched">
                 Prénom requis
               </mat-error>
-              <mat-error *ngIf="firstName?.hasError('minlength')">
+              <mat-error *ngIf="firstName?.hasError('minlength') && firstName?.touched">
                 Minimum 2 caractères
               </mat-error>
             </mat-form-field>
@@ -31,10 +31,10 @@
               <mat-label>Nom</mat-label>
               <input matInput formControlName="lastName" placeholder="Rakoto">
               <mat-icon matSuffix>person</mat-icon>
-              <mat-error *ngIf="lastName?.hasError('required')">
+              <mat-error *ngIf="lastName?.hasError('required') && lastName?.touched">
                 Nom requis
               </mat-error>
-              <mat-error *ngIf="lastName?.hasError('minlength')">
+              <mat-error *ngIf="lastName?.hasError('minlength') && lastName?.touched">
                 Minimum 2 caractères
               </mat-error>
             </mat-form-field>
@@ -42,12 +42,12 @@
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" placeholder="exemple@email.com">
+            <input matInput formControlName="email" type="email" placeholder="exemple&#64;email.com">
             <mat-icon matSuffix>email</mat-icon>
-            <mat-error *ngIf="email?.hasError('required')">
+            <mat-error *ngIf="email?.hasError('required') && email?.touched">
               Email requis
             </mat-error>
-            <mat-error *ngIf="email?.hasError('email')">
+            <mat-error *ngIf="email?.hasError('email') && email?.touched">
               Email invalide
             </mat-error>
           </mat-form-field>
@@ -56,7 +56,7 @@
             <mat-label>Téléphone (optionnel)</mat-label>
             <input matInput formControlName="phoneNumber" placeholder="0341234567">
             <mat-icon matSuffix>phone</mat-icon>
-            <mat-error *ngIf="phoneNumber?.hasError('pattern')">
+            <mat-error *ngIf="phoneNumber?.hasError('pattern') && phoneNumber?.touched">
               Format invalide (9-10 chiffres)
             </mat-error>
           </mat-form-field>
@@ -72,10 +72,10 @@
             <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
               <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
-            <mat-error *ngIf="password?.hasError('required')">
+            <mat-error *ngIf="password?.hasError('required') && password?.touched">
               Mot de passe requis
             </mat-error>
-            <mat-error *ngIf="password?.hasError('minlength')">
+            <mat-error *ngIf="password?.hasError('minlength') && password?.touched">
               Minimum 6 caractères
             </mat-error>
           </mat-form-field>
@@ -86,7 +86,7 @@
             <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
               <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
-            <mat-error *ngIf="registerForm.hasError('mismatch')">
+            <mat-error *ngIf="registerForm.hasError('mismatch') && confirmPassword?.touched">
               Les mots de passe ne correspondent pas
             </mat-error>
           </mat-form-field>
@@ -94,7 +94,12 @@
 
         <!-- Conditions -->
         <div class="terms">
-          <mat-checkbox>J'accepte les <a href="#">conditions d'utilisation</a></mat-checkbox>
+          <mat-checkbox formControlName="acceptTerms">
+            J'accepte les <a href="#">conditions d'utilisation</a>
+          </mat-checkbox>
+          <mat-error *ngIf="acceptTerms?.hasError('required') && acceptTerms?.touched" class="terms-error">
+            Vous devez accepter les conditions
+          </mat-error>
         </div>
 
         <button mat-raised-button color="primary" type="submit" 

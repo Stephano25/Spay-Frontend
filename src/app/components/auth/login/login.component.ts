@@ -63,29 +63,11 @@ export class LoginComponent {
 
     this.authService.login(email, password).subscribe({
       next: () => {
-        // Redirection gérée dans le service
+        // Redirection déjà gérée dans le service
       },
       error: () => {
         this.isLoading = false;
-      },
-      complete: () => {
-        this.isLoading = false;
       }
-    });
-  }
-
-  // AJOUTER CES MÉTHODES
-  fillUserCredentials(): void {
-    this.loginForm.patchValue({
-      email: 'user@test.com',
-      password: '123456'
-    });
-  }
-
-  fillAdminCredentials(): void {
-    this.loginForm.patchValue({
-      email: 'admin@spaye.com',
-      password: 'spaye@2026'
     });
   }
 

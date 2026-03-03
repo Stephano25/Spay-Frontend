@@ -26,6 +26,14 @@ export interface LoginResponse {
   token: string;
 }
 
+export interface RegisterData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phoneNumber?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -68,74 +76,102 @@ export class AuthService {
     if (token && savedUser) {
       try {
         const user = JSON.parse(savedUser);
+        
+        // Vérifier si l'utilisateur a des données valides
+        if (!user || !user.id || user.balance === undefined) {
+          console.log('Utilisateur invalide, déconnexion');
+          this.logout();
+          return;
+        }
+        
         this.currentUserSubject.next(user);
       } catch (e) {
+        console.log('Erreur de parsing, déconnexion');
         this.logout();
       }
     }
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-  // Admin par défaut
-  if (email === 'admin@spaye.com' && password === 'spaye@2026') {
-    const response: LoginResponse = {
-      user: this.DEFAULT_ADMIN,
-      token: 'admin_default_token_' + Date.now()
-    };
-    
-    return new Observable(observer => {
-      setTimeout(() => {
-        localStorage.setItem('token', response.token); // Vérifier cette ligne
-        localStorage.setItem('user', JSON.stringify(response.user));
-        this.currentUserSubject.next(response.user);
-        
-        this.notificationService.showSuccess('Bienvenue Administrateur !');
-        this.router.navigate(['/admin']);
-        
-        observer.next(response);
-        observer.complete();
-      }, 500);
-    });
-  }
-
-  // Appel API normal
-  return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
-    tap(response => {
-      localStorage.setItem('token', response.token); // Vérifier cette ligne
-      localStorage.setItem('user', JSON.stringify(response.user));
-      this.currentUserSubject.next(response.user);
+    // Admin par défaut
+    if (email === this.DEFAULT_ADMIN.email && password === this.DEFAULT_ADMIN_PASSWORD) {
+      const response: LoginResponse = {
+        user: this.DEFAULT_ADMIN,
+        token: 'admin_default_token_' + Date.now()
+      };
       
-      if (response.user.role === 'admin' || response.user.role === 'super_admin') {
-        this.router.navigate(['/admin']);
-        this.notificationService.showSuccess('Bienvenue administrateur !');
-      } else {
-        this.router.navigate(['/user']);
-        this.notificationService.showSuccess('Connexion réussie !');
-      }
-    }),
-    catchError(error => {
-      const message = error.error?.message || 'Email ou mot de passe incorrect';
-      this.notificationService.showError(message);
-      return throwError(() => error);
-    })
-  );
-}
+      return new Observable(observer => {
+        setTimeout(() => {
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          this.currentUserSubject.next(response.user);
+          
+          this.notificationService.showSuccess('Bienvenue Administrateur !');
+          this.router.navigate(['/admin']);
+          
+          observer.next(response);
+          observer.complete();
+        }, 500);
+      });
+    }
 
-  register(userData: any): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, userData).pipe(
+    // Appel API normal
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-        this.notificationService.showSuccess('Inscription réussie !');
-        this.router.navigate(['/user']);
+        
+        if (response.user.role === 'admin' || response.user.role === 'super_admin') {
+          this.router.navigate(['/admin']);
+          this.notificationService.showSuccess('Bienvenue administrateur !');
+        } else {
+          this.router.navigate(['/user']);
+          this.notificationService.showSuccess('Connexion réussie !');
+        }
       }),
       catchError(error => {
-        const message = error.error?.message || "Erreur lors de l'inscription";
+        const message = error.error?.message || 'Email ou mot de passe incorrect';
         this.notificationService.showError(message);
         return throwError(() => error);
       })
     );
+  }
+
+  register(userData: RegisterData): Observable<LoginResponse> {
+    // Simulation pour le développement
+    const mockUser: User = {
+      id: 'user_' + Date.now(),
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      phoneNumber: userData.phoneNumber || '',
+      balance: 0,
+      qrCode: 'USER-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+      friends: [],
+      role: 'user',
+      isActive: true,
+      createdAt: new Date()
+    };
+
+    const mockResponse: LoginResponse = {
+      user: mockUser,
+      token: 'user_token_' + Date.now()
+    };
+
+    return new Observable(observer => {
+      setTimeout(() => {
+        localStorage.setItem('token', mockResponse.token);
+        localStorage.setItem('user', JSON.stringify(mockResponse.user));
+        this.currentUserSubject.next(mockResponse.user);
+        
+        this.notificationService.showSuccess('Inscription réussie !');
+        this.router.navigate(['/user']);
+        
+        observer.next(mockResponse);
+        observer.complete();
+      }, 500);
+    });
   }
 
   logout(): void {
@@ -143,6 +179,13 @@ export class AuthService {
     localStorage.removeItem('user');
     this.currentUserSubject.next(null);
     this.notificationService.showInfo('Vous êtes déconnecté');
+    this.router.navigate(['/login']);
+  }
+
+  forceLogout(): void {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 

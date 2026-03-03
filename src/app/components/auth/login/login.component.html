@@ -52,21 +52,5 @@
         <a routerLink="/register">Créer un compte</a>
       </div>
     </mat-card-content>
-
-    <mat-card-footer>
-      <div class="demo-credentials" *ngIf="!isLoading">
-        <p>Comptes de démonstration :</p>
-        <div class="credentials-list">
-          <div class="cred-item" (click)="fillUserCredentials()">
-            <strong>Utilisateur:</strong> user&#64;test.com / 123456
-            <mat-icon class="copy-icon">content_copy</mat-icon>
-          </div>
-          <div class="cred-item admin" (click)="fillAdminCredentials()">
-            <strong>Admin:</strong> admin&#64;spaye.com / spaye&#64;2026
-            <mat-icon class="copy-icon">content_copy</mat-icon>
-          </div>
-        </div>
-      </div>
-    </mat-card-footer>
   </mat-card>
 </div>

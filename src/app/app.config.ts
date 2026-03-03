@@ -14,7 +14,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider';
+import { MatDividerModule } from '@angular/material/divider'; // Vérifier que c'est présent
+import { MatSelectModule } from '@angular/material/select';
 
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
@@ -33,7 +34,8 @@ export const appConfig: ApplicationConfig = {
       MatListModule,
       MatMenuModule,
       MatProgressSpinnerModule,
-      MatDividerModule
+      MatDividerModule, // Vérifier que c'est présent
+      MatSelectModule
     ),
     {
       provide: HTTP_INTERCEPTORS,
