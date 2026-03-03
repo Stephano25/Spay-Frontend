@@ -1,44 +1,72 @@
-<div class="auth-container">
-  <mat-card class="auth-card">
+<div class="login-container">
+  <mat-card class="login-card">
     <mat-card-header>
-      <mat-card-title>Connexion à SPaye</mat-card-title>
+      <div class="logo">
+        <mat-icon>payments</mat-icon>
+      </div>
+      <mat-card-title>Bienvenue sur SPaye</mat-card-title>
+      <mat-card-subtitle>Connectez-vous à votre compte</mat-card-subtitle>
     </mat-card-header>
+
     <mat-card-content>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email">
-          <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+          <input matInput formControlName="email" type="email" placeholder="exemple&#64;email.com">
+          <mat-icon matSuffix>email</mat-icon>
+          <mat-error *ngIf="email?.hasError('required')">
             Email requis
           </mat-error>
-          <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+          <mat-error *ngIf="email?.hasError('email')">
             Email invalide
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Mot de passe</mat-label>
-          <input matInput formControlName="password" type="password">
-          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="password?.hasError('required')">
             Mot de passe requis
+          </mat-error>
+          <mat-error *ngIf="password?.hasError('minlength')">
+            Minimum 6 caractères
           </mat-error>
         </mat-form-field>
 
+        <div class="form-options">
+          <a routerLink="/forgot-password" class="forgot-password">Mot de passe oublié ?</a>
+        </div>
+
         <button mat-raised-button color="primary" type="submit" 
-                [disabled]="loginForm.invalid" class="full-width">
-          Se connecter
+                [disabled]="loginForm.invalid || isLoading" class="login-button">
+          <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+          <span *ngIf="!isLoading">Se connecter</span>
         </button>
       </form>
 
-      <div class="auth-divider">
-        <span>ou</span>
+      <div class="register-link">
+        <span>Pas encore de compte ?</span>
+        <a routerLink="/register">Créer un compte</a>
       </div>
-
-      <!-- Supprimer le bouton Google -->
-      
-      <p class="auth-link">
-        Pas encore de compte? <a routerLink="/register">S'inscrire</a>
-      </p>
     </mat-card-content>
+
+    <mat-card-footer>
+      <div class="demo-credentials" *ngIf="!isLoading">
+        <p>Comptes de démonstration :</p>
+        <div class="credentials-list">
+          <div class="cred-item" (click)="fillUserCredentials()">
+            <strong>Utilisateur:</strong> user&#64;test.com / 123456
+            <mat-icon class="copy-icon">content_copy</mat-icon>
+          </div>
+          <div class="cred-item admin" (click)="fillAdminCredentials()">
+            <strong>Admin:</strong> admin&#64;spaye.com / spaye&#64;2026
+            <mat-icon class="copy-icon">content_copy</mat-icon>
+          </div>
+        </div>
+      </div>
+    </mat-card-footer>
   </mat-card>
 </div>

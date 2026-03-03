@@ -9,7 +9,7 @@ import { TransactionService } from '../../services/transaction.service';
 
 // Models
 import { User } from '../../models/user.model';
-import { DashboardStats } from '../../models/transaction.model'; // Correction: importer depuis transaction.model
+import { DashboardStats } from '../../models/transaction.model'; // CORRECT: import depuis transaction.model
 
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';

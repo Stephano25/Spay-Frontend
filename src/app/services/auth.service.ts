@@ -4,7 +4,22 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
-import { User } from '../models/user.model';
+
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  profilePicture?: string;
+  balance: number;
+  qrCode: string;
+  friends: string[];
+  role: 'user' | 'admin' | 'super_admin';
+  isActive: boolean;
+  createdAt: Date;
+  lastLogin?: Date;
+}
 
 export interface LoginResponse {
   user: User;
@@ -18,6 +33,25 @@ export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser = this.currentUserSubject.asObservable();
+
+  // Admin par défaut
+  private readonly DEFAULT_ADMIN: User = {
+    id: 'admin_default',
+    email: 'admin@spaye.com',
+    firstName: 'Admin',
+    lastName: 'SPaye',
+    phoneNumber: '0340000000',
+    balance: 0,
+    qrCode: 'ADMIN-SPAYE-2026',
+    friends: [],
+    role: 'super_admin',
+    isActive: true,
+    createdAt: new Date('2026-01-01'),
+    lastLogin: new Date(),
+    profilePicture: 'assets/admin-avatar.png'
+  };
+
+  private readonly DEFAULT_ADMIN_PASSWORD = 'spaye@2026';
 
   constructor(
     private http: HttpClient, 
@@ -42,13 +76,36 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
+    // Vérifier d'abord si c'est l'admin par défaut
+    if (email === this.DEFAULT_ADMIN.email && password === this.DEFAULT_ADMIN_PASSWORD) {
+      const response: LoginResponse = {
+        user: this.DEFAULT_ADMIN,
+        token: 'admin_default_token_' + Date.now()
+      };
+      
+      return new Observable(observer => {
+        setTimeout(() => {
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          this.currentUserSubject.next(response.user);
+          
+          this.notificationService.showSuccess('Bienvenue Administrateur !');
+          this.router.navigate(['/admin']);
+          
+          observer.next(response);
+          observer.complete();
+        }, 500);
+      });
+    }
+
+    // Sinon, appel API normal
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
         
-        if (response.user.role === 'admin') {
+        if (response.user.role === 'admin' || response.user.role === 'super_admin') {
           this.router.navigate(['/admin']);
           this.notificationService.showSuccess('Bienvenue administrateur !');
         } else {
@@ -57,7 +114,8 @@ export class AuthService {
         }
       }),
       catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur de connexion');
+        const message = error.error?.message || 'Email ou mot de passe incorrect';
+        this.notificationService.showError(message);
         return throwError(() => error);
       })
     );
@@ -73,16 +131,12 @@ export class AuthService {
         this.router.navigate(['/user']);
       }),
       catchError(error => {
-        this.notificationService.showError(error.error?.message || "Erreur d'inscription");
+        const message = error.error?.message || "Erreur lors de l'inscription";
+        this.notificationService.showError(message);
         return throwError(() => error);
       })
     );
   }
-
-  // Supprimer googleLogin() ou le commenter si non utilisé
-  // googleLogin(): void {
-  //   window.location.href = `${this.apiUrl}/google`;
-  // }
 
   logout(): void {
     localStorage.removeItem('token');
@@ -106,25 +160,11 @@ export class AuthService {
 
   isAdmin(): boolean {
     const user = this.currentUserSubject.value;
-    return user?.role === 'admin';
+    return user?.role === 'admin' || user?.role === 'super_admin';
   }
 
   isUser(): boolean {
     const user = this.currentUserSubject.value;
     return user?.role === 'user';
-  }
-
-  updateProfile(userData: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/profile`, userData).pipe(
-      tap(updatedUser => {
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        this.currentUserSubject.next(updatedUser);
-        this.notificationService.showSuccess('Profil mis à jour');
-      }),
-      catchError(error => {
-        this.notificationService.showError('Erreur lors de la mise à jour');
-        return throwError(() => error);
-      })
-    );
   }
 }

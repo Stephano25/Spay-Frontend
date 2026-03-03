@@ -128,11 +128,11 @@
                 <div class="transaction-date">{{ transaction.createdAt | date:'dd MMM yyyy, HH:mm' }}</div>
               </div>
               <!-- Correction ici: utiliser user au lieu de user? car user n'est pas null -->
-              <div class="transaction-amount" 
-                   [class.positive]="transaction.receiverId === user.id"
-                   [class.negative]="transaction.senderId === user.id">
-                {{ transaction.senderId === user.id ? '-' : '+' }}{{ formatAmount(transaction.amount) }} Ar
-              </div>
+            <div class="transaction-amount" 
+                [class.positive]="user && transaction.receiverId === user.id"
+                [class.negative]="user && transaction.senderId === user.id">
+             {{ user && transaction.senderId === user.id ? '-' : '+' }}{{ formatAmount(transaction.amount) }} Ar
+            </div>
             </div>
 
             <div *ngIf="recentTransactions.length === 0" class="no-transactions">

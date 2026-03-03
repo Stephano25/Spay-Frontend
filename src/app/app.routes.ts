@@ -2,7 +2,8 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './components/auth/login/login.component';
 import { RegisterComponent } from './components/auth/register/register.component';
 import { UserComponent } from './components/user/user.component';
-import { AdminComponent } from './components/admin/admin.component';
+import { AdminComponent } from './components/admin/admin.component'; // Vérifier ce chemin
+import { AdminDashboardComponent } from './components/admin/dashboard/admin-dashboard.component';
 import { ChatComponent } from './components/chat/chat.component';
 import { TransactionsComponent } from './components/transactions/transactions.component';
 import { ProfileComponent } from './components/profile/profile.component';
@@ -26,12 +27,36 @@ export const routes: Routes = [
   { path: 'mobile-money', component: MobileMoneyComponent, canActivate: [AuthGuard] },
   { path: 'friends', component: FriendsComponent, canActivate: [AuthGuard] },
 
-  // Routes admin (simples pour l'instant)
-  { path: 'admin', component: AdminComponent, canActivate: [AdminGuard] },
-  { path: 'admin/users', component: AdminComponent, canActivate: [AdminGuard] },
-  { path: 'admin/transactions', component: AdminComponent, canActivate: [AdminGuard] },
-  { path: 'admin/stats', component: AdminComponent, canActivate: [AdminGuard] },
-  { path: 'admin/settings', component: AdminComponent, canActivate: [AdminGuard] },
+  // Routes admin
+  { 
+    path: 'admin', 
+    component: AdminComponent,
+    canActivate: [AdminGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: AdminDashboardComponent }
+    ]
+  },
+  { 
+    path: 'admin/users', 
+    loadComponent: () => import('./components/admin/users/users.component').then(m => m.UsersComponent),
+    canActivate: [AdminGuard]
+  },
+  { 
+    path: 'admin/transactions', 
+    loadComponent: () => import('./components/admin/transactions/transactions.component').then(m => m.AdminTransactionsComponent),
+    canActivate: [AdminGuard]
+  },
+  { 
+    path: 'admin/stats', 
+    loadComponent: () => import('./components/admin/stats/stats.component').then(m => m.AdminStatsComponent),
+    canActivate: [AdminGuard]
+  },
+  { 
+    path: 'admin/settings', 
+    loadComponent: () => import('./components/admin/settings/settings.component').then(m => m.AdminSettingsComponent),
+    canActivate: [AdminGuard]
+  },
 
   { path: '**', redirectTo: '/login' }
 ];

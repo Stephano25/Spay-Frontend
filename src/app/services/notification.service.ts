@@ -1,7 +1,14 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { ConfirmDialogComponent, ConfirmDialogData } from '../components/shared/confirm-dialog/confirm-dialog.component';
+
+export interface ConfirmDialogData {
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: 'warning' | 'info' | 'danger';
+}
 
 @Injectable({
   providedIn: 'root'
@@ -45,13 +52,11 @@ export class NotificationService {
     });
   }
 
-  confirm(data: ConfirmDialogData): Promise<boolean> {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: data,
-      disableClose: true
+  // Version simplifiée sans dépendance au composant de dialogue
+  confirm(message: string, title: string = 'Confirmation'): Promise<boolean> {
+    return new Promise((resolve) => {
+      const result = window.confirm(`${title}\n\n${message}`);
+      resolve(result);
     });
-
-    return dialogRef.afterClosed().toPromise();
   }
 }

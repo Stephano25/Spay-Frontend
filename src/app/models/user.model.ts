@@ -8,18 +8,22 @@ export interface User {
   balance: number;
   qrCode: string;
   friends: string[];
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'super_admin';
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;
+  permissions?: string[]; // Pour les admins
 }
 
-export interface UserStats {
-  totalUsers: number;
-  activeUsers: number;
-  newUsersToday: number;
-  usersByRole: {
-    admin: number;
-    user: number;
-  };
+export interface LoginResponse {
+  user: User;
+  token: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
 }

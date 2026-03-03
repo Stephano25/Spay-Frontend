@@ -46,8 +46,9 @@ export interface ChatUser {
   providedIn: 'root',
 })
 export class ChatService {
-  private socket: Socket | null = null; // Initialisé à null
+  private socket: Socket | null = null;
   private apiUrl = environment.apiUrl;
+  private socketUrl = environment.socketUrl || environment.apiUrl; // Fallback à apiUrl si socketUrl n'existe pas
 
   constructor(
     private http: HttpClient, 
@@ -61,22 +62,28 @@ export class ChatService {
     const token = this.authService.getToken();
     
     if (token) {
-      this.socket = io(environment.socketUrl, {
-        auth: { token },
-        transports: ['websocket']
-      });
+      try {
+        this.socket = io(this.socketUrl, {
+          auth: { token },
+          transports: ['websocket'],
+          reconnection: true,
+          reconnectionAttempts: 5
+        });
 
-      this.socket.on('connect', () => {
-        console.log('Socket connected');
-      });
+        this.socket.on('connect', () => {
+          console.log('Socket connected');
+        });
 
-      this.socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
-      });
+        this.socket.on('connect_error', (error) => {
+          console.error('Socket connection error:', error);
+        });
 
-      this.socket.on('disconnect', () => {
-        console.log('Socket disconnected');
-      });
+        this.socket.on('disconnect', () => {
+          console.log('Socket disconnected');
+        });
+      } catch (error) {
+        console.error('Failed to connect socket:', error);
+      }
     }
   }
 
@@ -165,6 +172,8 @@ export class ChatService {
   sendMessage(message: { receiverId: string; type: string; content?: string; fileUrl?: string; fileName?: string; fileSize?: number; emoji?: string }): void {
     if (this.socket) {
       this.socket.emit('sendMessage', message);
+    } else {
+      console.warn('Socket not connected, message not sent');
     }
   }
 

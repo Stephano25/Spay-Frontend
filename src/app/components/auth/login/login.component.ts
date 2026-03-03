@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-login',
@@ -22,36 +23,72 @@ import { MatIconModule } from '@angular/material/icon';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
   loginForm: FormGroup;
+  isLoading = false;
+  hidePassword = true;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {
+    // Rediriger si déjà connecté
+    if (this.authService.isAuthenticated()) {
+      const user = this.authService.getCurrentUser();
+      if (user?.role === 'admin' || user?.role === 'super_admin') {
+        this.router.navigate(['/admin']);
+      } else {
+        this.router.navigate(['/user']);
+      }
+    }
+
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
-  onSubmit() {
-    if (this.loginForm.valid) {
-      this.authService.login(
-        this.loginForm.value.email,
-        this.loginForm.value.password
-      ).subscribe({
-        next: () => {
-          // La redirection est gérée dans le service
-        },
-        error: (err) => alert('Erreur de connexion: ' + err.message)
-      });
-    }
+  onSubmit(): void {
+    if (this.loginForm.invalid) return;
+
+    this.isLoading = true;
+    const { email, password } = this.loginForm.value;
+
+    this.authService.login(email, password).subscribe({
+      next: () => {
+        // Redirection gérée dans le service
+      },
+      error: () => {
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
+
+  // AJOUTER CES MÉTHODES
+  fillUserCredentials(): void {
+    this.loginForm.patchValue({
+      email: 'user@test.com',
+      password: '123456'
+    });
+  }
+
+  fillAdminCredentials(): void {
+    this.loginForm.patchValue({
+      email: 'admin@spaye.com',
+      password: 'spaye@2026'
+    });
+  }
+
+  get email() { return this.loginForm.get('email'); }
+  get password() { return this.loginForm.get('password'); }
 }

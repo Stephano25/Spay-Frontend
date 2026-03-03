@@ -1,7 +1,7 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptorsFromDi, withFetch } from '@angular/common/http';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
 
 // Angular Material
@@ -21,19 +21,17 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
-
-import { AuthInterceptor } from './interceptors/auth.interceptor';
-import { AuthGuard } from './guards/auth.guard';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatRippleModule } from '@angular/material/core';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(
-      withInterceptorsFromDi(),
-      withFetch()
-    ),
-    provideNoopAnimations(),
-    AuthGuard,
+    provideHttpClient(withInterceptorsFromDi()),
+    provideAnimations(),
     importProvidersFrom(
       MatToolbarModule,
       MatButtonModule,
@@ -50,7 +48,12 @@ export const appConfig: ApplicationConfig = {
       MatSnackBarModule,
       MatProgressSpinnerModule,
       MatDividerModule,
-      MatSelectModule
+      MatSelectModule,
+      MatCheckboxModule,
+      MatGridListModule,
+      MatTooltipModule,
+      MatButtonToggleModule,
+      MatRippleModule
     )
   ]
 };

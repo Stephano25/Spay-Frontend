@@ -14,9 +14,11 @@ export class AdminGuard implements CanActivate {
     }
     
     if (this.authService.isAuthenticated()) {
+      // Utilisateur connecté mais pas admin
       return this.router.parseUrl('/user');
     }
     
+    // Non connecté
     return this.router.parseUrl('/login');
   }
 }

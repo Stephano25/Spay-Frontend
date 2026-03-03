@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://votre-domaine.com/api',
-  socketUrl: 'https://votre-domaine.com'
+  apiUrl: 'https://api.spaye.com',
+  socketUrl: 'https://api.spaye.com' // AJOUTER socketUrl
 };

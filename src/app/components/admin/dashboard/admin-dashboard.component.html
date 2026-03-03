@@ -1,0 +1,302 @@
+<div class="admin-dashboard">
+  <!-- Header avec titre et contrôles -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1>
+        <mat-icon>dashboard</mat-icon>
+        Tableau de bord
+      </h1>
+      <div class="date-display">
+        <mat-icon>calendar_today</mat-icon>
+        <span>{{ currentDate | date:'EEEE d MMMM yyyy' }}</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <mat-button-toggle-group [value]="selectedPeriod" (change)="changePeriod($event.value)" class="period-selector">
+        <mat-button-toggle value="day" matTooltip="Aujourd'hui">Jour</mat-button-toggle>
+        <mat-button-toggle value="week" matTooltip="Cette semaine">Semaine</mat-button-toggle>
+        <mat-button-toggle value="month" matTooltip="Ce mois">Mois</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <button mat-icon-button (click)="refreshData()" class="refresh-btn" matTooltip="Actualiser">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="60"></mat-spinner>
+    <p>Chargement du tableau de bord...</p>
+  </div>
+
+  <!-- Contenu principal -->
+  <ng-container *ngIf="!isLoading && stats">
+    <!-- Cartes de KPIs -->
+    <div class="kpi-grid">
+      <mat-card class="kpi-card" (click)="navigateTo('users')" matRipple>
+        <mat-card-content>
+          <div class="kpi-icon users">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="kpi-info">
+            <div class="kpi-value">{{ formatNumber(stats.totalUsers) }}</div>
+            <div class="kpi-label">Utilisateurs</div>
+            <div class="kpi-trend positive">
+              <mat-icon>arrow_upward</mat-icon>
+              <span>{{ ((stats.activeUsers / stats.totalUsers) * 100).toFixed(1) }}% actifs</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card" (click)="navigateTo('users')" matRipple>
+        <mat-card-content>
+          <div class="kpi-icon active">
+            <mat-icon>online_prediction</mat-icon>
+          </div>
+          <div class="kpi-info">
+            <div class="kpi-value">{{ formatNumber(stats.activeUsers) }}</div>
+            <div class="kpi-label">Actifs aujourd'hui</div>
+            <div class="kpi-trend positive">
+              <mat-icon>arrow_upward</mat-icon>
+              <span>+12%</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card" (click)="navigateTo('transactions')" matRipple>
+        <mat-card-content>
+          <div class="kpi-icon transactions">
+            <mat-icon>swap_horiz</mat-icon>
+          </div>
+          <div class="kpi-info">
+            <div class="kpi-value">{{ formatNumber(stats.totalTransactions) }}</div>
+            <div class="kpi-label">Transactions</div>
+            <div class="kpi-trend positive">
+              <mat-icon>arrow_upward</mat-icon>
+              <span>+8%</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card" (click)="navigateTo('stats')" matRipple>
+        <mat-card-content>
+          <div class="kpi-icon volume">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <div class="kpi-info">
+            <div class="kpi-value">{{ formatVolume(stats.totalVolume) }} Ar</div>
+            <div class="kpi-label">Volume total</div>
+            <div class="kpi-trend positive">
+              <mat-icon>arrow_upward</mat-icon>
+              <span>+15%</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="charts-grid">
+      <mat-card class="chart-card main-chart">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>timeline</mat-icon>
+            Activité quotidienne
+          </mat-card-title>
+          <mat-card-subtitle>Transactions et volume sur 7 jours</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas id="activityChart"></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="charts-small-grid">
+        <mat-card class="chart-card small">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>pie_chart</mat-icon>
+              Utilisateurs
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-container small">
+              <canvas id="usersChart"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="chart-card small">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>bar_chart</mat-icon>
+              Revenus
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-container small">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Menu d'administration -->
+    <h2 class="section-title">
+      <mat-icon>dashboard</mat-icon>
+      Gestion rapide
+    </h2>
+    <mat-grid-list cols="4" rowHeight="140px" gutterSize="16px">
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('users')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon users">
+              <mat-icon>people</mat-icon>
+            </div>
+            <span>Utilisateurs</span>
+            <span class="menu-badge">{{ formatNumber(stats.totalUsers) }}</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('transactions')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon transactions">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <span>Transactions</span>
+            <span class="menu-badge">{{ formatNumber(stats.totalTransactions) }}</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('stats')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon stats">
+              <mat-icon>bar_chart</mat-icon>
+            </div>
+            <span>Statistiques</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('settings')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon settings">
+              <mat-icon>settings</mat-icon>
+            </div>
+            <span>Paramètres</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+    </mat-grid-list>
+
+    <!-- Liste des données récentes -->
+    <div class="recent-grid">
+      <!-- Utilisateurs récents -->
+      <mat-card class="recent-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>person_add</mat-icon>
+            Utilisateurs récents
+          </mat-card-title>
+          <button mat-button color="primary" class="view-all" (click)="navigateTo('users')">
+            Voir tout
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="recent-list">
+            <div *ngFor="let user of stats.recentUsers.slice(0, 5)" class="recent-item">
+              <div class="recent-avatar" [style.background]="user.isActive ? '#4caf50' : '#ff9800'">
+                {{ getInitials(user.firstName, user.lastName) }}
+              </div>
+              <div class="recent-info">
+                <div class="recent-name">{{ user.firstName }} {{ user.lastName }}</div>
+                <div class="recent-email">{{ user.email }}</div>
+              </div>
+              <div class="recent-status" [class.active]="user.isActive">
+                {{ user.isActive ? 'Actif' : 'Inactif' }}
+              </div>
+              <div class="recent-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Transactions récentes -->
+      <mat-card class="recent-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>receipt</mat-icon>
+            Transactions récentes
+          </mat-card-title>
+          <button mat-button color="primary" class="view-all" (click)="navigateTo('transactions')">
+            Voir tout
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="recent-list">
+            <div *ngFor="let transaction of stats.recentTransactions.slice(0, 5)" class="recent-item">
+              <div class="transaction-icon" [ngClass]="getStatusClass(transaction.status)">
+                <mat-icon>{{ getStatusIcon(transaction.status) }}</mat-icon>
+              </div>
+              <div class="recent-info">
+                <div class="recent-name">{{ transaction.type }} - {{ formatVolume(transaction.amount) }} Ar</div>
+                <div class="recent-email">ID: {{ transaction.id }}</div>
+              </div>
+              <div class="recent-status" [class.completed]="transaction.status === 'completed'">
+                {{ transaction.status }}
+              </div>
+              <div class="recent-date">{{ transaction.createdAt | date:'HH:mm' }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Top utilisateurs -->
+      <mat-card class="recent-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>star</mat-icon>
+            Top utilisateurs
+          </mat-card-title>
+          <button mat-button color="primary" class="view-all" (click)="navigateTo('stats')">
+            Voir tout
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="recent-list">
+            <div *ngFor="let user of stats.topUsers; let i = index" class="recent-item">
+              <div class="rank-badge" 
+                   [class.gold]="i === 0" 
+                   [class.silver]="i === 1" 
+                   [class.bronze]="i === 2">
+                {{ i + 1 }}
+              </div>
+              <div class="recent-info">
+                <div class="recent-name">{{ user.name }}</div>
+                <div class="recent-email">
+                  {{ user.transactionCount }} transactions · {{ formatVolume(user.totalVolume) }} Ar
+                </div>
+              </div>
+              <div class="recent-volume">{{ formatVolume(user.totalVolume) }} Ar</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </ng-container>
+</div>

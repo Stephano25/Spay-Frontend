@@ -1,262 +1,44 @@
-<div class="admin-container">
-  <!-- Header -->
-  <mat-toolbar color="primary" class="admin-header">
-    <span>SPaye Administration</span>
-    <span class="spacer"></span>
+<div class="admin-layout">
+  <mat-toolbar color="primary" class="admin-toolbar">
+    <div class="toolbar-left">
+      <mat-icon class="logo-icon">admin_panel_settings</mat-icon>
+      <span class="app-title">SPaye Administration</span>
+    </div>
     
-    <!-- Sélecteur de période -->
-    <mat-button-toggle-group [value]="selectedPeriod" (change)="changePeriod($event.value)" class="period-selector">
-      <mat-button-toggle value="day">Jour</mat-button-toggle>
-      <mat-button-toggle value="week">Semaine</mat-button-toggle>
-      <mat-button-toggle value="month">Mois</mat-button-toggle>
-    </mat-button-toggle-group>
+    <span class="spacer"></span>
 
-    <button mat-icon-button (click)="refreshData()" class="refresh-btn">
-      <mat-icon>refresh</mat-icon>
-    </button>
-
-    <button mat-icon-button [matMenuTriggerFor]="menu">
-      <mat-icon>account_circle</mat-icon>
-    </button>
-    <mat-menu #menu="matMenu">
-      <button mat-menu-item routerLink="/profile">
-        <mat-icon>person</mat-icon>
-        <span>Mon Profil</span>
+    <div class="toolbar-right">
+      <span class="admin-name" *ngIf="admin">
+        {{ admin.firstName }} {{ admin.lastName }}
+      </span>
+      
+      <button mat-icon-button [matMenuTriggerFor]="menu">
+        <mat-icon>account_circle</mat-icon>
       </button>
-      <button mat-menu-item (click)="logout()">
-        <mat-icon>exit_to_app</mat-icon>
-        <span>Déconnexion</span>
-      </button>
-    </mat-menu>
+      <mat-menu #menu="matMenu">
+        <div class="admin-menu-header">
+          <strong>{{ admin?.email }}</strong>
+          <small>{{ admin?.role === 'super_admin' ? 'Super Administrateur' : 'Administrateur' }}</small>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item routerLink="/admin/profile">
+          <mat-icon>person</mat-icon>
+          <span>Mon Profil</span>
+        </button>
+        <button mat-menu-item routerLink="/admin/settings">
+          <mat-icon>settings</mat-icon>
+          <span>Paramètres</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>exit_to_app</mat-icon>
+          <span>Déconnexion</span>
+        </button>
+      </mat-menu>
+    </div>
   </mat-toolbar>
 
   <div class="admin-content">
-    <!-- Loading spinner -->
-    <div class="loading-container" *ngIf="isLoading">
-      <mat-spinner diameter="60"></mat-spinner>
-      <p>Chargement du tableau de bord...</p>
-    </div>
-
-    <!-- Contenu principal -->
-    <ng-container *ngIf="!isLoading && stats">
-      <!-- Cartes de KPIs -->
-      <div class="kpi-grid">
-        <mat-card class="kpi-card">
-          <mat-card-content>
-            <div class="kpi-icon users">
-              <mat-icon>people</mat-icon>
-            </div>
-            <div class="kpi-info">
-              <div class="kpi-value">{{ formatNumber(stats.totalUsers) }}</div>
-              <div class="kpi-label">Utilisateurs</div>
-              <div class="kpi-trend positive">
-                <mat-icon>arrow_upward</mat-icon>
-                <span>+{{ ((stats.activeUsers / stats.totalUsers) * 100).toFixed(1) }}% actifs</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="kpi-card">
-          <mat-card-content>
-            <div class="kpi-icon active">
-              <mat-icon>online_prediction</mat-icon>
-            </div>
-            <div class="kpi-info">
-              <div class="kpi-value">{{ formatNumber(stats.activeUsers) }}</div>
-              <div class="kpi-label">Actifs aujourd'hui</div>
-              <div class="kpi-trend positive">
-                <mat-icon>arrow_upward</mat-icon>
-                <span>+12%</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="kpi-card">
-          <mat-card-content>
-            <div class="kpi-icon transactions">
-              <mat-icon>swap_horiz</mat-icon>
-            </div>
-            <div class="kpi-info">
-              <div class="kpi-value">{{ formatNumber(stats.totalTransactions) }}</div>
-              <div class="kpi-label">Transactions</div>
-              <div class="kpi-trend positive">
-                <mat-icon>arrow_upward</mat-icon>
-                <span>+8%</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="kpi-card">
-          <mat-card-content>
-            <div class="kpi-icon volume">
-              <mat-icon>account_balance_wallet</mat-icon>
-            </div>
-            <div class="kpi-info">
-              <div class="kpi-value">{{ formatVolume(stats.totalVolume) }} Ar</div>
-              <div class="kpi-label">Volume total</div>
-              <div class="kpi-trend positive">
-                <mat-icon>arrow_upward</mat-icon>
-                <span>+15%</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Graphiques -->
-      <div class="charts-grid">
-        <mat-card class="chart-card">
-          <mat-card-header>
-            <mat-card-title>Activité quotidienne</mat-card-title>
-            <mat-card-subtitle>Transactions et volume</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="chart-container">
-              <canvas id="activityChart"></canvas>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="chart-card">
-          <mat-card-header>
-            <mat-card-title>Utilisateurs</mat-card-title>
-            <mat-card-subtitle>Actifs vs inactifs</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="chart-container small">
-              <canvas id="usersChart"></canvas>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Menu d'administration -->
-      <h2 class="section-title">Gestion</h2>
-      <mat-grid-list cols="3" rowHeight="160px" gutterSize="16px">
-        <mat-grid-tile>
-          <mat-card class="menu-card" (click)="navigateTo('users')">
-            <mat-card-content>
-              <div class="menu-icon users">
-                <mat-icon>people</mat-icon>
-              </div>
-              <span>Utilisateurs</span>
-              <span class="menu-badge">{{ formatNumber(stats.totalUsers) }}</span>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
-
-        <mat-grid-tile>
-          <mat-card class="menu-card" (click)="navigateTo('transactions')">
-            <mat-card-content>
-              <div class="menu-icon transactions">
-                <mat-icon>receipt</mat-icon>
-              </div>
-              <span>Transactions</span>
-              <span class="menu-badge">{{ formatNumber(stats.totalTransactions) }}</span>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
-
-        <mat-grid-tile>
-          <mat-card class="menu-card" (click)="navigateTo('stats')">
-            <mat-card-content>
-              <div class="menu-icon stats">
-                <mat-icon>bar_chart</mat-icon>
-              </div>
-              <span>Statistiques</span>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
-
-        <mat-grid-tile>
-          <mat-card class="menu-card" (click)="navigateTo('settings')">
-            <mat-card-content>
-              <div class="menu-icon settings">
-                <mat-icon>settings</mat-icon>
-              </div>
-              <span>Paramètres</span>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
-
-        <mat-grid-tile>
-          <mat-card class="menu-card">
-            <mat-card-content>
-              <div class="menu-icon audit">
-                <mat-icon>security</mat-icon>
-              </div>
-              <span>Audit Logs</span>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
-
-        <mat-grid-tile>
-          <mat-card class="menu-card">
-            <mat-card-content>
-              <div class="menu-icon support">
-                <mat-icon>support_agent</mat-icon>
-              </div>
-              <span>Support</span>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
-      </mat-grid-list>
-
-      <!-- Utilisateurs récents -->
-      <mat-card class="recent-card">
-        <mat-card-header>
-          <mat-card-title>Utilisateurs récents</mat-card-title>
-          <mat-card-subtitle>Dernières inscriptions</mat-card-subtitle>
-          <button mat-button color="primary" class="view-all" (click)="navigateTo('users')">
-            Voir tout
-            <mat-icon>arrow_forward</mat-icon>
-          </button>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="recent-list">
-            <div *ngFor="let user of stats.recentUsers.slice(0, 5)" class="recent-item">
-              <div class="recent-avatar">
-                {{ user.firstName ? user.firstName.charAt(0) : '' }}{{ user.lastName ? user.lastName.charAt(0) : '' }}
-              </div>
-              <div class="recent-info">
-                <div class="recent-name">{{ user.firstName }} {{ user.lastName }}</div>
-                <div class="recent-email">{{ user.email }}</div>
-              </div>
-              <div class="recent-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Top utilisateurs -->
-      <mat-card class="recent-card">
-        <mat-card-header>
-          <mat-card-title>Top utilisateurs</mat-card-title>
-          <mat-card-subtitle>Plus actifs</mat-card-subtitle>
-          <button mat-button color="primary" class="view-all" (click)="navigateTo('stats')">
-            Voir tout
-            <mat-icon>arrow_forward</mat-icon>
-          </button>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="recent-list">
-            <div *ngFor="let user of stats.topUsers.slice(0, 5); let i = index" class="recent-item">
-              <div class="rank-badge" [class.gold]="i === 0" [class.silver]="i === 1" [class.bronze]="i === 2">
-                {{ i + 1 }}
-              </div>
-              <div class="recent-info">
-                <div class="recent-name">{{ user.name }}</div>
-                <div class="recent-stats">
-                  {{ user.transactionCount }} transactions · {{ formatVolume(user.totalVolume) }} Ar
-                </div>
-              </div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </ng-container>
+    <router-outlet></router-outlet>
   </div>
 </div>
