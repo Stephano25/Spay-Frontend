@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
-import { environment } from '../../anvironments/environment';
+import { environment } from '../../environments/environment';
 
 export interface Message {
   id: string;

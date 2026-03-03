@@ -1,24 +1,6 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import * as express from 'express';
-import { join } from 'path';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  
-  app.enableCors({
-    origin: 'http://localhost:4200',
-    credentials: true,
-  });
-  
-  app.useGlobalPipes(new ValidationPipe());
-  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
-  
-  // Ignorer les requêtes favicon
-  app.use('/favicon.ico', (req, res) => res.status(204).end());
-  
-  await app.listen(3000);
-  console.log('Application is running on: http://localhost:3000');
-}
-bootstrap();
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));

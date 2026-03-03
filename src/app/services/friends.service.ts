@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError, tap } from 'rxjs';
 import { NotificationService } from './notification.service';
-import { environment } from '../../anvironments/environment';
+import { environment } from '../../environments/environment';
 
 export interface Friend {
   id: string;
