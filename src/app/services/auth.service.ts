@@ -76,50 +76,50 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    // Vérifier d'abord si c'est l'admin par défaut
-    if (email === this.DEFAULT_ADMIN.email && password === this.DEFAULT_ADMIN_PASSWORD) {
-      const response: LoginResponse = {
-        user: this.DEFAULT_ADMIN,
-        token: 'admin_default_token_' + Date.now()
-      };
-      
-      return new Observable(observer => {
-        setTimeout(() => {
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
-          this.currentUserSubject.next(response.user);
-          
-          this.notificationService.showSuccess('Bienvenue Administrateur !');
-          this.router.navigate(['/admin']);
-          
-          observer.next(response);
-          observer.complete();
-        }, 500);
-      });
-    }
-
-    // Sinon, appel API normal
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
-      tap(response => {
-        localStorage.setItem('token', response.token);
+  // Admin par défaut
+  if (email === 'admin@spaye.com' && password === 'spaye@2026') {
+    const response: LoginResponse = {
+      user: this.DEFAULT_ADMIN,
+      token: 'admin_default_token_' + Date.now()
+    };
+    
+    return new Observable(observer => {
+      setTimeout(() => {
+        localStorage.setItem('token', response.token); // Vérifier cette ligne
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
         
-        if (response.user.role === 'admin' || response.user.role === 'super_admin') {
-          this.router.navigate(['/admin']);
-          this.notificationService.showSuccess('Bienvenue administrateur !');
-        } else {
-          this.router.navigate(['/user']);
-          this.notificationService.showSuccess('Connexion réussie !');
-        }
-      }),
-      catchError(error => {
-        const message = error.error?.message || 'Email ou mot de passe incorrect';
-        this.notificationService.showError(message);
-        return throwError(() => error);
-      })
-    );
+        this.notificationService.showSuccess('Bienvenue Administrateur !');
+        this.router.navigate(['/admin']);
+        
+        observer.next(response);
+        observer.complete();
+      }, 500);
+    });
   }
+
+  // Appel API normal
+  return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+    tap(response => {
+      localStorage.setItem('token', response.token); // Vérifier cette ligne
+      localStorage.setItem('user', JSON.stringify(response.user));
+      this.currentUserSubject.next(response.user);
+      
+      if (response.user.role === 'admin' || response.user.role === 'super_admin') {
+        this.router.navigate(['/admin']);
+        this.notificationService.showSuccess('Bienvenue administrateur !');
+      } else {
+        this.router.navigate(['/user']);
+        this.notificationService.showSuccess('Connexion réussie !');
+      }
+    }),
+    catchError(error => {
+      const message = error.error?.message || 'Email ou mot de passe incorrect';
+      this.notificationService.showError(message);
+      return throwError(() => error);
+    })
+  );
+}
 
   register(userData: any): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/register`, userData).pipe(
