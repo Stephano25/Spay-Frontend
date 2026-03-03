@@ -13,6 +13,14 @@
           <mat-icon>person</mat-icon>
           <span>Profil</span>
         </button>
+        <button mat-menu-item routerLink="/friends">
+          <mat-icon>people</mat-icon>
+          <span>Amis</span>
+        </button>
+        <button mat-menu-item routerLink="/stats">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Statistiques</span>
+        </button>
         <button mat-menu-item routerLink="/transactions">
           <mat-icon>history</mat-icon>
           <span>Transactions</span>
@@ -26,109 +34,139 @@
   </mat-toolbar>
 
   <div class="dashboard-content">
-    <!-- Carte de solde -->
-    <mat-card class="balance-card">
-      <mat-card-content>
-        <div class="balance-label">Solde total</div>
-        <div class="balance-amount">{{ stats?.totalBalance | number }} Ar</div>
-        <div class="balance-actions">
-          <button mat-raised-button color="accent" (click)="navigateToScan()">
-            <mat-icon>qr_code_scanner</mat-icon>
-            Scanner & Payer
-          </button>
-          <button mat-raised-button color="primary" (click)="navigateToSend()">
-            <mat-icon>send</mat-icon>
-            Envoyer
-          </button>
-          <button mat-raised-button color="warn" (click)="navigateToMobileMoney()">
-            <mat-icon>phone_android</mat-icon>
-            Mobile Money
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- Statistiques rapides -->
-    <div class="stats-grid">
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-icon">
-            <mat-icon>swap_horiz</mat-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">Total transactions</div>
-            <div class="stat-value">{{ stats?.totalTransactions }}</div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-icon">
-            <mat-icon>arrow_downward</mat-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">Dernier dépôt</div>
-            <div class="stat-value">{{ stats?.lastDeposit?.amount | number }} Ar</div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-icon">
-            <mat-icon>trending_up</mat-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-label">Plus grosse transaction</div>
-            <div class="stat-value">{{ stats?.largestTransaction?.amount | number }} Ar</div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+    <!-- Loading spinner -->
+    <div class="loading-container" *ngIf="isLoading">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Chargement de vos données...</p>
     </div>
 
-    <!-- Graphique et transactions récentes -->
-    <div class="charts-row">
-      <mat-card class="chart-card">
-        <mat-card-header>
-          <mat-card-title>Statistiques mensuelles</mat-card-title>
-        </mat-card-header>
+    <!-- Contenu principal -->
+    <ng-container *ngIf="!isLoading && stats">
+      <!-- Carte de solde -->
+      <mat-card class="balance-card">
         <mat-card-content>
-          <canvas id="transactionsChart"></canvas>
+          <div class="balance-label">Solde total</div>
+          <div class="balance-amount">{{ formatAmount(stats.totalBalance) }} Ar</div>
+          <div class="balance-actions">
+            <button mat-raised-button color="accent" (click)="navigateToScan()">
+              <mat-icon>qr_code_scanner</mat-icon>
+              Scanner & Payer
+            </button>
+            <button mat-raised-button color="primary" (click)="navigateToSend()">
+              <mat-icon>send</mat-icon>
+              Envoyer
+            </button>
+            <button mat-raised-button color="warn" (click)="navigateToMobileMoney()">
+              <mat-icon>phone_android</mat-icon>
+              Mobile Money
+            </button>
+          </div>
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="recent-transactions-card">
-        <mat-card-header>
-          <mat-card-title>3 dernières transactions</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-list>
-            <mat-list-item *ngFor="let transaction of recentTransactions">
-              <mat-icon matListItemIcon>{{ transaction.type === 'sent' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
-              <div matListItemTitle>{{ transaction.description || 'Transfert' }}</div>
-              <div matListItemLine>{{ transaction.createdAt | date:'short' }}</div>
-              <div class="transaction-amount" 
-                   [class.positive]="transaction.type === 'received'"
-                   [class.negative]="transaction.type === 'sent'">
-                {{ transaction.amount | number }} Ar
+      <!-- Statistiques rapides -->
+      <div class="stats-grid">
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon">
+              <mat-icon>swap_horiz</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Total transactions</div>
+              <div class="stat-value">{{ stats.totalTransactions }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon">
+              <mat-icon>arrow_downward</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Dernier dépôt</div>
+              <div class="stat-value">
+                {{ formatAmount(stats.lastDeposit ? stats.lastDeposit.amount : 0) }} Ar
               </div>
-            </mat-list-item>
-          </mat-list>
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary" routerLink="/transactions">Voir toutes les transactions</button>
-        </mat-card-actions>
-      </mat-card>
-    </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
 
-    <!-- Accès rapide au chat -->
-    <mat-card class="chat-quick-access" (click)="navigateToChat()">
-      <mat-card-content>
-        <mat-icon>chat</mat-icon>
-        <span>Messagerie instantanée</span>
-        <mat-icon>chevron_right</mat-icon>
-      </mat-card-content>
-    </mat-card>
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Plus grosse transaction</div>
+              <div class="stat-value">
+                {{ formatAmount(stats.largestTransaction ? stats.largestTransaction.amount : 0) }} Ar
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Graphique et transactions récentes -->
+      <div class="charts-row">
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>Statistiques mensuelles</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-container">
+              <canvas id="transactionsChart"></canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="recent-transactions-card">
+          <mat-card-header>
+            <mat-card-title>3 dernières transactions</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-list>
+              <mat-list-item *ngFor="let transaction of recentTransactions">
+                <mat-icon matListItemIcon>{{ getTransactionIcon(transaction.type) }}</mat-icon>
+                <div matListItemTitle>{{ transaction.description || 'Transfert' }}</div>
+                <div matListItemLine>{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+                <div class="transaction-amount" 
+                     [class.positive]="transaction.receiverId === user?.id"
+                     [class.negative]="transaction.senderId === user?.id">
+                  {{ transaction.senderId === user?.id ? '-' : '+' }}{{ formatAmount(transaction.amount) }} Ar
+                </div>
+              </mat-list-item>
+            </mat-list>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button color="primary" routerLink="/transactions">Voir toutes les transactions</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+
+      <!-- Accès rapides -->
+      <div class="quick-actions">
+        <mat-card class="quick-action-card" (click)="navigateToChat()">
+          <mat-card-content>
+            <mat-icon>chat</mat-icon>
+            <span>Messagerie</span>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="quick-action-card" (click)="navigateToFriends()">
+          <mat-card-content>
+            <mat-icon>people</mat-icon>
+            <span>Amis</span>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="quick-action-card" (click)="navigateToStats()">
+          <mat-card-content>
+            <mat-icon>bar_chart</mat-icon>
+            <span>Statistiques</span>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </ng-container>
   </div>
 </div>

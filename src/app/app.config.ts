@@ -1,7 +1,7 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient, withInterceptorsFromDi, withFetch } from '@angular/common/http';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
 
 // Angular Material
@@ -19,15 +19,21 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider'; // Vérifier que c'est bien présent
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSelectModule } from '@angular/material/select';
 
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { AuthGuard } from './guards/auth.guard';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptorsFromDi()),
-    provideAnimations(),
+    provideHttpClient(
+      withInterceptorsFromDi(),
+      withFetch()
+    ),
+    provideNoopAnimations(),
+    AuthGuard,
     importProvidersFrom(
       MatToolbarModule,
       MatButtonModule,
@@ -43,12 +49,8 @@ export const appConfig: ApplicationConfig = {
       MatBadgeModule,
       MatSnackBarModule,
       MatProgressSpinnerModule,
-      MatDividerModule // Vérifier que c'est bien présent
-    ),
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptor,
-      multi: true,
-    },
+      MatDividerModule,
+      MatSelectModule
+    )
   ]
 };

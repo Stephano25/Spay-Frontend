@@ -1,0 +1,101 @@
+<div class="friends-container">
+  <mat-toolbar color="primary">
+    <button mat-icon-button routerLink="/dashboard">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Mes Amis</span>
+    <span class="spacer"></span>
+    <button mat-icon-button (click)="showAddFriend = !showAddFriend">
+      <mat-icon>person_add</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <div class="friends-content">
+    <!-- Formulaire d'ajout d'ami -->
+    <mat-card *ngIf="showAddFriend" class="add-friend-card">
+      <mat-card-header>
+        <mat-card-title>Ajouter un ami</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="add-methods">
+          <button mat-raised-button color="primary" (click)="scanQRCode()">
+            <mat-icon>qr_code_scanner</mat-icon>
+            Scanner QR Code
+          </button>
+          <div class="or-divider">ou</div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email ou téléphone</mat-label>
+            <input matInput [(ngModel)]="newFriendContact" placeholder="ami@email.com ou 0341234567">
+          </mat-form-field>
+          <button mat-raised-button color="accent" (click)="addFriend()" [disabled]="!newFriendContact">
+            <mat-icon>send</mat-icon>
+            Envoyer une invitation
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Liste des amis -->
+    <mat-tab-group>
+      <mat-tab label="Mes amis ({{friends.length}})">
+        <mat-list class="friends-list">
+          <mat-list-item *ngFor="let friend of friends" class="friend-item">
+            <div class="friend-content">
+              <div class="friend-avatar" [style.background]="friend.color">
+                {{ friend.name.charAt(0) }}
+              </div>
+              <div class="friend-info">
+                <div class="friend-name">{{ friend.name }}</div>
+                <div class="friend-email">{{ friend.email }}</div>
+              </div>
+              <div class="friend-actions">
+                <button mat-icon-button [matMenuTriggerFor]="friendMenu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #friendMenu="matMenu">
+                  <button mat-menu-item (click)="sendMoney(friend)">
+                    <mat-icon>attach_money</mat-icon>
+                    <span>Envoyer de l'argent</span>
+                  </button>
+                  <button mat-menu-item (click)="startChat(friend)">
+                    <mat-icon>chat</mat-icon>
+                    <span>Discuter</span>
+                  </button>
+                  <button mat-menu-item (click)="removeFriend(friend)">
+                    <mat-icon color="warn">delete</mat-icon>
+                    <span>Supprimer</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </div>
+          </mat-list-item>
+        </mat-list>
+      </mat-tab>
+
+      <mat-tab label="Invitations en attente ({{pendingInvitations.length}})">
+        <mat-list class="friends-list">
+          <mat-list-item *ngFor="let invite of pendingInvitations" class="friend-item">
+            <div class="friend-content">
+              <div class="friend-avatar" [style.background]="'#ff9800'">
+                {{ invite.name.charAt(0) }}
+              </div>
+              <div class="friend-info">
+                <div class="friend-name">{{ invite.name }}</div>
+                <div class="friend-email">{{ invite.email }}</div>
+              </div>
+              <div class="friend-actions">
+                <button mat-raised-button color="primary" (click)="acceptInvitation(invite)">
+                  <mat-icon>check</mat-icon>
+                  Accepter
+                </button>
+                <button mat-icon-button color="warn" (click)="declineInvitation(invite)">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-list-item>
+        </mat-list>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

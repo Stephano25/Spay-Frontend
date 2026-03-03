@@ -1,0 +1,120 @@
+<div class="stats-container">
+  <mat-toolbar color="primary">
+    <button mat-icon-button routerLink="/dashboard">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Statistiques détaillées</span>
+    <span class="spacer"></span>
+    <mat-form-field appearance="fill" class="period-select">
+      <mat-label>Période</mat-label>
+      <mat-select [(value)]="selectedPeriod">
+        <mat-option value="week">Cette semaine</mat-option>
+        <mat-option value="month">Ce mois</mat-option>
+        <mat-option value="year">Cette année</mat-option>
+        <mat-option value="all">Tout</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-toolbar>
+
+  <div class="stats-content">
+    <!-- Cartes de résumé -->
+    <div class="summary-grid">
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="summary-icon income">
+            <mat-icon>arrow_downward</mat-icon>
+          </div>
+          <div class="summary-details">
+            <span class="summary-label">Revenus</span>
+            <span class="summary-value">1 250 000 Ar</span>
+            <span class="summary-change positive">+15%</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="summary-icon expense">
+            <mat-icon>arrow_upward</mat-icon>
+          </div>
+          <div class="summary-details">
+            <span class="summary-label">Dépenses</span>
+            <span class="summary-value">850 000 Ar</span>
+            <span class="summary-change negative">-8%</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="summary-icon balance">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <div class="summary-details">
+            <span class="summary-label">Économies</span>
+            <span class="summary-value">400 000 Ar</span>
+            <span class="summary-change positive">+23%</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="summary-icon transactions">
+            <mat-icon>swap_horiz</mat-icon>
+          </div>
+          <div class="summary-details">
+            <span class="summary-label">Transactions</span>
+            <span class="summary-value">156</span>
+            <span class="summary-change">+12</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="charts-grid">
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Évolution des transactions</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <canvas id="trendChart"></canvas>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Répartition par catégorie</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <canvas id="pieChart"></canvas>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Tableau des catégories -->
+    <mat-card class="categories-card">
+      <mat-card-header>
+        <mat-card-title>Dépenses par catégorie</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="categories-list">
+          <div class="category-item" *ngFor="let category of categories">
+            <div class="category-info">
+              <div class="category-color" [style.background]="category.color"></div>
+              <span class="category-name">{{ category.name }}</span>
+            </div>
+            <div class="category-stats">
+              <span class="category-amount">{{ category.amount | number }} Ar</span>
+              <span class="category-percentage">{{ category.percentage }}%</span>
+            </div>
+            <div class="category-progress">
+              <div class="progress-bar" [style.width.%]="category.percentage" [style.background]="category.color"></div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

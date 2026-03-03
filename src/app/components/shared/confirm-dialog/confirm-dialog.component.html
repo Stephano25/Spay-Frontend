@@ -1,0 +1,15 @@
+<h2 mat-dialog-title class="dialog-title" [ngClass]="data.type || 'info'">
+  <mat-icon>{{ getIcon() }}</mat-icon>
+  {{ data.title }}
+</h2>
+<mat-dialog-content class="dialog-content">
+  <p>{{ data.message }}</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button (click)="onCancel()">
+    {{ data.cancelText || 'Annuler' }}
+  </button>
+  <button mat-raised-button [color]="getColor()" (click)="onConfirm()">
+    {{ data.confirmText || 'Confirmer' }}
+  </button>
+</mat-dialog-actions>

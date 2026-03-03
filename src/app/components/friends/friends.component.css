@@ -1,0 +1,108 @@
+.friends-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.friends-content {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.add-friend-card {
+  margin-bottom: 20px;
+}
+
+.add-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px 0;
+}
+
+.or-divider {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  position: relative;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 45%;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.or-divider::before {
+  left: 0;
+}
+
+.or-divider::after {
+  right: 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.friends-list {
+  background: white;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.friend-item {
+  height: auto !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.friend-item:last-child {
+  border-bottom: none;
+}
+
+.friend-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  padding: 10px 0;
+}
+
+.friend-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.friend-name {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.friend-email {
+  font-size: 12px;
+  color: #666;
+}
+
+.friend-actions {
+  display: flex;
+  gap: 5px;
+}

@@ -5,17 +5,31 @@
     </button>
     <span>Historique des transactions</span>
     <span class="spacer"></span>
-    <button mat-icon-button>
+    <button mat-icon-button [matMenuTriggerFor]="filterMenu">
       <mat-icon>filter_list</mat-icon>
     </button>
+    <mat-menu #filterMenu="matMenu">
+      <button mat-menu-item (click)="selectedTabIndex = 0">
+        <mat-icon>list</mat-icon>
+        <span>Toutes</span>
+      </button>
+      <button mat-menu-item (click)="selectedTabIndex = 1">
+        <mat-icon>arrow_downward</mat-icon>
+        <span>Reçus</span>
+      </button>
+      <button mat-menu-item (click)="selectedTabIndex = 2">
+        <mat-icon>arrow_upward</mat-icon>
+        <span>Envoyés</span>
+      </button>
+    </mat-menu>
   </mat-toolbar>
 
   <div class="transactions-content">
-    <!-- Résumé des transactions -->
+    <!-- Cartes de résumé -->
     <div class="summary-cards">
-      <mat-card class="summary-card">
+      <mat-card class="summary-card received" routerLink="/transactions" [queryParams]="{filter: 'received'}">
         <mat-card-content>
-          <div class="summary-icon received">
+          <div class="summary-icon">
             <mat-icon>arrow_downward</mat-icon>
           </div>
           <div class="summary-details">
@@ -25,9 +39,9 @@
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="summary-card">
+      <mat-card class="summary-card sent" routerLink="/transactions" [queryParams]="{filter: 'sent'}">
         <mat-card-content>
-          <div class="summary-icon sent">
+          <div class="summary-icon">
             <mat-icon>arrow_upward</mat-icon>
           </div>
           <div class="summary-details">
@@ -38,18 +52,25 @@
       </mat-card>
     </div>
 
+    <!-- Onglets de filtre -->
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="transactions-tabs">
+      <mat-tab label="Toutes"></mat-tab>
+      <mat-tab label="Reçues"></mat-tab>
+      <mat-tab label="Envoyées"></mat-tab>
+    </mat-tab-group>
+
     <!-- Liste des transactions -->
-    <mat-card class="transactions-list">
-      <mat-card-header>
-        <mat-card-title>Toutes les transactions</mat-card-title>
-      </mat-card-header>
+    <mat-card class="transactions-list-card">
       <mat-card-content>
-        <mat-list>
-          <mat-list-item *ngFor="let transaction of transactions">
-            <div class="transaction-item">
+        <mat-list class="transactions-list">
+          <mat-list-item *ngFor="let transaction of filteredTransactions" class="transaction-item">
+            <div class="transaction-content">
               <div class="transaction-icon" [ngClass]="transaction.type">
-                <mat-icon>{{ getTransactionIcon(transaction.type) }}</mat-icon>
+                <mat-icon [color]="getTransactionColor(transaction.type)">
+                  {{ getTransactionIcon(transaction.type) }}
+                </mat-icon>
               </div>
+              
               <div class="transaction-info">
                 <div class="transaction-header">
                   <span class="transaction-description">{{ transaction.description }}</span>
@@ -57,18 +78,49 @@
                     {{ transaction.type === 'sent' ? '-' : '+' }}{{ transaction.amount | number }} Ar
                   </span>
                 </div>
+                
                 <div class="transaction-details">
-                  <span class="transaction-date">{{ transaction.date | date:'medium' }}</span>
+                  <span class="transaction-date">{{ transaction.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="transaction-counterparty">{{ getCounterparty(transaction) }}</span>
                   <span class="transaction-status" [class.completed]="transaction.status === 'completed'">
-                    {{ transaction.status === 'completed' ? '✓' : '⏳' }}
-                  </span>
-                  <span *ngIf="transaction.operator" class="transaction-operator">
-                    {{ transaction.operator }}
+                    {{ getStatusText(transaction.status) }}
                   </span>
                 </div>
               </div>
+
+              <button mat-icon-button class="transaction-actions" [matMenuTriggerFor]="transactionMenu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #transactionMenu="matMenu">
+                <button mat-menu-item>
+                  <mat-icon>visibility</mat-icon>
+                  <span>Détails</span>
+                </button>
+                <button mat-menu-item>
+                  <mat-icon>receipt</mat-icon>
+                  <span>Reçu</span>
+                </button>
+                <button mat-menu-item>
+                  <mat-icon>repeat</mat-icon>
+                  <span>Répéter</span>
+                </button>
+                <button mat-menu-item>
+                  <mat-icon>flag</mat-icon>
+                  <span>Signaler</span>
+                </button>
+              </mat-menu>
             </div>
           </mat-list-item>
+
+          <!-- Message si aucune transaction -->
+          <div *ngIf="filteredTransactions.length === 0" class="no-transactions">
+            <mat-icon>receipt</mat-icon>
+            <h3>Aucune transaction</h3>
+            <p>Vous n'avez pas encore de transactions dans cette catégorie</p>
+            <button mat-raised-button color="primary" routerLink="/scan-pay">
+              Effectuer un paiement
+            </button>
+          </div>
         </mat-list>
       </mat-card-content>
     </mat-card>
