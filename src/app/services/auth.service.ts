@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
-import { User, LoginResponse } from '../models/user.model'; // Retirer RegisterData d'ici
+import { User, LoginResponse, RegisterData } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root',
@@ -13,26 +13,6 @@ export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser = this.currentUserSubject.asObservable();
-
-  // Admin par défaut
-  private readonly DEFAULT_ADMIN: User = {
-    id: 'admin_default',
-    email: 'admin@spaye.com',
-    firstName: 'Admin',
-    lastName: 'SPaye',
-    phoneNumber: '0340000000',
-    balance: 0,
-    qrCode: 'ADMIN-SPAYE-2026',
-    friends: [],
-    role: 'super_admin',
-    isActive: true,
-    createdAt: new Date('2026-01-01'),
-    lastLogin: new Date(),
-    profilePicture: 'assets/admin-avatar.png',
-    bio: 'Administrateur du système'
-  };
-
-  private readonly DEFAULT_ADMIN_PASSWORD = 'spaye@2026';
 
   constructor(
     private http: HttpClient, 
@@ -46,49 +26,39 @@ export class AuthService {
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     
+    console.log('📦 Token du localStorage:', token ? token.substring(0, 20) + '...' : 'null');
+    
     if (token && savedUser) {
       try {
         const user = JSON.parse(savedUser);
-        
-        if (!user || !user.id || user.balance === undefined) {
-          console.log('Utilisateur invalide, déconnexion');
-          this.logout();
-          return;
-        }
-        
         this.currentUserSubject.next(user);
+        console.log('✅ Utilisateur chargé:', user.email);
       } catch (e) {
-        console.log('Erreur de parsing, déconnexion');
+        console.log('❌ Erreur de parsing, déconnexion');
         this.logout();
       }
+    } else {
+      console.log('ℹ️ Aucun utilisateur connecté');
     }
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    if (email === this.DEFAULT_ADMIN.email && password === this.DEFAULT_ADMIN_PASSWORD) {
-      const response: LoginResponse = {
-        user: this.DEFAULT_ADMIN,
-        token: 'admin_default_token_' + Date.now()
-      };
-      
-      return new Observable(observer => {
-        setTimeout(() => {
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
-          this.currentUserSubject.next(response.user);
-          
-          this.notificationService.showSuccess('Bienvenue Administrateur !');
-          this.router.navigate(['/admin']);
-          
-          observer.next(response);
-          observer.complete();
-        }, 500);
-      });
-    }
-
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+    console.log('📡 Tentative de connexion pour:', email);
+    
+    return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
-        localStorage.setItem('token', response.token);
+        // Le backend renvoie access_token, pas token
+        const token = response.access_token || response.token;
+        
+        if (!token) {
+          console.error('❌ Réponse invalide - token manquant:', response);
+          throw new Error('Token manquant dans la réponse');
+        }
+        
+        console.log('✅ Connexion réussie, token reçu:', token.substring(0, 20) + '...');
+        console.log('👤 Utilisateur:', response.user);
+        
+        localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
         
@@ -101,82 +71,88 @@ export class AuthService {
         }
       }),
       catchError(error => {
-        const message = error.error?.message || 'Email ou mot de passe incorrect';
+        console.error('❌ Erreur connexion:', error);
+        
+        let message = 'Erreur de connexion';
+        if (error.error?.message) {
+          message = error.error.message;
+        } else if (error.status === 0) {
+          message = 'Impossible de contacter le serveur';
+        } else if (error.status === 401) {
+          message = 'Email ou mot de passe incorrect';
+        } else if (error.status === 404) {
+          message = 'API non trouvée';
+        }
+        
         this.notificationService.showError(message);
         return throwError(() => error);
       })
     );
   }
 
-  register(userData: any): Observable<LoginResponse> {
-    const mockUser: User = {
-      id: 'user_' + Date.now(),
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      phoneNumber: userData.phoneNumber || '',
-      balance: 0,
-      qrCode: 'USER-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
-      friends: [],
-      role: 'user',
-      isActive: true,
-      createdAt: new Date(),
-      bio: ''
-    };
-
-    const mockResponse: LoginResponse = {
-      user: mockUser,
-      token: 'user_token_' + Date.now()
-    };
-
-    return new Observable(observer => {
-      setTimeout(() => {
-        localStorage.setItem('token', mockResponse.token);
-        localStorage.setItem('user', JSON.stringify(mockResponse.user));
-        this.currentUserSubject.next(mockResponse.user);
+  register(userData: RegisterData): Observable<LoginResponse> {
+    console.log('📡 Tentative d\'inscription pour:', userData.email);
+    
+    return this.http.post<any>(`${this.apiUrl}/register`, userData).pipe(
+      tap(response => {
+        const token = response.access_token || response.token;
+        
+        if (!token) {
+          console.error('❌ Réponse invalide - token manquant:', response);
+          throw new Error('Token manquant dans la réponse');
+        }
+        
+        console.log('✅ Inscription réussie, token reçu:', token.substring(0, 20) + '...');
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        this.currentUserSubject.next(response.user);
         
         this.notificationService.showSuccess('Inscription réussie !');
         this.router.navigate(['/user']);
-        
-        observer.next(mockResponse);
-        observer.complete();
-      }, 500);
-    });
+      }),
+      catchError(error => {
+        console.error('❌ Erreur inscription:', error);
+        const message = error.error?.message || "Erreur lors de l'inscription";
+        this.notificationService.showError(message);
+        return throwError(() => error);
+      })
+    );
   }
 
-  /**
-   * Mettre à jour le profil utilisateur
-   */
   updateProfile(userData: Partial<User>): Observable<User> {
     const currentUser = this.currentUserSubject.value;
     if (!currentUser) {
       return throwError(() => new Error('Utilisateur non connecté'));
     }
 
-    // Simuler une mise à jour (à remplacer par un appel API réel)
-    const updatedUser = { ...currentUser, ...userData };
-    
-    return new Observable(observer => {
-      setTimeout(() => {
+    return this.http.put<User>(`${this.apiUrl}/profile`, userData).pipe(
+      tap(updatedUser => {
+        console.log('✅ Profil mis à jour:', updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
         this.currentUserSubject.next(updatedUser);
-        observer.next(updatedUser);
-        observer.complete();
-      }, 500);
-    });
+        this.notificationService.showSuccess('Profil mis à jour avec succès');
+      }),
+      catchError(error => {
+        console.error('❌ Erreur mise à jour profil:', error);
+        this.notificationService.showError('Erreur lors de la mise à jour du profil');
+        return throwError(() => error);
+      })
+    );
   }
 
-  /**
-   * Changer le mot de passe
-   */
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
-    return new Observable(observer => {
-      setTimeout(() => {
+    return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }).pipe(
+      tap(() => {
+        console.log('✅ Mot de passe changé avec succès');
         this.notificationService.showSuccess('Mot de passe modifié avec succès');
-        observer.next({ success: true });
-        observer.complete();
-      }, 500);
-    });
+      }),
+      catchError(error => {
+        console.error('❌ Erreur changement mot de passe:', error);
+        this.notificationService.showError(error.error?.message || 'Erreur lors du changement de mot de passe');
+        return throwError(() => error);
+      })
+    );
   }
 
   logout(): void {

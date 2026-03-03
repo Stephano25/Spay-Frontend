@@ -1,0 +1,177 @@
+<div class="send-money-container">
+  <!-- Header -->
+  <mat-toolbar color="primary">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Envoyer de l'argent</span>
+  </mat-toolbar>
+
+  <div class="content">
+    <!-- Indicateur d'étapes -->
+    <div class="step-indicator">
+      <div class="step" [class.active]="step === 'friend' || step === 'amount' || step === 'confirm'">
+        <div class="step-number">1</div>
+        <span class="step-label">Ami</span>
+      </div>
+      <div class="step-line" [class.active]="step === 'amount' || step === 'confirm'"></div>
+      <div class="step" [class.active]="step === 'amount' || step === 'confirm'">
+        <div class="step-number">2</div>
+        <span class="step-label">Montant</span>
+      </div>
+      <div class="step-line" [class.active]="step === 'confirm'"></div>
+      <div class="step" [class.active]="step === 'confirm'">
+        <div class="step-number">3</div>
+        <span class="step-label">Confirmation</span>
+      </div>
+    </div>
+
+    <!-- Solde disponible -->
+    <mat-card class="balance-card">
+      <mat-card-content>
+        <span>Solde disponible</span>
+        <span class="balance-amount">{{ formatAmount(balance) }} Ar</span>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Étape 1: Choix de l'ami -->
+    <div *ngIf="step === 'friend'" class="step-content">
+      <h3>Choisissez un ami</h3>
+      
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Sélectionner un ami</mat-label>
+        <mat-select formControlName="friendId" (selectionChange)="selectFriend()">
+          <mat-option *ngFor="let friend of friends" [value]="friend.friend?.id">
+            {{ friend.friend?.firstName }} {{ friend.friend?.lastName }} - {{ friend.friend?.email }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="sendForm.get('friendId')?.hasError('required') && sendForm.get('friendId')?.touched">
+          Veuillez sélectionner un ami
+        </mat-error>
+      </mat-form-field>
+
+      <button 
+        mat-raised-button 
+        color="primary" 
+        class="full-width"
+        [disabled]="!sendForm.get('friendId')?.value"
+        (click)="selectFriend()">
+        Continuer
+      </button>
+    </div>
+
+    <!-- Étape 2: Montant -->
+    <div *ngIf="step === 'amount'" class="step-content">
+      <h3>Montant à envoyer</h3>
+      
+      <div class="selected-friend" *ngIf="selectedFriend">
+        <div class="friend-avatar" [style.background]="'#667eea'">
+          {{ getInitials(selectedFriend.friend?.firstName || '', selectedFriend.friend?.lastName || '') }}
+        </div>
+        <div class="friend-info">
+          <div class="friend-name">{{ selectedFriend.friend?.firstName || '' }} {{ selectedFriend.friend?.lastName || '' }}</div>
+          <div class="friend-email">{{ selectedFriend.friend?.email || '' }}</div>
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Montant (Ar)</mat-label>
+        <input matInput type="number" formControlName="amount" placeholder="1000">
+        <mat-icon matSuffix>attach_money</mat-icon>
+        <mat-hint>Minimum 100 Ar</mat-hint>
+        <mat-error *ngIf="sendForm.get('amount')?.hasError('required')">
+          Montant requis
+        </mat-error>
+        <mat-error *ngIf="sendForm.get('amount')?.hasError('min')">
+          Minimum 100 Ar
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description (optionnelle)</mat-label>
+        <textarea matInput formControlName="description" rows="2" placeholder="Ex: Remboursement, cadeau..."></textarea>
+      </mat-form-field>
+
+      <div class="quick-amounts">
+        <button mat-stroked-button (click)="sendForm.patchValue({amount: 5000})">5 000 Ar</button>
+        <button mat-stroked-button (click)="sendForm.patchValue({amount: 10000})">10 000 Ar</button>
+        <button mat-stroked-button (click)="sendForm.patchValue({amount: 20000})">20 000 Ar</button>
+        <button mat-stroked-button (click)="sendForm.patchValue({amount: 50000})">50 000 Ar</button>
+      </div>
+
+      <div class="button-group">
+        <button mat-stroked-button (click)="step = 'friend'">
+          Retour
+        </button>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          [disabled]="!sendForm.get('amount')?.valid"
+          (click)="nextToConfirm()">
+          Continuer
+        </button>
+      </div>
+    </div>
+
+    <!-- Étape 3: Confirmation -->
+    <div *ngIf="step === 'confirm'" class="step-content">
+      <h3>Confirmez l'envoi</h3>
+      
+      <div class="confirmation-details" *ngIf="selectedFriend">
+        <div class="detail-row">
+          <span class="detail-label">Destinataire</span>
+          <span class="detail-value">{{ selectedFriend.friend?.firstName || '' }} {{ selectedFriend.friend?.lastName || '' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Montant</span>
+          <span class="detail-value amount">{{ formatAmount(sendForm.get('amount')?.value || 0) }} Ar</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Description</span>
+          <span class="detail-value">{{ sendForm.get('description')?.value || '—' }}</span>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="detail-row total">
+          <span class="detail-label">Total à débiter</span>
+          <span class="detail-value total-amount">{{ formatAmount(sendForm.get('amount')?.value || 0) }} Ar</span>
+        </div>
+        <div class="detail-row" [class.insufficient]="!isBalanceSufficient()">
+          <span class="detail-label">Solde après envoi</span>
+          <span class="detail-value" [class.negative]="!isBalanceSufficient()">
+            {{ formatAmount(remainingBalance) }} Ar
+          </span>
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Code PIN (4 chiffres)</mat-label>
+        <input matInput type="password" formControlName="pin" maxlength="4">
+        <mat-error *ngIf="sendForm.get('pin')?.hasError('required')">
+          Code PIN requis
+        </mat-error>
+        <mat-error *ngIf="sendForm.get('pin')?.hasError('minlength') || sendForm.get('pin')?.hasError('maxlength')">
+          Le code PIN doit contenir 4 chiffres
+        </mat-error>
+      </mat-form-field>
+
+      <div class="warning-message" *ngIf="!isBalanceSufficient()">
+        <mat-icon>error</mat-icon>
+        <span>Solde insuffisant pour effectuer cette transaction</span>
+      </div>
+
+      <div class="button-group">
+        <button mat-stroked-button (click)="step = 'amount'">
+          Retour
+        </button>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          [disabled]="sendForm.invalid || isSubmitting || !isBalanceSufficient()"
+          (click)="sendMoney()">
+          <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+          <span *ngIf="!isSubmitting">Confirmer l'envoi</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

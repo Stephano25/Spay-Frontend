@@ -9,7 +9,7 @@ import { TransactionService } from '../../services/transaction.service';
 
 // Models
 import { User } from '../../models/user.model';
-import { DashboardStats } from '../../models/transaction.model';
+import { DashboardStats, Transaction } from '../../models/transaction.model'; // IMPORTER DEPUIS LES MODÈLES
 
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -40,7 +40,7 @@ import { MatDividerModule } from '@angular/material/divider';
 export class UserComponent implements OnInit, OnDestroy {
   user: User | null = null;
   stats: DashboardStats | null = null;
-  recentTransactions: any[] = [];
+  recentTransactions: Transaction[] = [];
   isLoading = true;
   private subscriptions: Subscription[] = [];
 
@@ -61,7 +61,7 @@ export class UserComponent implements OnInit, OnDestroy {
 
   private loadUserData(): void {
     this.subscriptions.push(
-      this.authService.currentUser.subscribe(user => {
+      this.authService.currentUser.subscribe((user: User | null) => {
         this.user = user;
       })
     );
@@ -71,12 +71,12 @@ export class UserComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.subscriptions.push(
       this.transactionService.getUserDashboardStats().subscribe({
-        next: (data) => {
+        next: (data: DashboardStats) => {
           this.stats = data;
           this.recentTransactions = data.lastThreeTransactions || [];
           this.isLoading = false;
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Erreur chargement stats:', error);
           this.isLoading = false;
         }
@@ -84,13 +84,12 @@ export class UserComponent implements OnInit, OnDestroy {
     );
   }
 
-  // Méthodes de navigation
   navigateToScan(): void {
     this.router.navigate(['/scan-pay']);
   }
 
   navigateToSend(): void {
-    this.router.navigate(['/transactions/send']);
+    this.router.navigate(['/wallet/send']);
   }
 
   navigateToMobileMoney(): void {
@@ -106,15 +105,15 @@ export class UserComponent implements OnInit, OnDestroy {
   }
 
   navigateToTransactions(): void {
-    this.router.navigate(['/transactions']);
+    this.router.navigate(['/wallet/history']);
   }
 
   navigateToStats(): void {
     this.router.navigate(['/stats']);
   }
 
-  navigateToProfile(): void {
-    this.router.navigate(['/profile']);
+  navigateToSettings(): void {
+    this.router.navigate(['/user/settings']);
   }
 
   logout(): void {

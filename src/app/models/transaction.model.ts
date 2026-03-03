@@ -23,6 +23,20 @@ export interface Transaction {
   };
 }
 
+export interface DashboardStats {
+  totalBalance: number;
+  totalTransactions: number;
+  lastThreeTransactions: Transaction[];
+  lastDeposit?: Transaction;
+  largestTransaction?: Transaction;
+  monthlyStats: {
+    month: string;
+    sent: number;
+    received: number;
+    total: number;
+  }[];
+}
+
 export interface TransactionStats {
   totalTransactions: number;
   totalVolume: number;
@@ -36,19 +50,5 @@ export interface TransactionStats {
     date: string;
     count: number;
     volume: number;
-  }[];
-}
-
-export interface DashboardStats {
-  totalBalance: number;
-  totalTransactions: number;
-  lastThreeTransactions: Transaction[];
-  lastDeposit?: Transaction;
-  largestTransaction?: Transaction;
-  monthlyStats: {
-    month: string;
-    sent: number;
-    received: number;
-    total: number;
   }[];
 }

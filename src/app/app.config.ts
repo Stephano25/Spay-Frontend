@@ -14,8 +14,21 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider'; // Vérifier que c'est présent
+import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatRippleModule } from '@angular/material/core';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
@@ -34,8 +47,21 @@ export const appConfig: ApplicationConfig = {
       MatListModule,
       MatMenuModule,
       MatProgressSpinnerModule,
-      MatDividerModule, // Vérifier que c'est présent
-      MatSelectModule
+      MatDividerModule,
+      MatSelectModule,
+      MatCheckboxModule,
+      MatGridListModule,
+      MatTooltipModule,
+      MatButtonToggleModule,
+      MatRippleModule,
+      MatTabsModule,
+      MatBadgeModule,
+      MatSnackBarModule,
+      MatSliderModule,
+      MatRadioModule,
+      MatExpansionModule,
+      MatChipsModule,
+      MatSlideToggleModule
     ),
     {
       provide: HTTP_INTERCEPTORS,

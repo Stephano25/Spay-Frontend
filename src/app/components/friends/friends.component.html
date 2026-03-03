@@ -112,6 +112,7 @@
 
     <!-- Onglets -->
     <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="friends-tabs">
+      <!-- Onglet Mes amis -->
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon>people</mat-icon>
@@ -162,7 +163,7 @@
                       <span>Envoyer de l'argent</span>
                     </button>
                     <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="removeFriend(friend.id)" color="warn">
+                    <button mat-menu-item (click)="removeFriend(friend.id)">
                       <mat-icon color="warn">delete</mat-icon>
                       <span>Supprimer</span>
                     </button>
@@ -184,6 +185,7 @@
         </div>
       </mat-tab>
 
+      <!-- Onglet Demandes -->
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon>notifications</mat-icon>

@@ -1,0 +1,216 @@
+<div class="wallet-container">
+  <!-- Header -->
+  <mat-toolbar color="primary" class="wallet-header">
+    <span>SPaye Wallet</span>
+    <span class="spacer"></span>
+    <div class="user-info">
+      <span>{{ user?.firstName }} {{ user?.lastName }}</span>
+      <button mat-icon-button [matMenuTriggerFor]="menu">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item routerLink="/profile">
+          <mat-icon>person</mat-icon>
+          <span>Mon Profil</span>
+        </button>
+        <button mat-menu-item routerLink="/friends">
+          <mat-icon>people</mat-icon>
+          <span>Mes Amis</span>
+        </button>
+        <button mat-menu-item routerLink="/wallet/history">
+          <mat-icon>history</mat-icon>
+          <span>Transactions</span>
+        </button>
+        <button mat-menu-item routerLink="/stats">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Statistiques</span>
+        </button>
+        <button mat-menu-item routerLink="/user/settings">
+          <mat-icon>settings</mat-icon>
+          <span>Paramètres</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>exit_to_app</mat-icon>
+          <span>Déconnexion</span>
+        </button>
+      </mat-menu>
+    </div>
+  </mat-toolbar>
+
+  <div class="wallet-content">
+    <!-- Loading spinner -->
+    <div class="loading-container" *ngIf="isLoading">
+      <mat-spinner diameter="60"></mat-spinner>
+      <p>Chargement de votre portefeuille...</p>
+    </div>
+
+    <!-- Contenu principal -->
+    <ng-container *ngIf="!isLoading && wallet">
+      <!-- Carte de solde -->
+      <mat-card class="balance-card">
+        <mat-card-content>
+          <div class="balance-label">Solde disponible</div>
+          <div class="balance-amount">{{ formatAmount(wallet.balance) }} Ar</div>
+          <div class="balance-actions">
+            <button mat-raised-button color="accent" (click)="navigateToSend()">
+              <mat-icon>send</mat-icon>
+              Envoyer
+            </button>
+            <button mat-raised-button color="primary" (click)="navigateToReceive()">
+              <mat-icon>qr_code</mat-icon>
+              Recevoir
+            </button>
+            <button mat-raised-button color="warn" (click)="navigateToMobileMoney()">
+              <mat-icon>phone_android</mat-icon>
+              Mobile Money
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Actions rapides -->
+      <mat-grid-list cols="4" rowHeight="80px" gutterSize="8px" class="quick-actions">
+        <mat-grid-tile>
+          <button mat-button class="quick-action-btn" (click)="navigateToSend()">
+            <mat-icon>send</mat-icon>
+            <span>Envoyer</span>
+          </button>
+        </mat-grid-tile>
+        <mat-grid-tile>
+          <button mat-button class="quick-action-btn" (click)="navigateToReceive()">
+            <mat-icon>qr_code</mat-icon>
+            <span>Recevoir</span>
+          </button>
+        </mat-grid-tile>
+        <mat-grid-tile>
+          <button mat-button class="quick-action-btn" (click)="navigateToScan()">
+            <mat-icon>qr_code_scanner</mat-icon>
+            <span>Scanner</span>
+          </button>
+        </mat-grid-tile>
+        <mat-grid-tile>
+          <button mat-button class="quick-action-btn" (click)="navigateToMobileMoney()">
+            <mat-icon>phone_android</mat-icon>
+            <span>Mobile Money</span>
+          </button>
+        </mat-grid-tile>
+      </mat-grid-list>
+
+      <!-- Statistiques -->
+      <div class="stats-grid" *ngIf="stats">
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon deposits">
+              <mat-icon>arrow_downward</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ formatAmount(stats.totalDeposits) }} Ar</div>
+              <div class="stat-label">Total dépôts</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon withdrawals">
+              <mat-icon>arrow_upward</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ formatAmount(stats.totalWithdrawals) }} Ar</div>
+              <div class="stat-label">Total retraits</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon transfers">
+              <mat-icon>swap_horiz</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ stats.totalTransactions }}</div>
+              <div class="stat-label">Transactions</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Onglets -->
+      <mat-tab-group [(selectedIndex)]="activeTab" class="wallet-tabs">
+        <mat-tab label="Transactions récentes">
+          <div class="tab-content">
+            <mat-list class="transactions-list">
+              <mat-list-item *ngFor="let transaction of recentTransactions" class="transaction-item">
+                <div class="transaction-icon" [ngClass]="getTransactionColor(transaction.type)">
+                  <mat-icon>{{ getTransactionIcon(transaction.type) }}</mat-icon>
+                </div>
+                <div class="transaction-info">
+                  <div class="transaction-title">
+                    {{ transaction.description || transaction.type }}
+                  </div>
+                  <div class="transaction-meta">
+                    <span class="transaction-date">{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span class="transaction-status" [class.completed]="transaction.status === 'completed'">
+                      {{ transaction.status }}
+                    </span>
+                  </div>
+                </div>
+                <div class="transaction-amount" [ngClass]="transaction.type">
+                  {{ transaction.type === 'withdrawal' ? '-' : '+' }}{{ formatAmount(transaction.amount) }} Ar
+                </div>
+              </mat-list-item>
+
+              <div *ngIf="recentTransactions.length === 0" class="empty-state">
+                <mat-icon>receipt</mat-icon>
+                <h3>Aucune transaction</h3>
+                <p>Commencez par envoyer ou recevoir de l'argent</p>
+                <button mat-raised-button color="primary" (click)="navigateToSend()">
+                  <mat-icon>send</mat-icon>
+                  Envoyer de l'argent
+                </button>
+              </div>
+            </mat-list>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Amis">
+          <div class="tab-content">
+            <div class="friends-preview">
+              <button mat-raised-button color="primary" routerLink="/friends" class="full-width">
+                <mat-icon>people</mat-icon>
+                Gérer mes amis
+              </button>
+              <p class="hint">Retrouvez tous vos amis et envoyez-leur de l'argent rapidement</p>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Mobile Money">
+          <div class="tab-content">
+            <div class="mobile-money-preview">
+              <div class="operators">
+                <div class="operator" (click)="navigateToMobileMoney()">
+                  <span class="operator-name">Airtel Money</span>
+                  <span class="operator-fee">Frais: 0.5%</span>
+                </div>
+                <div class="operator" (click)="navigateToMobileMoney()">
+                  <span class="operator-name">Orange Money</span>
+                  <span class="operator-fee">Frais: 0.5%</span>
+                </div>
+                <div class="operator" (click)="navigateToMobileMoney()">
+                  <span class="operator-name">MVola</span>
+                  <span class="operator-fee">Frais: 0.5%</span>
+                </div>
+              </div>
+              <button mat-raised-button color="primary" (click)="navigateToMobileMoney()" class="full-width">
+                <mat-icon>phone_android</mat-icon>
+                Effectuer un transfert
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </ng-container>
+  </div>
+</div>

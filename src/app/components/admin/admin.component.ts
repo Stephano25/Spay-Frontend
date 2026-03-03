@@ -28,10 +28,10 @@ import { MatDividerModule } from '@angular/material/divider';
     MatMenuModule,
     MatDividerModule
   ],
-  templateUrl: './admin.component.html', // CORRIGÉ: admin.component.html au lieu de login.component.html
+  templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
-export class AdminComponent implements OnInit, OnDestroy { // Bien exporté
+export class AdminComponent implements OnInit, OnDestroy {
   admin: User | null = null;
   private subscriptions: Subscription[] = [];
 
@@ -58,5 +58,10 @@ export class AdminComponent implements OnInit, OnDestroy { // Bien exporté
 
   logout(): void {
     this.authService.logout();
+  }
+
+  getInitials(): string {
+    if (!this.admin) return '';
+    return (this.admin.firstName?.charAt(0) || '') + (this.admin.lastName?.charAt(0) || '');
   }
 }
