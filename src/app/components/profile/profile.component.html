@@ -1,0 +1,128 @@
+<div class="profile-container">
+  <mat-toolbar color="primary">
+    <button mat-icon-button routerLink="/dashboard">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Mon Profil</span>
+    <span class="spacer"></span>
+    <button mat-icon-button (click)="toggleEditMode()">
+      <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <div class="profile-content">
+    <mat-card class="profile-card">
+      <mat-card-content>
+        <!-- Photo de profil -->
+        <div class="profile-header">
+          <div class="profile-avatar">
+            {{ getInitials() }}
+          </div>
+          <button *ngIf="editMode" mat-raised-button color="primary" class="change-photo-btn">
+            <mat-icon>photo_camera</mat-icon>
+            Changer la photo
+          </button>
+        </div>
+
+        <!-- Mode édition -->
+        <div *ngIf="editMode; else viewMode" class="edit-mode">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Prénom</mat-label>
+            <input matInput [(ngModel)]="user.firstName">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom</mat-label>
+            <input matInput [(ngModel)]="user.lastName">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput [(ngModel)]="user.email" type="email">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Téléphone</mat-label>
+            <input matInput [(ngModel)]="user.phoneNumber">
+          </mat-form-field>
+
+          <div class="action-buttons">
+            <button mat-stroked-button (click)="toggleEditMode()">Annuler</button>
+            <button mat-raised-button color="primary" (click)="saveProfile()">
+              <mat-icon>save</mat-icon>
+              Enregistrer
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode visualisation -->
+        <ng-template #viewMode>
+          <div class="profile-info">
+            <div class="info-item">
+              <mat-icon>person</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Nom complet</span>
+                <span class="info-value">{{ user.firstName }} {{ user.lastName }}</span>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="info-item">
+              <mat-icon>email</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ user.email }}</span>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="info-item">
+              <mat-icon>phone</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Téléphone</span>
+                <span class="info-value">{{ user.phoneNumber || 'Non renseigné' }}</span>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="info-item">
+              <mat-icon>account_balance_wallet</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Solde</span>
+                <span class="info-value balance">{{ user.balance | number }} Ar</span>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="info-item">
+              <mat-icon>qr_code</mat-icon>
+              <div class="info-content">
+                <span class="info-label">QR Code</span>
+                <span class="info-value qr-code">{{ user.qrCode }}</span>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- QR Code Image (simulé) -->
+        <div class="qr-code-section" *ngIf="!editMode">
+          <h3>Votre QR Code</h3>
+          <div class="qr-code-placeholder">
+            <mat-icon>qr_code_2</mat-icon>
+            <span>{{ user.qrCode }}</span>
+          </div>
+          <p class="qr-hint">Scannez ce code pour recevoir des paiements</p>
+        </div>
+
+        <button mat-raised-button color="warn" class="logout-btn" (click)="logout()">
+          <mat-icon>exit_to_app</mat-icon>
+          Déconnexion
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

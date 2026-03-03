@@ -1,0 +1,76 @@
+<div class="transactions-container">
+  <mat-toolbar color="primary">
+    <button mat-icon-button routerLink="/dashboard">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Historique des transactions</span>
+    <span class="spacer"></span>
+    <button mat-icon-button>
+      <mat-icon>filter_list</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <div class="transactions-content">
+    <!-- Résumé des transactions -->
+    <div class="summary-cards">
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="summary-icon received">
+            <mat-icon>arrow_downward</mat-icon>
+          </div>
+          <div class="summary-details">
+            <span class="summary-label">Total reçu</span>
+            <span class="summary-value">145 000 Ar</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="summary-icon sent">
+            <mat-icon>arrow_upward</mat-icon>
+          </div>
+          <div class="summary-details">
+            <span class="summary-label">Total envoyé</span>
+            <span class="summary-value">72 000 Ar</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Liste des transactions -->
+    <mat-card class="transactions-list">
+      <mat-card-header>
+        <mat-card-title>Toutes les transactions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list>
+          <mat-list-item *ngFor="let transaction of transactions">
+            <div class="transaction-item">
+              <div class="transaction-icon" [ngClass]="transaction.type">
+                <mat-icon>{{ getTransactionIcon(transaction.type) }}</mat-icon>
+              </div>
+              <div class="transaction-info">
+                <div class="transaction-header">
+                  <span class="transaction-description">{{ transaction.description }}</span>
+                  <span class="transaction-amount" [ngClass]="transaction.type">
+                    {{ transaction.type === 'sent' ? '-' : '+' }}{{ transaction.amount | number }} Ar
+                  </span>
+                </div>
+                <div class="transaction-details">
+                  <span class="transaction-date">{{ transaction.date | date:'medium' }}</span>
+                  <span class="transaction-status" [class.completed]="transaction.status === 'completed'">
+                    {{ transaction.status === 'completed' ? '✓' : '⏳' }}
+                  </span>
+                  <span *ngIf="transaction.operator" class="transaction-operator">
+                    {{ transaction.operator }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -1,0 +1,102 @@
+<div class="scan-container">
+  <mat-toolbar color="primary">
+    <button mat-icon-button routerLink="/dashboard">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Scanner & Payer</span>
+  </mat-toolbar>
+
+  <div class="scan-content">
+    <mat-card>
+      <mat-card-content>
+        <!-- Mode scan -->
+        <div *ngIf="isScanning" class="scan-mode">
+          <div class="scanner-placeholder">
+            <mat-icon>qr_code_scanner</mat-icon>
+            <p>Placez le QR code devant la caméra</p>
+            <p class="hint">Assurez-vous que le code est bien visible</p>
+          </div>
+          
+          <div class="scan-actions">
+            <button mat-raised-button color="primary" class="scan-button" (click)="simulateScan()">
+              <mat-icon>qr_code_scanner</mat-icon>
+              Simuler un scan
+            </button>
+            <button mat-stroked-button routerLink="/dashboard">
+              Annuler
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulaire de paiement -->
+        <div *ngIf="!isScanning && showPaymentForm" class="payment-mode">
+          <div class="user-info" *ngIf="scannedUser">
+            <div class="user-avatar">
+              {{ scannedUser.firstName?.charAt(0) }}{{ scannedUser.lastName?.charAt(0) }}
+            </div>
+            <div class="user-details">
+              <div class="user-name">{{ scannedUser.firstName }} {{ scannedUser.lastName }}</div>
+              <div class="user-phone">{{ scannedUser.phoneNumber }}</div>
+            </div>
+          </div>
+
+          <form [formGroup]="paymentForm" (ngSubmit)="processPayment()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Montant (Ar)</mat-label>
+              <input matInput type="number" formControlName="amount">
+              <mat-icon matSuffix>attach_money</mat-icon>
+              <mat-error *ngIf="paymentForm.get('amount')?.hasError('required')">
+                Montant requis
+              </mat-error>
+              <mat-error *ngIf="paymentForm.get('amount')?.hasError('min')">
+                Minimum 100 Ar
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description (optionnelle)</mat-label>
+              <textarea matInput formControlName="description" rows="2" 
+                        placeholder="Ex: Paiement repas, cadeau..."></textarea>
+            </mat-form-field>
+
+            <div class="quick-amounts">
+              <button type="button" mat-stroked-button (click)="paymentForm.patchValue({amount: 1000})">1 000 Ar</button>
+              <button type="button" mat-stroked-button (click)="paymentForm.patchValue({amount: 5000})">5 000 Ar</button>
+              <button type="button" mat-stroked-button (click)="paymentForm.patchValue({amount: 10000})">10 000 Ar</button>
+              <button type="button" mat-stroked-button (click)="paymentForm.patchValue({amount: 20000})">20 000 Ar</button>
+            </div>
+
+            <div class="button-group">
+              <button mat-stroked-button type="button" (click)="resetScanner()">
+                Annuler
+              </button>
+              <button mat-raised-button color="primary" type="submit" 
+                      [disabled]="!paymentForm.valid">
+                Payer {{ paymentForm.get('amount')?.value | number }} Ar
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Instructions -->
+    <mat-card class="info-card" *ngIf="isScanning">
+      <mat-card-content>
+        <h3>Comment ça marche ?</h3>
+        <div class="info-step">
+          <mat-icon>qr_code_scanner</mat-icon>
+          <span>Scannez le QR code de votre ami</span>
+        </div>
+        <div class="info-step">
+          <mat-icon>attach_money</mat-icon>
+          <span>Entrez le montant à payer</span>
+        </div>
+        <div class="info-step">
+          <mat-icon>check_circle</mat-icon>
+          <span>Confirmez le paiement</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
