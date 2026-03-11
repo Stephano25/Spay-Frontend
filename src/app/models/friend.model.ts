@@ -3,8 +3,8 @@ export interface Friend {
   userId: string;
   friendId: string;
   status: 'pending' | 'accepted' | 'blocked' | 'deleted';
-  blockedBy?: string; // ID de l'utilisateur qui a bloqué
-  deletedBy?: string; // ID de l'utilisateur qui a supprimé
+  blockedBy?: string;
+  deletedBy?: string;
   createdAt: Date;
   updatedAt: Date;
   friend?: {

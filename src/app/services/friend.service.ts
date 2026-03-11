@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, tap, map, of } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, throwError, tap, of } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 import { Friend, FriendRequest, SearchUser, FriendResponse, BlockStatus } from '../models/friend.model';
@@ -22,8 +22,8 @@ export class FriendService {
   getFriends(): Observable<Friend[]> {
     return this.http.get<Friend[]>(this.apiUrl).pipe(
       catchError(error => {
-        this.notificationService.showError('Erreur lors du chargement des amis');
-        return throwError(() => error);
+        console.error('Erreur chargement amis:', error);
+        return of([]);
       })
     );
   }
@@ -33,9 +33,10 @@ export class FriendService {
    */
   getFriendRequests(): Observable<FriendRequest[]> {
     return this.http.get<FriendRequest[]>(`${this.apiUrl}/requests`).pipe(
+      tap(requests => console.log('Demandes reçues du serveur:', requests)),
       catchError(error => {
-        this.notificationService.showError('Erreur lors du chargement des demandes');
-        return throwError(() => error);
+        console.error('Erreur chargement demandes:', error);
+        return of([]);
       })
     );
   }
@@ -46,8 +47,24 @@ export class FriendService {
   getSuggestions(): Observable<SearchUser[]> {
     return this.http.get<SearchUser[]>(`${this.apiUrl}/suggestions`).pipe(
       catchError(error => {
-        this.notificationService.showError('Erreur lors du chargement des suggestions');
-        return throwError(() => error);
+        console.error('Erreur chargement suggestions:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Récupérer la liste des utilisateurs bloqués
+   */
+  getBlockedUsers(): Observable<Friend[]> {
+    return this.http.get<Friend[]>(`${this.apiUrl}/blocked`).pipe(
+      catchError(error => {
+        if (error.status === 404) {
+          console.warn('Route /blocked non disponible, retour tableau vide');
+          return of([]);
+        }
+        console.error('Erreur chargement bloqués:', error);
+        return of([]);
       })
     );
   }
@@ -60,8 +77,8 @@ export class FriendService {
       params: { q: query }
     }).pipe(
       catchError(error => {
-        this.notificationService.showError('Erreur lors de la recherche');
-        return throwError(() => error);
+        console.error('Erreur recherche:', error);
+        return of([]);
       })
     );
   }
@@ -70,10 +87,29 @@ export class FriendService {
    * Envoyer une demande d'ami
    */
   sendFriendRequest(friendId: string): Observable<FriendResponse> {
+    console.log('Envoi demande à:', friendId);
+    
     return this.http.post<FriendResponse>(`${this.apiUrl}/request/${friendId}`, {}).pipe(
-      tap(() => this.notificationService.showSuccess('Demande d\'ami envoyée')),
-      catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors de l\'envoi');
+      tap((response) => {
+        console.log('✅ Réponse succès:', response);
+        this.notificationService.showSuccess(response.message || 'Demande d\'ami envoyée');
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('❌ Erreur détaillée:', error);
+        
+        let errorMessage = 'Erreur lors de l\'envoi';
+        
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 400) {
+          errorMessage = 'Impossible d\'envoyer la demande';
+        } else if (error.status === 403) {
+          errorMessage = 'Vous ne pouvez pas envoyer de demande à cet utilisateur';
+        } else if (error.status === 404) {
+          errorMessage = 'Utilisateur non trouvé';
+        }
+        
+        this.notificationService.showError(errorMessage);
         return throwError(() => error);
       })
     );
@@ -83,10 +119,29 @@ export class FriendService {
    * Accepter une demande d'ami
    */
   acceptFriendRequest(requestId: string): Observable<FriendResponse> {
+    console.log('Acceptation demande:', requestId);
+    
     return this.http.post<FriendResponse>(`${this.apiUrl}/accept/${requestId}`, {}).pipe(
-      tap(() => this.notificationService.showSuccess('Demande d\'ami acceptée')),
-      catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors de l\'acceptation');
+      tap((response) => {
+        console.log('✅ Réponse acceptation:', response);
+        this.notificationService.showSuccess('Demande d\'ami acceptée');
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('❌ Erreur détaillée:', error);
+        
+        let errorMessage = 'Erreur lors de l\'acceptation';
+        
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 400) {
+          errorMessage = 'Demande invalide ou déjà traitée';
+        } else if (error.status === 403) {
+          errorMessage = 'Vous n\'êtes pas autorisé à accepter cette demande';
+        } else if (error.status === 404) {
+          errorMessage = 'Demande non trouvée';
+        }
+        
+        this.notificationService.showError(errorMessage);
         return throwError(() => error);
       })
     );
@@ -99,7 +154,7 @@ export class FriendService {
     return this.http.post<FriendResponse>(`${this.apiUrl}/decline/${requestId}`, {}).pipe(
       tap(() => this.notificationService.showInfo('Demande d\'ami refusée')),
       catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors du refus');
+        console.error('Erreur refus:', error);
         return throwError(() => error);
       })
     );
@@ -112,7 +167,7 @@ export class FriendService {
     return this.http.delete<FriendResponse>(`${this.apiUrl}/${friendId}`).pipe(
       tap(() => this.notificationService.showSuccess('Ami supprimé')),
       catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors de la suppression');
+        console.error('Erreur suppression:', error);
         return throwError(() => error);
       })
     );
@@ -125,7 +180,7 @@ export class FriendService {
     return this.http.post<FriendResponse>(`${this.apiUrl}/block/${userId}`, {}).pipe(
       tap(() => this.notificationService.showInfo('Utilisateur bloqué')),
       catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors du blocage');
+        console.error('Erreur blocage:', error);
         return throwError(() => error);
       })
     );
@@ -138,7 +193,7 @@ export class FriendService {
     return this.http.post<FriendResponse>(`${this.apiUrl}/unblock/${userId}`, {}).pipe(
       tap(() => this.notificationService.showInfo('Utilisateur débloqué')),
       catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors du déblocage');
+        console.error('Erreur déblocage:', error);
         return throwError(() => error);
       })
     );
@@ -151,35 +206,6 @@ export class FriendService {
     return this.http.get<BlockStatus>(`${this.apiUrl}/block-status/${userId}`).pipe(
       catchError(error => {
         console.error('Erreur vérification blocage:', error);
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-  * Récupérer la liste des utilisateurs bloqués
-  */
-  getBlockedUsers(): Observable<Friend[]> {
-    return this.http.get<Friend[]>(`${this.apiUrl}/blocked`).pipe(
-      catchError(error => {
-        if (error.status === 404) {
-          console.warn('Route /blocked non disponible, retour tableau vide');
-          return of([]); // Retourner un tableau vide au lieu d'une erreur
-        }
-        this.notificationService.showError('Erreur lors du chargement des utilisateurs bloqués');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-   * Réenvoyer une demande d'ami à un utilisateur précédemment supprimé
-   */
-  resendFriendRequest(friendId: string): Observable<FriendResponse> {
-    return this.http.post<FriendResponse>(`${this.apiUrl}/resend-request/${friendId}`, {}).pipe(
-      tap(() => this.notificationService.showSuccess('Demande d\'ami renvoyée')),
-      catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors de l\'envoi');
         return throwError(() => error);
       })
     );

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { Subscription, forkJoin, of } from 'rxjs';
+import { Subscription, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 // Services
@@ -94,7 +94,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
   /**
    * Charger toutes les données
    */
-  private loadData(): void {
+  loadData(): void {
     this.isLoading = true;
     
     // Charger les amis
@@ -106,6 +106,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         })
       ).subscribe(friends => {
         this.friends = friends.filter(f => f.status === 'accepted');
+        console.log('Amis chargés:', this.friends);
       })
     );
 
@@ -118,7 +119,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         })
       ).subscribe(requests => {
         this.friendRequests = requests;
-        console.log('Demandes reçues:', requests); // DEBUG
+        console.log('Demandes reçues:', this.friendRequests);
       })
     );
 
@@ -131,6 +132,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         })
       ).subscribe(suggestions => {
         this.suggestions = suggestions;
+        console.log('Suggestions chargées:', this.suggestions);
       })
     );
 
@@ -143,6 +145,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         })
       ).subscribe(blocked => {
         this.blockedUsers = blocked;
+        console.log('Bloqués chargés:', this.blockedUsers);
         this.isLoading = false;
       })
     );
@@ -167,6 +170,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
       })
     ).subscribe(results => {
       this.searchResults = results;
+      console.log('Résultats recherche:', this.searchResults);
       this.isSearching = false;
     });
   }
@@ -175,14 +179,27 @@ export class FriendsComponent implements OnInit, OnDestroy {
    * Envoyer une demande d'ami
    */
   sendFriendRequest(userId: string): void {
+    console.log('Envoi demande à:', userId);
+  
     this.friendService.sendFriendRequest(userId).subscribe({
-      next: () => {
-        // Mettre à jour l'UI
+      next: (response) => {
+        console.log('Réponse:', response);
+      
+        // Mettre à jour l'UI immédiatement
         const user = this.searchResults.find(u => u.id === userId);
         if (user) {
           user.hasPendingRequest = true;
         }
-        this.notificationService.showSuccess('Demande d\'ami envoyée');
+        
+        const suggestion = this.suggestions.find(u => u.id === userId);
+        if (suggestion) {
+          suggestion.hasPendingRequest = true;
+        }
+      
+        // Recharger les données
+        setTimeout(() => {
+          this.loadData();
+        }, 500);
       },
       error: (error) => {
         console.error('Erreur envoi demande:', error);
@@ -194,23 +211,23 @@ export class FriendsComponent implements OnInit, OnDestroy {
    * Accepter une demande d'ami
    */
   acceptRequest(requestId: string): void {
-    console.log('Acceptation demande:', requestId); // DEBUG
-    
+    console.log('Acceptation demande:', requestId);
+  
     this.friendService.acceptFriendRequest(requestId).subscribe({
       next: (response) => {
-        console.log('Réponse acceptation:', response); // DEBUG
-        
+        console.log('Réponse acceptation:', response);
+      
         // Retirer la demande de la liste
         this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
-        
-        // Recharger la liste des amis
+      
+        // Recharger les amis
         this.friendService.getFriends().subscribe(friends => {
           this.friends = friends.filter(f => f.status === 'accepted');
-          console.log('Nouvelle liste amis:', this.friends); // DEBUG
+          console.log('Nouvelle liste amis:', this.friends);
         });
-        
+      
         this.notificationService.showSuccess('Demande d\'ami acceptée');
-        
+      
         // Rediriger vers le chat si une conversation a été créée
         if (response?.conversationId) {
           setTimeout(() => {
@@ -222,6 +239,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Erreur acceptation:', error);
+        this.loadData(); // Recharger pour voir l'état actuel
       }
     });
   }
@@ -250,6 +268,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         next: () => {
           this.friends = this.friends.filter(f => f.id !== friendId);
           this.notificationService.showSuccess('Ami supprimé');
+          this.loadData();
         },
         error: (error) => {
           console.error('Erreur suppression:', error);
@@ -265,9 +284,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
     if (confirm(`Voulez-vous vraiment bloquer ${userName} ?`)) {
       this.friendService.blockUser(userId).subscribe({
         next: () => {
-          // Retirer des amis
-          this.friends = this.friends.filter(f => f.friendId !== userId && f.userId !== userId);
-          this.loadData(); // Recharger les données
+          this.loadData();
           this.notificationService.showInfo(`${userName} a été bloqué`);
         },
         error: (error) => {
@@ -286,6 +303,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         next: () => {
           this.blockedUsers = this.blockedUsers.filter(b => b.friendId !== userId && b.userId !== userId);
           this.notificationService.showInfo(`${userName} a été débloqué`);
+          this.loadData();
         },
         error: (error) => {
           console.error('Erreur déblocage:', error);

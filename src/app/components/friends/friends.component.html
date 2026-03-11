@@ -45,7 +45,13 @@
             <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
 
-          <div class="search-results" *ngIf="searchResults.length > 0">
+          <!-- Loading recherche -->
+          <div class="search-loading" *ngIf="isSearching">
+            <mat-spinner diameter="30"></mat-spinner>
+          </div>
+
+          <!-- Résultats de recherche -->
+          <div class="search-results" *ngIf="searchResults.length > 0 && !isSearching">
             <h4>Résultats de la recherche</h4>
             <mat-list>
               <mat-list-item *ngFor="let user of searchResults">
@@ -96,6 +102,7 @@
             </mat-list>
           </div>
 
+          <!-- Suggestions -->
           <div class="suggestions" *ngIf="suggestions.length > 0 && !searchQuery">
             <h4>Suggestions</h4>
             <mat-list>
@@ -109,21 +116,23 @@
                     <div class="user-email">{{ user.email }}</div>
                   </div>
                   <div class="user-action">
-                    <button 
-                      *ngIf="!user.isBlocked"
-                      mat-raised-button 
-                      color="primary"
-                      (click)="sendFriendRequest(user.id)">
-                      <mat-icon>person_add</mat-icon>
-                      Ajouter
-                    </button>
-                    <button 
-                      *ngIf="user.isBlocked"
-                      mat-stroked-button 
-                      disabled>
-                      <mat-icon>block</mat-icon>
-                      Bloqué
-                    </button>
+                    <ng-container [ngSwitch]="true">
+                      <button 
+                        *ngSwitchCase="user.hasPendingRequest" 
+                        mat-stroked-button 
+                        disabled>
+                        <mat-icon>hourglass_empty</mat-icon>
+                        Demande envoyée
+                      </button>
+                      <button 
+                        *ngSwitchDefault 
+                        mat-raised-button 
+                        color="primary"
+                        (click)="sendFriendRequest(user.id)">
+                        <mat-icon>person_add</mat-icon>
+                        Ajouter
+                      </button>
+                    </ng-container>
                   </div>
                 </div>
               </mat-list-item>
@@ -197,7 +206,6 @@
                     </span>
                   </div>
                   <div class="friend-email">{{ friend.friend?.email }}</div>
-                  <div class="friend-phone">{{ friend.friend?.phoneNumber }}</div>
                 </div>
                 <div class="friend-actions">
                   <button mat-icon-button (click)="chatWithFriend(friend.friend?.id || '')" matTooltip="Discuter">
