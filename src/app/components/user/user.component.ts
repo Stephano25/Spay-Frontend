@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 // Services
@@ -9,30 +9,29 @@ import { TransactionService } from '../../services/transaction.service';
 
 // Models
 import { User } from '../../models/user.model';
-import { DashboardStats, Transaction } from '../../models/transaction.model'; // IMPORTER DEPUIS LES MODÈLES
+import { DashboardStats, Transaction } from '../../models/transaction.model';
+
+// Components
+import { SidebarComponent } from '../layout/sidebar/sidebar.component';
+import { NavigationHeaderComponent } from '../shared/navigation-header/navigation-header.component';
 
 // Angular Material
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-user',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
+    SidebarComponent,
+    NavigationHeaderComponent,
     MatCardModule,
-    MatMenuModule,
-    MatProgressSpinnerModule,
-    MatDividerModule
+    MatIconModule,
+    MatButtonModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
@@ -108,14 +107,6 @@ export class UserComponent implements OnInit, OnDestroy {
     this.router.navigate(['/wallet/history']);
   }
 
-  navigateToStats(): void {
-    this.router.navigate(['/stats']);
-  }
-
-  navigateToSettings(): void {
-    this.router.navigate(['/user/settings']);
-  }
-
   logout(): void {
     this.authService.logout();
   }
@@ -136,10 +127,5 @@ export class UserComponent implements OnInit, OnDestroy {
       minimumFractionDigits: 0, 
       maximumFractionDigits: 0 
     }).format(amount);
-  }
-
-  getInitials(): string {
-    if (!this.user) return '';
-    return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
   }
 }

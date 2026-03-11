@@ -1,0 +1,100 @@
+<div class="header-container" [class.admin-header]="isAdmin">
+  <div class="header-left">
+    <h1>{{ title }}</h1>
+  </div>
+  <div class="header-right">
+    <div class="user-info-desktop">
+      <span class="user-name">{{ user?.firstName }} {{ user?.lastName }}</span>
+      <div class="user-avatar-small">{{ getInitials() }}</div>
+    </div>
+    <button mat-icon-button [matMenuTriggerFor]="menu" class="profile-btn">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu" class="user-menu">
+      <div class="menu-header">
+        <div class="menu-user-info">
+          <strong>{{ user?.firstName }} {{ user?.lastName }}</strong>
+          <small>{{ user?.email }}</small>
+          <span class="role-badge" *ngIf="isAdmin">
+            {{ user?.role === 'super_admin' ? 'Super Admin' : 'Admin' }}
+          </span>
+        </div>
+      </div>
+      <mat-divider></mat-divider>
+      
+      <!-- Menu items pour admin -->
+      <ng-container *ngIf="isAdmin">
+        <button mat-menu-item routerLink="/admin/dashboard">
+          <mat-icon>dashboard</mat-icon>
+          <span>Dashboard</span>
+        </button>
+        <button mat-menu-item routerLink="/admin/users">
+          <mat-icon>people</mat-icon>
+          <span>Utilisateurs</span>
+        </button>
+        <button mat-menu-item routerLink="/admin/transactions">
+          <mat-icon>receipt</mat-icon>
+          <span>Transactions</span>
+        </button>
+        <button mat-menu-item routerLink="/admin/stats">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Statistiques</span>
+        </button>
+        <button mat-menu-item routerLink="/admin/settings">
+          <mat-icon>settings</mat-icon>
+          <span>Paramètres</span>
+        </button>
+      </ng-container>
+      
+      <!-- Menu items pour utilisateur normal -->
+      <ng-container *ngIf="!isAdmin">
+        <button mat-menu-item routerLink="/user">
+          <mat-icon>dashboard</mat-icon>
+          <span>Tableau de bord</span>
+        </button>
+        <button mat-menu-item routerLink="/wallet">
+          <mat-icon>account_balance_wallet</mat-icon>
+          <span>Portefeuille</span>
+        </button>
+        <button mat-menu-item routerLink="/transactions">
+          <mat-icon>swap_horiz</mat-icon>
+          <span>Transactions</span>
+        </button>
+        <button mat-menu-item routerLink="/friends">
+          <mat-icon>people</mat-icon>
+          <span>Amis</span>
+        </button>
+        <button mat-menu-item routerLink="/chat">
+          <mat-icon>chat</mat-icon>
+          <span>Messages</span>
+        </button>
+        <button mat-menu-item routerLink="/scan-pay">
+          <mat-icon>qr_code_scanner</mat-icon>
+          <span>Scanner</span>
+        </button>
+        <button mat-menu-item routerLink="/mobile-money">
+          <mat-icon>phone_android</mat-icon>
+          <span>Mobile Money</span>
+        </button>
+        <button mat-menu-item routerLink="/stats">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Statistiques</span>
+        </button>
+        <button mat-menu-item routerLink="/profile">
+          <mat-icon>person</mat-icon>
+          <span>Profil</span>
+        </button>
+        <button mat-menu-item routerLink="/user/settings">
+          <mat-icon>settings</mat-icon>
+          <span>Paramètres</span>
+        </button>
+      </ng-container>
+      
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="onLogout()" class="logout-item">
+        <mat-icon color="warn">exit_to_app</mat-icon>
+        <span>Déconnexion</span>
+      </button>
+    </mat-menu>
+  </div>
+</div>

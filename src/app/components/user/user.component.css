@@ -1,35 +1,12 @@
 .user-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-}
-
-.user-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-}
-
-.spacer {
-  flex: 1 1 auto;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.user-info span {
-  font-size: 14px;
-  font-weight: 500;
+  background: #f5f5f5;
 }
 
 .user-content {
-  padding: 20px;
   max-width: 600px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .loading-container {
@@ -42,6 +19,7 @@
   color: #666;
 }
 
+/* Carte de solde */
 .balance-card {
   margin-bottom: 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -69,6 +47,7 @@
   text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 
+/* Actions rapides */
 .quick-actions-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -131,33 +110,7 @@
   color: #333;
 }
 
-.navigation-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.nav-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  font-size: 14px;
-  background: white;
-  color: #333;
-  border-radius: 12px;
-}
-
-.nav-button:hover {
-  background: #f0f0f0;
-}
-
-.nav-button mat-icon {
-  font-size: 18px;
-}
-
+/* Statistiques */
 .stats-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -208,6 +161,7 @@
   color: #666;
 }
 
+/* Transactions */
 .transactions-card {
   border-radius: 20px;
   background: white;
@@ -321,6 +275,7 @@
   color: #ddd;
 }
 
+/* Responsive */
 @media (max-width: 480px) {
   .user-content {
     padding: 16px;

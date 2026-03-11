@@ -9,12 +9,9 @@ import { AuthService } from '../../services/auth.service';
 // Models
 import { User } from '../../models/user.model';
 
-// Angular Material
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatDividerModule } from '@angular/material/divider';
+// Components
+import { SidebarComponent } from '../layout/sidebar/sidebar.component';
+import { NavigationHeaderComponent } from '../shared/navigation-header/navigation-header.component';
 
 @Component({
   selector: 'app-admin',
@@ -22,11 +19,8 @@ import { MatDividerModule } from '@angular/material/divider';
   imports: [
     CommonModule,
     RouterModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
-    MatMenuModule,
-    MatDividerModule
+    SidebarComponent,
+    NavigationHeaderComponent
   ],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
@@ -58,10 +52,5 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
-  }
-
-  getInitials(): string {
-    if (!this.admin) return '';
-    return (this.admin.firstName?.charAt(0) || '') + (this.admin.lastName?.charAt(0) || '');
   }
 }

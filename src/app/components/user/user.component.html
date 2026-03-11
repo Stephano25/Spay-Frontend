@@ -1,42 +1,10 @@
-<div class="user-container">
-  <!-- Header -->
-  <mat-toolbar color="primary" class="user-header">
-    <span>SPaye</span>
-    <span class="spacer"></span>
-    <div class="user-info">
-      <span>{{ user?.firstName }} {{ user?.lastName }}</span>
-      <button mat-icon-button [matMenuTriggerFor]="menu">
-        <mat-icon>account_circle</mat-icon>
-      </button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item routerLink="/profile">
-          <mat-icon>person</mat-icon>
-          <span>Mon Profil</span>
-        </button>
-        <button mat-menu-item routerLink="/friends">
-          <mat-icon>people</mat-icon>
-          <span>Mes Amis</span>
-        </button>
-        <button mat-menu-item routerLink="/transactions">
-          <mat-icon>history</mat-icon>
-          <span>Transactions</span>
-        </button>
-        <button mat-menu-item routerLink="/stats">
-          <mat-icon>bar_chart</mat-icon>
-          <span>Statistiques</span>
-        </button>
-        <button mat-menu-item routerLink="/user/settings">
-          <mat-icon>settings</mat-icon>
-          <span>Paramètres</span>
-        </button>
-        <mat-divider></mat-divider>
-        <button mat-menu-item (click)="logout()">
-          <mat-icon>exit_to_app</mat-icon>
-          <span>Déconnexion</span>
-        </button>
-      </mat-menu>
-    </div>
-  </mat-toolbar>
+<app-sidebar>
+  <app-navigation-header 
+    [user]="user" 
+    title="Tableau de bord" 
+    [isAdmin]="false"
+    (logout)="logout()">
+  </app-navigation-header>
 
   <div class="user-content">
     <!-- Loading spinner -->
@@ -94,29 +62,6 @@
         </mat-card>
       </div>
 
-      <!-- Navigation secondaire -->
-      <div class="navigation-grid">
-        <button mat-raised-button class="nav-button" routerLink="/friends">
-          <mat-icon>people</mat-icon>
-          <span>Amis</span>
-        </button>
-
-        <button mat-raised-button class="nav-button" routerLink="/transactions">
-          <mat-icon>history</mat-icon>
-          <span>Transactions</span>
-        </button>
-
-        <button mat-raised-button class="nav-button" routerLink="/stats">
-          <mat-icon>bar_chart</mat-icon>
-          <span>Statistiques</span>
-        </button>
-
-        <button mat-raised-button class="nav-button" routerLink="/profile">
-          <mat-icon>person</mat-icon>
-          <span>Profil</span>
-        </button>
-      </div>
-
       <!-- Statistiques rapides -->
       <div class="stats-row" *ngIf="stats">
         <mat-card class="stat-card">
@@ -148,7 +93,7 @@
       <mat-card class="transactions-card">
         <mat-card-header>
           <mat-card-title>Dernières transactions</mat-card-title>
-          <a mat-button color="primary" routerLink="/transactions" class="view-all-link">
+          <a mat-button color="primary" routerLink="/wallet/history" class="view-all-link">
             Voir tout
             <mat-icon>arrow_forward</mat-icon>
           </a>
@@ -179,4 +124,4 @@
       </mat-card>
     </ng-container>
   </div>
-</div>
+</app-sidebar>

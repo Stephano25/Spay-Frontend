@@ -1,44 +1,12 @@
-<div class="admin-layout">
-  <mat-toolbar color="primary" class="admin-toolbar">
-    <div class="toolbar-left">
-      <mat-icon class="logo-icon">admin_panel_settings</mat-icon>
-      <span class="app-title">SPaye Administration</span>
-    </div>
-    
-    <span class="spacer"></span>
-
-    <div class="toolbar-right">
-      <span class="admin-name" *ngIf="admin">
-        {{ admin.firstName }} {{ admin.lastName }}
-      </span>
-      
-      <button mat-icon-button [matMenuTriggerFor]="menu">
-        <mat-icon>account_circle</mat-icon>
-      </button>
-      <mat-menu #menu="matMenu">
-        <div class="admin-menu-header">
-          <strong>{{ admin?.email }}</strong>
-          <small>{{ admin?.role === 'super_admin' ? 'Super Administrateur' : 'Administrateur' }}</small>
-        </div>
-        <mat-divider></mat-divider>
-        <button mat-menu-item routerLink="/admin/profile">
-          <mat-icon>person</mat-icon>
-          <span>Mon Profil</span>
-        </button>
-        <button mat-menu-item routerLink="/admin/settings">
-          <mat-icon>settings</mat-icon>
-          <span>Paramètres</span>
-        </button>
-        <mat-divider></mat-divider>
-        <button mat-menu-item (click)="logout()">
-          <mat-icon>exit_to_app</mat-icon>
-          <span>Déconnexion</span>
-        </button>
-      </mat-menu>
-    </div>
-  </mat-toolbar>
+<app-sidebar>
+  <app-navigation-header 
+    [user]="admin" 
+    title="Administration" 
+    [isAdmin]="true"
+    (logout)="logout()">
+  </app-navigation-header>
 
   <div class="admin-content">
     <router-outlet></router-outlet>
   </div>
-</div>
+</app-sidebar>

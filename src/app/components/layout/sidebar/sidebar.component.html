@@ -1,0 +1,98 @@
+<div class="sidebar-container" [class.mobile]="isMobile">
+  <!-- Bouton menu pour mobile -->
+  <button 
+    *ngIf="isMobile" 
+    class="menu-toggle" 
+    (click)="toggleSidebar()"
+    mat-fab 
+    color="primary"
+    [matTooltip]="isOpen ? 'Fermer le menu' : 'Ouvrir le menu'">
+    <mat-icon>{{ isOpen ? 'close' : 'menu' }}</mat-icon>
+  </button>
+
+  <!-- Overlay pour mobile -->
+  <div 
+    *ngIf="isMobile && isOpen" 
+    class="overlay" 
+    (click)="closeSidebar()">
+  </div>
+
+  <!-- Sidebar -->
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav
+      #sidenav
+      [mode]="isMobile ? 'over' : 'side'"
+      [opened]="isMobile ? isOpen : true"
+      [class.collapsed]="!isMobile && isCollapsed"
+      class="sidebar">
+      
+      <!-- Logo et titre -->
+      <div class="sidebar-header" (click)="!isMobile && toggleSidebar()">
+        <div class="logo-container">
+          <mat-icon class="logo-icon">account_balance_wallet</mat-icon>
+          <span class="logo-text" *ngIf="!isCollapsed || isMobile">SPaye</span>
+        </div>
+        <button 
+          *ngIf="!isMobile" 
+          mat-icon-button 
+          class="collapse-btn"
+          [matTooltip]="isCollapsed ? 'Développer' : 'Réduire'">
+          <mat-icon>{{ isCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+        </button>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- Profil utilisateur -->
+      <div class="user-profile" *ngIf="currentUser">
+        <div class="user-avatar">
+          {{ getInitials() }}
+        </div>
+        <div class="user-info" *ngIf="!isCollapsed || isMobile">
+          <div class="user-name">{{ currentUser.firstName }} {{ currentUser.lastName }}</div>
+          <div class="user-role">{{ isAdmin() ? 'Administrateur' : 'Utilisateur' }}</div>
+          <div class="user-balance" *ngIf="!isAdmin()">
+            {{ formatAmount(currentUser.balance) }} Ar
+          </div>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- Menu de navigation -->
+      <mat-nav-list class="nav-list">
+        <a
+          *ngFor="let item of menuItems"
+          mat-list-item
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          (click)="closeSidebar()"
+          [matTooltip]="isCollapsed && !isMobile ? item.label : ''"
+          matTooltipPosition="right">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle *ngIf="!isCollapsed || isMobile">{{ item.label }}</span>
+        </a>
+      </mat-nav-list>
+
+      <mat-divider></mat-divider>
+
+      <!-- Bouton de déconnexion -->
+      <div class="logout-container">
+        <button
+          mat-raised-button
+          color="warn"
+          class="logout-btn"
+          (click)="logout()"
+          [matTooltip]="isCollapsed && !isMobile ? 'Déconnexion' : ''"
+          matTooltipPosition="right">
+          <mat-icon>exit_to_app</mat-icon>
+          <span *ngIf="!isCollapsed || isMobile">Déconnexion</span>
+        </button>
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="content">
+      <ng-content></ng-content>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
