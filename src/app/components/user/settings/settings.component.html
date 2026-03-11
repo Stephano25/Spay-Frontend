@@ -1,19 +1,15 @@
-<div class="settings-container">
-  <!-- Header -->
-  <mat-toolbar color="primary" class="settings-header">
-    <button mat-icon-button routerLink="/user">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <span>Paramètres</span>
-    <span class="spacer"></span>
-    <button 
-      mat-icon-button 
-      (click)="resetAllSettings()" 
-      matTooltip="Réinitialiser les paramètres"
-      *ngIf="!isLoading">
-      <mat-icon>settings_backup_restore</mat-icon>
-    </button>
-  </mat-toolbar>
+<app-sidebar>
+  <app-navigation-header 
+    [user]="user" 
+    title="Paramètres" 
+    [isAdmin]="false"
+    [showBackButton]="true"
+    backRoute="/user"
+    [showExportButton]="false"
+    [showResetButton]="true"
+    (logout)="logout()"
+    (resetSettings)="resetAllSettings()">
+  </app-navigation-header>
 
   <div class="settings-content">
     <!-- Loading spinner -->
@@ -378,4 +374,4 @@
       </mat-tab-group>
     </ng-container>
   </div>
-</div>
+</app-sidebar>

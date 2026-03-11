@@ -2,7 +2,9 @@ export interface Friend {
   id: string;
   userId: string;
   friendId: string;
-  status: 'pending' | 'accepted' | 'blocked';
+  status: 'pending' | 'accepted' | 'blocked' | 'deleted';
+  blockedBy?: string; // ID de l'utilisateur qui a bloqué
+  deletedBy?: string; // ID de l'utilisateur qui a supprimé
   createdAt: Date;
   updatedAt: Date;
   friend?: {
@@ -41,6 +43,8 @@ export interface SearchUser {
   profilePicture?: string;
   isFriend: boolean;
   hasPendingRequest: boolean;
+  isBlocked: boolean;
+  blockedBy?: string;
 }
 
 export interface FriendResponse {
@@ -48,4 +52,10 @@ export interface FriendResponse {
   message?: string;
   data?: any;
   conversationId?: string;
+}
+
+export interface BlockStatus {
+  isBlocked: boolean;
+  blockedBy?: string;
+  canMessage: boolean;
 }

@@ -1,10 +1,12 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
+import { FriendService } from './friend.service';
 import { environment } from '../../environments/environment';
+import { switchMap, catchError } from 'rxjs/operators';
 
 export interface Message {
   id: string;
@@ -30,7 +32,10 @@ export interface Message {
     lastName: string;
     profilePicture?: string;
   };
+  isBlocked?: boolean; // Indique si le message n'a pas été envoyé à cause d'un blocage
 }
+
+// Ajoutez ou mettez à jour cette interface dans votre chat.service.ts
 
 export interface Conversation {
   userId: string;
@@ -42,6 +47,9 @@ export interface Conversation {
   unreadCount: number;
   isOnline: boolean;
   lastSeen?: Date;
+  isBlocked?: boolean;
+  blockedBy?: string;
+  canMessage?: boolean;
 }
 
 export interface TypingIndicator {
@@ -69,18 +77,22 @@ export class ChatService implements OnDestroy {
   private typingSubject = new BehaviorSubject<TypingIndicator | null>(null);
   private onlineStatusSubject = new BehaviorSubject<{ userId: string; isOnline: boolean; lastSeen?: Date } | null>(null);
   private callSignalSubject = new BehaviorSubject<CallSignal | null>(null);
+  private blockStatusSubject = new BehaviorSubject<{ userId: string; isBlocked: boolean; blockedBy?: string } | null>(null);
   
   public newMessage$ = this.newMessageSubject.asObservable();
   public typing$ = this.typingSubject.asObservable();
   public onlineStatus$ = this.onlineStatusSubject.asObservable();
   public callSignal$ = this.callSignalSubject.asObservable();
+  public blockStatus$ = this.blockStatusSubject.asObservable();
 
   private currentUserId: string = '';
+  private blockStatusCache: Map<string, boolean> = new Map();
 
   constructor(
     private http: HttpClient,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private friendService: FriendService
   ) {
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id || '';
@@ -133,27 +145,49 @@ export class ChatService implements OnDestroy {
         this.callSignalSubject.next(data);
       });
 
+      this.socket.on('userBlocked', (data: { userId: string; blockedBy: string }) => {
+        this.blockStatusSubject.next({ userId: data.userId, isBlocked: true, blockedBy: data.blockedBy });
+        this.blockStatusCache.set(data.userId, true);
+      });
+
+      this.socket.on('userUnblocked', (data: { userId: string }) => {
+        this.blockStatusSubject.next({ userId: data.userId, isBlocked: false });
+        this.blockStatusCache.set(data.userId, false);
+      });
+
+      this.socket.on('messageBlocked', (data: { receiverId: string; reason: string }) => {
+        this.notificationService.showWarning('Message non envoyé : vous avez bloqué cet utilisateur ou vous êtes bloqué');
+      });
+
     } catch (error) {
       console.error('Erreur de connexion socket:', error);
     }
   }
 
   /**
-   * Récupérer les conversations
+   * Récupérer les conversations avec statut de blocage
    */
   getConversations(): Observable<Conversation[]> {
-    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`);
+    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`).pipe(
+      catchError(() => {
+        return of([]);
+      })
+    );
   }
 
   /**
-   * Récupérer les messages avec un utilisateur
+   * Récupérer les messages avec un utilisateur (avec vérification blocage)
    */
   getMessages(userId: string): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`);
+    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`).pipe(
+      catchError(() => {
+        return of([]);
+      })
+    );
   }
 
   /**
-   * Envoyer un message
+   * Envoyer un message avec vérification de blocage
    */
   sendMessage(message: {
     receiverId: string;
@@ -167,21 +201,59 @@ export class ChatService implements OnDestroy {
       amount: number;
     };
   }): void {
-    if (this.socket) {
-      this.socket.emit('sendMessage', message);
-    } else {
-      // Fallback HTTP si socket non connecté
-      this.http.post(`${this.apiUrl}/send`, message).subscribe();
-    }
+    // Vérifier d'abord le statut de blocage
+    this.friendService.checkBlockStatus(message.receiverId).subscribe({
+      next: (status) => {
+        if (status.isBlocked) {
+          this.notificationService.showWarning('Impossible d\'envoyer un message : vous avez bloqué cet utilisateur ou vous êtes bloqué');
+          // Émettre un message d'erreur
+          const blockedMessage: Message = {
+            id: 'blocked-' + Date.now(),
+            senderId: this.currentUserId,
+            receiverId: message.receiverId,
+            type: message.type,
+            content: message.content,
+            createdAt: new Date(),
+            isRead: false,
+            isDelivered: false,
+            isBlocked: true
+          };
+          this.newMessageSubject.next(blockedMessage);
+        } else {
+          // Envoyer le message normalement
+          if (this.socket) {
+            this.socket.emit('sendMessage', message);
+          } else {
+            // Fallback HTTP
+            this.http.post(`${this.apiUrl}/send`, message).subscribe();
+          }
+        }
+      },
+      error: () => {
+        // En cas d'erreur, tenter d'envoyer quand même
+        if (this.socket) {
+          this.socket.emit('sendMessage', message);
+        }
+      }
+    });
   }
 
   /**
-   * Envoyer un indicateur de frappe
+   * Envoyer un indicateur de frappe (vérifie le blocage)
    */
   sendTyping(receiverId: string, isTyping: boolean): void {
-    if (this.socket) {
-      this.socket.emit('typing', { receiverId, isTyping });
-    }
+    this.friendService.checkBlockStatus(receiverId).subscribe({
+      next: (status) => {
+        if (!status.isBlocked && this.socket) {
+          this.socket.emit('typing', { receiverId, isTyping });
+        }
+      },
+      error: () => {
+        if (this.socket) {
+          this.socket.emit('typing', { receiverId, isTyping });
+        }
+      }
+    });
   }
 
   /**
@@ -205,12 +277,23 @@ export class ChatService implements OnDestroy {
   }
 
   /**
-   * Démarrer un appel
+   * Démarrer un appel (vérifie le blocage)
    */
   startCall(receiverId: string, type: 'video' | 'audio'): void {
-    if (this.socket) {
-      this.socket.emit('startCall', { receiverId, type });
-    }
+    this.friendService.checkBlockStatus(receiverId).subscribe({
+      next: (status) => {
+        if (status.isBlocked) {
+          this.notificationService.showWarning('Impossible d\'appeler : vous avez bloqué cet utilisateur ou vous êtes bloqué');
+        } else if (this.socket) {
+          this.socket.emit('startCall', { receiverId, type });
+        }
+      },
+      error: () => {
+        if (this.socket) {
+          this.socket.emit('startCall', { receiverId, type });
+        }
+      }
+    });
   }
 
   /**

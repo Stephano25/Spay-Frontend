@@ -14,12 +14,12 @@
     </div>
 
     <!-- Contenu principal -->
-    <ng-container *ngIf="!isLoading && user">
+    <ng-container *ngIf="!isLoading">
       <!-- Carte de solde -->
       <mat-card class="balance-card">
         <mat-card-content>
           <div class="balance-label">Votre solde</div>
-          <div class="balance-amount">{{ formatAmount(user.balance) }} Ar</div>
+          <div class="balance-amount">{{ formatAmount(displayBalance) }} {{ walletCurrency }}</div>
         </mat-card-content>
       </mat-card>
 
@@ -70,7 +70,7 @@
               <mat-icon>swap_horiz</mat-icon>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ stats.totalTransactions }}</div>
+              <div class="stat-value">{{ stats.totalTransactions || 0 }}</div>
               <div class="stat-label">Transactions</div>
             </div>
           </mat-card-content>

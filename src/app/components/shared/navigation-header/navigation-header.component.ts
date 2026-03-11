@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-navigation-header',
@@ -17,7 +18,8 @@ import { MatDividerModule } from '@angular/material/divider';
     MatIconModule,
     MatButtonModule,
     MatMenuModule,
-    MatDividerModule
+    MatDividerModule,
+    MatTooltipModule
   ],
   templateUrl: './navigation-header.component.html',
   styleUrls: ['./navigation-header.component.css']
@@ -26,7 +28,13 @@ export class NavigationHeaderComponent {
   @Input() user: any;
   @Input() title: string = '';
   @Input() isAdmin: boolean = false;
+  @Input() showBackButton: boolean = true;
+  @Input() backRoute: string = '';
+  @Input() showExportButton: boolean = false;
+  @Input() showResetButton: boolean = true;
   @Output() logout = new EventEmitter<void>();
+  @Output() resetSettings = new EventEmitter<void>();
+  @Output() exportSettings = new EventEmitter<void>();
 
   getInitials(): string {
     if (!this.user) return '';
@@ -36,5 +44,13 @@ export class NavigationHeaderComponent {
 
   onLogout(): void {
     this.logout.emit();
+  }
+
+  onReset(): void {
+    this.resetSettings.emit();
+  }
+
+  onExport(): void {
+    this.exportSettings.emit();
   }
 }

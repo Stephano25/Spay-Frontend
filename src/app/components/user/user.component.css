@@ -302,3 +302,65 @@
     font-size: 24px;
   }
 }
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 20px;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  color: #333;
+}
+
+.header-right .profile-btn {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.user-menu .menu-header {
+  padding: 16px;
+  min-width: 200px;
+}
+
+.menu-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-user-info strong {
+  font-size: 14px;
+  color: #333;
+}
+
+.menu-user-info small {
+  font-size: 12px;
+  color: #666;
+}
+
+.logout-item {
+  color: #f44336;
+}
+
+.logout-item mat-icon {
+  color: #f44336;
+}
+
+@media (max-width: 768px) {
+  .user-header {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .header-left h1 {
+    font-size: 20px;
+  }
+}

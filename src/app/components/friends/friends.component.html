@@ -6,8 +6,15 @@
     </button>
     <span>Mes Amis</span>
     <span class="spacer"></span>
+    <button mat-icon-button (click)="scanQRCode()" matTooltip="Scanner un QR code">
+      <mat-icon>qr_code_scanner</mat-icon>
+    </button>
     <button mat-icon-button (click)="showAddFriend = !showAddFriend" matTooltip="Ajouter un ami">
       <mat-icon>person_add</mat-icon>
+    </button>
+    <button mat-icon-button (click)="showBlockedUsers = !showBlockedUsers" matTooltip="Utilisateurs bloqués">
+      <mat-icon>block</mat-icon>
+      <span class="badge" *ngIf="blockedUsers.length > 0">{{ blockedUsers.length }}</span>
     </button>
   </mat-toolbar>
 
@@ -53,6 +60,14 @@
                   <div class="user-action">
                     <ng-container [ngSwitch]="true">
                       <button 
+                        *ngSwitchCase="user.isBlocked" 
+                        mat-stroked-button 
+                        disabled
+                        matTooltip="Cet utilisateur est bloqué">
+                        <mat-icon>block</mat-icon>
+                        Bloqué
+                      </button>
+                      <button 
                         *ngSwitchCase="user.isFriend" 
                         mat-stroked-button 
                         disabled>
@@ -95,17 +110,63 @@
                   </div>
                   <div class="user-action">
                     <button 
+                      *ngIf="!user.isBlocked"
                       mat-raised-button 
                       color="primary"
                       (click)="sendFriendRequest(user.id)">
                       <mat-icon>person_add</mat-icon>
                       Ajouter
                     </button>
+                    <button 
+                      *ngIf="user.isBlocked"
+                      mat-stroked-button 
+                      disabled>
+                      <mat-icon>block</mat-icon>
+                      Bloqué
+                    </button>
                   </div>
                 </div>
               </mat-list-item>
             </mat-list>
           </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Utilisateurs bloqués -->
+    <mat-card *ngIf="showBlockedUsers" class="blocked-users-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>block</mat-icon>
+          Utilisateurs bloqués
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list *ngIf="blockedUsers.length > 0">
+          <mat-list-item *ngFor="let blocked of blockedUsers">
+            <div class="blocked-item">
+              <div class="user-avatar" [style.background]="getAvatarColor(blocked.friend?.firstName || '')">
+                {{ getInitials(blocked.friend?.firstName || '', blocked.friend?.lastName || '') }}
+              </div>
+              <div class="user-info">
+                <div class="user-name">{{ blocked.friend?.firstName }} {{ blocked.friend?.lastName }}</div>
+                <div class="user-email">{{ blocked.friend?.email }}</div>
+              </div>
+              <div class="user-action">
+                <button 
+                  mat-stroked-button 
+                  color="primary"
+                  (click)="unblockUser(blocked.friendId || blocked.userId, blocked.friend?.firstName || '')">
+                  <mat-icon>lock_open</mat-icon>
+                  Débloquer
+                </button>
+              </div>
+            </div>
+          </mat-list-item>
+        </mat-list>
+        <div *ngIf="blockedUsers.length === 0" class="empty-state small">
+          <mat-icon>block</mat-icon>
+          <p>Aucun utilisateur bloqué</p>
         </div>
       </mat-card-content>
     </mat-card>
@@ -157,13 +218,17 @@
                       <mat-icon>chat</mat-icon>
                       <span>Discuter</span>
                     </button>
-                    <mat-divider></mat-divider>
                     <button mat-menu-item (click)="sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')">
                       <mat-icon>attach_money</mat-icon>
                       <span>Envoyer de l'argent</span>
                     </button>
                     <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="removeFriend(friend.id)">
+                    <button mat-menu-item (click)="blockUser(friend.friend?.id || '', friend.friend?.firstName || '')" class="block-item">
+                      <mat-icon color="warn">block</mat-icon>
+                      <span>Bloquer</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="removeFriend(friend.id)" class="delete-item">
                       <mat-icon color="warn">delete</mat-icon>
                       <span>Supprimer</span>
                     </button>

@@ -1,15 +1,48 @@
 <div class="header-container" [class.admin-header]="isAdmin">
   <div class="header-left">
+    <button 
+      *ngIf="showBackButton" 
+      mat-icon-button 
+      [routerLink]="backRoute || (isAdmin ? '/admin' : '/user')"
+      class="back-btn"
+      matTooltip="Retour">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
     <h1>{{ title }}</h1>
   </div>
+  
   <div class="header-right">
+    <!-- Boutons d'action -->
+    <ng-container *ngIf="showExportButton">
+      <button 
+        mat-icon-button 
+        (click)="onExport()" 
+        matTooltip="Exporter les paramètres"
+        class="action-btn">
+        <mat-icon>download</mat-icon>
+      </button>
+    </ng-container>
+
+    <ng-container *ngIf="showResetButton">
+      <button 
+        mat-icon-button 
+        (click)="onReset()" 
+        matTooltip="Réinitialiser"
+        class="action-btn">
+        <mat-icon>settings_backup_restore</mat-icon>
+      </button>
+    </ng-container>
+
+    <!-- Profil utilisateur -->
     <div class="user-info-desktop">
       <span class="user-name">{{ user?.firstName }} {{ user?.lastName }}</span>
       <div class="user-avatar-small">{{ getInitials() }}</div>
     </div>
+    
     <button mat-icon-button [matMenuTriggerFor]="menu" class="profile-btn">
       <mat-icon>account_circle</mat-icon>
     </button>
+    
     <mat-menu #menu="matMenu" class="user-menu">
       <div class="menu-header">
         <div class="menu-user-info">

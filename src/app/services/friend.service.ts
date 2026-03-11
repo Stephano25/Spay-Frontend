@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, tap } from 'rxjs';
+import { Observable, catchError, throwError, tap, map, of } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
-import { Friend, FriendRequest, SearchUser, FriendResponse } from '../models/friend.model'; // IMPORTER DEPUIS LES MODÈLES
+import { Friend, FriendRequest, SearchUser, FriendResponse, BlockStatus } from '../models/friend.model';
 
 @Injectable({
   providedIn: 'root'
@@ -113,6 +113,73 @@ export class FriendService {
       tap(() => this.notificationService.showSuccess('Ami supprimé')),
       catchError(error => {
         this.notificationService.showError(error.error?.message || 'Erreur lors de la suppression');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Bloquer un utilisateur
+   */
+  blockUser(userId: string): Observable<FriendResponse> {
+    return this.http.post<FriendResponse>(`${this.apiUrl}/block/${userId}`, {}).pipe(
+      tap(() => this.notificationService.showInfo('Utilisateur bloqué')),
+      catchError(error => {
+        this.notificationService.showError(error.error?.message || 'Erreur lors du blocage');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Débloquer un utilisateur
+   */
+  unblockUser(userId: string): Observable<FriendResponse> {
+    return this.http.post<FriendResponse>(`${this.apiUrl}/unblock/${userId}`, {}).pipe(
+      tap(() => this.notificationService.showInfo('Utilisateur débloqué')),
+      catchError(error => {
+        this.notificationService.showError(error.error?.message || 'Erreur lors du déblocage');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Vérifier le statut de blocage avec un utilisateur
+   */
+  checkBlockStatus(userId: string): Observable<BlockStatus> {
+    return this.http.get<BlockStatus>(`${this.apiUrl}/block-status/${userId}`).pipe(
+      catchError(error => {
+        console.error('Erreur vérification blocage:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+  * Récupérer la liste des utilisateurs bloqués
+  */
+  getBlockedUsers(): Observable<Friend[]> {
+    return this.http.get<Friend[]>(`${this.apiUrl}/blocked`).pipe(
+      catchError(error => {
+        if (error.status === 404) {
+          console.warn('Route /blocked non disponible, retour tableau vide');
+          return of([]); // Retourner un tableau vide au lieu d'une erreur
+        }
+        this.notificationService.showError('Erreur lors du chargement des utilisateurs bloqués');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Réenvoyer une demande d'ami à un utilisateur précédemment supprimé
+   */
+  resendFriendRequest(friendId: string): Observable<FriendResponse> {
+    return this.http.post<FriendResponse>(`${this.apiUrl}/resend-request/${friendId}`, {}).pipe(
+      tap(() => this.notificationService.showSuccess('Demande d\'ami renvoyée')),
+      catchError(error => {
+        this.notificationService.showError(error.error?.message || 'Erreur lors de l\'envoi');
         return throwError(() => error);
       })
     );

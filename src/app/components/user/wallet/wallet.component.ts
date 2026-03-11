@@ -22,7 +22,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatGridListModule } from '@angular/material/grid-list';
-import { MatListModule } from '@angular/material/list'; // AJOUTER
+import { MatListModule } from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-wallet',
@@ -39,7 +40,8 @@ import { MatListModule } from '@angular/material/list'; // AJOUTER
     MatDividerModule,
     MatTabsModule,
     MatGridListModule,
-    MatListModule // AJOUTER
+    MatListModule,
+    MatTooltipModule
   ],
   templateUrl: './wallet.component.html',
   styleUrls: ['./wallet.component.css']
@@ -82,16 +84,16 @@ export class WalletComponent implements OnInit, OnDestroy {
   private loadWalletData(): void {
     this.isLoading = true;
     
-    // Charger les données du portefeuille
+    // Charger les statistiques du wallet
     this.subscriptions.push(
       this.walletService.getWalletStats().subscribe({
         next: (stats: WalletStats) => {
           this.stats = stats;
-          this.recentTransactions = stats.recentTransactions;
+          this.recentTransactions = stats.recentTransactions || [];
           this.isLoading = false;
         },
         error: (error: any) => {
-          console.error('Erreur chargement wallet:', error);
+          console.error('Erreur chargement wallet stats:', error);
           this.isLoading = false;
         }
       })
@@ -110,54 +112,60 @@ export class WalletComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Naviguer vers l'envoi d'argent
-   */
+  // Méthode pour retourner au tableau de bord
+  goBackToDashboard(): void {
+    this.router.navigate(['/user']);
+  }
+
   navigateToSend(): void {
     this.router.navigate(['/wallet/send']);
   }
 
-  /**
-   * Naviguer vers la réception d'argent
-   */
   navigateToReceive(): void {
     this.router.navigate(['/wallet/receive']);
   }
 
-  /**
-   * Naviguer vers le scan QR
-   */
   navigateToScan(): void {
     this.router.navigate(['/scan-pay']);
   }
 
-  /**
-   * Naviguer vers Mobile Money
-   */
   navigateToMobileMoney(): void {
     this.router.navigate(['/mobile-money']);
   }
 
-  /**
-   * Naviguer vers l'historique
-   */
   navigateToHistory(): void {
     this.router.navigate(['/wallet/history']);
   }
 
-  /**
-   * Formater le montant
-   */
+  navigateToProfile(): void {
+    this.router.navigate(['/profile']);
+  }
+
+  navigateToFriends(): void {
+    this.router.navigate(['/friends']);
+  }
+
+  navigateToStats(): void {
+    this.router.navigate(['/stats']);
+  }
+
+  navigateToSettings(): void {
+    this.router.navigate(['/user/settings']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
   formatAmount(amount: number): string {
+    if (!amount && amount !== 0) return '0';
     return new Intl.NumberFormat('fr-MG', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
   }
 
-  /**
-   * Obtenir l'icône de transaction
-   */
   getTransactionIcon(type: string): string {
     const icons: Record<string, string> = {
       'deposit': 'arrow_downward',
@@ -169,9 +177,6 @@ export class WalletComponent implements OnInit, OnDestroy {
     return icons[type] || 'receipt';
   }
 
-  /**
-   * Obtenir la couleur de transaction
-   */
   getTransactionColor(type: string): string {
     const colors: Record<string, string> = {
       'deposit': 'positive',
@@ -183,10 +188,9 @@ export class WalletComponent implements OnInit, OnDestroy {
     return colors[type] || 'neutral';
   }
 
-  /**
-   * Déconnexion
-   */
-  logout(): void {
-    this.authService.logout();
+  getInitials(): string {
+    if (!this.user) return '';
+    return (this.user.firstName?.charAt(0) || '') + 
+           (this.user.lastName?.charAt(0) || '');
   }
 }

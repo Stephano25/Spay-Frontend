@@ -2,11 +2,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 16px 24px;
   background: white;
   border-bottom: 1px solid #e0e0e0;
-  margin-bottom: 20px;
-  border-radius: 0 0 16px 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
@@ -28,6 +26,16 @@
   color: white;
 }
 
+.admin-header .action-btn {
+  color: white;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .header-left h1 {
   margin: 0;
   font-size: 24px;
@@ -35,20 +43,32 @@
   color: #333;
 }
 
+.back-btn {
+  color: inherit;
+}
+
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+}
+
+.action-btn {
+  background: rgba(102, 126, 234, 0.1);
 }
 
 .user-info-desktop {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 4px 12px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 30px;
 }
 
 .user-name {
   font-size: 14px;
+  font-weight: 500;
   color: #333;
 }
 
@@ -112,8 +132,7 @@
 
 @media (max-width: 768px) {
   .header-container {
-    padding: 16px;
-    margin-bottom: 16px;
+    padding: 12px 16px;
   }
   
   .header-left h1 {

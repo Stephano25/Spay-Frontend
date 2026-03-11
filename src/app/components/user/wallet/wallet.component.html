@@ -1,42 +1,68 @@
 <div class="wallet-container">
-  <!-- Header -->
-  <mat-toolbar color="primary" class="wallet-header">
-    <span>SPaye Wallet</span>
-    <span class="spacer"></span>
-    <div class="user-info">
-      <span>{{ user?.firstName }} {{ user?.lastName }}</span>
-      <button mat-icon-button [matMenuTriggerFor]="menu">
+  <!-- Header avec bouton retour -->
+  <div class="wallet-header">
+    <div class="header-left">
+      <button 
+        mat-icon-button 
+        class="back-btn" 
+        (click)="goBackToDashboard()"
+        matTooltip="Retour au tableau de bord">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>SPaye Wallet</h1>
+    </div>
+    
+    <div class="header-right">
+      <div class="user-info-desktop">
+        <span class="user-name">{{ user?.firstName }} {{ user?.lastName }}</span>
+        <div class="user-avatar-small">{{ getInitials() }}</div>
+      </div>
+      
+      <button mat-icon-button [matMenuTriggerFor]="menu" class="profile-btn">
         <mat-icon>account_circle</mat-icon>
       </button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item routerLink="/profile">
+      
+      <mat-menu #menu="matMenu" class="user-menu">
+        <div class="menu-header">
+          <div class="menu-user-info">
+            <strong>{{ user?.firstName }} {{ user?.lastName }}</strong>
+            <small>{{ user?.email }}</small>
+            <div class="wallet-balance-badge">
+              {{ formatAmount(wallet?.balance || 0) }} Ar
+            </div>
+          </div>
+        </div>
+        <mat-divider></mat-divider>
+        
+        <!-- Menu items -->
+        <button mat-menu-item (click)="navigateToProfile()">
           <mat-icon>person</mat-icon>
           <span>Mon Profil</span>
         </button>
-        <button mat-menu-item routerLink="/friends">
+        <button mat-menu-item (click)="navigateToFriends()">
           <mat-icon>people</mat-icon>
           <span>Mes Amis</span>
         </button>
-        <button mat-menu-item routerLink="/wallet/history">
+        <button mat-menu-item (click)="navigateToHistory()">
           <mat-icon>history</mat-icon>
           <span>Transactions</span>
         </button>
-        <button mat-menu-item routerLink="/stats">
+        <button mat-menu-item (click)="navigateToStats()">
           <mat-icon>bar_chart</mat-icon>
           <span>Statistiques</span>
         </button>
-        <button mat-menu-item routerLink="/user/settings">
+        <button mat-menu-item (click)="navigateToSettings()">
           <mat-icon>settings</mat-icon>
           <span>Paramètres</span>
         </button>
         <mat-divider></mat-divider>
-        <button mat-menu-item (click)="logout()">
-          <mat-icon>exit_to_app</mat-icon>
+        <button mat-menu-item (click)="logout()" class="logout-item">
+          <mat-icon color="warn">exit_to_app</mat-icon>
           <span>Déconnexion</span>
         </button>
       </mat-menu>
     </div>
-  </mat-toolbar>
+  </div>
 
   <div class="wallet-content">
     <!-- Loading spinner -->
@@ -70,32 +96,24 @@
       </mat-card>
 
       <!-- Actions rapides -->
-      <mat-grid-list cols="4" rowHeight="80px" gutterSize="8px" class="quick-actions">
-        <mat-grid-tile>
-          <button mat-button class="quick-action-btn" (click)="navigateToSend()">
-            <mat-icon>send</mat-icon>
-            <span>Envoyer</span>
-          </button>
-        </mat-grid-tile>
-        <mat-grid-tile>
-          <button mat-button class="quick-action-btn" (click)="navigateToReceive()">
-            <mat-icon>qr_code</mat-icon>
-            <span>Recevoir</span>
-          </button>
-        </mat-grid-tile>
-        <mat-grid-tile>
-          <button mat-button class="quick-action-btn" (click)="navigateToScan()">
-            <mat-icon>qr_code_scanner</mat-icon>
-            <span>Scanner</span>
-          </button>
-        </mat-grid-tile>
-        <mat-grid-tile>
-          <button mat-button class="quick-action-btn" (click)="navigateToMobileMoney()">
-            <mat-icon>phone_android</mat-icon>
-            <span>Mobile Money</span>
-          </button>
-        </mat-grid-tile>
-      </mat-grid-list>
+      <div class="quick-actions-grid">
+        <button mat-button class="quick-action-btn" (click)="navigateToSend()">
+          <mat-icon>send</mat-icon>
+          <span>Envoyer</span>
+        </button>
+        <button mat-button class="quick-action-btn" (click)="navigateToReceive()">
+          <mat-icon>qr_code</mat-icon>
+          <span>Recevoir</span>
+        </button>
+        <button mat-button class="quick-action-btn" (click)="navigateToScan()">
+          <mat-icon>qr_code_scanner</mat-icon>
+          <span>Scanner</span>
+        </button>
+        <button mat-button class="quick-action-btn" (click)="navigateToMobileMoney()">
+          <mat-icon>phone_android</mat-icon>
+          <span>Mobile Money</span>
+        </button>
+      </div>
 
       <!-- Statistiques -->
       <div class="stats-grid" *ngIf="stats">
@@ -136,81 +154,37 @@
         </mat-card>
       </div>
 
-      <!-- Onglets -->
-      <mat-tab-group [(selectedIndex)]="activeTab" class="wallet-tabs">
-        <mat-tab label="Transactions récentes">
-          <div class="tab-content">
-            <mat-list class="transactions-list">
-              <mat-list-item *ngFor="let transaction of recentTransactions" class="transaction-item">
-                <div class="transaction-icon" [ngClass]="getTransactionColor(transaction.type)">
-                  <mat-icon>{{ getTransactionIcon(transaction.type) }}</mat-icon>
-                </div>
-                <div class="transaction-info">
-                  <div class="transaction-title">
-                    {{ transaction.description || transaction.type }}
-                  </div>
-                  <div class="transaction-meta">
-                    <span class="transaction-date">{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
-                    <span class="transaction-status" [class.completed]="transaction.status === 'completed'">
-                      {{ transaction.status }}
-                    </span>
-                  </div>
-                </div>
-                <div class="transaction-amount" [ngClass]="transaction.type">
-                  {{ transaction.type === 'withdrawal' ? '-' : '+' }}{{ formatAmount(transaction.amount) }} Ar
-                </div>
-              </mat-list-item>
-
-              <div *ngIf="recentTransactions.length === 0" class="empty-state">
-                <mat-icon>receipt</mat-icon>
-                <h3>Aucune transaction</h3>
-                <p>Commencez par envoyer ou recevoir de l'argent</p>
-                <button mat-raised-button color="primary" (click)="navigateToSend()">
-                  <mat-icon>send</mat-icon>
-                  Envoyer de l'argent
-                </button>
+      <!-- Transactions récentes -->
+      <mat-card class="transactions-card">
+        <mat-card-header>
+          <mat-card-title>Transactions récentes</mat-card-title>
+          <button mat-button color="primary" (click)="navigateToHistory()" class="view-all-link">
+            Voir tout
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="transactions-list">
+            <div *ngFor="let transaction of recentTransactions" class="transaction-item">
+              <div class="transaction-icon" [ngClass]="getTransactionColor(transaction.type)">
+                <mat-icon>{{ getTransactionIcon(transaction.type) }}</mat-icon>
               </div>
-            </mat-list>
-          </div>
-        </mat-tab>
+              <div class="transaction-details">
+                <div class="transaction-desc">{{ transaction.description || transaction.type }}</div>
+                <div class="transaction-date">{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+              </div>
+              <div class="transaction-amount" [ngClass]="transaction.type">
+                {{ transaction.type === 'withdrawal' ? '-' : '+' }}{{ formatAmount(transaction.amount) }} Ar
+              </div>
+            </div>
 
-        <mat-tab label="Amis">
-          <div class="tab-content">
-            <div class="friends-preview">
-              <button mat-raised-button color="primary" routerLink="/friends" class="full-width">
-                <mat-icon>people</mat-icon>
-                Gérer mes amis
-              </button>
-              <p class="hint">Retrouvez tous vos amis et envoyez-leur de l'argent rapidement</p>
+            <div *ngIf="recentTransactions.length === 0" class="no-transactions">
+              <mat-icon>receipt</mat-icon>
+              <p>Aucune transaction récente</p>
             </div>
           </div>
-        </mat-tab>
-
-        <mat-tab label="Mobile Money">
-          <div class="tab-content">
-            <div class="mobile-money-preview">
-              <div class="operators">
-                <div class="operator" (click)="navigateToMobileMoney()">
-                  <span class="operator-name">Airtel Money</span>
-                  <span class="operator-fee">Frais: 0.5%</span>
-                </div>
-                <div class="operator" (click)="navigateToMobileMoney()">
-                  <span class="operator-name">Orange Money</span>
-                  <span class="operator-fee">Frais: 0.5%</span>
-                </div>
-                <div class="operator" (click)="navigateToMobileMoney()">
-                  <span class="operator-name">MVola</span>
-                  <span class="operator-fee">Frais: 0.5%</span>
-                </div>
-              </div>
-              <button mat-raised-button color="primary" (click)="navigateToMobileMoney()" class="full-width">
-                <mat-icon>phone_android</mat-icon>
-                Effectuer un transfert
-              </button>
-            </div>
-          </div>
-        </mat-tab>
-      </mat-tab-group>
+        </mat-card-content>
+      </mat-card>
     </ng-container>
   </div>
 </div>

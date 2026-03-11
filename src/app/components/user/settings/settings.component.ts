@@ -12,6 +12,10 @@ import { UserService, UserSettings } from '../../../services/user.service';
 // Models
 import { User } from '../../../models/user.model';
 
+// Components
+import { SidebarComponent } from '../../layout/sidebar/sidebar.component';
+import { NavigationHeaderComponent } from '../../shared/navigation-header/navigation-header.component';
+
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,6 +41,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    SidebarComponent,           // ← AJOUTER CET IMPORT
+    NavigationHeaderComponent,   // ← AJOUTER CET IMPORT
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -187,7 +193,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
             lastName: user.lastName,
             email: user.email,
             phoneNumber: user.phoneNumber || '',
-            bio: (user as any).bio || '' // CORRECTION: accès à bio
+            bio: (user as any).bio || ''
           });
         }
       })
@@ -415,6 +421,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   getInitials(): string {
     if (!this.user) return '';
     return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 
   // Getters pour les formulaires

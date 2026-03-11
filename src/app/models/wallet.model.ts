@@ -13,7 +13,7 @@ export interface Wallet {
 
 export interface Transaction {
   id: string;
-  walletId: string;
+  walletId?: string;
   type: 'deposit' | 'withdrawal' | 'transfer' | 'payment' | 'mobile_money';
   amount: number;
   fee: number;
@@ -30,7 +30,7 @@ export interface Transaction {
   paymentMethod?: 'wallet' | 'mobile_money' | 'bank_card';
   metadata?: any;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
   sender?: {
     id: string;
     firstName: string;
@@ -80,4 +80,9 @@ export interface ScanPayRequest {
   amount: number;
   description?: string;
   pin?: string;
+}
+
+export interface QRCodeResponse {
+  qrCode: string;
+  expiresAt: Date;
 }

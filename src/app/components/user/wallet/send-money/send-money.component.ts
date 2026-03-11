@@ -4,14 +4,13 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 
 // Services
-import { WalletService } from '../../../../services/wallet.service';
+import { WalletService, SendMoneyRequest } from '../../../../services/wallet.service';
 import { FriendService } from '../../../../services/friend.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { AuthService } from '../../../../services/auth.service';
 
 // Models
 import { Friend } from '../../../../models/friend.model';
-import { SendMoneyRequest } from '../../../../services/wallet.service';
 
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -45,6 +44,7 @@ import { MatDividerModule } from '@angular/material/divider';
   templateUrl: './send-money.component.html',
   styleUrls: ['./send-money.component.css']
 })
+
 export class SendMoneyComponent implements OnInit {
   sendForm: FormGroup;
   friends: Friend[] = [];

@@ -1,18 +1,16 @@
-<div class="admin-settings-container">
-  <!-- Header -->
-  <mat-toolbar color="primary" class="settings-header">
-    <button mat-icon-button routerLink="/admin">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <span>Paramètres d'administration</span>
-    <span class="spacer"></span>
-    <button mat-icon-button (click)="exportSettings()" matTooltip="Exporter les paramètres">
-      <mat-icon>download</mat-icon>
-    </button>
-    <button mat-icon-button (click)="resetAllSettings()" matTooltip="Réinitialiser">
-      <mat-icon>settings_backup_restore</mat-icon>
-    </button>
-  </mat-toolbar>
+<app-sidebar>
+  <app-navigation-header 
+    [user]="admin" 
+    title="Paramètres d'administration" 
+    [isAdmin]="true"
+    [showBackButton]="true"
+    backRoute="/admin"
+    [showExportButton]="true"
+    [showResetButton]="true"
+    (logout)="logout()"
+    (resetSettings)="resetAllSettings()"
+    (exportSettings)="exportSettings()">
+  </app-navigation-header>
 
   <div class="settings-content">
     <!-- Loading spinner -->
@@ -490,4 +488,4 @@
       </mat-tab-group>
     </ng-container>
   </div>
-</div>
+</app-sidebar>

@@ -36,6 +36,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
   templateUrl: './receive-money.component.html',
   styleUrls: ['./receive-money.component.css']
 })
+
 export class ReceiveMoneyComponent implements OnInit {
   user: User | null = null;
   qrCode: string = '';

@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, tap, of } from 'rxjs';
+import { Observable, catchError, throwError, tap, map } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 
+// EXPORTER TOUTES LES INTERFACES
 export interface Wallet {
   id: string;
   userId: string;
@@ -19,7 +20,7 @@ export interface Wallet {
 
 export interface Transaction {
   id: string;
-  walletId: string;
+  walletId?: string;
   type: 'deposit' | 'withdrawal' | 'transfer' | 'payment' | 'mobile_money';
   amount: number;
   fee: number;
@@ -36,7 +37,7 @@ export interface Transaction {
   paymentMethod?: 'wallet' | 'mobile_money' | 'bank_card';
   metadata?: any;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
   sender?: {
     id: string;
     firstName: string;
@@ -102,14 +103,22 @@ export class WalletService {
   constructor(
     private http: HttpClient,
     private notificationService: NotificationService
-  ) {}
+  ) {
+    console.log('📡 WalletService API URL:', this.apiUrl);
+  }
 
   /**
    * Récupérer les informations du portefeuille
    */
   getWallet(): Observable<Wallet> {
+    console.log('📡 Appel API getWallet vers:', `${this.apiUrl}/me`);
+    
     return this.http.get<Wallet>(`${this.apiUrl}/me`).pipe(
+      tap(wallet => {
+        console.log('✅ Wallet reçu:', wallet);
+      }),
       catchError(error => {
+        console.error('❌ Erreur getWallet:', error);
         this.notificationService.showError('Erreur lors du chargement du portefeuille');
         return throwError(() => error);
       })
@@ -120,8 +129,14 @@ export class WalletService {
    * Récupérer les statistiques du portefeuille
    */
   getWalletStats(): Observable<WalletStats> {
+    console.log('📡 Appel API getWalletStats vers:', `${this.apiUrl}/stats`);
+    
     return this.http.get<WalletStats>(`${this.apiUrl}/stats`).pipe(
+      tap(stats => {
+        console.log('✅ Statistiques reçues:', stats);
+      }),
       catchError(error => {
+        console.error('❌ Erreur getWalletStats:', error);
         this.notificationService.showError('Erreur lors du chargement des statistiques');
         return throwError(() => error);
       })
@@ -135,7 +150,11 @@ export class WalletService {
     return this.http.get<Transaction[]>(`${this.apiUrl}/transactions`, {
       params: { page: page.toString(), limit: limit.toString() }
     }).pipe(
+      tap(transactions => {
+        console.log(`✅ ${transactions.length} transactions reçues`);
+      }),
       catchError(error => {
+        console.error('❌ Erreur getTransactions:', error);
         this.notificationService.showError('Erreur lors du chargement des transactions');
         return throwError(() => error);
       })
@@ -147,7 +166,11 @@ export class WalletService {
    */
   getTransactionById(transactionId: string): Observable<Transaction> {
     return this.http.get<Transaction>(`${this.apiUrl}/transactions/${transactionId}`).pipe(
+      tap(transaction => {
+        console.log('✅ Transaction reçue:', transaction.id);
+      }),
       catchError(error => {
+        console.error('❌ Erreur getTransactionById:', error);
         this.notificationService.showError('Erreur lors du chargement de la transaction');
         return throwError(() => error);
       })
@@ -212,7 +235,7 @@ export class WalletService {
   }
 
   /**
-   * Déposer de l'argent (simulation)
+   * Déposer de l'argent
    */
   deposit(amount: number, paymentMethod: 'wallet' | 'mobile_money' | 'bank_card'): Observable<Transaction> {
     return this.http.post<Transaction>(`${this.apiUrl}/deposit`, { amount, paymentMethod }).pipe(
@@ -229,7 +252,7 @@ export class WalletService {
   }
 
   /**
-   * Retirer de l'argent (simulation)
+   * Retirer de l'argent
    */
   withdraw(amount: number, paymentMethod: 'wallet' | 'mobile_money' | 'bank_card'): Observable<Transaction> {
     return this.http.post<Transaction>(`${this.apiUrl}/withdraw`, { amount, paymentMethod }).pipe(
@@ -246,11 +269,16 @@ export class WalletService {
   }
 
   /**
-   * Vérifier le solde
-   */
+  * Vérifier le solde
+  */
   checkBalance(): Observable<number> {
-    return this.http.get<number>(`${this.apiUrl}/balance`).pipe(
+    return this.http.get<{balance: number}>(`${this.apiUrl}/balance`).pipe(
+      tap(response => {
+        console.log('✅ Solde reçu:', response.balance);
+      }),
+      map(response => response.balance), // ← AJOUTER CETTE LIGNE pour extraire la valeur
       catchError(error => {
+        console.error('❌ Erreur checkBalance:', error);
         this.notificationService.showError('Erreur lors de la vérification du solde');
         return throwError(() => error);
       })
@@ -262,7 +290,11 @@ export class WalletService {
    */
   generateReceiveQRCode(amount?: number): Observable<QRCodeResponse> {
     return this.http.post<QRCodeResponse>(`${this.apiUrl}/generate-qr`, { amount }).pipe(
+      tap(response => {
+        console.log('✅ QR code généré:', response.qrCode);
+      }),
       catchError(error => {
+        console.error('❌ Erreur generateQRCode:', error);
         this.notificationService.showError('Erreur lors de la génération du QR code');
         return throwError(() => error);
       })

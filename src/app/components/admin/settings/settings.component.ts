@@ -12,6 +12,10 @@ import { AdminService } from '../../../services/admin.service';
 // Models
 import { User } from '../../../models/user.model';
 
+// Components
+import { SidebarComponent } from '../../layout/sidebar/sidebar.component';
+import { NavigationHeaderComponent } from '../../shared/navigation-header/navigation-header.component';
+
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,6 +44,8 @@ import { MatBadgeModule } from '@angular/material/badge';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    SidebarComponent,
+    NavigationHeaderComponent,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -176,7 +182,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   activeTab = 0;
   showPassword = false;
   
-  // Formulaires - Initialisés avec "!" pour indiquer qu'ils seront définis dans ngOnInit
+  // Formulaires
   generalForm!: FormGroup;
   securityForm!: FormGroup;
   paymentForm!: FormGroup;
@@ -212,7 +218,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private router: Router
   ) {
-    // Initialiser les formulaires dans le constructeur
     this.initForms();
   }
 
@@ -225,9 +230,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  /**
-   * Initialiser les formulaires
-   */
   private initForms(): void {
     this.generalForm = this.fb.group({
       siteName: [this.generalSettings.siteName, Validators.required],
@@ -297,9 +299,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Charger les données de l'admin
-   */
   private loadAdminData(): void {
     this.subscriptions.push(
       this.authService.currentUser.subscribe((user: User | null) => {
@@ -308,15 +307,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Charger les paramètres
-   */
   private loadSettings(): void {
     this.isLoading = true;
     
-    // Simuler le chargement des paramètres
     setTimeout(() => {
-      // Charger depuis le localStorage si disponible
       const savedSettings = localStorage.getItem('admin_settings');
       if (savedSettings) {
         try {
@@ -335,9 +329,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }, 500);
   }
 
-  /**
-   * Mettre à jour les formulaires avec les valeurs chargées
-   */
   private updateForms(): void {
     this.generalForm.patchValue(this.generalSettings);
     this.securityForm.patchValue(this.securitySettings);
@@ -346,9 +337,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.customizationForm.patchValue(this.customizationSettings);
   }
 
-  /**
-   * Sauvegarder les paramètres généraux
-   */
   saveGeneralSettings(): void {
     if (this.generalForm.invalid) return;
     
@@ -362,9 +350,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }, 500);
   }
 
-  /**
-   * Sauvegarder les paramètres de sécurité
-   */
   saveSecuritySettings(): void {
     if (this.securityForm.invalid) return;
     
@@ -378,9 +363,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }, 500);
   }
 
-  /**
-   * Sauvegarder les paramètres de paiement
-   */
   savePaymentSettings(): void {
     if (this.paymentForm.invalid) return;
     
@@ -394,9 +376,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }, 500);
   }
 
-  /**
-   * Sauvegarder les paramètres de notification
-   */
   saveNotificationSettings(): void {
     if (this.notificationForm.invalid) return;
     
@@ -410,9 +389,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }, 500);
   }
 
-  /**
-   * Sauvegarder les paramètres de personnalisation
-   */
   saveCustomizationSettings(): void {
     if (this.customizationForm.invalid) return;
     
@@ -427,9 +403,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }, 500);
   }
 
-  /**
-   * Sauvegarder dans le localStorage
-   */
   private saveToStorage(): void {
     const settings = {
       general: this.generalSettings,
@@ -441,17 +414,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     localStorage.setItem('admin_settings', JSON.stringify(settings));
   }
 
-  /**
-   * Appliquer le thème
-   */
   private applyTheme(): void {
     document.documentElement.style.setProperty('--primary-color', this.customizationSettings.primaryColor);
     document.documentElement.style.setProperty('--secondary-color', this.customizationSettings.secondaryColor);
   }
 
-  /**
-   * Réinitialiser tous les paramètres
-   */
   resetAllSettings(): void {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les paramètres ?')) {
       localStorage.removeItem('admin_settings');
@@ -460,9 +427,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Exporter les paramètres
-   */
   exportSettings(): void {
     const settings = {
       general: this.generalSettings,
@@ -486,9 +450,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.notificationService.showSuccess('Paramètres exportés');
   }
 
-  /**
-   * Importer des paramètres
-   */
   importSettings(event: any): void {
     const file = event.target.files[0];
     if (!file) return;
@@ -513,9 +474,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     reader.readAsText(file);
   }
 
-  /**
-   * Formater la date du log
-   */
   formatLogDate(date: Date): string {
     const now = new Date();
     const logDate = new Date(date);
@@ -531,9 +489,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     return logDate.toLocaleDateString('fr-MG');
   }
 
-  /**
-   * Obtenir la classe CSS pour le niveau de log
-   */
   getLogLevelClass(level: string): string {
     switch(level) {
       case 'error': return 'log-error';
@@ -542,10 +497,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Formater un nombre (pour le slider)
-   */
   formatNumber(value: number): string {
     return value.toString();
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

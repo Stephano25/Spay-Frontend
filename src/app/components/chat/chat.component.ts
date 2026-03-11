@@ -9,6 +9,7 @@ import { ChatService, Message, Conversation, TypingIndicator } from '../../servi
 import { AuthService } from '../../services/auth.service';
 import { TransactionService } from '../../services/transaction.service';
 import { NotificationService } from '../../services/notification.service';
+import { FriendService } from '../../services/friend.service';
 
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -78,6 +79,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private transactionService: TransactionService,
     private notificationService: NotificationService,
+    private friendService: FriendService,
     private router: Router,
     private route: ActivatedRoute,
     private dialog: MatDialog
@@ -92,6 +94,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadConversations();
     this.setupSocketListeners();
+    this.setupBlockListeners();
     
     // Vérifier s'il y a un friendId dans l'URL
     this.route.queryParams.subscribe(params => {
@@ -151,6 +154,29 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.chatService.callSignal$.subscribe(signal => {
         if (signal) {
           this.handleIncomingCall(signal);
+        }
+      })
+    );
+  }
+
+  /**
+   * S'abonner aux événements de blocage
+   */
+  private setupBlockListeners(): void {
+    this.subscriptions.push(
+      this.chatService.blockStatus$.subscribe(status => {
+        if (status && this.selectedConversation?.userId === status.userId) {
+          this.selectedConversation.isBlocked = status.isBlocked;
+          this.selectedConversation.blockedBy = status.blockedBy;
+          this.selectedConversation.canMessage = !status.isBlocked;
+          
+          if (status.isBlocked) {
+            this.notificationService.showInfo(
+              status.blockedBy === this.currentUserId 
+                ? 'Vous avez bloqué cet utilisateur' 
+                : 'Cet utilisateur vous a bloqué'
+            );
+          }
         }
       })
     );
@@ -234,18 +260,24 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.chatService.searchUsers(friendId).subscribe(users => {
       const user = users[0];
       if (user) {
-        const newConversation: Conversation = {
-          userId: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          profilePicture: user.profilePicture,
-          lastMessage: {} as Message,
-          lastMessageTime: new Date(),
-          unreadCount: 0,
-          isOnline: false
-        };
-        this.conversations.unshift(newConversation);
-        this.selectConversation(newConversation);
+        // Vérifier le statut de blocage
+        this.friendService.checkBlockStatus(friendId).subscribe(status => {
+          const newConversation: Conversation = {
+            userId: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            profilePicture: user.profilePicture,
+            lastMessage: {} as Message,
+            lastMessageTime: new Date(),
+            unreadCount: 0,
+            isOnline: false,
+            isBlocked: status.isBlocked,
+            blockedBy: status.blockedBy,
+            canMessage: status.canMessage
+          };
+          this.conversations.unshift(newConversation);
+          this.selectConversation(newConversation);
+        });
       }
     });
   }
@@ -286,6 +318,13 @@ export class ChatComponent implements OnInit, OnDestroy {
         conversation.unreadCount++;
       }
     }
+  }
+
+  /**
+   * Vérifier si on peut envoyer un message à l'utilisateur sélectionné
+   */
+  canSendMessageToSelectedUser(): boolean {
+    return this.selectedConversation?.canMessage !== false;
   }
 
   /**
@@ -335,6 +374,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   sendMessage(): void {
     if (!this.newMessage.trim() || !this.selectedConversation || this.isSending) return;
 
+    if (!this.canSendMessageToSelectedUser()) {
+      this.notificationService.showWarning('Vous ne pouvez pas envoyer de message à cet utilisateur');
+      return;
+    }
+
     this.isSending = true;
     
     const message = {
@@ -357,6 +401,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   sendEmoji(emoji: string): void {
     if (!this.selectedConversation) return;
 
+    if (!this.canSendMessageToSelectedUser()) {
+      this.notificationService.showWarning('Vous ne pouvez pas envoyer de message à cet utilisateur');
+      return;
+    }
+
     const message = {
       receiverId: this.selectedConversation.userId,
       type: 'emoji' as const,
@@ -372,6 +421,11 @@ export class ChatComponent implements OnInit, OnDestroy {
    */
   sendMoney(): void {
     if (!this.selectedConversation) return;
+
+    if (!this.canSendMessageToSelectedUser()) {
+      this.notificationService.showWarning('Vous ne pouvez pas envoyer d\'argent à cet utilisateur');
+      return;
+    }
 
     const amount = prompt(`Montant à envoyer à ${this.selectedConversation.firstName}:`, '1000');
     if (amount && !isNaN(Number(amount)) && Number(amount) > 0) {
@@ -400,6 +454,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (!file || !this.selectedConversation) return;
+
+    if (!this.canSendMessageToSelectedUser()) {
+      this.notificationService.showWarning('Vous ne pouvez pas envoyer de fichier à cet utilisateur');
+      return;
+    }
 
     if (file.size > 150 * 1024 * 1024) {
       this.notificationService.showError('Fichier trop volumineux (max 150 Mo)');
@@ -438,6 +497,11 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.canSendMessageToSelectedUser()) {
+      this.notificationService.showWarning('Vous ne pouvez pas appeler cet utilisateur');
+      return;
+    }
+
     this.chatService.startCall(this.selectedConversation.userId, type);
   }
 
@@ -446,6 +510,8 @@ export class ChatComponent implements OnInit, OnDestroy {
    */
   onTyping(): void {
     if (!this.selectedConversation) return;
+
+    if (!this.canSendMessageToSelectedUser()) return;
 
     this.chatService.sendTyping(this.selectedConversation.userId, true);
 
