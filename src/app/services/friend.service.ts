@@ -17,10 +17,11 @@ export class FriendService {
   ) {}
 
   /**
-   * Récupérer la liste des amis
-   */
+  * Récupérer la liste des amis (uniquement acceptés)
+  */
   getFriends(): Observable<Friend[]> {
-    return this.http.get<Friend[]>(this.apiUrl).pipe(
+    return this.http.get<Friend[]>(`${this.apiUrl}`).pipe(
+      tap(friends => console.log('Amis chargés:', friends)),
       catchError(error => {
         console.error('Erreur chargement amis:', error);
         return of([]);

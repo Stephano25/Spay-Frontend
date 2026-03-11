@@ -6,13 +6,13 @@ import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
 import { FriendService } from './friend.service';
 import { environment } from '../../environments/environment';
-import { switchMap, catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 
 export interface Message {
   id: string;
   senderId: string;
   receiverId: string;
-  type: 'text' | 'image' | 'file' | 'voice' | 'video' | 'emoji' | 'money';
+  type: 'text' | 'image' | 'file' | 'emoji' | 'money';
   content?: string;
   fileUrl?: string;
   fileName?: string;
@@ -32,17 +32,19 @@ export interface Message {
     lastName: string;
     profilePicture?: string;
   };
-  isBlocked?: boolean; // Indique si le message n'a pas été envoyé à cause d'un blocage
+  isBlocked?: boolean;
 }
-
-// Ajoutez ou mettez à jour cette interface dans votre chat.service.ts
 
 export interface Conversation {
   userId: string;
   firstName: string;
   lastName: string;
   profilePicture?: string;
-  lastMessage: Message;
+  lastMessage?: {
+    content: string;
+    type: string;
+    createdAt: Date;
+  };
   lastMessageTime: Date;
   unreadCount: number;
   isOnline: boolean;
@@ -57,13 +59,6 @@ export interface TypingIndicator {
   isTyping: boolean;
 }
 
-export interface CallSignal {
-  type: 'video' | 'audio';
-  signal: any;
-  callerId: string;
-  callerName: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -76,17 +71,14 @@ export class ChatService implements OnDestroy {
   private newMessageSubject = new BehaviorSubject<Message | null>(null);
   private typingSubject = new BehaviorSubject<TypingIndicator | null>(null);
   private onlineStatusSubject = new BehaviorSubject<{ userId: string; isOnline: boolean; lastSeen?: Date } | null>(null);
-  private callSignalSubject = new BehaviorSubject<CallSignal | null>(null);
   private blockStatusSubject = new BehaviorSubject<{ userId: string; isBlocked: boolean; blockedBy?: string } | null>(null);
   
   public newMessage$ = this.newMessageSubject.asObservable();
   public typing$ = this.typingSubject.asObservable();
   public onlineStatus$ = this.onlineStatusSubject.asObservable();
-  public callSignal$ = this.callSignalSubject.asObservable();
   public blockStatus$ = this.blockStatusSubject.asObservable();
 
   private currentUserId: string = '';
-  private blockStatusCache: Map<string, boolean> = new Map();
 
   constructor(
     private http: HttpClient,
@@ -121,10 +113,15 @@ export class ChatService implements OnDestroy {
       });
 
       this.socket.on('connect', () => {
-        console.log('Socket connecté');
+        console.log('✅ Socket connecté');
+      });
+
+      this.socket.on('disconnect', () => {
+        console.log('❌ Socket déconnecté');
       });
 
       this.socket.on('newMessage', (message: Message) => {
+        console.log('📨 Nouveau message reçu:', message);
         this.newMessageSubject.next(message);
         this.playNotificationSound();
         
@@ -133,65 +130,69 @@ export class ChatService implements OnDestroy {
         }
       });
 
-      this.socket.on('typing', (data: TypingIndicator) => {
+      this.socket.on('messageSent', (message: Message) => {
+        console.log('✅ Message envoyé:', message);
+      });
+
+      this.socket.on('userTyping', (data: TypingIndicator) => {
         this.typingSubject.next(data);
       });
 
-      this.socket.on('userStatus', (data: { userId: string; isOnline: boolean; lastSeen?: Date }) => {
+      this.socket.on('userOnline', (data: { userId: string; isOnline: boolean }) => {
+        console.log('🟢 Statut en ligne:', data);
         this.onlineStatusSubject.next(data);
       });
 
-      this.socket.on('callSignal', (data: CallSignal) => {
-        this.callSignalSubject.next(data);
-      });
-
-      this.socket.on('userBlocked', (data: { userId: string; blockedBy: string }) => {
-        this.blockStatusSubject.next({ userId: data.userId, isBlocked: true, blockedBy: data.blockedBy });
-        this.blockStatusCache.set(data.userId, true);
-      });
-
-      this.socket.on('userUnblocked', (data: { userId: string }) => {
-        this.blockStatusSubject.next({ userId: data.userId, isBlocked: false });
-        this.blockStatusCache.set(data.userId, false);
+      this.socket.on('onlineUsers', (users: string[]) => {
+        console.log('👥 Utilisateurs en ligne:', users);
       });
 
       this.socket.on('messageBlocked', (data: { receiverId: string; reason: string }) => {
-        this.notificationService.showWarning('Message non envoyé : vous avez bloqué cet utilisateur ou vous êtes bloqué');
+        this.notificationService.showWarning('Message non envoyé : ' + data.reason);
+      });
+
+      this.socket.on('error', (data: { message: string }) => {
+        console.error('❌ Erreur socket:', data);
+        this.notificationService.showError(data.message);
       });
 
     } catch (error) {
-      console.error('Erreur de connexion socket:', error);
+      console.error('❌ Erreur de connexion socket:', error);
     }
   }
 
   /**
-   * Récupérer les conversations avec statut de blocage
+   * Récupérer les conversations
    */
   getConversations(): Observable<Conversation[]> {
     return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`).pipe(
-      catchError(() => {
+      tap(convs => console.log('📋 Conversations chargées:', convs)),
+      catchError(error => {
+        console.error('❌ Erreur chargement conversations:', error);
         return of([]);
       })
     );
   }
 
   /**
-   * Récupérer les messages avec un utilisateur (avec vérification blocage)
+   * Récupérer les messages avec un utilisateur
    */
   getMessages(userId: string): Observable<Message[]> {
     return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`).pipe(
-      catchError(() => {
+      tap(msgs => console.log(`📋 Messages avec ${userId}:`, msgs)),
+      catchError(error => {
+        console.error('❌ Erreur chargement messages:', error);
         return of([]);
       })
     );
   }
 
   /**
-   * Envoyer un message avec vérification de blocage
+   * Envoyer un message
    */
   sendMessage(message: {
     receiverId: string;
-    type: 'text' | 'image' | 'file' | 'voice' | 'emoji' | 'money';
+    type: 'text' | 'image' | 'file' | 'emoji' | 'money';
     content?: string;
     fileUrl?: string;
     fileName?: string;
@@ -201,66 +202,40 @@ export class ChatService implements OnDestroy {
       amount: number;
     };
   }): void {
-    // Vérifier d'abord le statut de blocage
-    this.friendService.checkBlockStatus(message.receiverId).subscribe({
-      next: (status) => {
-        if (status.isBlocked) {
-          this.notificationService.showWarning('Impossible d\'envoyer un message : vous avez bloqué cet utilisateur ou vous êtes bloqué');
-          // Émettre un message d'erreur
-          const blockedMessage: Message = {
-            id: 'blocked-' + Date.now(),
-            senderId: this.currentUserId,
-            receiverId: message.receiverId,
-            type: message.type,
-            content: message.content,
-            createdAt: new Date(),
-            isRead: false,
-            isDelivered: false,
-            isBlocked: true
-          };
-          this.newMessageSubject.next(blockedMessage);
-        } else {
-          // Envoyer le message normalement
-          if (this.socket) {
-            this.socket.emit('sendMessage', message);
-          } else {
-            // Fallback HTTP
-            this.http.post(`${this.apiUrl}/send`, message).subscribe();
-          }
-        }
-      },
-      error: () => {
-        // En cas d'erreur, tenter d'envoyer quand même
-        if (this.socket) {
-          this.socket.emit('sendMessage', message);
-        }
-      }
-    });
+    if (!this.socket || !this.socket.connected) {
+      this.notificationService.showError('Connexion perdue, tentative de reconnexion...');
+      this.connectSocket();
+      setTimeout(() => this.sendMessage(message), 1000);
+      return;
+    }
+
+    this.socket.emit('sendMessage', message);
   }
 
   /**
-   * Envoyer un indicateur de frappe (vérifie le blocage)
+   * Envoyer un indicateur de frappe
    */
   sendTyping(receiverId: string, isTyping: boolean): void {
-    this.friendService.checkBlockStatus(receiverId).subscribe({
-      next: (status) => {
-        if (!status.isBlocked && this.socket) {
-          this.socket.emit('typing', { receiverId, isTyping });
-        }
-      },
-      error: () => {
-        if (this.socket) {
-          this.socket.emit('typing', { receiverId, isTyping });
-        }
-      }
-    });
+    if (this.socket?.connected) {
+      this.socket.emit('typing', { receiverId, isTyping });
+    }
   }
 
   /**
    * Marquer les messages comme lus
    */
   markAsRead(senderId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {});
+    return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {}).pipe(
+      tap(() => {
+        if (this.socket?.connected) {
+          this.socket.emit('markAsRead', { senderId });
+        }
+      }),
+      catchError(error => {
+        console.error('❌ Erreur markAsRead:', error);
+        return of(void 0);
+      })
+    );
   }
 
   /**
@@ -273,34 +248,28 @@ export class ChatService implements OnDestroy {
     return this.http.post<{ url: string; fileName: string; fileSize: number }>(
       `${this.apiUrl}/upload`,
       formData
+    ).pipe(
+      tap(result => console.log('✅ Fichier uploadé:', result)),
+      catchError(error => {
+        console.error('❌ Erreur upload:', error);
+        this.notificationService.showError('Erreur lors de l\'upload');
+        return of({ url: '', fileName: '', fileSize: 0 });
+      })
     );
-  }
-
-  /**
-   * Démarrer un appel (vérifie le blocage)
-   */
-  startCall(receiverId: string, type: 'video' | 'audio'): void {
-    this.friendService.checkBlockStatus(receiverId).subscribe({
-      next: (status) => {
-        if (status.isBlocked) {
-          this.notificationService.showWarning('Impossible d\'appeler : vous avez bloqué cet utilisateur ou vous êtes bloqué');
-        } else if (this.socket) {
-          this.socket.emit('startCall', { receiverId, type });
-        }
-      },
-      error: () => {
-        if (this.socket) {
-          this.socket.emit('startCall', { receiverId, type });
-        }
-      }
-    });
   }
 
   /**
    * Rechercher des utilisateurs
    */
   searchUsers(query: string): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/users/search?q=${query}`);
+    return this.http.get<any[]>(`${environment.apiUrl}/users/search`, {
+      params: { q: query }
+    }).pipe(
+      catchError(error => {
+        console.error('❌ Erreur recherche:', error);
+        return of([]);
+      })
+    );
   }
 
   /**
@@ -346,5 +315,12 @@ export class ChatService implements OnDestroy {
       this.socket.disconnect();
       this.socket = null;
     }
+  }
+
+  /**
+   * Vérifier si le socket est connecté
+   */
+  isConnected(): boolean {
+    return this.socket?.connected || false;
   }
 }

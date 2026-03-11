@@ -6,58 +6,193 @@
     </button>
     <span>Messages</span>
     <span class="spacer"></span>
+    <button mat-icon-button (click)="refreshData()" matTooltip="Actualiser">
+      <mat-icon>refresh</mat-icon>
+    </button>
     <button mat-icon-button (click)="navigateToSendMoney()" matTooltip="Envoyer de l'argent">
       <mat-icon>attach_money</mat-icon>
     </button>
   </mat-toolbar>
 
   <div class="chat-content">
-    <!-- Liste des conversations -->
-    <div class="conversations-sidebar" [class.hidden]="selectedConversation">
+    <!-- Liste des contacts (amis + conversations) -->
+    <div class="conversations-sidebar" [class.hidden]="selectedContact">
+      <!-- Barre de recherche -->
       <div class="search-box">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Rechercher une conversation</mat-label>
-          <input matInput placeholder="Nom ou email...">
+          <mat-label>Rechercher un contact</mat-label>
+          <input matInput [(ngModel)]="searchQuery" placeholder="Nom ou email...">
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
       </div>
 
-      <div class="conversations-list" *ngIf="!isLoading; else loading">
-        <mat-list>
-          <mat-list-item 
-            *ngFor="let conv of conversations" 
-            class="conversation-item"
-            [class.active]="selectedConversation?.userId === conv.userId"
-            (click)="selectConversation(conv)">
-            
-            <div class="conversation-avatar" [style.background]="getAvatarColor(conv.firstName)">
-              {{ getInitials(conv.firstName, conv.lastName) }}
-              <span class="online-indicator" [class.online]="conv.isOnline"></span>
-            </div>
-            
-            <div class="conversation-info">
-              <div class="conversation-header">
-                <span class="conversation-name">{{ conv.firstName }} {{ conv.lastName }}</span>
-                <span class="conversation-time">{{ conv.lastMessageTime | date:'HH:mm' }}</span>
-              </div>
-              <div class="conversation-preview">
-                <span class="last-message">{{ conv.lastMessage ? conv.lastMessage.content : 'Nouvelle conversation' }}</span>
-                <span class="unread-badge" *ngIf="conv.unreadCount > 0">{{ conv.unreadCount }}</span>
-              </div>
-            </div>
-          </mat-list-item>
-        </mat-list>
+      <!-- Onglets - CORRECTION: Utiliser des propriétés du composant pour les compteurs -->
+      <mat-tab-group [(selectedIndex)]="activeTab" class="contacts-tabs">
+        <mat-tab label="Tous">
+          <ng-template mat-tab-label>
+            <span>Tous ({{allChatContacts.length}})</span>
+          </ng-template>
+          
+          <!-- Liste des contacts -->
+          <div class="conversations-list" *ngIf="!isLoading; else loading">
+            <mat-list>
+              <mat-list-item 
+                *ngFor="let contact of displayedContacts" 
+                class="conversation-item"
+                [class.active]="selectedContact?.userId === contact.userId"
+                [class.has-unread]="contact.unreadCount > 0"
+                (click)="selectContact(contact)">
+                
+                <div class="conversation-avatar" [style.background]="getAvatarColor(contact.firstName)">
+                  {{ getInitials(contact.firstName, contact.lastName) }}
+                  <span class="online-indicator" [class.online]="contact.isOnline"></span>
+                </div>
+                
+                <div class="conversation-info">
+                  <div class="conversation-header">
+                    <span class="conversation-name">{{ contact.firstName }} {{ contact.lastName }}</span>
+                    <span class="conversation-time" *ngIf="contact.lastMessageTime">
+                      {{ contact.lastMessageTime | date:'HH:mm' }}
+                    </span>
+                  </div>
+                  <div class="conversation-preview">
+                    <span class="last-message">
+                      <ng-container [ngSwitch]="contact.lastMessage?.type">
+                        <span *ngSwitchCase="'emoji'">{{ contact.lastMessage?.content }}</span>
+                        <span *ngSwitchCase="'image'">📷 Image</span>
+                        <span *ngSwitchCase="'file'">📎 Fichier</span>
+                        <span *ngSwitchCase="'money'">💰 Transaction</span>
+                        <span *ngSwitchDefault>{{ contact.lastMessage?.content || 'Nouveau contact' }}</span>
+                      </ng-container>
+                    </span>
+                    <span class="unread-badge" *ngIf="contact.unreadCount > 0">{{ contact.unreadCount }}</span>
+                  </div>
+                </div>
+              </mat-list-item>
+            </mat-list>
 
-        <div *ngIf="conversations.length === 0" class="empty-conversations">
-          <mat-icon>chat</mat-icon>
-          <h3>Aucune conversation</h3>
-          <p>Commencez à discuter avec vos amis</p>
-          <button mat-raised-button color="primary" routerLink="/friends">
-            <mat-icon>people</mat-icon>
-            Voir mes amis
-          </button>
-        </div>
-      </div>
+            <!-- Message si aucun contact -->
+            <div *ngIf="displayedContacts.length === 0" class="empty-conversations">
+              <mat-icon>chat</mat-icon>
+              <h3>Aucun contact</h3>
+              <p *ngIf="searchQuery">Aucun résultat pour "{{searchQuery}}"</p>
+              <p *ngIf="!searchQuery">Ajoutez des amis pour commencer à discuter</p>
+              <button mat-raised-button color="primary" (click)="goToFriends()">
+                <mat-icon>person_add</mat-icon>
+                Ajouter des amis
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span>Amis ({{getFriendsCount()}})</span>
+          </ng-template>
+          <!-- Même contenu que l'onglet Tous, mais filtré par le composant -->
+          <div class="conversations-list" *ngIf="!isLoading; else loading">
+            <mat-list>
+              <mat-list-item 
+                *ngFor="let contact of getFriendsContacts()" 
+                class="conversation-item"
+                [class.active]="selectedContact?.userId === contact.userId"
+                [class.has-unread]="contact.unreadCount > 0"
+                (click)="selectContact(contact)">
+                
+                <div class="conversation-avatar" [style.background]="getAvatarColor(contact.firstName)">
+                  {{ getInitials(contact.firstName, contact.lastName) }}
+                  <span class="online-indicator" [class.online]="contact.isOnline"></span>
+                </div>
+                
+                <div class="conversation-info">
+                  <div class="conversation-header">
+                    <span class="conversation-name">{{ contact.firstName }} {{ contact.lastName }}</span>
+                    <span class="conversation-time" *ngIf="contact.lastMessageTime">
+                      {{ contact.lastMessageTime | date:'HH:mm' }}
+                    </span>
+                  </div>
+                  <div class="conversation-preview">
+                    <span class="last-message">
+                      <ng-container [ngSwitch]="contact.lastMessage?.type">
+                        <span *ngSwitchCase="'emoji'">{{ contact.lastMessage?.content }}</span>
+                        <span *ngSwitchCase="'image'">📷 Image</span>
+                        <span *ngSwitchCase="'file'">📎 Fichier</span>
+                        <span *ngSwitchCase="'money'">💰 Transaction</span>
+                        <span *ngSwitchDefault>{{ contact.lastMessage?.content || 'Nouveau contact' }}</span>
+                      </ng-container>
+                    </span>
+                    <span class="unread-badge" *ngIf="contact.unreadCount > 0">{{ contact.unreadCount }}</span>
+                  </div>
+                </div>
+              </mat-list-item>
+            </mat-list>
+
+            <div *ngIf="getFriendsContacts().length === 0" class="empty-conversations">
+              <mat-icon>people_outline</mat-icon>
+              <h3>Aucun ami</h3>
+              <p>Ajoutez des amis pour commencer à discuter</p>
+              <button mat-raised-button color="primary" (click)="goToFriends()">
+                <mat-icon>person_add</mat-icon>
+                Ajouter des amis
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span>Conversations ({{getConversationsCount()}})</span>
+          </ng-template>
+          <!-- Même contenu que l'onglet Tous, mais filtré par le composant -->
+          <div class="conversations-list" *ngIf="!isLoading; else loading">
+            <mat-list>
+              <mat-list-item 
+                *ngFor="let contact of getConversationsContacts()" 
+                class="conversation-item"
+                [class.active]="selectedContact?.userId === contact.userId"
+                [class.has-unread]="contact.unreadCount > 0"
+                (click)="selectContact(contact)">
+                
+                <div class="conversation-avatar" [style.background]="getAvatarColor(contact.firstName)">
+                  {{ getInitials(contact.firstName, contact.lastName) }}
+                  <span class="online-indicator" [class.online]="contact.isOnline"></span>
+                </div>
+                
+                <div class="conversation-info">
+                  <div class="conversation-header">
+                    <span class="conversation-name">{{ contact.firstName }} {{ contact.lastName }}</span>
+                    <span class="conversation-time" *ngIf="contact.lastMessageTime">
+                      {{ contact.lastMessageTime | date:'HH:mm' }}
+                    </span>
+                  </div>
+                  <div class="conversation-preview">
+                    <span class="last-message">
+                      <ng-container [ngSwitch]="contact.lastMessage?.type">
+                        <span *ngSwitchCase="'emoji'">{{ contact.lastMessage?.content }}</span>
+                        <span *ngSwitchCase="'image'">📷 Image</span>
+                        <span *ngSwitchCase="'file'">📎 Fichier</span>
+                        <span *ngSwitchCase="'money'">💰 Transaction</span>
+                        <span *ngSwitchDefault>{{ contact.lastMessage?.content || 'Démarrer une conversation' }}</span>
+                      </ng-container>
+                    </span>
+                    <span class="unread-badge" *ngIf="contact.unreadCount > 0">{{ contact.unreadCount }}</span>
+                  </div>
+                </div>
+              </mat-list-item>
+            </mat-list>
+
+            <div *ngIf="getConversationsContacts().length === 0" class="empty-conversations">
+              <mat-icon>chat</mat-icon>
+              <h3>Aucune conversation</h3>
+              <p>Commencez à discuter avec vos amis</p>
+              <button mat-raised-button color="primary" (click)="goToFriends()">
+                <mat-icon>people</mat-icon>
+                Voir mes amis
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
 
       <ng-template #loading>
         <div class="loading-spinner">
@@ -67,25 +202,28 @@
     </div>
 
     <!-- Zone de chat -->
-    <div class="chat-area" *ngIf="selectedConversation; else noChat">
+    <div class="chat-area" *ngIf="selectedContact; else noChat">
       <!-- En-tête du chat -->
       <div class="chat-area-header">
-        <button class="back-button" (click)="selectedConversation = null">
+        <button class="back-button" (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
 
         <div class="chat-user-info">
-          <div class="chat-user-avatar" [style.background]="getAvatarColor(selectedConversation.firstName)">
-            {{ getInitials(selectedConversation.firstName, selectedConversation.lastName) }}
-            <span class="online-indicator" [class.online]="selectedConversation.isOnline"></span>
+          <div class="chat-user-avatar" [style.background]="getAvatarColor(selectedContact.firstName)">
+            {{ getInitials(selectedContact.firstName, selectedContact.lastName) }}
+            <span class="online-indicator" [class.online]="selectedContact.isOnline"></span>
           </div>
           <div class="chat-user-details">
             <div class="chat-user-name">
-              {{ selectedConversation.firstName }} {{ selectedConversation.lastName }}
+              {{ selectedContact.firstName }} {{ selectedContact.lastName }}
             </div>
             <div class="chat-user-status">
-              <span *ngIf="selectedConversation.isOnline">En ligne</span>
-              <span *ngIf="!selectedConversation.isOnline">{{ formatLastSeen(selectedConversation.lastSeen) }}</span>
+              <span *ngIf="selectedContact.isOnline">En ligne</span>
+              <span *ngIf="!selectedContact.isOnline && selectedContact.lastSeen">
+                Vu {{ formatLastSeen(selectedContact.lastSeen) }}
+              </span>
+              <span *ngIf="!selectedContact.isOnline && !selectedContact.lastSeen">Hors ligne</span>
               <span *ngIf="isTyping" class="typing-indicator">tape un message...</span>
             </div>
           </div>
@@ -106,7 +244,7 @@
               <mat-icon>attach_money</mat-icon>
               <span>Envoyer de l'argent</span>
             </button>
-            <button mat-menu-item [routerLink]="['/profile', selectedConversation.userId]">
+            <button mat-menu-item [routerLink]="['/profile', selectedContact.userId]">
               <mat-icon>person</mat-icon>
               <span>Voir le profil</span>
             </button>
@@ -120,9 +258,10 @@
       </div>
 
       <!-- Messages -->
-      <div class="messages-container" #messageContainer>
+      <div class="messages-container" #messageContainer (scroll)="onScroll($event)">
         <div *ngIf="isLoadingMore" class="messages-loading">
           <mat-spinner diameter="30"></mat-spinner>
+          <span>Chargement des messages précédents...</span>
         </div>
 
         <div *ngFor="let message of messages" class="message-wrapper">
@@ -145,7 +284,7 @@
                     [src]="message.fileUrl" 
                     alt="Image" 
                     (click)="openImage(message.fileUrl)"
-                    (error)="message.fileUrl = undefined">
+                    (error)="handleImageError(message)">
                 </ng-container>
                 <ng-template #noImage>
                   <div class="image-error">
@@ -159,7 +298,7 @@
               <div *ngIf="message.type === 'file'" class="message-file">
                 <a [href]="message.fileUrl" target="_blank">
                   <mat-icon>attach_file</mat-icon>
-                  <span>{{ message.fileName }}</span>
+                  <span>{{ message.fileName || 'Fichier' }}</span>
                 </a>
               </div>
 
@@ -187,7 +326,7 @@
 
       <!-- Zone de saisie -->
       <div class="message-input-area">
-        <button mat-icon-button (click)="showEmojiPicker = !showEmojiPicker">
+        <button mat-icon-button (click)="toggleEmojiPicker()">
           <mat-icon>emoji_emotions</mat-icon>
         </button>
 
@@ -212,7 +351,7 @@
           <mat-icon>send</mat-icon>
         </button>
 
-        <!-- Picker d'émojis simple -->
+        <!-- Picker d'émojis -->
         <div class="emoji-picker" *ngIf="showEmojiPicker">
           <button mat-mini-fab (click)="sendEmoji('😊')">😊</button>
           <button mat-mini-fab (click)="sendEmoji('😂')">😂</button>
@@ -230,10 +369,10 @@
       <div class="no-chat-selected">
         <mat-icon>chat</mat-icon>
         <h3>Messages</h3>
-        <p>Sélectionnez une conversation pour commencer à discuter</p>
-        <button mat-raised-button color="primary" routerLink="/friends">
+        <p>Sélectionnez un contact pour commencer à discuter</p>
+        <button mat-raised-button color="primary" (click)="goToFriends()">
           <mat-icon>person_add</mat-icon>
-          Trouver des amis
+          Voir mes amis
         </button>
       </div>
     </ng-template>
