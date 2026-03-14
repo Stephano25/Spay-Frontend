@@ -175,9 +175,14 @@ export class ChatService implements OnDestroy {
   }
 
   /**
-   * Récupérer les messages avec un utilisateur
-   */
+  * Récupérer les messages avec un utilisateur
+  */
   getMessages(userId: string): Observable<Message[]> {
+    if (!userId) {
+      console.error('❌ getMessages appelé avec userId undefined');
+      return of([]);
+   }
+  
     return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`).pipe(
       tap(msgs => console.log(`📋 Messages avec ${userId}:`, msgs)),
       catchError(error => {
@@ -225,6 +230,11 @@ export class ChatService implements OnDestroy {
    * Marquer les messages comme lus
    */
   markAsRead(senderId: string): Observable<void> {
+    if (!senderId) {
+      console.error('❌ markAsRead appelé avec senderId undefined');
+      return of(void 0);
+    }
+  
     return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {}).pipe(
       tap(() => {
         if (this.socket?.connected) {
