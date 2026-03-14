@@ -1,127 +1,124 @@
-<app-sidebar>
-  <app-navigation-header 
-    [user]="user" 
-    title="Tableau de bord" 
-    [isAdmin]="false"
-    (logout)="logout()">
-  </app-navigation-header>
+<div class="user-dashboard">
+  <!-- En-tête avec informations utilisateur -->
+  <mat-card class="welcome-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>account_circle</mat-icon>
+      <mat-card-title>Bienvenue sur SPaye</mat-card-title>
+      <mat-card-subtitle>Tableau de bord utilisateur</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="user-info">
+        <p>Vous êtes connecté en tant que : <strong>{{ user?.firstName }} {{ user?.lastName }}</strong></p>
+        <p>Email : {{ user?.email }}</p>
+        
+        <div class="balance-section">
+          <div *ngIf="isLoading" class="loading-container">
+            <mat-spinner diameter="30"></mat-spinner>
+            <span>Chargement du solde...</span>
+          </div>
+          
+          <div *ngIf="!isLoading" class="balance-container">
+            <span class="balance-label">Votre solde</span>
+            <span class="balance-amount">{{ formatAmount(balance) }} Ar</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-  <div class="user-content">
-    <!-- Loading spinner -->
-    <div class="loading-container" *ngIf="isLoading">
-      <mat-spinner diameter="50"></mat-spinner>
-      <p>Chargement de vos données...</p>
+  <!-- Menu de navigation -->
+  <mat-grid-list cols="2" rowHeight="120px" gutterSize="16px" class="menu-grid">
+    <mat-grid-tile *ngFor="let item of menuItems">
+      <mat-card class="menu-card" (click)="navigateTo(item.route)">
+        <mat-card-content>
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+  </mat-grid-list>
+
+  <!-- Statistiques rapides -->
+  <div class="stats-row" *ngIf="stats && !isLoading">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>swap_horiz</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Transactions</span>
+        <span class="stat-value">{{ stats?.totalTransactions || 0 }}</span>
+      </div>
     </div>
 
-    <!-- Contenu principal -->
-    <ng-container *ngIf="!isLoading">
-      <!-- Carte de solde -->
-      <mat-card class="balance-card">
-        <mat-card-content>
-          <div class="balance-label">Votre solde</div>
-          <div class="balance-amount">{{ formatAmount(displayBalance) }} {{ walletCurrency }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Actions rapides principales -->
-      <div class="quick-actions-grid">
-        <mat-card class="action-card" (click)="navigateToScan()">
-          <mat-card-content>
-            <div class="action-icon scanner">
-              <mat-icon>qr_code_scanner</mat-icon>
-            </div>
-            <span>Scanner</span>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="action-card" (click)="navigateToSend()">
-          <mat-card-content>
-            <div class="action-icon send">
-              <mat-icon>send</mat-icon>
-            </div>
-            <span>Envoyer</span>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="action-card" (click)="navigateToMobileMoney()">
-          <mat-card-content>
-            <div class="action-icon mobile">
-              <mat-icon>phone_android</mat-icon>
-            </div>
-            <span>Mobile Money</span>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="action-card" (click)="navigateToChat()">
-          <mat-card-content>
-            <div class="action-icon chat">
-              <mat-icon>chat</mat-icon>
-            </div>
-            <span>Chat</span>
-          </mat-card-content>
-        </mat-card>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>trending_up</mat-icon>
       </div>
-
-      <!-- Statistiques rapides -->
-      <div class="stats-row" *ngIf="stats">
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-icon">
-              <mat-icon>swap_horiz</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ stats.totalTransactions || 0 }}</div>
-              <div class="stat-label">Transactions</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-icon">
-              <mat-icon>trending_up</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ formatAmount(stats.largestTransaction ? stats.largestTransaction.amount : 0) }} Ar</div>
-              <div class="stat-label">Plus grosse</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+      <div class="stat-info">
+        <span class="stat-label">Plus grosse</span>
+        <span class="stat-value">
+          {{ stats?.largestTransaction ? formatAmount(stats?.largestTransaction?.amount || 0) + ' Ar' : '0 Ar' }}
+        </span>
       </div>
-
-      <!-- Dernières transactions -->
-      <mat-card class="transactions-card">
-        <mat-card-header>
-          <mat-card-title>Dernières transactions</mat-card-title>
-          <a mat-button color="primary" routerLink="/wallet/history" class="view-all-link">
-            Voir tout
-            <mat-icon>arrow_forward</mat-icon>
-          </a>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="transactions-list">
-            <div *ngFor="let transaction of recentTransactions" class="transaction-item">
-              <div class="transaction-icon" [ngClass]="transaction.type">
-                <mat-icon>{{ getTransactionIcon(transaction.type) }}</mat-icon>
-              </div>
-              <div class="transaction-details">
-                <div class="transaction-desc">{{ transaction.description || 'Transfert' }}</div>
-                <div class="transaction-date">{{ transaction.createdAt | date:'dd MMM yyyy, HH:mm' }}</div>
-              </div>
-              <div class="transaction-amount" 
-                  [class.positive]="user && transaction.receiverId === user.id"
-                  [class.negative]="user && transaction.senderId === user.id">
-                {{ user && transaction.senderId === user.id ? '-' : '+' }}{{ formatAmount(transaction.amount) }} Ar
-              </div>
-            </div>
-
-            <div *ngIf="recentTransactions.length === 0" class="no-transactions">
-              <mat-icon>receipt</mat-icon>
-              <p>Aucune transaction récente</p>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </ng-container>
+    </div>
   </div>
-</app-sidebar>
+
+  <!-- Dernières transactions -->
+  <mat-card class="transactions-card" *ngIf="stats?.lastThreeTransactions?.length && !isLoading">
+    <mat-card-header>
+      <mat-card-title>Dernières transactions</mat-card-title>
+      <button mat-button color="primary" (click)="navigateTo('/transactions')" class="view-all">
+        Voir tout
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="transactions-list">
+        <div *ngFor="let transaction of stats?.lastThreeTransactions" class="transaction-item">
+          <div class="transaction-icon" 
+               [ngClass]="{'sent': transaction?.senderId === user?.id, 'received': transaction?.receiverId === user?.id}">
+            <mat-icon>{{ transaction?.senderId === user?.id ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          </div>
+          <div class="transaction-details">
+            <div class="transaction-desc">{{ transaction?.description || 'Transfert' }}</div>
+            <div class="transaction-date">{{ transaction?.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+          <div class="transaction-amount" 
+               [ngClass]="{'positive': transaction?.receiverId === user?.id, 'negative': transaction?.senderId === user?.id}">
+            {{ transaction?.receiverId === user?.id ? '+' : '-' }}{{ formatAmount(transaction?.amount || 0) }} Ar
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Message si aucune transaction -->
+  <mat-card class="empty-card" *ngIf="!stats?.lastThreeTransactions?.length && !isLoading">
+    <mat-card-content>
+      <mat-icon>receipt</mat-icon>
+      <h3>Aucune transaction</h3>
+      <p>Commencez à utiliser SPaye en effectuant votre première transaction</p>
+      <button mat-raised-button color="primary" (click)="navigateTo('/scan-pay')">
+        <mat-icon>qr_code_scanner</mat-icon>
+        Scanner un QR code
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Bouton de rafraîchissement -->
+  <div class="refresh-container" *ngIf="!isLoading">
+    <button mat-icon-button (click)="refreshData()" matTooltip="Actualiser">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <!-- Bouton de déconnexion -->
+  <div class="logout-container">
+    <button mat-raised-button color="warn" (click)="logout()" class="logout-btn">
+      <mat-icon>exit_to_app</mat-icon>
+      Déconnexion
+    </button>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 // Services
@@ -10,40 +10,50 @@ import { WalletService } from '../../services/wallet.service';
 
 // Models
 import { User } from '../../models/user.model';
-import { DashboardStats, Transaction } from '../../models/transaction.model';
-
-// Components
-import { SidebarComponent } from '../layout/sidebar/sidebar.component';
-import { NavigationHeaderComponent } from '../layout/navigation-header/navigation-header.component';
+import { DashboardStats } from '../../models/transaction.model';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatGridListModule } from '@angular/material/grid-list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-user',
   standalone: true,
   imports: [
     CommonModule,
-    SidebarComponent,
-    NavigationHeaderComponent,
+    RouterModule,
     MatCardModule,
     MatIconModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatGridListModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
 })
 export class UserComponent implements OnInit, OnDestroy {
   user: User | null = null;
+  balance: number = 0;
   stats: DashboardStats | null = null;
-  recentTransactions: Transaction[] = [];
-  walletBalance: number = 0;
-  walletCurrency: string = 'Ar';
   isLoading = true;
+  
+  // Propriétés pour le template
+  menuItems = [
+    { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/wallet' },
+    { icon: 'chat', label: 'Messages', route: '/chat' },
+    { icon: 'swap_horiz', label: 'Transactions', route: '/transactions' },
+    { icon: 'person', label: 'Profil', route: '/profile' },
+    { icon: 'qr_code_scanner', label: 'Scanner', route: '/scan-pay' },
+    { icon: 'phone_android', label: 'Mobile Money', route: '/mobile-money' },
+    { icon: 'people', label: 'Amis', route: '/friends' },
+    { icon: 'settings', label: 'Paramètres', route: '/user/settings' }
+  ];
+
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -67,7 +77,6 @@ export class UserComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.authService.currentUser.subscribe((user: User | null) => {
         this.user = user;
-        console.log('User chargé:', user);
       })
     );
   }
@@ -76,15 +85,14 @@ export class UserComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.walletService.getWallet().subscribe({
         next: (wallet: any) => {
-          this.walletBalance = wallet.balance || 0;
-          this.walletCurrency = wallet.currency || 'Ar';
-          console.log('Wallet chargé:', wallet);
+          this.balance = wallet.balance || 0;
+          console.log('💰 Solde du wallet chargé:', this.balance);
         },
         error: (error: any) => {
-          console.error('Erreur chargement wallet:', error);
-          // Fallback sur le balance de l'utilisateur si wallet échoue
+          console.error('❌ Erreur chargement wallet:', error);
+          // Fallback sur le user balance si wallet échoue
           if (this.user?.balance) {
-            this.walletBalance = this.user.balance;
+            this.balance = this.user.balance;
           }
         }
       })
@@ -97,84 +105,47 @@ export class UserComponent implements OnInit, OnDestroy {
       this.transactionService.getUserDashboardStats().subscribe({
         next: (data: DashboardStats) => {
           this.stats = data;
-          this.recentTransactions = data.lastThreeTransactions || [];
+          console.log('📊 Stats chargées:', data);
           
-          // Si les stats contiennent le totalBalance et que walletBalance est 0, on l'utilise
-          if (data.totalBalance > 0 && this.walletBalance === 0) {
-            this.walletBalance = data.totalBalance;
+          // Si le wallet est à 0 mais les stats indiquent un solde, mettre à jour
+          if (this.balance === 0 && data.totalBalance > 0) {
+            this.balance = data.totalBalance;
+            console.log('⚠️ Solde mis à jour depuis les transactions:', this.balance);
           }
           
           this.isLoading = false;
-          console.log('Stats chargées:', data);
         },
         error: (error: any) => {
-          console.error('Erreur chargement stats:', error);
+          console.error('❌ Erreur chargement stats:', error);
           this.isLoading = false;
         }
       })
     );
   }
 
-  // Getter pour obtenir le solde à afficher
-  get displayBalance(): number {
-    // Priorité: walletBalance > stats.totalBalance > user.balance
-    if (this.walletBalance > 0) {
-      return this.walletBalance;
-    }
-    if (this.stats?.totalBalance) {
-      return this.stats.totalBalance;
-    }
-    if (this.user?.balance) {
-      return this.user.balance;
-    }
-    return 0;
+  // Méthode de navigation
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 
-  navigateToScan(): void {
-    this.router.navigate(['/scan-pay']);
-  }
-
-  navigateToSend(): void {
-    this.router.navigate(['/wallet/send']);
-  }
-
-  navigateToMobileMoney(): void {
-    this.router.navigate(['/mobile-money']);
-  }
-
-  navigateToChat(): void {
-    this.router.navigate(['/chat']);
-  }
-
-  navigateToFriends(): void {
-    this.router.navigate(['/friends']);
-  }
-
-  navigateToTransactions(): void {
-    this.router.navigate(['/wallet/history']);
-  }
-
+  // Méthode de déconnexion
   logout(): void {
     this.authService.logout();
   }
 
-  getTransactionIcon(type: string): string {
-    const icons: Record<string, string> = {
-      'transfer': 'swap_horiz',
-      'payment': 'payment',
-      'mobile_money': 'phone_android',
-      'deposit': 'arrow_downward',
-      'withdrawal': 'arrow_upward'
-    };
-    return icons[type] || 'receipt';
-  }
-
+  // Méthode de formatage du montant
   formatAmount(amount: number): string {
     if (!amount && amount !== 0) return '0';
-    
-    return new Intl.NumberFormat('fr-MG', { 
-      minimumFractionDigits: 0, 
-      maximumFractionDigits: 0 
+    return new Intl.NumberFormat('fr-MG', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(amount);
+  }
+
+  // Méthode de rafraîchissement
+  refreshData(): void {
+    this.isLoading = true;
+    this.loadWalletData();
+    this.loadDashboardStats();
   }
 }

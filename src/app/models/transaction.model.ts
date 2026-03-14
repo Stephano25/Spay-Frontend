@@ -7,8 +7,6 @@ export interface Transaction {
   status: 'pending' | 'completed' | 'failed';
   description?: string;
   createdAt: Date;
-  mobileMoneyOperator?: string;
-  mobileMoneyNumber?: string;
   sender?: {
     id: string;
     firstName: string;
@@ -34,21 +32,5 @@ export interface DashboardStats {
     sent: number;
     received: number;
     total: number;
-  }[];
-}
-
-export interface TransactionStats {
-  totalTransactions: number;
-  totalVolume: number;
-  averageAmount: number;
-  transactionsByType: {
-    type: string;
-    count: number;
-    volume: number;
-  }[];
-  dailyStats: {
-    date: string;
-    count: number;
-    volume: number;
   }[];
 }
