@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 
 // Services
 import { AuthService } from '../../services/auth.service';
@@ -11,6 +11,7 @@ import { WalletService } from '../../services/wallet.service';
 // Models
 import { User } from '../../models/user.model';
 import { DashboardStats } from '../../models/transaction.model';
+import { Wallet } from '../../models/wallet.model';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -38,11 +39,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 })
 export class UserComponent implements OnInit, OnDestroy {
   user: User | null = null;
+  wallet: Wallet | null = null;
   balance: number = 0;
   stats: DashboardStats | null = null;
   isLoading = true;
   
-  // Propriétés pour le template
   menuItems = [
     { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/wallet' },
     { icon: 'chat', label: 'Messages', route: '/chat' },
@@ -65,8 +66,7 @@ export class UserComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadUserData();
-    this.loadWalletData();
-    this.loadDashboardStats();
+    this.loadDashboardData();
   }
 
   ngOnDestroy(): void {
@@ -81,59 +81,65 @@ export class UserComponent implements OnInit, OnDestroy {
     );
   }
 
+  private loadDashboardData(): void {
+  this.isLoading = true;
+  
+  // Charger les données en parallèle
+  forkJoin({
+    wallet: this.walletService.getWallet(true), // true pour forcer le rafraîchissement
+    stats: this.transactionService.getUserDashboardStats()
+  }).subscribe({
+    next: (result) => {
+      this.wallet = result.wallet;
+      this.balance = result.wallet.balance;
+      this.stats = result.stats;
+      
+      console.log('💰 Solde du wallet (base de données):', this.balance);
+      console.log('📊 Stats transactions:', result.stats);
+      
+      this.isLoading = false;
+    },
+    error: (error) => {
+      console.error('❌ Erreur chargement données:', error);
+      this.isLoading = false;
+    }
+  });
+}
+
   private loadWalletData(): void {
-    this.subscriptions.push(
-      this.walletService.getWallet().subscribe({
-        next: (wallet: any) => {
-          this.balance = wallet.balance || 0;
-          console.log('💰 Solde du wallet chargé:', this.balance);
-        },
-        error: (error: any) => {
-          console.error('❌ Erreur chargement wallet:', error);
-          // Fallback sur le user balance si wallet échoue
-          if (this.user?.balance) {
-            this.balance = this.user.balance;
-          }
-        }
-      })
-    );
+    this.walletService.getWallet().subscribe({
+      next: (wallet) => {
+        this.wallet = wallet;
+        this.balance = wallet.balance; // TOUJOURS LA PRIORITÉ AU WALLET
+        console.log('💰 Solde wallet (fallback):', this.balance);
+      },
+      error: (error) => {
+        console.error('❌ Erreur chargement wallet:', error);
+      }
+    });
   }
 
-  private loadDashboardStats(): void {
-    this.isLoading = true;
-    this.subscriptions.push(
-      this.transactionService.getUserDashboardStats().subscribe({
-        next: (data: DashboardStats) => {
-          this.stats = data;
-          console.log('📊 Stats chargées:', data);
-          
-          // Si le wallet est à 0 mais les stats indiquent un solde, mettre à jour
-          if (this.balance === 0 && data.totalBalance > 0) {
-            this.balance = data.totalBalance;
-            console.log('⚠️ Solde mis à jour depuis les transactions:', this.balance);
-          }
-          
-          this.isLoading = false;
-        },
-        error: (error: any) => {
-          console.error('❌ Erreur chargement stats:', error);
-          this.isLoading = false;
-        }
-      })
-    );
+  private loadStatsData(): void {
+    this.transactionService.getUserDashboardStats().subscribe({
+      next: (data) => {
+        this.stats = data;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('❌ Erreur chargement stats:', error);
+        this.isLoading = false;
+      }
+    });
   }
 
-  // Méthode de navigation
   navigateTo(route: string): void {
     this.router.navigate([route]);
   }
 
-  // Méthode de déconnexion
   logout(): void {
     this.authService.logout();
   }
 
-  // Méthode de formatage du montant
   formatAmount(amount: number): string {
     if (!amount && amount !== 0) return '0';
     return new Intl.NumberFormat('fr-MG', {
@@ -142,10 +148,24 @@ export class UserComponent implements OnInit, OnDestroy {
     }).format(amount);
   }
 
-  // Méthode de rafraîchissement
   refreshData(): void {
-    this.isLoading = true;
-    this.loadWalletData();
-    this.loadDashboardStats();
+    this.loadDashboardData();
+  }
+
+  // Getters pour le template
+  get hasStats(): boolean {
+    return this.stats !== null;
+  }
+
+  get totalTransactions(): number {
+    return this.stats?.totalTransactions || 0;
+  }
+
+  get largestTransactionAmount(): number {
+    return this.stats?.largestTransaction?.amount || 0;
+  }
+
+  get hasLargestTransaction(): boolean {
+    return !!this.stats?.largestTransaction;
   }
 }

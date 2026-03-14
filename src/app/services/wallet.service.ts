@@ -1,105 +1,24 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, tap, map } from 'rxjs';
+import { Observable, catchError, throwError, tap, map, shareReplay } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
-
-// EXPORTER TOUTES LES INTERFACES
-export interface Wallet {
-  id: string;
-  userId: string;
-  balance: number;
-  currency: string;
-  qrCode: string;
-  dailyLimit: number;
-  monthlyLimit: number;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Transaction {
-  id: string;
-  walletId?: string;
-  type: 'deposit' | 'withdrawal' | 'transfer' | 'payment' | 'mobile_money';
-  amount: number;
-  fee: number;
-  totalAmount: number;
-  status: 'pending' | 'completed' | 'failed' | 'cancelled';
-  description?: string;
-  reference?: string;
-  senderId?: string;
-  receiverId?: string;
-  senderWalletId?: string;
-  receiverWalletId?: string;
-  mobileMoneyOperator?: 'airtel' | 'orange' | 'mvola';
-  mobileMoneyNumber?: string;
-  paymentMethod?: 'wallet' | 'mobile_money' | 'bank_card';
-  metadata?: any;
-  createdAt: Date;
-  updatedAt?: Date;
-  sender?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  receiver?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-}
-
-export interface WalletStats {
-  totalBalance: number;
-  totalTransactions: number;
-  totalDeposits: number;
-  totalWithdrawals: number;
-  totalTransfers: number;
-  monthlyStats: {
-    month: string;
-    deposits: number;
-    withdrawals: number;
-    transfers: number;
-    total: number;
-  }[];
-  recentTransactions: Transaction[];
-}
-
-export interface SendMoneyRequest {
-  receiverId: string;
-  amount: number;
-  description?: string;
-  pin?: string;
-}
-
-export interface MobileMoneyRequest {
-  operator: 'airtel' | 'orange' | 'mvola';
-  phoneNumber: string;
-  amount: number;
-  pin?: string;
-}
-
-export interface ScanPayRequest {
-  receiverQrCode: string;
-  amount: number;
-  description?: string;
-  pin?: string;
-}
-
-export interface QRCodeResponse {
-  qrCode: string;
-  expiresAt: Date;
-}
+import { 
+  Wallet, 
+  WalletStats, 
+  Transaction, 
+  SendMoneyRequest, 
+  MobileMoneyRequest, 
+  ScanPayRequest, 
+  QRCodeResponse 
+} from '../models/wallet.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WalletService {
   private apiUrl = `${environment.apiUrl}/wallet`;
-
+private walletCache$: Observable<Wallet> | null = null;
   constructor(
     private http: HttpClient,
     private notificationService: NotificationService
@@ -108,21 +27,33 @@ export class WalletService {
   }
 
   /**
-   * Récupérer les informations du portefeuille
+   * Récupérer les informations du portefeuille (avec cache optionnel)
    */
-  getWallet(): Observable<Wallet> {
+  getWallet(forceRefresh: boolean = false): Observable<Wallet> {
     console.log('📡 Appel API getWallet vers:', `${this.apiUrl}/me`);
     
-    return this.http.get<Wallet>(`${this.apiUrl}/me`).pipe(
-      tap(wallet => {
-        console.log('✅ Wallet reçu:', wallet);
-      }),
-      catchError(error => {
-        console.error('❌ Erreur getWallet:', error);
-        this.notificationService.showError('Erreur lors du chargement du portefeuille');
-        return throwError(() => error);
-      })
-    );
+    // Si on force le rafraîchissement, on vide le cache
+    if (forceRefresh) {
+      this.walletCache$ = null;
+    }
+    
+    // Utiliser le cache si disponible
+    if (!this.walletCache$) {
+      this.walletCache$ = this.http.get<Wallet>(`${this.apiUrl}/me`).pipe(
+        tap(wallet => {
+          console.log('✅ Wallet reçu (base de données):', wallet);
+        }),
+        shareReplay(1), // Met en cache la dernière valeur
+        catchError(error => {
+          console.error('❌ Erreur getWallet:', error);
+          this.notificationService.showError('Erreur lors du chargement du portefeuille');
+          this.walletCache$ = null;
+          return throwError(() => error);
+        })
+      );
+    }
+    
+    return this.walletCache$;
   }
 
   /**
@@ -162,22 +93,6 @@ export class WalletService {
   }
 
   /**
-   * Récupérer une transaction par son ID
-   */
-  getTransactionById(transactionId: string): Observable<Transaction> {
-    return this.http.get<Transaction>(`${this.apiUrl}/transactions/${transactionId}`).pipe(
-      tap(transaction => {
-        console.log('✅ Transaction reçue:', transaction.id);
-      }),
-      catchError(error => {
-        console.error('❌ Erreur getTransactionById:', error);
-        this.notificationService.showError('Erreur lors du chargement de la transaction');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
    * Envoyer de l'argent à un autre utilisateur
    */
   sendMoney(data: SendMoneyRequest): Observable<Transaction> {
@@ -195,88 +110,14 @@ export class WalletService {
   }
 
   /**
-   * Payer par scan QR code
+   * Vérifier le solde
    */
-  scanAndPay(data: ScanPayRequest): Observable<Transaction> {
-    return this.http.post<Transaction>(`${this.apiUrl}/scan-pay`, data).pipe(
-      tap(transaction => {
-        this.notificationService.showSuccess(
-          `Paiement de ${this.formatAmount(data.amount)} Ar effectué !`
-        );
-      }),
-      catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors du paiement');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-   * Transférer vers Mobile Money
-   */
-  mobileMoneyTransfer(data: MobileMoneyRequest): Observable<Transaction> {
-    const operatorNames: Record<string, string> = {
-      airtel: 'Airtel Money',
-      orange: 'Orange Money',
-      mvola: 'MVola'
-    };
-    
-    return this.http.post<Transaction>(`${this.apiUrl}/mobile-money`, data).pipe(
-      tap(transaction => {
-        this.notificationService.showSuccess(
-          `Transfert de ${this.formatAmount(data.amount)} Ar vers ${operatorNames[data.operator]} effectué !`
-        );
-      }),
-      catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors du transfert');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-   * Déposer de l'argent
-   */
-  deposit(amount: number, paymentMethod: 'wallet' | 'mobile_money' | 'bank_card'): Observable<Transaction> {
-    return this.http.post<Transaction>(`${this.apiUrl}/deposit`, { amount, paymentMethod }).pipe(
-      tap(transaction => {
-        this.notificationService.showSuccess(
-          `Dépôt de ${this.formatAmount(amount)} Ar effectué !`
-        );
-      }),
-      catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors du dépôt');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-   * Retirer de l'argent
-   */
-  withdraw(amount: number, paymentMethod: 'wallet' | 'mobile_money' | 'bank_card'): Observable<Transaction> {
-    return this.http.post<Transaction>(`${this.apiUrl}/withdraw`, { amount, paymentMethod }).pipe(
-      tap(transaction => {
-        this.notificationService.showSuccess(
-          `Retrait de ${this.formatAmount(amount)} Ar effectué !`
-        );
-      }),
-      catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors du retrait');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-  * Vérifier le solde
-  */
   checkBalance(): Observable<number> {
     return this.http.get<{balance: number}>(`${this.apiUrl}/balance`).pipe(
       tap(response => {
         console.log('✅ Solde reçu:', response.balance);
       }),
-      map(response => response.balance), // ← AJOUTER CETTE LIGNE pour extraire la valeur
+      map(response => response.balance),
       catchError(error => {
         console.error('❌ Erreur checkBalance:', error);
         this.notificationService.showError('Erreur lors de la vérification du solde');
@@ -308,3 +149,14 @@ export class WalletService {
     return new Intl.NumberFormat('fr-MG').format(amount);
   }
 }
+
+// Exporter les types pour qu'ils soient accessibles depuis le service
+export type { 
+  Wallet, 
+  WalletStats, 
+  Transaction, 
+  SendMoneyRequest, 
+  MobileMoneyRequest, 
+  ScanPayRequest, 
+  QRCodeResponse 
+};

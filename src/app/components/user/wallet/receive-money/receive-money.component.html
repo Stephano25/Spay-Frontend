@@ -1,73 +1,136 @@
 <div class="receive-money-container">
-  <!-- Header -->
-  <mat-toolbar color="primary">
-    <button mat-icon-button (click)="goBack()">
+  <!-- Header avec animation -->
+  <div class="header">
+    <button class="back-btn" (click)="goBack()" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span>Recevoir de l'argent</span>
-  </mat-toolbar>
+    <h1 class="page-title">Recevoir de l'argent</h1>
+    <button class="share-btn" (click)="shareQRCode()" matTooltip="Partager">
+      <mat-icon>share</mat-icon>
+    </button>
+  </div>
 
   <div class="content">
-    <mat-card class="qr-card">
-      <mat-card-header>
-        <mat-card-title>Votre QR code</mat-card-title>
-        <mat-card-subtitle>Scannez ce code pour recevoir de l'argent</mat-card-subtitle>
-      </mat-card-header>
-      
-      <mat-card-content>
-        <div class="qr-code-container" *ngIf="qrCode">
-          <!-- Ici vous utiliserez une bibliothèque comme qrcode pour générer le QR code -->
-          <div class="qr-placeholder">
-            <mat-icon>qr_code_2</mat-icon>
-            <span>QR Code: {{ qrCode }}</span>
+    <!-- Loading spinner -->
+    <div class="loading-container" *ngIf="isLoading">
+      <div class="loader"></div>
+      <p>Génération de votre QR code...</p>
+    </div>
+
+    <!-- QR Code affiché -->
+    <div class="qr-section" *ngIf="!isLoading && qrCode">
+      <!-- Carte QR Code -->
+      <mat-card class="qr-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>qr_code</mat-icon>
+            Votre QR Code
+          </mat-card-title>
+          <mat-card-subtitle>Scannez ce code pour recevoir de l'argent</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- QR Code simulé (dans une vraie app, utilisez une bibliothèque comme qrcode) -->
+          <div class="qr-code-display" (click)="copyQRCode()">
+            <div class="qr-placeholder">
+              <div class="qr-pattern"></div>
+            </div>
+            <div class="qr-overlay" *ngIf="copied">
+              <mat-icon>check_circle</mat-icon>
+              <span>Copié !</span>
+            </div>
           </div>
-          <p class="qr-hint">{{ getExpirationTime() }}</p>
-        </div>
 
-        <div class="amount-option">
-          <button mat-stroked-button (click)="showAmountOption = !showAmountOption">
+          <!-- Code texte -->
+          <div class="qr-text">
+            <span class="qr-code-value">{{ qrCode.qrCode }}</span>
+            <button class="copy-btn" (click)="copyQRCode()" matTooltip="Copier">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+
+          <!-- Montant optionnel -->
+          <div class="amount-badge" *ngIf="selectedAmount">
             <mat-icon>attach_money</mat-icon>
-            {{ amount ? 'Montant: ' + formatAmount(amount) + ' Ar' : 'Ajouter un montant' }}
+            <span>{{ formatAmount(selectedAmount) }} Ar</span>
+          </div>
+
+          <!-- Expiration -->
+          <div class="expiration">
+            <mat-icon>timer</mat-icon>
+            <span>{{ getExpirationTime() }}</span>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button class="action-btn download" (click)="downloadQRCode()" matTooltip="Télécharger">
+            <mat-icon>download</mat-icon>
           </button>
-        </div>
+          <button class="action-btn copy" (click)="copyQRCode()" matTooltip="Copier">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+          <button class="action-btn share" (click)="shareQRCode()" matTooltip="Partager">
+            <mat-icon>share</mat-icon>
+          </button>
+        </mat-card-actions>
+      </mat-card>
 
-        <div class="amount-presets" *ngIf="showAmountOption">
-          <button mat-stroked-button (click)="setAmount(5000)">5 000 Ar</button>
-          <button mat-stroked-button (click)="setAmount(10000)">10 000 Ar</button>
-          <button mat-stroked-button (click)="setAmount(20000)">20 000 Ar</button>
-          <button mat-stroked-button (click)="setAmount(50000)">50 000 Ar</button>
-          <button mat-stroked-button (click)="setAmount(0)">Sans montant</button>
-        </div>
-      </mat-card-content>
+      <!-- Options de montant -->
+      <mat-card class="amount-card">
+        <mat-card-header (click)="showAmountOptions = !showAmountOptions">
+          <mat-card-title>
+            <mat-icon>attach_money</mat-icon>
+            <span>Ajouter un montant</span>
+          </mat-card-title>
+          <mat-icon class="expand-icon" [class.expanded]="showAmountOptions">
+            expand_more
+          </mat-icon>
+        </mat-card-header>
 
-      <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="downloadQRCode()">
-          <mat-icon>download</mat-icon>
-          Télécharger
-        </button>
-        <button mat-raised-button (click)="shareQRCode()">
-          <mat-icon>share</mat-icon>
-          Partager
-        </button>
-      </mat-card-actions>
-    </mat-card>
+        <mat-card-content *ngIf="showAmountOptions">
+          <div class="amount-grid">
+            <button 
+              *ngFor="let amount of amountOptions" 
+              class="amount-btn"
+              [class.active]="selectedAmount === amount"
+              (click)="generateQR(amount)">
+              {{ formatAmount(amount) }} Ar
+            </button>
+          </div>
+          <button class="clear-amount" (click)="generateQR()" *ngIf="selectedAmount">
+            <mat-icon>close</mat-icon>
+            Retirer le montant
+          </button>
+        </mat-card-content>
+      </mat-card>
 
-    <mat-card class="info-card">
-      <mat-card-content>
-        <h3>Comment ça marche ?</h3>
-        <div class="info-step">
-          <mat-icon>qr_code_scanner</mat-icon>
-          <span>1. Votre ami scanne ce QR code</span>
-        </div>
-        <div class="info-step">
-          <mat-icon>attach_money</mat-icon>
-          <span>2. Il entre le montant à envoyer</span>
-        </div>
-        <div class="info-step">
-          <mat-icon>check_circle</mat-icon>
-          <span>3. L'argent est crédité instantanément</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+      <!-- Instructions -->
+      <mat-card class="info-card">
+        <mat-card-content>
+          <h3>Comment ça marche ?</h3>
+          <div class="info-step">
+            <div class="step-number">1</div>
+            <div class="step-text">
+              <strong>Partagez votre QR code</strong>
+              <p>Envoyez ce code à la personne qui doit vous payer</p>
+            </div>
+          </div>
+          <div class="info-step">
+            <div class="step-number">2</div>
+            <div class="step-text">
+              <strong>La personne scanne</strong>
+              <p>Elle scanne le code avec l'application SPaye</p>
+            </div>
+          </div>
+          <div class="info-step">
+            <div class="step-number">3</div>
+            <div class="step-text">
+              <strong>L'argent est crédité</strong>
+              <p>Le montant est instantanément ajouté à votre solde</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </div>

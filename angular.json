@@ -25,7 +25,12 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "debug",
+              "socket.io-parser",
+              "socket.io-client"
+            ]
           },
           "configurations": {
             "production": {

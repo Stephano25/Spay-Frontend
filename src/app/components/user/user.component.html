@@ -47,7 +47,7 @@
       </div>
       <div class="stat-info">
         <span class="stat-label">Transactions</span>
-        <span class="stat-value">{{ stats?.totalTransactions || 0 }}</span>
+        <span class="stat-value">{{ stats.totalTransactions || 0 }}</span>
       </div>
     </div>
 
@@ -58,54 +58,58 @@
       <div class="stat-info">
         <span class="stat-label">Plus grosse</span>
         <span class="stat-value">
-          {{ stats?.largestTransaction ? formatAmount(stats?.largestTransaction?.amount || 0) + ' Ar' : '0 Ar' }}
+          {{ stats.largestTransaction ? formatAmount(stats.largestTransaction.amount) + ' Ar' : '0 Ar' }}
         </span>
       </div>
     </div>
   </div>
 
   <!-- Dernières transactions -->
-  <mat-card class="transactions-card" *ngIf="stats?.lastThreeTransactions?.length && !isLoading">
-    <mat-card-header>
-      <mat-card-title>Dernières transactions</mat-card-title>
-      <button mat-button color="primary" (click)="navigateTo('/transactions')" class="view-all">
-        Voir tout
-        <mat-icon>arrow_forward</mat-icon>
-      </button>
-    </mat-card-header>
-    
-    <mat-card-content>
-      <div class="transactions-list">
-        <div *ngFor="let transaction of stats?.lastThreeTransactions" class="transaction-item">
-          <div class="transaction-icon" 
-               [ngClass]="{'sent': transaction?.senderId === user?.id, 'received': transaction?.receiverId === user?.id}">
-            <mat-icon>{{ transaction?.senderId === user?.id ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
-          </div>
-          <div class="transaction-details">
-            <div class="transaction-desc">{{ transaction?.description || 'Transfert' }}</div>
-            <div class="transaction-date">{{ transaction?.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
-          </div>
-          <div class="transaction-amount" 
-               [ngClass]="{'positive': transaction?.receiverId === user?.id, 'negative': transaction?.senderId === user?.id}">
-            {{ transaction?.receiverId === user?.id ? '+' : '-' }}{{ formatAmount(transaction?.amount || 0) }} Ar
+  <ng-container *ngIf="stats && stats.lastThreeTransactions && stats.lastThreeTransactions.length > 0 && !isLoading">
+    <mat-card class="transactions-card">
+      <mat-card-header>
+        <mat-card-title>Dernières transactions</mat-card-title>
+        <button mat-button color="primary" (click)="navigateTo('/transactions')" class="view-all">
+          Voir tout
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="transactions-list">
+          <div *ngFor="let transaction of stats.lastThreeTransactions" class="transaction-item">
+            <div class="transaction-icon" 
+                 [ngClass]="{'sent': transaction.senderId === user?.id, 'received': transaction.receiverId === user?.id}">
+              <mat-icon>{{ transaction.senderId === user?.id ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+            </div>
+            <div class="transaction-details">
+              <div class="transaction-desc">{{ transaction.description || 'Transfert' }}</div>
+              <div class="transaction-date">{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+            <div class="transaction-amount" 
+                 [ngClass]="{'positive': transaction.receiverId === user?.id, 'negative': transaction.senderId === user?.id}">
+              {{ transaction.receiverId === user?.id ? '+' : '-' }}{{ formatAmount(transaction.amount) }} Ar
+            </div>
           </div>
         </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
 
   <!-- Message si aucune transaction -->
-  <mat-card class="empty-card" *ngIf="!stats?.lastThreeTransactions?.length && !isLoading">
-    <mat-card-content>
-      <mat-icon>receipt</mat-icon>
-      <h3>Aucune transaction</h3>
-      <p>Commencez à utiliser SPaye en effectuant votre première transaction</p>
-      <button mat-raised-button color="primary" (click)="navigateTo('/scan-pay')">
-        <mat-icon>qr_code_scanner</mat-icon>
-        Scanner un QR code
-      </button>
-    </mat-card-content>
-  </mat-card>
+  <ng-container *ngIf="(!stats || !stats.lastThreeTransactions || stats.lastThreeTransactions.length === 0) && !isLoading">
+    <mat-card class="empty-card">
+      <mat-card-content>
+        <mat-icon>receipt</mat-icon>
+        <h3>Aucune transaction</h3>
+        <p>Commencez à utiliser SPaye en effectuant votre première transaction</p>
+        <button mat-raised-button color="primary" (click)="navigateTo('/scan-pay')">
+          <mat-icon>qr_code_scanner</mat-icon>
+          Scanner un QR code
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
 
   <!-- Bouton de rafraîchissement -->
   <div class="refresh-container" *ngIf="!isLoading">
