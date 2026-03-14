@@ -11,7 +11,7 @@ import { User } from '../../models/user.model';
 
 // Components
 import { SidebarComponent } from '../layout/sidebar/sidebar.component';
-import { NavigationHeaderComponent } from '../shared/navigation-header/navigation-header.component';
+import { NavigationHeaderComponent } from '../layout/navigation-header/navigation-header.component';
 
 @Component({
   selector: 'app-admin',

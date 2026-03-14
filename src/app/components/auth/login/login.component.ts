@@ -39,7 +39,6 @@ export class LoginComponent {
     private authService: AuthService,
     private router: Router
   ) {
-    // Rediriger si déjà connecté
     if (this.authService.isAuthenticated()) {
       const user = this.authService.getCurrentUser();
       if (user?.role === 'admin' || user?.role === 'super_admin') {
@@ -62,9 +61,6 @@ export class LoginComponent {
     const { email, password } = this.loginForm.value;
 
     this.authService.login(email, password).subscribe({
-      next: () => {
-        // Redirection déjà gérée dans le service
-      },
       error: () => {
         this.isLoading = false;
       }

@@ -20,7 +20,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatRippleModule } from '@angular/material/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -29,6 +28,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
@@ -53,7 +53,6 @@ export const appConfig: ApplicationConfig = {
       MatGridListModule,
       MatTooltipModule,
       MatButtonToggleModule,
-      MatRippleModule,
       MatTabsModule,
       MatBadgeModule,
       MatSnackBarModule,
@@ -61,7 +60,8 @@ export const appConfig: ApplicationConfig = {
       MatRadioModule,
       MatExpansionModule,
       MatChipsModule,
-      MatSlideToggleModule
+      MatSlideToggleModule,
+      MatDialogModule
     ),
     {
       provide: HTTP_INTERCEPTORS,

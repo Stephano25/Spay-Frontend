@@ -5,7 +5,7 @@ export interface User {
   lastName: string;
   phoneNumber: string;
   profilePicture?: string;
-  balance: number; // Gardé pour compatibilité
+  balance: number;
   qrCode: string;
   friends: string[];
   role: 'user' | 'admin' | 'super_admin';
@@ -13,18 +13,12 @@ export interface User {
   createdAt: Date;
   lastLogin?: Date;
   bio?: string;
-  wallet?: { // Ajout de l'interface wallet
-    id: string;
-    balance: number;
-    currency: string;
-    dailyLimit: number;
-    monthlyLimit: number;
-  };
 }
 
 export interface LoginResponse {
   user: User;
   access_token?: string;
+  token?: string;
 }
 
 export interface RegisterData {
