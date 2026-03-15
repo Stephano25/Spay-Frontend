@@ -5,81 +5,128 @@
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h1 class="page-title">Recevoir de l'argent</h1>
-    <button class="share-btn" (click)="shareQRCode()" matTooltip="Partager">
-      <mat-icon>share</mat-icon>
-    </button>
+    <div class="header-actions">
+      <button class="action-icon-btn" (click)="shareQRCode()" matTooltip="Partager">
+        <mat-icon>share</mat-icon>
+      </button>
+      <button class="action-icon-btn" (click)="downloadQRImage()" matTooltip="Télécharger l'image">
+        <mat-icon>download</mat-icon>
+      </button>
+    </div>
   </div>
 
   <div class="content">
-    <!-- Loading spinner -->
+    <!-- Loading spinner avec animation -->
     <div class="loading-container" *ngIf="isLoading">
-      <div class="loader"></div>
-      <p>Génération de votre QR code...</p>
+      <div class="spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+      </div>
+      <p class="loading-text">Génération de votre QR code...</p>
     </div>
 
     <!-- QR Code affiché -->
     <div class="qr-section" *ngIf="!isLoading && qrCode">
-      <!-- Carte QR Code -->
-      <mat-card class="qr-card">
+      <!-- Carte QR Code avec animation -->
+      <mat-card class="qr-card" @scaleIn>
         <mat-card-header>
           <mat-card-title>
-            <mat-icon>qr_code</mat-icon>
+            <mat-icon class="title-icon">qr_code</mat-icon>
             Votre QR Code
           </mat-card-title>
           <mat-card-subtitle>Scannez ce code pour recevoir de l'argent</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
-          <!-- QR Code simulé (dans une vraie app, utilisez une bibliothèque comme qrcode) -->
-          <div class="qr-code-display" (click)="copyQRCode()">
-            <div class="qr-placeholder">
-              <div class="qr-pattern"></div>
+          <!-- QR Code via API externe -->
+          <div class="qr-code-container" [class.loading]="!qrImageLoaded">
+            <div class="qr-loading" *ngIf="!qrImageLoaded && !qrImageError">
+              <div class="qr-loading-spinner"></div>
+              <span>Chargement du QR code...</span>
             </div>
-            <div class="qr-overlay" *ngIf="copied">
-              <mat-icon>check_circle</mat-icon>
-              <span>Copié !</span>
+            
+            <div class="qr-error" *ngIf="qrImageError">
+              <mat-icon>error</mat-icon>
+              <p>Erreur de chargement</p>
+              <button class="retry-btn" (click)="generateQR(selectedAmount || undefined)">
+                <mat-icon>refresh</mat-icon>
+                Réessayer
+              </button>
+            </div>
+
+            <div class="qr-code-display" [class.hidden]="!qrImageLoaded || qrImageError">
+              <img 
+                [src]="'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + (qrData | urlencode)" 
+                alt="QR Code"
+                class="qr-image"
+                (load)="onQRLoad()"
+                (error)="onQRError()">
+              <div class="qr-overlay" *ngIf="copied">
+                <mat-icon>check_circle</mat-icon>
+                <span>Copié !</span>
+              </div>
             </div>
           </div>
 
           <!-- Code texte -->
-          <div class="qr-text">
-            <span class="qr-code-value">{{ qrCode.qrCode }}</span>
-            <button class="copy-btn" (click)="copyQRCode()" matTooltip="Copier">
-              <mat-icon>content_copy</mat-icon>
-            </button>
+          <div class="qr-text" @slideInUp>
+            <span class="qr-code-label">Code:</span>
+            <div class="qr-code-value-container">
+              <span class="qr-code-value">{{ qrCode.qrCode }}</span>
+              <button class="copy-btn" (click)="copyQRCode()" matTooltip="Copier">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+            </div>
           </div>
 
           <!-- Montant optionnel -->
-          <div class="amount-badge" *ngIf="selectedAmount">
+          <div class="amount-badge" *ngIf="selectedAmount" @bounceIn>
             <mat-icon>attach_money</mat-icon>
             <span>{{ formatAmount(selectedAmount) }} Ar</span>
+            <button class="remove-amount" (click)="generateQR()" matTooltip="Retirer le montant">
+              <mat-icon>close</mat-icon>
+            </button>
           </div>
 
-          <!-- Expiration -->
-          <div class="expiration">
-            <mat-icon>timer</mat-icon>
-            <span>{{ getExpirationTime() }}</span>
+          <!-- Expiration avec barre de progression -->
+          <div class="expiration-section">
+            <div class="expiration-info">
+              <mat-icon [style.color]="getExpirationColor()">timer</mat-icon>
+              <span [style.color]="getExpirationColor()">{{ getExpirationTime() }}</span>
+            </div>
+            <div class="expiration-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" 
+                     [style.width.%]="getExpirationProgress()"
+                     [style.background]="getExpirationColor()">
+                </div>
+              </div>
+            </div>
           </div>
         </mat-card-content>
 
         <mat-card-actions>
-          <button class="action-btn download" (click)="downloadQRCode()" matTooltip="Télécharger">
+          <button class="action-btn download" (click)="downloadQRImage()" matTooltip="Télécharger l'image">
             <mat-icon>download</mat-icon>
           </button>
-          <button class="action-btn copy" (click)="copyQRCode()" matTooltip="Copier">
+          <button class="action-btn copy" (click)="copyQRCode()" matTooltip="Copier le code">
             <mat-icon>content_copy</mat-icon>
           </button>
           <button class="action-btn share" (click)="shareQRCode()" matTooltip="Partager">
             <mat-icon>share</mat-icon>
           </button>
+          <button class="action-btn refresh" (click)="generateQR(selectedAmount || undefined)" matTooltip="Rafraîchir">
+            <mat-icon>refresh</mat-icon>
+          </button>
         </mat-card-actions>
       </mat-card>
 
       <!-- Options de montant -->
-      <mat-card class="amount-card">
+      <mat-card class="amount-card" @slideInLeft>
         <mat-card-header (click)="showAmountOptions = !showAmountOptions">
           <mat-card-title>
-            <mat-icon>attach_money</mat-icon>
+            <mat-icon [class.rotated]="showAmountOptions">attach_money</mat-icon>
             <span>Ajouter un montant</span>
           </mat-card-title>
           <mat-icon class="expand-icon" [class.expanded]="showAmountOptions">
@@ -87,50 +134,76 @@
           </mat-icon>
         </mat-card-header>
 
-        <mat-card-content *ngIf="showAmountOptions">
+        <mat-card-content *ngIf="showAmountOptions" @slideInDown>
+          <!-- Montants prédéfinis -->
           <div class="amount-grid">
             <button 
               *ngFor="let amount of amountOptions" 
               class="amount-btn"
               [class.active]="selectedAmount === amount"
               (click)="generateQR(amount)">
-              {{ formatAmount(amount) }} Ar
+              <span class="amount-value">{{ formatAmount(amount) }}</span>
+              <span class="amount-currency">Ar</span>
             </button>
           </div>
-          <button class="clear-amount" (click)="generateQR()" *ngIf="selectedAmount">
-            <mat-icon>close</mat-icon>
-            Retirer le montant
-          </button>
+          
+          <!-- Montant personnalisé -->
+          <div class="custom-amount">
+            <mat-form-field appearance="outline" class="amount-input">
+              <mat-label>Montant personnalisé</mat-label>
+              <input matInput type="number" [(ngModel)]="customAmount" placeholder="1000">
+              <span matSuffix>Ar</span>
+            </mat-form-field>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              class="validate-btn"
+              (click)="useCustomAmount()" 
+              [disabled]="!customAmount">
+              <mat-icon>check</mat-icon>
+              Valider
+            </button>
+          </div>
         </mat-card-content>
       </mat-card>
 
       <!-- Instructions -->
-      <mat-card class="info-card">
+      <mat-card class="info-card" @slideInRight>
         <mat-card-content>
           <h3>Comment ça marche ?</h3>
-          <div class="info-step">
-            <div class="step-number">1</div>
-            <div class="step-text">
-              <strong>Partagez votre QR code</strong>
-              <p>Envoyez ce code à la personne qui doit vous payer</p>
+          <div class="steps">
+            <div class="step" @slideInLeft>
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h4>Partagez votre QR code</h4>
+                <p>Montrez ce code à la personne qui doit vous payer ou partagez-le</p>
+              </div>
             </div>
-          </div>
-          <div class="info-step">
-            <div class="step-number">2</div>
-            <div class="step-text">
-              <strong>La personne scanne</strong>
-              <p>Elle scanne le code avec l'application SPaye</p>
+            
+            <div class="step" @slideInLeft style="animation-delay: 0.1s">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h4>La personne scanne</h4>
+                <p>Elle scanne le code avec l'application SPaye</p>
+              </div>
             </div>
-          </div>
-          <div class="info-step">
-            <div class="step-number">3</div>
-            <div class="step-text">
-              <strong>L'argent est crédité</strong>
-              <p>Le montant est instantanément ajouté à votre solde</p>
+            
+            <div class="step" @slideInLeft style="animation-delay: 0.2s">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h4>L'argent est crédité</h4>
+                <p>Le montant est instantanément ajouté à votre solde</p>
+              </div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
+
+      <!-- Conseils de sécurité -->
+      <div class="security-tip" @fadeIn>
+        <mat-icon>security</mat-icon>
+        <span>Ce QR code expire après 30 minutes pour votre sécurité</span>
+      </div>
     </div>
   </div>
 </div>

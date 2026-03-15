@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError, tap, map, shareReplay } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 import { 
   Wallet, 
   WalletStats, 
@@ -18,12 +19,22 @@ import {
 })
 export class WalletService {
   private apiUrl = `${environment.apiUrl}/wallet`;
-private walletCache$: Observable<Wallet> | null = null;
+  private walletCache$: Observable<Wallet> | null = null;
+
   constructor(
     private http: HttpClient,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private authService: AuthService
   ) {
     console.log('📡 WalletService API URL:', this.apiUrl);
+  }
+
+  /**
+   * Récupérer l'ID de l'utilisateur connecté
+   */
+  getCurrentUserId(): string {
+    const user = this.authService.getCurrentUser();
+    return user?.id || '';
   }
 
   /**

@@ -1,42 +1,60 @@
 <div class="scan-container">
-  <mat-toolbar color="primary">
-    <button mat-icon-button routerLink="/dashboard">
+  <!-- Header personnalisé -->
+  <div class="scan-header">
+    <button class="back-btn" (click)="goBack()" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span>Scanner & Payer</span>
-  </mat-toolbar>
+    <h1 class="header-title">Scanner & Payer</h1>
+  </div>
 
   <div class="scan-content">
-    <mat-card>
+    <mat-card class="scan-card">
       <mat-card-content>
         <!-- Mode scan -->
-        <div *ngIf="isScanning" class="scan-mode">
-          <div class="scanner-placeholder">
+        <div *ngIf="isScanning" class="scan-mode" @fadeIn>
+          <!-- Message d'erreur caméra -->
+          <div class="camera-error" *ngIf="cameraError" @shake>
+            <mat-icon>videocam_off</mat-icon>
+            <h3>Caméra non disponible</h3>
+            <p>Utilisez le bouton ci-dessous pour simuler un scan</p>
+          </div>
+
+          <!-- Vidéo caméra (réelle) -->
+          <div class="camera-preview" *ngIf="hasCamera && !cameraError" @scaleIn>
+            <video #videoElement class="video-preview" autoplay playsinline></video>
+            <div class="scan-overlay">
+              <div class="scan-frame"></div>
+              <p>Placez le QR code dans le cadre</p>
+            </div>
+          </div>
+
+          <!-- Placeholder (simulation) -->
+          <div class="scanner-placeholder" *ngIf="!hasCamera || cameraError" @pulse>
             <mat-icon>qr_code_scanner</mat-icon>
-            <p>Placez le QR code devant la caméra</p>
-            <p class="hint">Assurez-vous que le code est bien visible</p>
+            <p>Scan de QR code</p>
+            <p class="hint">Placez le code dans le cadre</p>
           </div>
           
           <div class="scan-actions">
-            <button mat-raised-button color="primary" class="scan-button" (click)="simulateScan()">
+            <button class="scan-btn primary" (click)="simulateScan()">
               <mat-icon>qr_code_scanner</mat-icon>
               Simuler un scan
             </button>
-            <button mat-stroked-button routerLink="/dashboard">
+            <button class="scan-btn stroked" (click)="goBack()">
               Annuler
             </button>
           </div>
         </div>
 
         <!-- Formulaire de paiement -->
-        <div *ngIf="!isScanning && showPaymentForm" class="payment-mode">
-          <div class="user-info" *ngIf="scannedUser">
+        <div *ngIf="!isScanning && showPaymentForm" class="payment-mode" @slideInRight>
+          <div class="user-info" *ngIf="scannedData" @slideInLeft>
             <div class="user-avatar">
-              {{ scannedUser.firstName?.charAt(0) }}{{ scannedUser.lastName?.charAt(0) }}
+              <mat-icon>qr_code</mat-icon>
             </div>
             <div class="user-details">
-              <div class="user-name">{{ scannedUser.firstName }} {{ scannedUser.lastName }}</div>
-              <div class="user-phone">{{ scannedUser.phoneNumber }}</div>
+              <div class="user-name">Paiement par QR code</div>
+              <div class="user-phone">{{ scannedData.qrCode }}</div>
             </div>
           </div>
 
@@ -44,7 +62,9 @@
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Montant (Ar)</mat-label>
               <input matInput type="number" formControlName="amount">
-              <mat-icon matSuffix>attach_money</mat-icon>
+              <mat-icon matSuffix [class]="'amount-icon ' + getAmountIcon(paymentForm.get('amount')?.value || 0)">
+                {{ getAmountIcon(paymentForm.get('amount')?.value || 0) }}
+              </mat-icon>
               <mat-error *ngIf="paymentForm.get('amount')?.hasError('required')">
                 Montant requis
               </mat-error>
@@ -60,19 +80,29 @@
             </mat-form-field>
 
             <div class="quick-amounts">
-              <button type="button" mat-stroked-button (click)="paymentForm.patchValue({amount: 1000})">1 000 Ar</button>
-              <button type="button" mat-stroked-button (click)="paymentForm.patchValue({amount: 5000})">5 000 Ar</button>
-              <button type="button" mat-stroked-button (click)="paymentForm.patchValue({amount: 10000})">10 000 Ar</button>
-              <button type="button" mat-stroked-button (click)="paymentForm.patchValue({amount: 20000})">20 000 Ar</button>
+              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 1000})">
+                1 000 Ar
+              </button>
+              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 5000})">
+                5 000 Ar
+              </button>
+              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 10000})">
+                10 000 Ar
+              </button>
+              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 20000})">
+                20 000 Ar
+              </button>
             </div>
 
             <div class="button-group">
-              <button mat-stroked-button type="button" (click)="resetScanner()">
+              <button class="action-btn cancel" type="button" (click)="resetScanner()" [disabled]="isProcessing">
                 Annuler
               </button>
-              <button mat-raised-button color="primary" type="submit" 
-                      [disabled]="!paymentForm.valid">
-                Payer {{ paymentForm.get('amount')?.value | number }} Ar
+              <button class="action-btn pay" type="submit" [disabled]="!paymentForm.valid || isProcessing">
+                <mat-spinner diameter="20" *ngIf="isProcessing"></mat-spinner>
+                <span *ngIf="!isProcessing">
+                  Payer {{ paymentForm.get('amount')?.value | number }} Ar
+                </span>
               </button>
             </div>
           </form>
@@ -81,20 +111,20 @@
     </mat-card>
 
     <!-- Instructions -->
-    <mat-card class="info-card" *ngIf="isScanning">
+    <mat-card class="info-card" *ngIf="isScanning" @slideInUp>
       <mat-card-content>
         <h3>Comment ça marche ?</h3>
         <div class="info-step">
           <mat-icon>qr_code_scanner</mat-icon>
-          <span>Scannez le QR code de votre ami</span>
+          <span>1. Scannez le QR code de votre ami</span>
         </div>
         <div class="info-step">
           <mat-icon>attach_money</mat-icon>
-          <span>Entrez le montant à payer</span>
+          <span>2. Entrez le montant à payer</span>
         </div>
         <div class="info-step">
           <mat-icon>check_circle</mat-icon>
-          <span>Confirmez le paiement</span>
+          <span>3. Confirmez le paiement</span>
         </div>
       </mat-card-content>
     </mat-card>

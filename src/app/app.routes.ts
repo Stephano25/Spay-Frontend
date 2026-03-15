@@ -11,13 +11,23 @@ import { MobileMoneyComponent } from './components/mobile-money/mobile-money.com
 import { FriendsComponent } from './components/friends/friends.component';
 import { UserSettingsComponent } from './components/user/settings/settings.component';
 import { AuthGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
+
+// Importer les composants manquants
+import { SendMoneyComponent } from './components/user/wallet/send-money/send-money.component';
+import { ReceiveMoneyComponent } from './components/user/wallet/receive-money/receive-money.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  
+  // Routes utilisateur
   { path: 'user', component: UserComponent, canActivate: [AuthGuard] },
   { path: 'wallet', component: WalletComponent, canActivate: [AuthGuard] },
+  { path: 'wallet/send', component: SendMoneyComponent, canActivate: [AuthGuard] },
+  { path: 'wallet/receive', component: ReceiveMoneyComponent, canActivate: [AuthGuard] },
+  { path: 'wallet/history', component: TransactionsComponent, canActivate: [AuthGuard] },
   { path: 'chat', component: ChatComponent, canActivate: [AuthGuard] },
   { path: 'transactions', component: TransactionsComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
@@ -25,5 +35,13 @@ export const routes: Routes = [
   { path: 'mobile-money', component: MobileMoneyComponent, canActivate: [AuthGuard] },
   { path: 'friends', component: FriendsComponent, canActivate: [AuthGuard] },
   { path: 'user/settings', component: UserSettingsComponent, canActivate: [AuthGuard] },
+
+  // Routes admin (simplifiées pour l'instant)
+  { 
+    path: 'admin', 
+    loadComponent: () => import('./components/admin/admin.component').then(m => m.AdminComponent),
+    canActivate: [AdminGuard]
+  },
+  
   { path: '**', redirectTo: '/login' }
 ];
