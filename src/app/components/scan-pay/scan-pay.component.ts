@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -34,7 +34,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatInputModule,
     MatProgressSpinnerModule
   ],
-  templateUrl: './scan-pay.component.html',
+  templateUrl: './scan-pay.component.html', // CORRIGÉ: Référence au bon fichier
   styleUrls: ['./scan-pay.component.css'],
   animations: [
     trigger('fadeIn', [
@@ -76,16 +76,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           style({ transform: 'scale(1)', offset: 1 })
         ]))
       ])
-    ]),
-    trigger('scanAnimation', [
-      transition(':enter', [
-        style({ transform: 'translateY(-100%)' }),
-        animate('1.5s ease-in-out', style({ transform: 'translateY(100%)' }))
-      ])
     ])
   ]
 })
-export class ScanPayComponent implements AfterViewInit {
+export class ScanPayComponent implements AfterViewInit, OnDestroy {
   @ViewChild('videoElement') videoElement!: ElementRef;
   
   isScanning = true;
@@ -119,6 +113,12 @@ export class ScanPayComponent implements AfterViewInit {
   ngOnDestroy() {
     if (this.scanInterval) {
       clearInterval(this.scanInterval);
+    }
+    // Arrêter la caméra
+    if (this.videoElement && this.videoElement.nativeElement && this.videoElement.nativeElement.srcObject) {
+      const stream = this.videoElement.nativeElement.srcObject;
+      const tracks = stream.getTracks();
+      tracks.forEach((track: any) => track.stop());
     }
   }
 
