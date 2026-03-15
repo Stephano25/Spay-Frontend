@@ -19,8 +19,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSliderModule } from '@angular/material/slider';
 
-// Interface pour les opérateurs
+// Interfaces
 interface Operator {
   id: 'airtel' | 'orange' | 'mvola';
   name: string;
@@ -31,7 +32,6 @@ interface Operator {
   gradient: string;
 }
 
-// Interface pour les frais
 interface Fees {
   airtel: number;
   orange: number;
@@ -54,7 +54,8 @@ interface Fees {
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    MatDividerModule
+    MatDividerModule,
+    MatSliderModule
   ],
   templateUrl: './mobile-money.component.html',
   styleUrls: ['./mobile-money.component.css'],
@@ -63,6 +64,12 @@ interface Fees {
       transition(':enter', [
         style({ opacity: 0 }),
         animate('0.5s ease-out', style({ opacity: 1 }))
+      ])
+    ]),
+    trigger('slideInDown', [
+      transition(':enter', [
+        style({ transform: 'translateY(-30px)', opacity: 0 }),
+        animate('0.5s ease-out', style({ transform: 'translateY(0)', opacity: 1 }))
       ])
     ]),
     trigger('slideInUp', [
@@ -98,6 +105,21 @@ interface Fees {
           style({ transform: 'scale(1)', offset: 1 })
         ]))
       ])
+    ]),
+    trigger('shake', [
+      transition('* => *', [
+        animate('0.5s ease-in-out', keyframes([
+          style({ transform: 'translateX(-5px)', offset: 0.25 }),
+          style({ transform: 'translateX(5px)', offset: 0.75 }),
+          style({ transform: 'translateX(0)', offset: 1 })
+        ]))
+      ])
+    ]),
+    trigger('bounceIn', [
+      transition(':enter', [
+        style({ transform: 'scale(0.3)', opacity: 0 }),
+        animate('0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)', style({ transform: 'scale(1)', opacity: 1 }))
+      ])
     ])
   ]
 })
@@ -111,7 +133,7 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
   // Formulaire
   mobileMoneyForm: FormGroup;
   
-  // Opérateurs disponibles (typés)
+  // Opérateurs disponibles
   operators: Operator[] = [
     { 
       id: 'airtel', 
@@ -143,14 +165,23 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
   ];
 
   // Montants rapides
-  quickAmounts = [5000, 10000, 20000, 50000, 100000];
+  quickAmounts = [
+    100, 500, 1000, 5000, 10000, 20000, 50000, 
+    100000, 200000, 500000, 1000000, 2000000, 5000000, 
+    10000000, 20000000, 50000000, 100000000
+  ];
 
-  // Frais (typés)
+  // Frais
   fees: Fees = {
     airtel: 0.5,
     orange: 0.5,
     mvola: 0.5
   };
+  
+  // Constantes
+  readonly MIN_AMOUNT = 100;
+  readonly MAX_AMOUNT = 100000000;
+  readonly MINIMUM_FEE = 200;
 
   private scanInterval: any;
 
@@ -164,7 +195,7 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
     this.mobileMoneyForm = this.fb.group({
       operator: ['', Validators.required],
       phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]{9,10}$')]],
-      amount: ['', [Validators.required, Validators.min(500)]]
+      amount: ['', [Validators.required, Validators.min(this.MIN_AMOUNT), Validators.max(this.MAX_AMOUNT)]]
     });
   }
 
@@ -186,9 +217,11 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
     this.walletService.getWallet().subscribe({
       next: (wallet) => {
         this.balance = wallet.balance;
+        console.log('💰 Solde chargé:', this.balance);
       },
       error: (err) => {
         console.error('Erreur chargement solde:', err);
+        this.notificationService.showError('Erreur lors du chargement du solde');
       }
     });
   }
@@ -197,7 +230,6 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
    * Configurer les écouteurs du formulaire
    */
   setupFormListeners() {
-    // Mettre à jour le préfixe quand l'opérateur change
     this.mobileMoneyForm.get('operator')?.valueChanges.subscribe(operatorId => {
       const operator = this.operators.find(op => op.id === operatorId);
       if (operator) {
@@ -226,14 +258,20 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
   goToConfirmation() {
     if (this.mobileMoneyForm.get('phoneNumber')?.valid && 
         this.mobileMoneyForm.get('amount')?.valid) {
-      
-      // Vérifier le solde
+    
       const amount = this.mobileMoneyForm.get('amount')?.value;
-      if (amount > this.balance) {
-        this.notificationService.showError('Solde insuffisant!');
+      const totalWithFees = this.calculateTotal();
+    
+      // Afficher un message clair sur les frais
+      console.log(`💰 Montant: ${amount} Ar, Frais: ${this.calculateFee()} Ar, Total: ${totalWithFees} Ar`);
+    
+      if (totalWithFees > this.balance) {
+        this.notificationService.showError(
+          `Solde insuffisant! Total avec frais: ${this.formatAmount(totalWithFees)} Ar (dont frais minimum de ${this.MINIMUM_FEE} Ar)`
+        );
         return;
       }
-      
+    
       this.currentStep = 'confirmation';
     }
   }
@@ -242,39 +280,67 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
    * Effectuer le transfert
    */
   processTransfer() {
-    if (this.mobileMoneyForm.invalid || !this.selectedOperator) return;
+    if (this.mobileMoneyForm.invalid || !this.selectedOperator) {
+      console.error('❌ Formulaire invalide');
+      return;
+    }
+
+    // Double vérification du solde
+    const totalWithFees = this.calculateTotal();
+    if (totalWithFees > this.balance) {
+      this.notificationService.showError('Solde insuffisant!');
+      this.currentStep = 'amount'; // Retour à l'étape montant
+      return;
+    }
 
     this.isProcessing = true;
     
     const amount = this.mobileMoneyForm.value.amount;
     const operator = this.selectedOperator;
-    const phoneNumber = this.mobileMoneyForm.value.phoneNumber;
+    const phoneNumber = this.mobileMoneyForm.value.phoneNumber.replace(/\s/g, '');
     
-    this.transactionService.mobileMoneyTransfer({
+    console.log('📤 Envoi au backend:', {
       operator: operator.id,
       phoneNumber: phoneNumber,
       amount: amount
-    }).subscribe({
+    });
+    
+    const transferData = {
+      operator: operator.id,
+      phoneNumber: phoneNumber,
+      amount: Number(amount)
+    };
+    
+    this.transactionService.mobileMoneyTransfer(transferData).subscribe({
       next: (response) => {
+        console.log('✅ Succès!', response);
         this.isProcessing = false;
         this.currentStep = 'success';
-        
-        // Mettre à jour le solde
-        this.balance -= this.calculateTotal();
+        this.balance -= totalWithFees; // Mettre à jour le solde local
         
         this.notificationService.showSuccess(
-          `Transfert de ${this.formatAmount(amount)} Ar vers ${operator.name} effectué avec succès!`
+          `Transfert de ${this.formatAmount(amount)} Ar vers ${operator.name} effectué!`
         );
         
-        // Redirection après succès
         setTimeout(() => {
           this.router.navigate(['/wallet']);
         }, 3000);
       },
       error: (error) => {
-        console.error('Erreur transfert:', error);
-        this.notificationService.showError('Erreur lors du transfert');
+        console.error('❌ Erreur transfert:', error);
+        
+        let errorMessage = 'Erreur lors du transfert';
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.error?.error) {
+          errorMessage = error.error.error;
+        }
+        
+        this.notificationService.showError(errorMessage);
         this.isProcessing = false;
+        
+        // Recharger le solde en cas d'erreur
+        this.loadBalance();
       }
     });
   }
@@ -287,6 +353,7 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
     this.selectedOperator = null;
     this.mobileMoneyForm.reset();
     this.isProcessing = false;
+    this.loadBalance(); // Recharger le solde
   }
 
   /**
@@ -312,41 +379,28 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Calculer les frais - VERSION SÉCURISÉE
+   * Calculer les frais avec minimum
    */
   calculateFee(): number {
     if (!this.selectedOperator || !this.mobileMoneyForm.get('amount')?.value) return 0;
     
     const amount = this.mobileMoneyForm.get('amount')?.value;
     const operatorId = this.selectedOperator.id;
-    
-    // Utilisation d'une approche sécurisée avec un objet indexé
     const feePercentage = this.getFeeForOperator(operatorId);
-    return (amount * feePercentage) / 100;
-  }
-
-  /**
-   * Obtenir le pourcentage de frais pour un opérateur - MÉTHODE DE SÉCURITÉ
-   */
-  getFeeForOperator(operatorId: string): number {
-    switch(operatorId) {
-      case 'airtel': return this.fees.airtel;
-      case 'orange': return this.fees.orange;
-      case 'mvola': return this.fees.mvola;
-      default: return 0;
+    
+    // Calculer les frais selon le pourcentage
+    let fee = (amount * feePercentage) / 100;
+    
+    // Appliquer le frais minimum
+    if (fee < this.MINIMUM_FEE) {
+      fee = this.MINIMUM_FEE;
     }
+    
+    return Math.ceil(fee); // Arrondir à l'Ariary supérieur
   }
 
   /**
-   * Obtenir le pourcentage de frais pour l'opérateur sélectionné (pour le template)
-   */
-  get currentFeePercentage(): number {
-    if (!this.selectedOperator) return 0;
-    return this.getFeeForOperator(this.selectedOperator.id);
-  }
-
-  /**
-   * Calculer le montant total
+   * Calculer le montant total (montant + frais)
    */
   calculateTotal(): number {
     const amount = this.mobileMoneyForm.get('amount')?.value || 0;
@@ -358,6 +412,37 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
    */
   isBalanceSufficient(): boolean {
     return this.calculateTotal() <= this.balance;
+  }
+
+  /**
+   * Obtenir le message d'erreur si le total dépasse le solde
+   */
+  getInsufficientBalanceMessage(): string {
+    const total = this.calculateTotal();
+    if (total > this.balance) {
+      return `Solde insuffisant. Total avec frais: ${this.formatAmount(total)} Ar (dont frais minimum de ${this.MINIMUM_FEE} Ar)`;
+    }
+    return '';
+  }
+
+  /**
+   * Obtenir le pourcentage de frais pour un opérateur
+   */
+  getFeeForOperator(operatorId: string): number {
+    switch(operatorId) {
+      case 'airtel': return this.fees.airtel;
+      case 'orange': return this.fees.orange;
+      case 'mvola': return this.fees.mvola;
+      default: return 0;
+    }
+  }
+
+  /**
+   * Obtenir le pourcentage de frais pour l'opérateur sélectionné
+   */
+  get currentFeePercentage(): number {
+    if (!this.selectedOperator) return 0;
+    return this.getFeeForOperator(this.selectedOperator.id);
   }
 
   /**
@@ -384,7 +469,21 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
   getAmountError(): string {
     const control = this.mobileMoneyForm.get('amount');
     if (control?.hasError('required')) return 'Montant requis';
-    if (control?.hasError('min')) return 'Minimum 500 Ar';
+    if (control?.hasError('min')) return `Minimum: ${this.formatAmount(this.MIN_AMOUNT)} Ar`;
+    if (control?.hasError('max')) return `Maximum: ${this.formatAmount(this.MAX_AMOUNT)} Ar`;
     return '';
+  }
+  
+  /**
+   * Formater avec suffixe
+   */
+  formatAmountWithSuffix(amount: number): string {
+    if (amount >= 1000000) {
+      return (amount / 1000000).toFixed(1) + ' M';
+    }
+    if (amount >= 1000) {
+      return (amount / 1000).toFixed(0) + ' k';
+    }
+    return amount.toString();
   }
 }

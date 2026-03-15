@@ -95,17 +95,42 @@ export class TransactionService {
   }
 
   /**
-   * Transfert Mobile Money
-   */
+  * Transfert Mobile Money
+  */
   mobileMoneyTransfer(data: { operator: string; phoneNumber: string; amount: number }): Observable<Transaction> {
-    return this.http.post<Transaction>(`${this.apiUrl}/mobile-money`, data).pipe(
-      tap(() => this.notificationService.showSuccess('Transfert Mobile Money effectué')),
+    console.log('📡 Appel API mobileMoneyTransfer:', data);
+  
+  // Nettoyer le numéro de téléphone (enlever les espaces)
+  const cleanData = {
+    operator: data.operator,
+    phoneNumber: data.phoneNumber.replace(/\s/g, ''),
+    amount: data.amount
+  };
+  
+  return this.http.post<Transaction>(`${this.apiUrl}/mobile-money`, cleanData).pipe(
+    tap(response => {
+      console.log('✅ Réponse mobileMoneyTransfer:', response);
+      this.notificationService.showSuccess('Transfert Mobile Money effectué');
+      }),
       catchError(error => {
+        console.error('❌ Erreur mobileMoneyTransfer:', error);
+      
+        // Extraire le message d'erreur
+        let errorMessage = 'Erreur lors du transfert';
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.error?.error) {
+          errorMessage = error.error.error;
+        } else if (typeof error.error === 'string') {
+          errorMessage = error.error;
+        }
+      
+        this.notificationService.showError(errorMessage);
+      
         if (error.status === 401) {
           this.authService.logout();
-        } else {
-          this.notificationService.showError(error.error?.message || 'Erreur lors du transfert');
         }
+      
         return throwError(() => error);
       })
     );

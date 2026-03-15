@@ -1,6 +1,6 @@
 <div class="mobile-money-container">
   <!-- Header avec animation -->
-  <div class="mobile-header" [class.success-header]="currentStep === 'success'">
+  <div class="mobile-header" [class.success-header]="currentStep === 'success'" @slideInDown>
     <button class="back-btn" (click)="goBack()" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
@@ -125,7 +125,7 @@
           </mat-error>
         </mat-form-field>
 
-        <!-- Montants rapides -->
+        <!-- Montants rapides - maintenant avec tous les montants -->
         <div class="quick-amounts">
           <button 
             *ngFor="let amount of quickAmounts" 
@@ -134,23 +134,22 @@
             [class.active]="mobileMoneyForm.get('amount')?.value === amount"
             (click)="mobileMoneyForm.patchValue({amount: amount})"
             [disabled]="amount > balance">
-            <span class="amount-value">{{ formatAmount(amount) }}</span>
+            <span class="amount-value">{{ formatAmountWithSuffix(amount) }}</span>
             <span class="amount-currency">Ar</span>
           </button>
         </div>
 
         <!-- Aperçu des frais -->
-        
         <div class="fee-preview" *ngIf="mobileMoneyForm.get('amount')?.value" @fadeIn>
           <div class="fee-row">
             <span>Montant</span>
             <span>{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</span>
           </div>
-        <div class="fee-row">
-          <span>Frais ({{ currentFeePercentage }}%)</span>  <!-- LIGNE CORRIGÉE -->
-          <span>{{ formatAmount(calculateFee()) }} Ar</span>
-        </div>
-        <mat-divider></mat-divider>
+          <div class="fee-row">
+            <span>Frais ({{ currentFeePercentage }}%)</span>
+            <span>{{ formatAmount(calculateFee()) }} Ar</span>
+          </div>
+          <mat-divider></mat-divider>
           <div class="fee-row total">
             <span>Total à débiter</span>
             <span class="total-amount">{{ formatAmount(calculateTotal()) }} Ar</span>
@@ -177,89 +176,97 @@
     <!-- Étape 3: Confirmation -->
     <div *ngIf="currentStep === 'confirmation'" class="step-content" @scaleIn>
       <div class="confirmation-header">
-        <div class="check-icon-container">
-          <mat-icon class="check-icon">check_circle</mat-icon>
-          <div class="ripple"></div>
+    <div class="check-icon-container">
+      <mat-icon class="check-icon">check_circle</mat-icon>
+      <div class="ripple"></div>
+    </div>
+    <h2>Confirmez le transfert</h2>
+    <p>Vérifiez les informations avant de confirmer</p>
         </div>
-        <h2>Confirmez le transfert</h2>
-        <p>Vérifiez les informations avant de confirmer</p>
-      </div>
 
       <div class="confirmation-details" *ngIf="selectedOperator">
+        <!-- Cartes d'information -->
         <div class="detail-card" @slideInLeft>
           <div class="detail-icon" [style.background]="selectedOperator.gradient">
             <mat-icon>{{ selectedOperator.icon }}</mat-icon>
           </div>
-          <div class="detail-content">
-            <span class="detail-label">Opérateur</span>
-            <span class="detail-value">{{ selectedOperator.name }}</span>
-          </div>
-        </div>
-
-        <div class="detail-card" @slideInLeft style="animation-delay: 0.1s">
-          <div class="detail-icon" [style.background]="'linear-gradient(135deg, #3b82f6, #2563eb)'">
-            <mat-icon>phone</mat-icon>
-          </div>
-          <div class="detail-content">
-            <span class="detail-label">Numéro</span>
-            <span class="detail-value">{{ mobileMoneyForm.get('phoneNumber')?.value }}</span>
-          </div>
-        </div>
-
-        <div class="detail-card" @slideInLeft style="animation-delay: 0.2s">
-          <div class="detail-icon" [style.background]="'linear-gradient(135deg, #10b981, #059669)'">
-            <mat-icon>attach_money</mat-icon>
-          </div>
-          <div class="detail-content">
-            <span class="detail-label">Montant</span>
-            <span class="detail-value amount">{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</span>
-          </div>
-        </div>
-
-        <div class="fee-summary">
-          <div class="fee-row">
-            <span>Montant</span>
-            <span>{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</span>
-          </div>
-          <div class="fee-row">
-            <span>Frais</span>
-            <span>+ {{ formatAmount(calculateFee()) }} Ar</span>
-          </div>
-          <mat-divider></mat-divider>
-          <div class="fee-row total">
-            <span>Total à débiter</span>
-            <span class="total-amount">{{ formatAmount(calculateTotal()) }} Ar</span>
-          </div>
-          <div class="fee-row balance-after" [class.insufficient]="!isBalanceSufficient()">
-            <span>Solde après transfert</span>
-            <span [class.negative]="!isBalanceSufficient()">
-              {{ formatAmount(balance - calculateTotal()) }} Ar
-            </span>
-          </div>
-        </div>
-
-        <div class="warning-message" *ngIf="!isBalanceSufficient()" @shake>
-          <mat-icon>warning</mat-icon>
-          <span>Solde insuffisant pour effectuer ce transfert</span>
+        <div class="detail-content">
+          <span class="detail-label">Opérateur</span>
+          <span class="detail-value">{{ selectedOperator.name }}</span>
         </div>
       </div>
 
-      <div class="action-buttons">
-        <button class="action-btn secondary" (click)="goBack()" [disabled]="isProcessing">
-          <mat-icon>arrow_back</mat-icon>
-          Retour
-        </button>
-        <button 
-          class="action-btn primary confirm" 
-          (click)="processTransfer()" 
-          [disabled]="!isBalanceSufficient() || isProcessing">
-          <mat-spinner diameter="24" *ngIf="isProcessing"></mat-spinner>
-          <span *ngIf="!isProcessing">Confirmer le transfert</span>
-          <div class="btn-shine" *ngIf="!isProcessing"></div>
-        </button>
+      <div class="detail-card" @slideInLeft style="animation-delay: 0.1s">
+        <div class="detail-icon" [style.background]="'linear-gradient(135deg, #3b82f6, #2563eb)'">
+          <mat-icon>phone</mat-icon>
+        </div>
+        <div class="detail-content">
+          <span class="detail-label">Numéro</span>
+          <span class="detail-value">{{ mobileMoneyForm.get('phoneNumber')?.value }}</span>
+        </div>
+      </div>
+
+      <div class="detail-card" @slideInLeft style="animation-delay: 0.2s">
+        <div class="detail-icon" [style.background]="'linear-gradient(135deg, #10b981, #059669)'">
+          <mat-icon>attach_money</mat-icon>
+        </div>
+        <div class="detail-content">
+          <span class="detail-label">Montant</span>
+          <span class="detail-value amount">{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</span>
+        </div>
+      </div>
+
+      <!-- RÉSUMÉ DES FRAIS (CODE À AJOUTER/MODIFIER) -->
+      <div class="fee-summary">
+        <div class="fee-row">
+          <span>Montant</span>
+          <span>{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</span>
+        </div>
+        <div class="fee-row">
+          <span>Frais (minimum 200 Ar)</span>
+          <span>+ {{ formatAmount(calculateFee()) }} Ar</span>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="fee-row total">
+          <span>Total à débiter</span>
+          <span class="total-amount">{{ formatAmount(calculateTotal()) }} Ar</span>
+        </div>
+      
+        <!-- Afficher le solde après transfert -->
+        <div class="fee-row balance-after" [class.insufficient]="!isBalanceSufficient()">
+          <span>Solde après transfert</span>
+          <span [class.negative]="!isBalanceSufficient()">
+            {{ formatAmount(balance - calculateTotal()) }} Ar
+          </span>
+        </div>
+      </div>
+
+      <!-- Message d'avertissement si solde insuffisant -->
+      <div class="warning-message" *ngIf="!isBalanceSufficient()" @shake>
+        <mat-icon>warning</mat-icon>
+        <span>
+          Solde insuffisant. Total avec frais: {{ formatAmount(calculateTotal()) }} Ar
+          (dont frais minimum de 200 Ar)
+        </span>
       </div>
     </div>
 
+    <!-- Boutons d'action -->
+    <div class="action-buttons">
+      <button class="action-btn secondary" (click)="goBack()" [disabled]="isProcessing">
+        <mat-icon>arrow_back</mat-icon>
+        Retour
+      </button>
+      <button 
+        class="action-btn primary confirm" 
+        (click)="processTransfer()" 
+        [disabled]="!isBalanceSufficient() || isProcessing">
+        <mat-spinner diameter="24" *ngIf="isProcessing"></mat-spinner>
+        <span *ngIf="!isProcessing">Confirmer le transfert</span>
+        <div class="btn-shine" *ngIf="!isProcessing"></div>
+      </button>
+    </div>
+  </div>
     <!-- Étape 4: Succès -->
     <div *ngIf="currentStep === 'success'" class="step-content success-step" @scaleIn>
       <div class="success-animation">

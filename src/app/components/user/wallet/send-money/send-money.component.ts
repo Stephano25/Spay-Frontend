@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { trigger, transition, style, animate, keyframes } from '@angular/animations'; // AJOUTER
+import { trigger, transition, style, animate, keyframes } from '@angular/animations';
 
 import { WalletService } from '../../../../services/wallet.service';
 import { FriendService } from '../../../../services/friend.service';
@@ -19,6 +19,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSliderModule } from '@angular/material/slider';
 
 @Component({
   selector: 'app-send-money',
@@ -35,11 +36,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatDividerModule,
     MatSelectModule,
     MatAutocompleteModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSliderModule
   ],
   templateUrl: './send-money.component.html',
   styleUrls: ['./send-money.component.css'],
-  animations: [ // AJOUTER LES ANIMATIONS
+  animations: [
     trigger('fadeIn', [
       transition(':enter', [
         style({ opacity: 0 }),
@@ -86,9 +88,19 @@ export class SendMoneyComponent implements OnInit {
   filteredFriends: any[] = [];
   
   showSuccess: boolean = false;
-  amountPresets = [5000, 10000, 20000, 50000, 100000, 200000];
+  
+  // Montants rapides - DU MIN AU MAX
+  amountPresets = [
+    100, 500, 1000, 5000, 10000, 20000, 50000, 
+    100000, 200000, 500000, 1000000, 2000000, 5000000, 
+    10000000, 20000000, 50000000, 100000000
+  ];
   
   searchQuery: string = '';
+  
+  // Constantes
+  readonly MIN_AMOUNT = 100;
+  readonly MAX_AMOUNT = 100000000; // 100 MILLIONS Ar
 
   constructor(
     private walletService: WalletService,
@@ -146,7 +158,15 @@ export class SendMoneyComponent implements OnInit {
   }
 
   sendMoney() {
-    if (!this.receiverId || this.amount < 100) return;
+    if (!this.receiverId || this.amount < this.MIN_AMOUNT) {
+      this.notificationService.showError(`Montant minimum: ${this.formatAmount(this.MIN_AMOUNT)} Ar`);
+      return;
+    }
+    
+    if (this.amount > this.MAX_AMOUNT) {
+      this.notificationService.showError(`Montant maximum: ${this.formatAmount(this.MAX_AMOUNT)} Ar`);
+      return;
+    }
     
     if (this.amount > this.balance) {
       this.notificationService.showError('Solde insuffisant');
@@ -182,7 +202,6 @@ export class SendMoneyComponent implements OnInit {
     });
   }
 
-  // AJOUTER CETTE MÉTHODE
   onPinInput(event: any, index: number) {
     const input = event.target;
     const value = input.value;
@@ -226,14 +245,47 @@ export class SendMoneyComponent implements OnInit {
   }
 
   getAmountIcon(): string {
-    if (this.amount >= 100000) return 'rocket_launch';
-    if (this.amount >= 50000) return 'star';
-    if (this.amount >= 10000) return 'trending_up';
+    if (this.amount >= 10000000) return 'rocket_launch';
+    if (this.amount >= 5000000) return 'star';
+    if (this.amount >= 1000000) return 'trending_up';
+    if (this.amount >= 100000) return 'savings';
+    if (this.amount >= 10000) return 'paid';
     return 'arrow_upward';
   }
 
-  // AJOUTER CETTE PROPRIÉTÉ
   get transactionId(): string {
     return 'SP' + Date.now();
+  }
+  
+  // Formater avec suffixe (K, M)
+  formatAmountWithSuffix(amount: number): string {
+    if (amount >= 1000000) {
+      return (amount / 1000000).toFixed(1) + ' M';
+    }
+    if (amount >= 1000) {
+      return (amount / 1000).toFixed(0) + ' k';
+    }
+    return amount.toString();
+  }
+  
+  // Vérifier si le montant est valide
+  isAmountValid(): boolean {
+    return this.amount >= this.MIN_AMOUNT && 
+           this.amount <= this.MAX_AMOUNT && 
+           this.amount <= this.balance;
+  }
+  
+  // Obtenir le message d'erreur du montant
+  getAmountErrorMessage(): string {
+    if (this.amount < this.MIN_AMOUNT) {
+      return `Minimum: ${this.formatAmount(this.MIN_AMOUNT)} Ar`;
+    }
+    if (this.amount > this.MAX_AMOUNT) {
+      return `Maximum: ${this.formatAmount(this.MAX_AMOUNT)} Ar`;
+    }
+    if (this.amount > this.balance) {
+      return 'Solde insuffisant';
+    }
+    return '';
   }
 }
