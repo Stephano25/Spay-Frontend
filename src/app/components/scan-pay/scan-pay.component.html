@@ -12,15 +12,26 @@
       <mat-card-content>
         <!-- Mode scan -->
         <div *ngIf="isScanning" class="scan-mode" @fadeIn>
-          <!-- Message d'erreur caméra -->
-          <div class="camera-error" *ngIf="cameraError" @shake>
+          <!-- Message d'erreur de permission -->
+          <div class="camera-error" *ngIf="cameraPermissionDenied" @shake>
+            <mat-icon>videocam_off</mat-icon>
+            <h3>Permission refusée</h3>
+            <p>Veuillez autoriser l'accès à la caméra dans les paramètres de votre navigateur</p>
+            <button class="retry-btn" (click)="requestCameraPermission()">
+              <mat-icon>refresh</mat-icon>
+              Réessayer
+            </button>
+          </div>
+
+          <!-- Message d'erreur caméra (autre erreur) -->
+          <div class="camera-error" *ngIf="cameraError && !cameraPermissionDenied" @shake>
             <mat-icon>videocam_off</mat-icon>
             <h3>Caméra non disponible</h3>
             <p>Utilisez le bouton ci-dessous pour simuler un scan</p>
           </div>
 
           <!-- Vidéo caméra (réelle) -->
-          <div class="camera-preview" *ngIf="hasCamera && !cameraError" @scaleIn>
+          <div class="camera-preview" *ngIf="hasCamera && !cameraError && !cameraPermissionDenied" @scaleIn>
             <video #videoElement class="video-preview" autoplay playsinline></video>
             <div class="scan-overlay">
               <div class="scan-frame"></div>
@@ -29,7 +40,7 @@
           </div>
 
           <!-- Placeholder (simulation) -->
-          <div class="scanner-placeholder" *ngIf="!hasCamera || cameraError" @pulse>
+          <div class="scanner-placeholder" *ngIf="!hasCamera || cameraError || cameraPermissionDenied" @pulse>
             <mat-icon>qr_code_scanner</mat-icon>
             <p>Scan de QR code</p>
             <p class="hint">Placez le code dans le cadre</p>

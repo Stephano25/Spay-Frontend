@@ -34,7 +34,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatInputModule,
     MatProgressSpinnerModule
   ],
-  templateUrl: './scan-pay.component.html', // CORRIGÉ: Référence au bon fichier
+  templateUrl: './scan-pay.component.html',
   styleUrls: ['./scan-pay.component.css'],
   animations: [
     trigger('fadeIn', [
@@ -76,6 +76,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           style({ transform: 'scale(1)', offset: 1 })
         ]))
       ])
+    ]),
+    // AJOUT DE L'ANIMATION SHAKE MANQUANTE
+    trigger('shake', [
+      transition('* => *', [
+        animate('0.5s ease-in-out', keyframes([
+          style({ transform: 'translateX(-5px)', offset: 0.25 }),
+          style({ transform: 'translateX(5px)', offset: 0.75 }),
+          style({ transform: 'translateX(0)', offset: 1 })
+        ]))
+      ])
     ])
   ]
 })
@@ -89,6 +99,7 @@ export class ScanPayComponent implements AfterViewInit, OnDestroy {
   isProcessing = false;
   hasCamera = false;
   cameraError = false;
+  cameraPermissionDenied = false;
   scanLinePosition = 0;
   private scanInterval: any;
 
@@ -136,16 +147,27 @@ export class ScanPayComponent implements AfterViewInit, OnDestroy {
       navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
         .then((stream) => {
           this.hasCamera = true;
+          this.cameraError = false;
+          this.cameraPermissionDenied = false;
           this.startCamera(stream);
         })
         .catch((err) => {
           console.error('❌ Caméra non disponible:', err);
           this.hasCamera = false;
-          this.cameraError = true;
+          
+          // Détecter le type d'erreur
+          if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            this.cameraPermissionDenied = true;
+            this.cameraError = false;
+          } else {
+            this.cameraError = true;
+            this.cameraPermissionDenied = false;
+          }
         });
     } else {
       this.hasCamera = false;
       this.cameraError = true;
+      this.cameraPermissionDenied = false;
     }
   }
 
@@ -157,6 +179,14 @@ export class ScanPayComponent implements AfterViewInit, OnDestroy {
       this.videoElement.nativeElement.srcObject = stream;
       this.videoElement.nativeElement.play();
     }
+  }
+
+  /**
+   * Demander la permission caméra
+   */
+  requestCameraPermission() {
+    this.cameraPermissionDenied = false;
+    this.checkCameraAvailability();
   }
 
   /**

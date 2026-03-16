@@ -1,7 +1,7 @@
 <div class="chat-container">
-  <!-- Header -->
+  <!-- Header avec bouton de retour vers le tableau de bord -->
   <mat-toolbar color="primary" class="chat-header">
-    <button mat-icon-button routerLink="/user">
+    <button mat-icon-button (click)="goToDashboard()" matTooltip="Retour au tableau de bord">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <span>Messages</span>
@@ -15,7 +15,7 @@
   </mat-toolbar>
 
   <div class="chat-content">
-    <!-- Liste des contacts (amis + conversations) -->
+    <!-- Liste des contacts -->
     <div class="conversations-sidebar" [class.hidden]="selectedContact">
       <!-- Barre de recherche -->
       <div class="search-box">
@@ -26,14 +26,13 @@
         </mat-form-field>
       </div>
 
-      <!-- Onglets - CORRECTION: Utiliser des propriétés du composant pour les compteurs -->
+      <!-- Onglets -->
       <mat-tab-group [(selectedIndex)]="activeTab" class="contacts-tabs">
         <mat-tab label="Tous">
           <ng-template mat-tab-label>
             <span>Tous ({{allChatContacts.length}})</span>
           </ng-template>
           
-          <!-- Liste des contacts -->
           <div class="conversations-list" *ngIf="!isLoading; else loading">
             <mat-list>
               <mat-list-item 
@@ -71,7 +70,6 @@
               </mat-list-item>
             </mat-list>
 
-            <!-- Message si aucun contact -->
             <div *ngIf="displayedContacts.length === 0" class="empty-conversations">
               <mat-icon>chat</mat-icon>
               <h3>Aucun contact</h3>
@@ -89,7 +87,6 @@
           <ng-template mat-tab-label>
             <span>Amis ({{getFriendsCount()}})</span>
           </ng-template>
-          <!-- Même contenu que l'onglet Tous, mais filtré par le composant -->
           <div class="conversations-list" *ngIf="!isLoading; else loading">
             <mat-list>
               <mat-list-item 
@@ -143,7 +140,6 @@
           <ng-template mat-tab-label>
             <span>Conversations ({{getConversationsCount()}})</span>
           </ng-template>
-          <!-- Même contenu que l'onglet Tous, mais filtré par le composant -->
           <div class="conversations-list" *ngIf="!isLoading; else loading">
             <mat-list>
               <mat-list-item 
@@ -203,9 +199,9 @@
 
     <!-- Zone de chat -->
     <div class="chat-area" *ngIf="selectedContact; else noChat">
-      <!-- En-tête du chat -->
+      <!-- En-tête du chat avec bouton retour -->
       <div class="chat-area-header">
-        <button class="back-button" (click)="goBack()">
+        <button class="back-button" (click)="goBack()" matTooltip="Retour à la liste">
           <mat-icon>arrow_back</mat-icon>
         </button>
 
@@ -249,7 +245,7 @@
               <span>Voir le profil</span>
             </button>
             <mat-divider></mat-divider>
-            <button mat-menu-item>
+            <button mat-menu-item (click)="blockUser()">
               <mat-icon>block</mat-icon>
               <span>Bloquer</span>
             </button>
@@ -320,6 +316,26 @@
                 </mat-icon>
               </div>
             </div>
+            
+            <!-- Menu d'actions pour les messages -->
+            <div class="message-actions" *ngIf="message.senderId === currentUserId">
+              <button 
+                class="message-actions-btn" 
+                [matMenuTriggerFor]="messageMenu"
+                matTooltip="Actions">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #messageMenu="matMenu" class="message-menu">
+                <button mat-menu-item (click)="editMessage(message)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Modifier</span>
+                </button>
+                <button mat-menu-item (click)="deleteMessage(message)">
+                  <mat-icon>delete</mat-icon>
+                  <span>Supprimer</span>
+                </button>
+              </mat-menu>
+            </div>
           </div>
         </div>
       </div>
@@ -365,15 +381,22 @@
       <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)">
     </div>
 
+    <!-- Écran quand aucun chat n'est sélectionné -->
     <ng-template #noChat>
       <div class="no-chat-selected">
         <mat-icon>chat</mat-icon>
         <h3>Messages</h3>
         <p>Sélectionnez un contact pour commencer à discuter</p>
-        <button mat-raised-button color="primary" (click)="goToFriends()">
-          <mat-icon>person_add</mat-icon>
-          Voir mes amis
-        </button>
+        <div class="action-buttons">
+          <button mat-raised-button color="primary" (click)="goToFriends()">
+            <mat-icon>person_add</mat-icon>
+            Voir mes amis
+          </button>
+          <button mat-stroked-button (click)="goToDashboard()">
+            <mat-icon>dashboard</mat-icon>
+            Tableau de bord
+          </button>
+        </div>
       </div>
     </ng-template>
   </div>

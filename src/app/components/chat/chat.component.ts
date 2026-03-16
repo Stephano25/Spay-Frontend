@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -27,6 +27,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-chat',
@@ -46,7 +47,8 @@ import { MatTabsModule } from '@angular/material/tabs';
     MatBadgeModule,
     MatDividerModule,
     MatProgressSpinnerModule,
-    MatTabsModule
+    MatTabsModule,
+    MatTooltipModule
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
@@ -120,29 +122,55 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Charger toutes les données
+   * Charger toutes les données (VERSION UNIQUE)
    */
   private loadData(): void {
     this.isLoading = true;
+    console.log('🔄 Chargement des données...');
+    console.log('👤 Current User ID:', this.currentUserId);
     
     forkJoin({
-      conversations: this.chatService.getConversations().pipe(catchError(() => of([]))),
-      friends: this.friendService.getFriends().pipe(catchError(() => of([])))
+      conversations: this.chatService.getConversations().pipe(catchError(err => {
+        console.error('❌ Erreur conversations:', err);
+        return of([]);
+      })),
+      friends: this.friendService.getFriends().pipe(catchError(err => {
+        console.error('❌ Erreur friends:', err);
+        return of([]);
+      }))
     }).subscribe({
       next: (result) => {
-        this.conversations = result.conversations;
-        this.friends = result.friends;
+        this.conversations = result.conversations || [];
+        this.friends = result.friends || [];
+        
+        console.log('📋 Conversations chargées:', this.conversations.length);
+        console.log('📋 Amis chargés (RAW):', this.friends);
+        
+        // Afficher les amis en détail
+        if (this.friends.length > 0) {
+          this.friends.forEach((friend, index) => {
+            console.log(`👤 Ami ${index + 1}:`, {
+              id: friend.id,
+              friendId: friend.friendId,
+              userId: friend.userId,
+              status: friend.status,
+              friendDetails: friend.friend
+            });
+          });
+        } else {
+          console.warn('⚠️ Aucun ami trouvé dans la réponse API');
+        }
+        
         this.mergeContacts();
         this.isLoading = false;
-        console.log('📋 Données chargées:', { 
-          conversations: this.conversations, 
-          friends: this.friends,
-          contacts: this.allChatContacts 
-        });
+        
+        console.log('📋 Contacts fusionnés:', this.allChatContacts.length);
+        console.log('📋 Contacts détaillés:', this.allChatContacts);
       },
       error: (error) => {
         console.error('❌ Erreur chargement données:', error);
         this.isLoading = false;
+        this.allChatContacts = [];
       }
     });
   }
@@ -153,9 +181,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   private mergeContacts(): void {
     const contactMap = new Map();
     
-    // Ajouter les conversations
+    // 1. Ajouter d'abord les conversations
     this.conversations.forEach(conv => {
       if (conv && conv.userId) {
+        console.log('➕ Ajout conversation:', conv.userId, conv.firstName);
         contactMap.set(conv.userId, {
           id: conv.userId,
           userId: conv.userId,
@@ -172,33 +201,44 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     });
     
-    // Ajouter les amis sans conversation
+    // 2. Ajouter les amis qui n'ont pas encore de conversation
     this.friends.forEach(friend => {
-      if (friend && friend.friend && friend.friend.id && !contactMap.has(friend.friend.id)) {
-        contactMap.set(friend.friend.id, {
-          id: friend.friend.id,
-          userId: friend.friend.id,
-          firstName: friend.friend.firstName || 'Utilisateur',
-          lastName: friend.friend.lastName || '',
-          profilePicture: friend.friend.profilePicture,
-          lastMessage: null,
-          lastMessageTime: null,
-          unreadCount: 0,
-          isOnline: friend.friend.isOnline || false,
-          hasConversation: false,
-          isFriend: true
-        });
+      if (friend && friend.friend && friend.friend.id) {
+        console.log('➕ Ajout ami:', friend.friend.id, friend.friend.firstName, friend.friend.lastName);
+        
+        if (!contactMap.has(friend.friend.id)) {
+          contactMap.set(friend.friend.id, {
+            id: friend.friend.id,
+            userId: friend.friend.id,
+            firstName: friend.friend.firstName || 'Utilisateur',
+            lastName: friend.friend.lastName || '',
+            profilePicture: friend.friend.profilePicture,
+            lastMessage: null,
+            lastMessageTime: null,
+            unreadCount: 0,
+            isOnline: friend.friend.isOnline || false,
+            hasConversation: false,
+            isFriend: true
+          });
+        } else {
+          // Mettre à jour l'ami existant pour s'assurer qu'il est marqué comme ami
+          const existing = contactMap.get(friend.friend.id);
+          existing.isFriend = true;
+          contactMap.set(friend.friend.id, existing);
+        }
       }
     });
     
     this.allChatContacts = Array.from(contactMap.values());
     
-    // Trier par date du dernier message
+    // Trier par date du dernier message (les plus récents en premier)
     this.allChatContacts.sort((a, b) => {
       if (!a.lastMessageTime) return 1;
       if (!b.lastMessageTime) return -1;
       return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
     });
+    
+    console.log('✅ Contacts fusionnés:', this.allChatContacts.length);
   }
 
   /**
@@ -219,7 +259,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.chatService.getMessages(userId).subscribe({
         next: (messages) => {
-          this.messages = messages;
+          this.messages = messages || [];
           this.isLoading = false;
           
           // Marquer comme lus
@@ -245,6 +285,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
     
+    console.log('👤 Contact sélectionné:', contact);
     this.selectedContact = contact;
     this.loadMessages(contact.userId);
     
@@ -483,11 +524,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     const filtered = this.filteredContacts;
     
     switch(this.activeTab) {
-      case 1:
+      case 1: // Amis
         return filtered.filter(c => c.isFriend);
-      case 2:
+      case 2: // Conversations
         return filtered.filter(c => c.hasConversation);
-      default:
+      default: // Tous
         return filtered;
     }
   }
@@ -765,5 +806,63 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   refreshData(): void {
     this.loadData();
+  }
+
+  /**
+  * Retourner au tableau de bord
+  */
+  goToDashboard(): void {
+    this.router.navigate(['/user']);
+  }
+
+  /**
+  * Bloquer un utilisateur
+  */
+  blockUser(): void {
+    if (this.selectedContact && confirm(`Voulez-vous vraiment bloquer ${this.selectedContact.firstName} ?`)) {
+      // Implémenter la logique de blocage
+      this.notificationService.showInfo(`${this.selectedContact.firstName} a été bloqué`);
+    }
+  }
+
+  /**
+  * Modifier un message
+  */
+  editMessage(message: Message): void {
+    const newContent = prompt('Modifier votre message:', message.content);
+    if (newContent && newContent.trim()) {
+      // Appel API pour modifier le message
+      this.chatService.updateMessage(message.id, newContent.trim()).subscribe({
+        next: (updatedMessage) => {
+          const index = this.messages.findIndex(m => m.id === message.id);
+          if (index !== -1) {
+            this.messages[index] = updatedMessage;
+          }
+          this.notificationService.showSuccess('Message modifié');
+        },
+        error: (error) => {
+          console.error('Erreur modification:', error);
+          this.notificationService.showError('Erreur lors de la modification');
+        }
+      });
+    }
+  }
+
+  /**
+  * Supprimer un message
+  */
+  deleteMessage(message: Message): void {
+    if (confirm('Voulez-vous vraiment supprimer ce message ?')) {
+      this.chatService.deleteMessage(message.id).subscribe({
+        next: () => {
+          this.messages = this.messages.filter(m => m.id !== message.id);
+          this.notificationService.showSuccess('Message supprimé');
+        },
+        error: (error) => {
+          console.error('Erreur suppression:', error);
+          this.notificationService.showError('Erreur lors de la suppression');
+        }
+      });
+    }
   }
 }

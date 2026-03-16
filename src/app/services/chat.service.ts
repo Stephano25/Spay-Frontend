@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import { Observable, BehaviorSubject, of } from 'rxjs';
+import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
@@ -332,5 +332,33 @@ export class ChatService implements OnDestroy {
    */
   isConnected(): boolean {
     return this.socket?.connected || false;
+  }
+
+  /**
+ * Mettre à jour un message
+ */
+updateMessage(messageId: string, content: string): Observable<Message> {
+  return this.http.put<Message>(`${this.apiUrl}/message/${messageId}`, { content }).pipe(
+    tap(message => console.log('✅ Message mis à jour:', message)),
+    catchError(error => {
+      console.error('❌ Erreur mise à jour message:', error);
+      this.notificationService.showError('Erreur lors de la mise à jour du message');
+      return throwError(() => error);
+    })
+  );
+}
+
+/**
+ * Supprimer un message
+ */
+  deleteMessage(messageId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/message/${messageId}`).pipe(
+      tap(() => console.log('✅ Message supprimé')),
+      catchError(error => {
+        console.error('❌ Erreur suppression message:', error);
+        this.notificationService.showError('Erreur lors de la suppression du message');
+        return throwError(() => error);
+      })
+    );
   }
 }
