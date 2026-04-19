@@ -69,7 +69,7 @@
               <mat-icon>arrow_downward</mat-icon>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ formatAmount(stats.totalDeposits) }} Ar</div>
+              <div class="stat-value">{{ formatAmount(stats.totalDeposits || stats.totalReceived || 0) }} Ar</div>
               <div class="stat-label">Total dépôts</div>
             </div>
           </mat-card-content>
@@ -81,7 +81,7 @@
               <mat-icon>arrow_upward</mat-icon>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ formatAmount(stats.totalWithdrawals) }} Ar</div>
+              <div class="stat-value">{{ formatAmount(stats.totalWithdrawals || stats.totalSent || 0) }} Ar</div>
               <div class="stat-label">Total retraits</div>
             </div>
           </mat-card-content>
@@ -93,7 +93,7 @@
               <mat-icon>swap_horiz</mat-icon>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ stats.totalTransactions }}</div>
+              <div class="stat-value">{{ stats.totalTransactions || 0 }}</div>
               <div class="stat-label">Transactions</div>
             </div>
           </mat-card-content>

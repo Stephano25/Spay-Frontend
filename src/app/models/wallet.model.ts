@@ -1,3 +1,4 @@
+// src/app/models/wallet.model.ts - Version simplifiée
 export interface Wallet {
   id: string;
   userId: string;
@@ -10,6 +11,8 @@ export interface Wallet {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Ne pas redéfinir WalletStats ici - utiliser celui du service
 
 export interface Transaction {
   id: string;

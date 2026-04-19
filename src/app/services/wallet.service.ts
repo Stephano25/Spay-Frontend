@@ -1,173 +1,93 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, tap, map, shareReplay } from 'rxjs';
-import { NotificationService } from './notification.service';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AuthService } from './auth.service';
-import { 
-  Wallet, 
-  WalletStats, 
-  Transaction, 
-  SendMoneyRequest, 
-  MobileMoneyRequest, 
-  ScanPayRequest, 
-  QRCodeResponse 
-} from '../models/wallet.model';
+
+export interface TransferData {
+  receiverId: string;
+  amount: number;
+  description?: string;
+}
+
+export interface Wallet {
+  id: string;
+  userId: string;
+  balance: number;
+  currency: string;
+  qrCode: string;
+  dailyLimit: number;
+  monthlyLimit: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface WalletStats {
+  balance: number;
+  totalBalance: number;
+  totalReceived: number;
+  totalSent: number;
+  totalDeposits: number;
+  totalWithdrawals: number;
+  totalTransactions: number;
+  totalFees: number;
+  pendingBalance: number;
+  currency: string;
+  dailyLimit: number;
+  monthlyLimit: number;
+  todaySpent: number;
+  monthSpent: number;
+  remainingDailyLimit: number;
+  remainingMonthlyLimit: number;
+  recentTransactions: any[];
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class WalletService {
   private apiUrl = `${environment.apiUrl}/wallet`;
-  private walletCache$: Observable<Wallet> | null = null;
 
-  constructor(
-    private http: HttpClient,
-    private notificationService: NotificationService,
-    private authService: AuthService
-  ) {
-    console.log('📡 WalletService API URL:', this.apiUrl);
+  constructor(private http: HttpClient) {}
+
+  getWallet(): Observable<Wallet> {
+    return this.http.get<Wallet>(`${this.apiUrl}/me`);
   }
 
-  /**
-   * Récupérer l'ID de l'utilisateur connecté
-   */
-  getCurrentUserId(): string {
-    const user = this.authService.getCurrentUser();
-    return user?.id || '';
+  getBalance(): Observable<{ balance: number; currency: string }> {
+    return this.http.get<{ balance: number; currency: string }>(`${this.apiUrl}/balance`);
   }
 
-  /**
-   * Récupérer les informations du portefeuille (avec cache optionnel)
-   */
-  getWallet(forceRefresh: boolean = false): Observable<Wallet> {
-    console.log('📡 Appel API getWallet vers:', `${this.apiUrl}/me`);
-    
-    // Si on force le rafraîchissement, on vide le cache
-    if (forceRefresh) {
-      this.walletCache$ = null;
-    }
-    
-    // Utiliser le cache si disponible
-    if (!this.walletCache$) {
-      this.walletCache$ = this.http.get<Wallet>(`${this.apiUrl}/me`).pipe(
-        tap(wallet => {
-          console.log('✅ Wallet reçu (base de données):', wallet);
-        }),
-        shareReplay(1), // Met en cache la dernière valeur
-        catchError(error => {
-          console.error('❌ Erreur getWallet:', error);
-          this.notificationService.showError('Erreur lors du chargement du portefeuille');
-          this.walletCache$ = null;
-          return throwError(() => error);
-        })
-      );
-    }
-    
-    return this.walletCache$;
-  }
-
-  /**
-   * Récupérer les statistiques du portefeuille
-   */
-  getWalletStats(): Observable<WalletStats> {
-    console.log('📡 Appel API getWalletStats vers:', `${this.apiUrl}/stats`);
-    
-    return this.http.get<WalletStats>(`${this.apiUrl}/stats`).pipe(
-      tap(stats => {
-        console.log('✅ Statistiques reçues:', stats);
-      }),
-      catchError(error => {
-        console.error('❌ Erreur getWalletStats:', error);
-        this.notificationService.showError('Erreur lors du chargement des statistiques');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-   * Récupérer l'historique des transactions
-   */
-  getTransactions(page: number = 1, limit: number = 20): Observable<Transaction[]> {
-    return this.http.get<Transaction[]>(`${this.apiUrl}/transactions`, {
-      params: { page: page.toString(), limit: limit.toString() }
-    }).pipe(
-      tap(transactions => {
-        console.log(`✅ ${transactions.length} transactions reçues`);
-      }),
-      catchError(error => {
-        console.error('❌ Erreur getTransactions:', error);
-        this.notificationService.showError('Erreur lors du chargement des transactions');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-   * Envoyer de l'argent à un autre utilisateur
-   */
-  sendMoney(data: SendMoneyRequest): Observable<Transaction> {
-    return this.http.post<Transaction>(`${this.apiUrl}/send`, data).pipe(
-      tap(transaction => {
-        this.notificationService.showSuccess(
-          `Envoi de ${this.formatAmount(data.amount)} Ar réussi !`
-        );
-      }),
-      catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors de l\'envoi');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-   * Vérifier le solde
-   */
   checkBalance(): Observable<number> {
-    return this.http.get<{balance: number}>(`${this.apiUrl}/balance`).pipe(
-      tap(response => {
-        console.log('✅ Solde reçu:', response.balance);
-      }),
-      map(response => response.balance),
-      catchError(error => {
-        console.error('❌ Erreur checkBalance:', error);
-        this.notificationService.showError('Erreur lors de la vérification du solde');
-        return throwError(() => error);
-      })
-    );
+    return this.getBalance().pipe(map(res => res.balance));
   }
 
-  /**
-   * Générer un QR code pour recevoir de l'argent
-   */
-  generateReceiveQRCode(amount?: number): Observable<QRCodeResponse> {
-    return this.http.post<QRCodeResponse>(`${this.apiUrl}/generate-qr`, { amount }).pipe(
-      tap(response => {
-        console.log('✅ QR code généré:', response.qrCode);
-      }),
-      catchError(error => {
-        console.error('❌ Erreur generateQRCode:', error);
-        this.notificationService.showError('Erreur lors de la génération du QR code');
-        return throwError(() => error);
-      })
-    );
+  getWalletStats(): Observable<WalletStats> {
+    return this.http.get<WalletStats>(`${this.apiUrl}/me`);
   }
 
-  /**
-   * Formater le montant
-   */
-  private formatAmount(amount: number): string {
-    return new Intl.NumberFormat('fr-MG').format(amount);
+  transferMoney(data: TransferData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/transfer`, data);
+  }
+
+  sendMoney(data: TransferData): Observable<any> {
+    return this.transferMoney(data);
+  }
+
+  deposit(amount: number, paymentMethod: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/deposit`, { amount, paymentMethod });
+  }
+
+  withdraw(amount: number, paymentMethod: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/withdraw`, { amount, paymentMethod });
+  }
+
+  syncWallet(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/sync`, {});
+  }
+
+  generateReceiveQRCode(amount?: number): Observable<{ qrCode: string; expiresAt: Date }> {
+    const body = amount ? { amount } : {};
+    return this.http.post<{ qrCode: string; expiresAt: Date }>(`${this.apiUrl}/generate-qr`, body);
   }
 }
-
-// Exporter les types pour qu'ils soient accessibles depuis le service
-export type { 
-  Wallet, 
-  WalletStats, 
-  Transaction, 
-  SendMoneyRequest, 
-  MobileMoneyRequest, 
-  ScanPayRequest, 
-  QRCodeResponse 
-};

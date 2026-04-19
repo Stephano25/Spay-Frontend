@@ -88,6 +88,7 @@ export class SendMoneyComponent implements OnInit {
   filteredFriends: any[] = [];
   
   showSuccess: boolean = false;
+  transactionId: string = '';
   
   // Montants rapides - DU MIN AU MAX
   amountPresets = [
@@ -179,12 +180,13 @@ export class SendMoneyComponent implements OnInit {
   confirmSend() {
     this.isSubmitting = true;
     
-    this.walletService.sendMoney({
+    this.walletService.transferMoney({
       receiverId: this.receiverId,
       amount: this.amount,
       description: this.description || `Envoi à ${this.receiverName}`
     }).subscribe({
-      next: () => {
+      next: (response) => {
+        this.transactionId = response.id || ('SP' + Date.now());
         this.isSubmitting = false;
         this.step = 'success';
         this.showSuccess = true;
@@ -193,7 +195,7 @@ export class SendMoneyComponent implements OnInit {
           this.router.navigate(['/wallet']);
         }, 3000);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Erreur envoi:', err);
         this.notificationService.showError(err.error?.message || 'Erreur lors de l\'envoi');
         this.isSubmitting = false;
@@ -251,10 +253,6 @@ export class SendMoneyComponent implements OnInit {
     if (this.amount >= 100000) return 'savings';
     if (this.amount >= 10000) return 'paid';
     return 'arrow_upward';
-  }
-
-  get transactionId(): string {
-    return 'SP' + Date.now();
   }
   
   // Formater avec suffixe (K, M)

@@ -50,7 +50,7 @@ export class AuthService {
         this.currentUserSubject.next(response.user);
         
         if (response.user.role === 'admin' || response.user.role === 'super_admin') {
-          this.router.navigate(['/admin']);
+          this.router.navigate(['/admin/dashboard']);
           this.notificationService.showSuccess('Bienvenue administrateur !');
         } else {
           this.router.navigate(['/user']);
@@ -97,7 +97,6 @@ export class AuthService {
     );
   }
 
-  // AJOUTER CETTE MÉTHODE
   updateProfile(userData: Partial<User>): Observable<User> {
     const currentUser = this.currentUserSubject.value;
     if (!currentUser) {
@@ -117,7 +116,6 @@ export class AuthService {
     );
   }
 
-  // AJOUTER CETTE MÉTHODE
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }).pipe(
       tap(() => {

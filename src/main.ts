@@ -8,5 +8,6 @@ if (environment.production) {
   enableProdMode();
 }
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch((err) => console.error('Erreur de bootstrap:', err));
+bootstrapApplication(AppComponent, appConfig).catch((err) => {
+  console.error('❌ Erreur de bootstrap:', err);
+});

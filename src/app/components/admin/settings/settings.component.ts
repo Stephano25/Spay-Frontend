@@ -147,24 +147,18 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   };
 
   // Logs système
-  systemLogs = [
-    { date: new Date(), level: 'info', message: 'Système démarré', user: 'system' },
-    { date: new Date(Date.now() - 3600000), level: 'warning', message: 'Tentative de connexion échouée', user: '192.168.1.100' },
-    { date: new Date(Date.now() - 7200000), level: 'error', message: 'Erreur de base de données', user: 'system' },
-    { date: new Date(Date.now() - 86400000), level: 'info', message: 'Sauvegarde effectuée', user: 'system' },
-    { date: new Date(Date.now() - 172800000), level: 'info', message: 'Mise à jour effectuée', user: 'admin' }
-  ];
-
+  systemLogs: any[] = [];
+  
   // Statistiques système
   systemStats = {
-    uptime: '15 jours 8 heures',
-    memoryUsage: '45%',
-    cpuUsage: '23%',
-    diskUsage: '34%',
-    databaseSize: '156 MB',
-    activeUsers: 234,
-    activeSessions: 156,
-    apiCalls: 15420
+    uptime: 'Chargement...',
+    memoryUsage: '0%',
+    cpuUsage: '0%',
+    diskUsage: '0%',
+    databaseSize: '0 MB',
+    activeUsers: 0,
+    activeSessions: 0,
+    apiCalls: 0
   };
 
   // Versions
@@ -310,23 +304,61 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   private loadSettings(): void {
     this.isLoading = true;
     
-    setTimeout(() => {
-      const savedSettings = localStorage.getItem('admin_settings');
-      if (savedSettings) {
-        try {
-          const settings = JSON.parse(savedSettings);
-          this.generalSettings = { ...this.generalSettings, ...settings.general };
-          this.securitySettings = { ...this.securitySettings, ...settings.security };
-          this.paymentSettings = { ...this.paymentSettings, ...settings.payment };
-          this.notificationSettings = { ...this.notificationSettings, ...settings.notification };
-          this.customizationSettings = { ...this.customizationSettings, ...settings.customization };
-          this.updateForms();
-        } catch (e) {
-          console.error('Erreur chargement settings:', e);
+    // Charger depuis le backend
+    this.subscriptions.push(
+      this.adminService.getSettings().subscribe({
+        next: (settings: any) => {
+          if (settings?.general) {
+            this.generalSettings = { ...this.generalSettings, ...settings.general };
+            this.securitySettings = { ...this.securitySettings, ...settings.security };
+            this.paymentSettings = { ...this.paymentSettings, ...settings.payment };
+            this.updateForms();
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Erreur chargement settings:', error);
+          // Fallback vers localStorage
+          const savedSettings = localStorage.getItem('admin_settings');
+          if (savedSettings) {
+            try {
+              const localSettings = JSON.parse(savedSettings);
+              this.generalSettings = { ...this.generalSettings, ...localSettings.general };
+              this.securitySettings = { ...this.securitySettings, ...localSettings.security };
+              this.paymentSettings = { ...this.paymentSettings, ...localSettings.payment };
+              this.updateForms();
+            } catch (e) {
+              console.error('Erreur chargement settings locaux:', e);
+            }
+          }
+          this.isLoading = false;
         }
-      }
-      this.isLoading = false;
-    }, 500);
+      })
+    );
+
+    // Charger les logs système
+    this.subscriptions.push(
+      this.adminService.getSystemLogs().subscribe({
+        next: (logs: any[]) => {
+          if (logs && logs.length) {
+            this.systemLogs = logs;
+          }
+        },
+        error: (error) => console.error('Erreur chargement logs:', error)
+      })
+    );
+
+    // Charger les stats système
+    this.subscriptions.push(
+      this.adminService.getSystemStats().subscribe({
+        next: (stats: any) => {
+          if (stats) {
+            this.systemStats = { ...this.systemStats, ...stats };
+          }
+        },
+        error: (error) => console.error('Erreur chargement stats système:', error)
+      })
+    );
   }
 
   private updateForms(): void {
@@ -341,66 +373,146 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     if (this.generalForm.invalid) return;
     
     this.isSaving = true;
-    this.generalSettings = { ...this.generalSettings, ...this.generalForm.value };
-    this.saveToStorage();
+    const updatedSettings = {
+      general: { ...this.generalSettings, ...this.generalForm.value },
+      security: this.securitySettings,
+      payment: this.paymentSettings,
+      notification: this.notificationSettings,
+      customization: this.customizationSettings
+    };
     
-    setTimeout(() => {
-      this.notificationService.showSuccess('Paramètres généraux sauvegardés');
-      this.isSaving = false;
-    }, 500);
+    this.subscriptions.push(
+      this.adminService.updateSettings(updatedSettings).subscribe({
+        next: () => {
+          this.generalSettings = updatedSettings.general;
+          this.saveToStorage();
+          this.notificationService.showSuccess('Paramètres généraux sauvegardés');
+          this.isSaving = false;
+        },
+        error: (error) => {
+          console.error('Erreur sauvegarde:', error);
+          this.notificationService.showError('Erreur lors de la sauvegarde');
+          this.isSaving = false;
+        }
+      })
+    );
   }
 
   saveSecuritySettings(): void {
     if (this.securityForm.invalid) return;
     
     this.isSaving = true;
-    this.securitySettings = { ...this.securitySettings, ...this.securityForm.value };
-    this.saveToStorage();
+    const updatedSettings = {
+      general: this.generalSettings,
+      security: { ...this.securitySettings, ...this.securityForm.value },
+      payment: this.paymentSettings,
+      notification: this.notificationSettings,
+      customization: this.customizationSettings
+    };
     
-    setTimeout(() => {
-      this.notificationService.showSuccess('Paramètres de sécurité sauvegardés');
-      this.isSaving = false;
-    }, 500);
+    this.subscriptions.push(
+      this.adminService.updateSettings(updatedSettings).subscribe({
+        next: () => {
+          this.securitySettings = updatedSettings.security;
+          this.saveToStorage();
+          this.notificationService.showSuccess('Paramètres de sécurité sauvegardés');
+          this.isSaving = false;
+        },
+        error: (error) => {
+          console.error('Erreur sauvegarde:', error);
+          this.notificationService.showError('Erreur lors de la sauvegarde');
+          this.isSaving = false;
+        }
+      })
+    );
   }
 
   savePaymentSettings(): void {
     if (this.paymentForm.invalid) return;
     
     this.isSaving = true;
-    this.paymentSettings = { ...this.paymentSettings, ...this.paymentForm.value };
-    this.saveToStorage();
+    const updatedSettings = {
+      general: this.generalSettings,
+      security: this.securitySettings,
+      payment: { ...this.paymentSettings, ...this.paymentForm.value },
+      notification: this.notificationSettings,
+      customization: this.customizationSettings
+    };
     
-    setTimeout(() => {
-      this.notificationService.showSuccess('Paramètres de paiement sauvegardés');
-      this.isSaving = false;
-    }, 500);
+    this.subscriptions.push(
+      this.adminService.updateSettings(updatedSettings).subscribe({
+        next: () => {
+          this.paymentSettings = updatedSettings.payment;
+          this.saveToStorage();
+          this.notificationService.showSuccess('Paramètres de paiement sauvegardés');
+          this.isSaving = false;
+        },
+        error: (error) => {
+          console.error('Erreur sauvegarde:', error);
+          this.notificationService.showError('Erreur lors de la sauvegarde');
+          this.isSaving = false;
+        }
+      })
+    );
   }
 
   saveNotificationSettings(): void {
     if (this.notificationForm.invalid) return;
     
     this.isSaving = true;
-    this.notificationSettings = { ...this.notificationSettings, ...this.notificationForm.value };
-    this.saveToStorage();
+    const updatedSettings = {
+      general: this.generalSettings,
+      security: this.securitySettings,
+      payment: this.paymentSettings,
+      notification: { ...this.notificationSettings, ...this.notificationForm.value },
+      customization: this.customizationSettings
+    };
     
-    setTimeout(() => {
-      this.notificationService.showSuccess('Paramètres de notification sauvegardés');
-      this.isSaving = false;
-    }, 500);
+    this.subscriptions.push(
+      this.adminService.updateSettings(updatedSettings).subscribe({
+        next: () => {
+          this.notificationSettings = updatedSettings.notification;
+          this.saveToStorage();
+          this.notificationService.showSuccess('Paramètres de notification sauvegardés');
+          this.isSaving = false;
+        },
+        error: (error) => {
+          console.error('Erreur sauvegarde:', error);
+          this.notificationService.showError('Erreur lors de la sauvegarde');
+          this.isSaving = false;
+        }
+      })
+    );
   }
 
   saveCustomizationSettings(): void {
     if (this.customizationForm.invalid) return;
     
     this.isSaving = true;
-    this.customizationSettings = { ...this.customizationSettings, ...this.customizationForm.value };
-    this.saveToStorage();
-    this.applyTheme();
+    const updatedSettings = {
+      general: this.generalSettings,
+      security: this.securitySettings,
+      payment: this.paymentSettings,
+      notification: this.notificationSettings,
+      customization: { ...this.customizationSettings, ...this.customizationForm.value }
+    };
     
-    setTimeout(() => {
-      this.notificationService.showSuccess('Paramètres de personnalisation sauvegardés');
-      this.isSaving = false;
-    }, 500);
+    this.subscriptions.push(
+      this.adminService.updateSettings(updatedSettings).subscribe({
+        next: () => {
+          this.customizationSettings = updatedSettings.customization;
+          this.saveToStorage();
+          this.applyTheme();
+          this.notificationService.showSuccess('Paramètres de personnalisation sauvegardés');
+          this.isSaving = false;
+        },
+        error: (error) => {
+          console.error('Erreur sauvegarde:', error);
+          this.notificationService.showError('Erreur lors de la sauvegarde');
+          this.isSaving = false;
+        }
+      })
+    );
   }
 
   private saveToStorage(): void {
@@ -438,7 +550,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     };
     
     const dataStr = JSON.stringify(settings, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
     
     const exportFileDefaultName = `spaye-settings-${new Date().toISOString().split('T')[0]}.json`;
     

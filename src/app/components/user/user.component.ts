@@ -82,35 +82,34 @@ export class UserComponent implements OnInit, OnDestroy {
   }
 
   private loadDashboardData(): void {
-  this.isLoading = true;
-  
-  // Charger les données en parallèle
-  forkJoin({
-    wallet: this.walletService.getWallet(true), // true pour forcer le rafraîchissement
-    stats: this.transactionService.getUserDashboardStats()
-  }).subscribe({
-    next: (result) => {
-      this.wallet = result.wallet;
-      this.balance = result.wallet.balance;
-      this.stats = result.stats;
-      
-      console.log('💰 Solde du wallet (base de données):', this.balance);
-      console.log('📊 Stats transactions:', result.stats);
-      
-      this.isLoading = false;
-    },
-    error: (error) => {
-      console.error('❌ Erreur chargement données:', error);
-      this.isLoading = false;
-    }
-  });
-}
+    this.isLoading = true;
+    
+    forkJoin({
+      wallet: this.walletService.getWallet(),
+      stats: this.transactionService.getUserDashboardStats()
+    }).subscribe({
+      next: (result) => {
+        this.wallet = result.wallet;
+        this.balance = result.wallet?.balance || 0;
+        this.stats = result.stats;
+        
+        console.log('💰 Solde du wallet:', this.balance);
+        console.log('📊 Stats transactions:', result.stats);
+        
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('❌ Erreur chargement données:', error);
+        this.isLoading = false;
+      }
+    });
+  }
 
   private loadWalletData(): void {
     this.walletService.getWallet().subscribe({
       next: (wallet) => {
         this.wallet = wallet;
-        this.balance = wallet.balance; // TOUJOURS LA PRIORITÉ AU WALLET
+        this.balance = wallet.balance;
         console.log('💰 Solde wallet (fallback):', this.balance);
       },
       error: (error) => {
@@ -152,7 +151,6 @@ export class UserComponent implements OnInit, OnDestroy {
     this.loadDashboardData();
   }
 
-  // Getters pour le template
   get hasStats(): boolean {
     return this.stats !== null;
   }

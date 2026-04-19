@@ -1,17 +1,24 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, throwError, tap } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
+import { User } from '../models/user.model';
 
 export interface AdminDashboardStats {
   totalUsers: number;
   activeUsers: number;
   totalTransactions: number;
   totalVolume: number;
-  recentUsers: any[];
-  recentTransactions: any[];
+  recentUsers: User[];
+  recentTransactions: {
+    id: string;
+    type: string;
+    amount: number;
+    status: string;
+    createdAt: Date;
+  }[];
   dailyStats: {
     date: string;
     users: number;
@@ -26,6 +33,51 @@ export interface AdminDashboardStats {
   }[];
 }
 
+export interface SystemSettings {
+  general: {
+    siteName: string;
+    siteUrl: string;
+    adminEmail: string;
+    supportEmail: string;
+    maintenanceMode: boolean;
+    registrationEnabled: boolean;
+    defaultUserRole: string;
+    maxFileSize: number;
+    sessionTimeout: number;
+  };
+  security: {
+    twoFactorAuth: boolean;
+    passwordMinLength: number;
+    passwordRequireUppercase: boolean;
+    passwordRequireNumbers: boolean;
+    passwordRequireSpecial: boolean;
+    maxLoginAttempts: number;
+    lockoutDuration: number;
+    sessionTimeout: number;
+    requireEmailVerification: boolean;
+    requirePhoneVerification: boolean;
+  };
+  payment: {
+    minTransaction: number;
+    maxTransaction: number;
+    dailyTransferLimit: number;
+    monthlyTransferLimit: number;
+    mobileMoneyEnabled: boolean;
+    mobileMoneyOperators: {
+      airtel: boolean;
+      orange: boolean;
+      mvola: boolean;
+    };
+    transferFees: {
+      airtel: number;
+      orange: number;
+      mvola: number;
+      internal: number;
+    };
+    currency: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -38,24 +90,31 @@ export class AdminService {
     private authService: AuthService
   ) {}
 
-  /**
-   * Récupérer les statistiques pour le dashboard admin - DONNÉES RÉELLES UNIQUEMENT
-   */
+  private getHeaders(): HttpHeaders {
+    const token = this.authService.getToken();
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+  }
+
   getDashboardStats(): Observable<AdminDashboardStats> {
     console.log('📡 Appel API admin vers:', `${this.apiUrl}/dashboard/stats`);
     
-    return this.http.get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`).pipe(
+    return this.http.get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`, {
+      headers: this.getHeaders()
+    }).pipe(
       tap(data => {
         console.log('✅ Données admin reçues:', data);
       }),
       catchError(error => {
         console.error('❌ Erreur chargement stats admin:', error);
         
-        if (error.status === 404) {
-          this.notificationService.showError('L\'endpoint admin n\'existe pas sur le serveur');
-        } else if (error.status === 401 || error.status === 403) {
+        if (error.status === 401 || error.status === 403) {
           this.notificationService.showError('Non autorisé - Veuillez vous reconnecter');
           this.authService.logout();
+        } else if (error.status === 404) {
+          this.notificationService.showError('API non disponible');
         } else {
           this.notificationService.showError('Erreur lors du chargement des statistiques');
         }
@@ -65,14 +124,10 @@ export class AdminService {
     );
   }
 
-  /**
-   * Récupérer tous les utilisateurs
-   */
-  getAllUsers(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/users`).pipe(
-      tap(data => {
-        console.log('✅ Utilisateurs reçus:', data.length);
-      }),
+  getAllUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/users`, {
+      headers: this.getHeaders()
+    }).pipe(
       catchError(error => {
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
         return throwError(() => error);
@@ -80,14 +135,10 @@ export class AdminService {
     );
   }
 
-  /**
-   * Récupérer toutes les transactions
-   */
   getAllTransactions(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/transactions`).pipe(
-      tap(data => {
-        console.log('✅ Transactions reçues:', data.length);
-      }),
+    return this.http.get<any[]>(`${this.apiUrl}/transactions`, {
+      headers: this.getHeaders()
+    }).pipe(
       catchError(error => {
         this.notificationService.showError('Erreur lors du chargement des transactions');
         return throwError(() => error);
@@ -95,11 +146,11 @@ export class AdminService {
     );
   }
 
-  /**
-   * Mettre à jour le statut d'un utilisateur
-   */
   updateUserStatus(userId: string, isActive: boolean): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/users/${userId}/status`, { isActive }).pipe(
+    return this.http.patch(`${this.apiUrl}/users/${userId}/status`, 
+      { isActive },
+      { headers: this.getHeaders() }
+    ).pipe(
       tap(() => this.notificationService.showSuccess(`Utilisateur ${isActive ? 'activé' : 'désactivé'}`)),
       catchError(error => {
         this.notificationService.showError('Erreur lors de la mise à jour');
@@ -108,14 +159,58 @@ export class AdminService {
     );
   }
 
-  /**
-   * Supprimer un utilisateur
-   */
   deleteUser(userId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/users/${userId}`).pipe(
+    return this.http.delete(`${this.apiUrl}/users/${userId}`, {
+      headers: this.getHeaders()
+    }).pipe(
       tap(() => this.notificationService.showSuccess('Utilisateur supprimé')),
       catchError(error => {
         this.notificationService.showError('Erreur lors de la suppression');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getSettings(): Observable<SystemSettings> {
+    return this.http.get<SystemSettings>(`${this.apiUrl}/settings`, {
+      headers: this.getHeaders()
+    }).pipe(
+      catchError(error => {
+        this.notificationService.showError('Erreur lors du chargement des paramètres');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  updateSettings(settings: SystemSettings): Observable<SystemSettings> {
+    return this.http.patch<SystemSettings>(`${this.apiUrl}/settings`, settings, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap(() => this.notificationService.showSuccess('Paramètres sauvegardés')),
+      catchError(error => {
+        this.notificationService.showError('Erreur lors de la sauvegarde');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getSystemLogs(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/system/logs`, {
+      headers: this.getHeaders()
+    }).pipe(
+      catchError(error => {
+        console.error('Erreur logs:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getSystemStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/system/stats`, {
+      headers: this.getHeaders()
+    }).pipe(
+      catchError(error => {
+        console.error('Erreur stats système:', error);
         return throwError(() => error);
       })
     );

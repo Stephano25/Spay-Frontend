@@ -29,6 +29,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatRippleModule } from '@angular/material/core';
 
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
@@ -61,7 +63,9 @@ export const appConfig: ApplicationConfig = {
       MatExpansionModule,
       MatChipsModule,
       MatSlideToggleModule,
-      MatDialogModule
+      MatDialogModule,
+      MatSidenavModule,
+      MatRippleModule
     ),
     {
       provide: HTTP_INTERCEPTORS,

@@ -6,7 +6,7 @@ import { WalletComponent } from './components/user/wallet/wallet.component';
 import { ChatComponent } from './components/chat/chat.component';
 import { TransactionsComponent } from './components/transactions/transactions.component';
 import { ProfileComponent } from './components/profile/profile.component';
-import { ScanPayComponent } from './components/scan-pay/scan-pay.component'; // Vérifiez que ce chemin est correct
+import { ScanPayComponent } from './components/scan-pay/scan-pay.component';
 import { MobileMoneyComponent } from './components/mobile-money/mobile-money.component';
 import { FriendsComponent } from './components/friends/friends.component';
 import { UserSettingsComponent } from './components/user/settings/settings.component';
@@ -38,7 +38,12 @@ export const routes: Routes = [
   { 
     path: 'admin', 
     loadComponent: () => import('./components/admin/admin.component').then(m => m.AdminComponent),
-    canActivate: [AdminGuard]
+    canActivate: [AdminGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', loadComponent: () => import('./components/admin/dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent) },
+      { path: 'settings', loadComponent: () => import('./components/admin/settings/settings.component').then(m => m.AdminSettingsComponent) }
+    ]
   },
   
   { path: '**', redirectTo: '/login' }
