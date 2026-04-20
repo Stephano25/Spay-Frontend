@@ -278,3 +278,252 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* ==================== THÈMES GLOBAUX ==================== */
+
+/* Thème Clair (par défaut) */
+body.light-theme {
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --text-primary: #1a1a2e;
+  --text-secondary: #666666;
+  --border-color: #e0e0e0;
+  --card-bg: #ffffff;
+  --sidebar-bg: #ffffff;
+  --header-bg: #ffffff;
+}
+
+body.light-theme {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body.light-theme .mat-mdc-card,
+body.light-theme .settings-card,
+body.light-theme .admin-profile-card {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
+/* Thème Sombre */
+body.dark-theme {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --border-color: #2c3e50;
+  --card-bg: #16213e;
+  --sidebar-bg: #0f3460;
+  --header-bg: #0f3460;
+}
+
+body.dark-theme {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body.dark-theme .mat-mdc-card,
+body.dark-theme .settings-card,
+body.dark-theme .admin-profile-card {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
+body.dark-theme .mat-mdc-form-field,
+body.dark-theme .mat-mdc-tab-group,
+body.dark-theme .mat-mdc-tab-header {
+  background-color: var(--card-bg);
+}
+
+body.dark-theme .mat-mdc-form-field .mat-mdc-form-field-label {
+  color: var(--text-secondary);
+}
+
+body.dark-theme .mat-mdc-input-element {
+  color: var(--text-primary);
+}
+
+body.dark-theme .mat-mdc-select-value-text {
+  color: var(--text-primary);
+}
+
+/* Boutons de thème personnalisés */
+.theme-btn, .language-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  margin: 0 8px 8px 0;
+  border: 2px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background: var(--card-bg, white);
+  color: var(--text-primary, #333);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.theme-btn:hover, .language-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.theme-btn.active, .language-btn.active {
+  background: var(--primary-color, #667eea);
+  border-color: var(--primary-color, #667eea);
+  color: white;
+}
+
+/* Couleurs personnalisables */
+:root {
+  --primary-color: #667eea;
+  --secondary-color: #764ba2;
+}
+
+/* Application des couleurs */
+.btn-primary, 
+.mat-raised-button.mat-primary,
+button[color="primary"] {
+  background-color: var(--primary-color) !important;
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color) !important;
+}
+/* Thème Clair */
+body.light-theme {
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --text-primary: #1a1a2e;
+  --text-secondary: #666666;
+  --border-color: #e0e0e0;
+  --card-bg: #ffffff;
+  --sidebar-bg: #ffffff;
+  --header-bg: #ffffff;
+}
+
+/* Thème Sombre */
+body.dark-theme {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --border-color: #2c3e50;
+  --card-bg: #16213e;
+  --sidebar-bg: #0f3460;
+  --header-bg: #0f3460;
+}
+
+body.light-theme {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body.dark-theme {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Application sur tous les composants Material */
+body.dark-theme .mat-mdc-card,
+body.dark-theme .mat-mdc-tab-group,
+body.dark-theme .mat-mdc-menu-panel,
+body.dark-theme .mat-mdc-dialog-container {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
+body.dark-theme .mat-mdc-form-field {
+  color: var(--text-primary);
+}
+
+body.dark-theme .mat-mdc-input-element {
+  color: var(--text-primary);
+}
+
+/* Variables CSS */
+:root {
+  --primary-color: #667eea;
+  --secondary-color: #764ba2;
+}
+
+/* Boutons primaires */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-fab.mat-primary,
+.mat-mdc-mini-fab.mat-primary {
+  background-color: var(--primary-color) !important;
+}/* Variables de couleurs */
+:root {
+  --primary-color: #667eea;
+  --secondary-color: #764ba2;
+}
+
+/* Application des couleurs sur les boutons */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-fab.mat-primary,
+.mat-mdc-mini-fab.mat-primary,
+button.mat-primary {
+  background-color: var(--primary-color) !important;
+}
+
+/* Couleur des icônes dans la sidebar */
+.mat-icon {
+  color: var(--primary-color);
+}
+
+/* Couleur des liens actifs dans la sidebar */
+.nav-list .active .mat-icon,
+.nav-list .active span {
+  color: var(--primary-color) !important;
+}
+
+/* Couleur du header */
+.mat-toolbar.mat-primary {
+  background-color: var(--primary-color) !important;
+}
+
+/* Thème Clair */
+body.light-theme {
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --text-primary: #1a1a2e;
+  --text-secondary: #666666;
+  --border-color: #e0e0e0;
+  --card-bg: #ffffff;
+}
+
+body.light-theme {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body.light-theme .mat-mdc-card {
+  background-color: var(--card-bg);
+}
+
+/* Thème Sombre */
+body.dark-theme {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --border-color: #2c3e50;
+  --card-bg: #16213e;
+}
+
+body.dark-theme {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body.dark-theme .mat-mdc-card {
+  background-color: var(--card-bg);
+}
+
+body.dark-theme .mat-mdc-form-field {
+  color: var(--text-primary);
+}
+
+body.dark-theme .mat-mdc-input-element {
+  color: var(--text-primary);
+}

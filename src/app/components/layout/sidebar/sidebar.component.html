@@ -1,5 +1,4 @@
 <div class="sidebar-container" [class.mobile]="isMobile">
-  <!-- Bouton menu pour mobile -->
   <button 
     *ngIf="isMobile" 
     class="menu-toggle" 
@@ -10,14 +9,8 @@
     <mat-icon>{{ isOpen ? 'close' : 'menu' }}</mat-icon>
   </button>
 
-  <!-- Overlay pour mobile -->
-  <div 
-    *ngIf="isMobile && isOpen" 
-    class="overlay" 
-    (click)="closeSidebar()">
-  </div>
+  <div *ngIf="isMobile && isOpen" class="overlay" (click)="closeSidebar()"></div>
 
-  <!-- Sidebar -->
   <mat-sidenav-container class="sidenav-container">
     <mat-sidenav
       #sidenav
@@ -26,7 +19,6 @@
       [class.collapsed]="!isMobile && isCollapsed"
       class="sidebar">
       
-      <!-- Logo et titre -->
       <div class="sidebar-header" (click)="!isMobile && toggleSidebar()">
         <div class="logo-container">
           <mat-icon class="logo-icon">account_balance_wallet</mat-icon>
@@ -43,23 +35,17 @@
 
       <mat-divider></mat-divider>
 
-      <!-- Profil utilisateur -->
       <div class="user-profile" *ngIf="currentUser">
-        <div class="user-avatar">
-          {{ getInitials() }}
-        </div>
+        <div class="user-avatar">{{ getInitials() }}</div>
         <div class="user-info" *ngIf="!isCollapsed || isMobile">
           <div class="user-name">{{ currentUser.firstName }} {{ currentUser.lastName }}</div>
-          <div class="user-role">{{ isAdmin() ? 'Administrateur' : 'Utilisateur' }}</div>
-          <div class="user-balance" *ngIf="!isAdmin()">
-            {{ formatAmount(currentUser.balance) }} Ar
-          </div>
+          <div class="user-role">{{ translate(isAdmin() ? 'Administrateur' : 'Utilisateur') }}</div>
+          <div class="user-balance" *ngIf="!isAdmin()">{{ formatAmount(currentUser.balance) }} Ar</div>
         </div>
       </div>
 
       <mat-divider></mat-divider>
 
-      <!-- Menu de navigation -->
       <mat-nav-list class="nav-list">
         <a
           *ngFor="let item of menuItems"
@@ -67,26 +53,25 @@
           [routerLink]="item.route"
           routerLinkActive="active"
           (click)="closeSidebar()"
-          [matTooltip]="isCollapsed && !isMobile ? item.label : ''"
+          [matTooltip]="isCollapsed && !isMobile ? translate(item.labelKey) : ''"
           matTooltipPosition="right">
           <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle *ngIf="!isCollapsed || isMobile">{{ item.label }}</span>
+          <span matListItemTitle *ngIf="!isCollapsed || isMobile">{{ translate(item.labelKey) }}</span>
         </a>
       </mat-nav-list>
 
       <mat-divider></mat-divider>
 
-      <!-- Bouton de déconnexion -->
       <div class="logout-container">
         <button
           mat-raised-button
           color="warn"
           class="logout-btn"
           (click)="logout()"
-          [matTooltip]="isCollapsed && !isMobile ? 'Déconnexion' : ''"
+          [matTooltip]="isCollapsed && !isMobile ? translate('Déconnexion') : ''"
           matTooltipPosition="right">
           <mat-icon>exit_to_app</mat-icon>
-          <span *ngIf="!isCollapsed || isMobile">Déconnexion</span>
+          <span *ngIf="!isCollapsed || isMobile">{{ translate('Déconnexion') }}</span>
         </button>
       </div>
     </mat-sidenav>

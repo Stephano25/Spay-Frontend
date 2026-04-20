@@ -28,7 +28,9 @@
   ],
   "exclude": [
     "src/**/*.spec.ts",
-    "src/environments/**/*.ts"
+    "src/environments/**/*.ts",
+    "src/app/components/shared/confirm-dialog/**/*.ts",
+    "src/app/models/admin.model.ts"
   ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

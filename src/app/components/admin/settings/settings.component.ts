@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -8,12 +8,13 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { AdminService } from '../../../services/admin.service';
+import { ThemeService } from '../../../services/theme.service';
+import { TranslationService } from '../../../services/translation.service';
 
 // Models
 import { User } from '../../../models/user.model';
 
 // Components
-import { SidebarComponent } from '../../layout/sidebar/sidebar.component';
 import { NavigationHeaderComponent } from '../../layout/navigation-header/navigation-header.component';
 
 // Angular Material
@@ -44,7 +45,6 @@ import { MatBadgeModule } from '@angular/material/badge';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    SidebarComponent,
     NavigationHeaderComponent,
     MatToolbarModule,
     MatButtonModule,
@@ -69,10 +69,8 @@ import { MatBadgeModule } from '@angular/material/badge';
   styleUrls: ['./settings.component.css']
 })
 export class AdminSettingsComponent implements OnInit, OnDestroy {
-  // Données
   admin: User | null = null;
   
-  // Paramètres généraux
   generalSettings = {
     siteName: 'SPaye',
     siteUrl: 'https://spaye.com',
@@ -85,7 +83,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     sessionTimeout: 30
   };
 
-  // Paramètres de sécurité
   securitySettings = {
     twoFactorAuth: false,
     passwordMinLength: 8,
@@ -99,7 +96,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     requirePhoneVerification: false
   };
 
-  // Paramètres de paiement
   paymentSettings = {
     minTransaction: 100,
     maxTransaction: 5000000,
@@ -120,7 +116,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     currency: 'Ar'
   };
 
-  // Paramètres de notification
   notificationSettings = {
     emailNotifications: true,
     smsNotifications: false,
@@ -135,7 +130,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     emailFrequency: 'instant'
   };
 
-  // Paramètres de personnalisation
   customizationSettings = {
     theme: 'light',
     primaryColor: '#667eea',
@@ -146,10 +140,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     customJS: ''
   };
 
-  // Logs système
   systemLogs: any[] = [];
   
-  // Statistiques système
   systemStats = {
     uptime: 'Chargement...',
     memoryUsage: '0%',
@@ -161,7 +153,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     apiCalls: 0
   };
 
-  // Versions
   versions = {
     app: '1.0.0',
     angular: '19.2.0',
@@ -170,13 +161,18 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     nestjs: '10.0'
   };
 
-  // UI
   isLoading = false;
   isSaving = false;
   activeTab = 0;
   showPassword = false;
   
-  // Formulaires
+  selectedLanguage: string = 'fr';
+  languages = [
+    { value: 'fr', label: 'Français', flag: '🇫🇷' },
+    { value: 'mg', label: 'Malagasy', flag: '🇲🇬' },
+    { value: 'en', label: 'English', flag: '🇬🇧' }
+  ];
+  
   generalForm!: FormGroup;
   securityForm!: FormGroup;
   paymentForm!: FormGroup;
@@ -185,11 +181,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
-  // Options pour les sélecteurs
   themes = [
-    { value: 'light', label: 'Clair' },
-    { value: 'dark', label: 'Sombre' },
-    { value: 'system', label: 'Système' }
+    { value: 'light', label: 'Clair', icon: 'light_mode' },
+    { value: 'dark', label: 'Sombre', icon: 'dark_mode' },
+    { value: 'system', label: 'Système', icon: 'settings_suggest' }
   ];
 
   emailFrequencies = [
@@ -210,7 +205,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private adminService: AdminService,
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
+    private renderer: Renderer2,
+    private themeService: ThemeService,
+    private translationService: TranslationService
   ) {
     this.initForms();
   }
@@ -218,6 +216,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadAdminData();
     this.loadSettings();
+    this.loadSavedPreferences();
   }
 
   ngOnDestroy(): void {
@@ -304,7 +303,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   private loadSettings(): void {
     this.isLoading = true;
     
-    // Charger depuis le backend
     this.subscriptions.push(
       this.adminService.getSettings().subscribe({
         next: (settings: any) => {
@@ -318,7 +316,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Erreur chargement settings:', error);
-          // Fallback vers localStorage
           const savedSettings = localStorage.getItem('admin_settings');
           if (savedSettings) {
             try {
@@ -336,7 +333,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Charger les logs système
     this.subscriptions.push(
       this.adminService.getSystemLogs().subscribe({
         next: (logs: any[]) => {
@@ -348,7 +344,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Charger les stats système
     this.subscriptions.push(
       this.adminService.getSystemStats().subscribe({
         next: (stats: any) => {
@@ -361,6 +356,31 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     );
   }
 
+  private loadSavedPreferences(): void {
+    const savedTheme = localStorage.getItem('theme');
+    const savedLanguage = localStorage.getItem('language');
+    const savedPrimaryColor = localStorage.getItem('primaryColor');
+    const savedSecondaryColor = localStorage.getItem('secondaryColor');
+    
+    if (savedTheme) {
+      this.customizationSettings.theme = savedTheme;
+      this.customizationForm.patchValue({ theme: savedTheme });
+    }
+    if (savedLanguage) {
+      this.selectedLanguage = savedLanguage;
+    }
+    if (savedPrimaryColor) {
+      this.customizationSettings.primaryColor = savedPrimaryColor;
+      this.customizationForm.patchValue({ primaryColor: savedPrimaryColor });
+    }
+    if (savedSecondaryColor) {
+      this.customizationSettings.secondaryColor = savedSecondaryColor;
+      this.customizationForm.patchValue({ secondaryColor: savedSecondaryColor });
+    }
+    
+    this.applyTheme();
+  }
+
   private updateForms(): void {
     this.generalForm.patchValue(this.generalSettings);
     this.securityForm.patchValue(this.securitySettings);
@@ -371,7 +391,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   saveGeneralSettings(): void {
     if (this.generalForm.invalid) return;
-    
     this.isSaving = true;
     const updatedSettings = {
       general: { ...this.generalSettings, ...this.generalForm.value },
@@ -400,7 +419,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   saveSecuritySettings(): void {
     if (this.securityForm.invalid) return;
-    
     this.isSaving = true;
     const updatedSettings = {
       general: this.generalSettings,
@@ -429,7 +447,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   savePaymentSettings(): void {
     if (this.paymentForm.invalid) return;
-    
     this.isSaving = true;
     const updatedSettings = {
       general: this.generalSettings,
@@ -458,7 +475,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   saveNotificationSettings(): void {
     if (this.notificationForm.invalid) return;
-    
     this.isSaving = true;
     const updatedSettings = {
       general: this.generalSettings,
@@ -487,32 +503,24 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   saveCustomizationSettings(): void {
     if (this.customizationForm.invalid) return;
-    
     this.isSaving = true;
     const updatedSettings = {
-      general: this.generalSettings,
-      security: this.securitySettings,
-      payment: this.paymentSettings,
-      notification: this.notificationSettings,
-      customization: { ...this.customizationSettings, ...this.customizationForm.value }
+      ...this.customizationSettings,
+      theme: this.customizationForm.get('theme')?.value,
+      primaryColor: this.customizationForm.get('primaryColor')?.value,
+      secondaryColor: this.customizationForm.get('secondaryColor')?.value,
+      customCSS: this.customizationForm.get('customCSS')?.value,
+      customJS: this.customizationForm.get('customJS')?.value
     };
     
-    this.subscriptions.push(
-      this.adminService.updateSettings(updatedSettings).subscribe({
-        next: () => {
-          this.customizationSettings = updatedSettings.customization;
-          this.saveToStorage();
-          this.applyTheme();
-          this.notificationService.showSuccess('Paramètres de personnalisation sauvegardés');
-          this.isSaving = false;
-        },
-        error: (error) => {
-          console.error('Erreur sauvegarde:', error);
-          this.notificationService.showError('Erreur lors de la sauvegarde');
-          this.isSaving = false;
-        }
-      })
-    );
+    this.customizationSettings = updatedSettings;
+    this.saveToStorage();
+    this.applyTheme();
+    
+    setTimeout(() => {
+      this.notificationService.showSuccess('Paramètres de personnalisation sauvegardés');
+      this.isSaving = false;
+    }, 500);
   }
 
   private saveToStorage(): void {
@@ -526,16 +534,111 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     localStorage.setItem('admin_settings', JSON.stringify(settings));
   }
 
-  private applyTheme(): void {
-    document.documentElement.style.setProperty('--primary-color', this.customizationSettings.primaryColor);
-    document.documentElement.style.setProperty('--secondary-color', this.customizationSettings.secondaryColor);
+  setTheme(themeValue: string): void {
+    this.customizationForm.patchValue({ theme: themeValue });
+    this.customizationSettings.theme = themeValue;
+    this.applyTheme();
+    this.saveToStorage();
+    this.notificationService.showSuccess(`Thème changé en ${this.getThemeName(themeValue)}`);
+  }
+
+  // MÉTHODE SETLANGUAGE CORRIGÉE (sans rechargement de page)
+  setLanguage(langValue: string): void {
+    this.selectedLanguage = langValue;
+    this.translationService.setLanguage(langValue);
+    this.notificationService.showSuccess(`Langue changée en ${this.getLanguageName()}`);
+  
+    // Rechargement forcé de la page
+    window.location.href = window.location.href.split('#')[0];
+  }
+
+  updatePrimaryColor(event: any): void {
+    const color = event.target.value;
+    this.customizationForm.patchValue({ primaryColor: color });
+    this.customizationSettings.primaryColor = color;
+    this.applyTheme();
+  }
+
+  updateSecondaryColor(event: any): void {
+    const color = event.target.value;
+    this.customizationForm.patchValue({ secondaryColor: color });
+    this.customizationSettings.secondaryColor = color;
+    this.applyTheme();
+  }
+
+  updateCustomCSS(event: any): void {
+    const css = event.target.value;
+    this.customizationForm.patchValue({ customCSS: css });
+    this.customizationSettings.customCSS = css;
+  }
+
+  private applyCustomCSS(css: string): void {
+    let styleElement = document.getElementById('custom-css');
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = 'custom-css';
+      document.head.appendChild(styleElement);
+    }
+    styleElement.textContent = css;
+  }
+
+  public applyTheme(): void {
+    const theme = this.customizationForm.get('theme')?.value || this.customizationSettings.theme;
+    const primaryColor = this.customizationForm.get('primaryColor')?.value || this.customizationSettings.primaryColor;
+    const secondaryColor = this.customizationForm.get('secondaryColor')?.value || this.customizationSettings.secondaryColor;
+    
+    this.themeService.applyTheme(theme, primaryColor, secondaryColor);
+    this.applyCustomCSS(this.customizationSettings.customCSS);
+    
+    console.log('✅ Thème appliqué via ThemeService');
+  }
+
+  private getThemeName(themeValue: string): string {
+    const theme = this.themes.find(t => t.value === themeValue);
+    return theme?.label || 'Clair';
+  }
+
+  public getLanguageName(): string {
+    const lang = this.languages.find(l => l.value === this.selectedLanguage);
+    return lang?.label || 'Français';
   }
 
   resetAllSettings(): void {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les paramètres ?')) {
       localStorage.removeItem('admin_settings');
-      this.notificationService.showInfo('Paramètres réinitialisés');
-      setTimeout(() => window.location.reload(), 1000);
+      localStorage.removeItem('theme');
+      localStorage.removeItem('language');
+      localStorage.removeItem('primaryColor');
+      localStorage.removeItem('secondaryColor');
+      
+      this.generalSettings = {
+        siteName: 'SPaye',
+        siteUrl: 'https://spaye.com',
+        adminEmail: 'admin@spaye.com',
+        supportEmail: 'support@spaye.com',
+        maintenanceMode: false,
+        registrationEnabled: true,
+        defaultUserRole: 'user',
+        maxFileSize: 150,
+        sessionTimeout: 30
+      };
+      
+      this.customizationSettings = {
+        theme: 'light',
+        primaryColor: '#667eea',
+        secondaryColor: '#764ba2',
+        logo: null,
+        favicon: null,
+        customCSS: '',
+        customJS: ''
+      };
+      
+      this.selectedLanguage = 'fr';
+      this.updateForms();
+      this.applyTheme();
+      
+      this.notificationService.showInfo('Tous les paramètres ont été réinitialisés');
+      setTimeout(() => window.location.reload(), 1500);
     }
   }
 
@@ -546,12 +649,12 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       payment: this.paymentSettings,
       notification: this.notificationSettings,
       customization: this.customizationSettings,
+      language: this.selectedLanguage,
       exportedAt: new Date()
     };
     
     const dataStr = JSON.stringify(settings, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    
     const exportFileDefaultName = `spaye-settings-${new Date().toISOString().split('T')[0]}.json`;
     
     const linkElement = document.createElement('a');
@@ -559,7 +662,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
     
-    this.notificationService.showSuccess('Paramètres exportés');
+    this.notificationService.showSuccess('Paramètres exportés avec succès');
   }
 
   importSettings(event: any): void {
@@ -575,6 +678,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         this.paymentSettings = settings.payment || this.paymentSettings;
         this.notificationSettings = settings.notification || this.notificationSettings;
         this.customizationSettings = settings.customization || this.customizationSettings;
+        if (settings.language) this.selectedLanguage = settings.language;
+        
         this.updateForms();
         this.saveToStorage();
         this.applyTheme();

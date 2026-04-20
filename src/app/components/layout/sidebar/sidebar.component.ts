@@ -2,6 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { TranslationService } from '../../../services/translation.service';
 
 // Angular Material
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -39,33 +40,32 @@ export class SidebarComponent implements OnInit {
   isOpen = false;
   currentUser: any = null;
   
-  // Menu items pour utilisateur normal
   userMenuItems = [
-    { icon: 'dashboard', label: 'Tableau de bord', route: '/user' },
-    { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/wallet' },
-    { icon: 'swap_horiz', label: 'Transactions', route: '/transactions' },
-    { icon: 'people', label: 'Amis', route: '/friends' },
-    { icon: 'chat', label: 'Messages', route: '/chat' },
-    { icon: 'qr_code_scanner', label: 'Scanner', route: '/scan-pay' },
-    { icon: 'phone_android', label: 'Mobile Money', route: '/mobile-money' },
-    { icon: 'bar_chart', label: 'Statistiques', route: '/stats' },
-    { icon: 'person', label: 'Profil', route: '/profile' },
-    { icon: 'settings', label: 'Paramètres', route: '/user/settings' }
+    { icon: 'dashboard', labelKey: 'Tableau de bord', route: '/user' },
+    { icon: 'account_balance_wallet', labelKey: 'Portefeuille', route: '/wallet' },
+    { icon: 'swap_horiz', labelKey: 'Transactions', route: '/transactions' },
+    { icon: 'people', labelKey: 'Amis', route: '/friends' },
+    { icon: 'chat', labelKey: 'Messages', route: '/chat' },
+    { icon: 'qr_code_scanner', labelKey: 'Scanner', route: '/scan-pay' },
+    { icon: 'phone_android', labelKey: 'Mobile Money', route: '/mobile-money' },
+    { icon: 'bar_chart', labelKey: 'Statistiques', route: '/stats' },
+    { icon: 'person', labelKey: 'Profil', route: '/profile' },
+    { icon: 'settings', labelKey: 'Paramètres', route: '/user/settings' }
   ];
 
-  // Menu items pour administrateur
   adminMenuItems = [
-    { icon: 'dashboard', label: 'Dashboard', route: '/admin' },
-    { icon: 'people', label: 'Utilisateurs', route: '/admin/users' },
-    { icon: 'receipt', label: 'Transactions', route: '/admin/transactions' },
-    { icon: 'bar_chart', label: 'Statistiques', route: '/admin/stats' },
-    { icon: 'settings', label: 'Paramètres', route: '/admin/settings' },
-    { icon: 'person', label: 'Mon Profil', route: '/profile' }
+    { icon: 'dashboard', labelKey: 'Tableau de bord', route: '/admin/dashboard' },
+    { icon: 'people', labelKey: 'Utilisateurs', route: '/admin/users' },
+    { icon: 'receipt', labelKey: 'Transactions', route: '/admin/transactions' },
+    { icon: 'bar_chart', labelKey: 'Statistiques', route: '/admin/stats' },
+    { icon: 'settings', labelKey: 'Paramètres', route: '/admin/settings' },
+    { icon: 'person', labelKey: 'Mon Profil', route: '/profile' }
   ];
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -112,6 +112,11 @@ export class SidebarComponent implements OnInit {
 
   get menuItems() {
     return this.isAdmin() ? this.adminMenuItems : this.userMenuItems;
+  }
+
+  // Méthode de traduction
+  translate(key: string): string {
+    return this.translationService.translate(key);
   }
 
   getInitials(): string {

@@ -1,4 +1,4 @@
-<app-sidebar>
+<div class="settings-page">
   <app-navigation-header 
     [user]="admin" 
     title="Paramètres d'administration" 
@@ -53,7 +53,8 @@
 
       <!-- Onglets de paramètres -->
       <mat-tab-group [(selectedIndex)]="activeTab" class="settings-tabs">
-        <!-- Onglet Général -->
+        
+        <!-- ONGLET GÉNÉRAL -->
         <mat-tab label="Général">
           <div class="tab-content">
             <form [formGroup]="generalForm" (ngSubmit)="saveGeneralSettings()">
@@ -69,349 +70,117 @@
                       <mat-label>Nom du site</mat-label>
                       <input matInput formControlName="siteName">
                     </mat-form-field>
-
                     <mat-form-field appearance="outline" class="half-width">
                       <mat-label>URL du site</mat-label>
                       <input matInput formControlName="siteUrl">
                     </mat-form-field>
                   </div>
-
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
                       <mat-label>Email admin</mat-label>
                       <input matInput formControlName="adminEmail" type="email">
                     </mat-form-field>
-
                     <mat-form-field appearance="outline" class="half-width">
                       <mat-label>Email support</mat-label>
                       <input matInput formControlName="supportEmail" type="email">
                     </mat-form-field>
                   </div>
-
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Rôle par défaut</mat-label>
-                      <mat-select formControlName="defaultUserRole">
-                        <mat-option *ngFor="let role of userRoles" [value]="role.value">
-                          {{ role.label }}
-                        </mat-option>
-                      </mat-select>
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Taille max fichier (Mo)</mat-label>
-                      <input matInput type="number" formControlName="maxFileSize">
-                    </mat-form-field>
-                  </div>
-
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Timeout session (min)</mat-label>
-                      <input matInput type="number" formControlName="sessionTimeout">
-                    </mat-form-field>
-
-                    <div class="toggle-group half-width">
-                      <mat-slide-toggle formControlName="maintenanceMode">
-                        Mode maintenance
-                      </mat-slide-toggle>
-                      <mat-slide-toggle formControlName="registrationEnabled">
-                        Inscriptions ouvertes
-                      </mat-slide-toggle>
-                    </div>
-                  </div>
                 </mat-card-content>
                 <mat-card-actions>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="generalForm.invalid || isSaving">
-                    <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
-                    <span *ngIf="!isSaving">Enregistrer</span>
-                  </button>
+                  <button mat-raised-button color="primary" type="submit">Enregistrer</button>
                 </mat-card-actions>
               </mat-card>
             </form>
           </div>
         </mat-tab>
 
-        <!-- Onglet Sécurité -->
-        <mat-tab label="Sécurité">
-          <div class="tab-content">
-            <form [formGroup]="securityForm" (ngSubmit)="saveSecuritySettings()">
-              <mat-card class="settings-card">
-                <mat-card-header>
-                  <mat-icon mat-card-avatar>security</mat-icon>
-                  <mat-card-title>Politique de sécurité</mat-card-title>
-                  <mat-card-subtitle>Configuration de la sécurité</mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                  <mat-slide-toggle formControlName="twoFactorAuth">
-                    Authentification à deux facteurs
-                  </mat-slide-toggle>
-
-                  <mat-slide-toggle formControlName="requireEmailVerification">
-                    Vérification email requise
-                  </mat-slide-toggle>
-
-                  <mat-slide-toggle formControlName="requirePhoneVerification">
-                    Vérification téléphone requise
-                  </mat-slide-toggle>
-
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="third-width">
-                      <mat-label>Longueur min mot de passe</mat-label>
-                      <input matInput type="number" formControlName="passwordMinLength">
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline" class="third-width">
-                      <mat-label>Tentatives max</mat-label>
-                      <input matInput type="number" formControlName="maxLoginAttempts">
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline" class="third-width">
-                      <mat-label>Blocage (minutes)</mat-label>
-                      <input matInput type="number" formControlName="lockoutDuration">
-                    </mat-form-field>
-                  </div>
-
-                  <div class="checkbox-group">
-                    <mat-checkbox formControlName="passwordRequireUppercase">
-                      Majuscules requises
-                    </mat-checkbox>
-                    <mat-checkbox formControlName="passwordRequireNumbers">
-                      Chiffres requis
-                    </mat-checkbox>
-                    <mat-checkbox formControlName="passwordRequireSpecial">
-                      Caractères spéciaux requis
-                    </mat-checkbox>
-                  </div>
-
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Timeout session (minutes)</mat-label>
-                    <mat-slider discrete [displayWith]="formatNumber" step="5" min="15" max="480">
-                      <input matSliderThumb formControlName="sessionTimeout">
-                    </mat-slider>
-                  </mat-form-field>
-                </mat-card-content>
-                <mat-card-actions>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="securityForm.invalid || isSaving">
-                    <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
-                    <span *ngIf="!isSaving">Enregistrer</span>
-                  </button>
-                </mat-card-actions>
-              </mat-card>
-            </form>
-          </div>
-        </mat-tab>
-
-        <!-- Onglet Paiements -->
-        <mat-tab label="Paiements">
-          <div class="tab-content">
-            <form [formGroup]="paymentForm" (ngSubmit)="savePaymentSettings()">
-              <mat-card class="settings-card">
-                <mat-card-header>
-                  <mat-icon mat-card-avatar>payments</mat-icon>
-                  <mat-card-title>Configuration des paiements</mat-card-title>
-                  <mat-card-subtitle>Limites et frais de transaction</mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="third-width">
-                      <mat-label>Min transaction (Ar)</mat-label>
-                      <input matInput type="number" formControlName="minTransaction">
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline" class="third-width">
-                      <mat-label>Max transaction (Ar)</mat-label>
-                      <input matInput type="number" formControlName="maxTransaction">
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline" class="third-width">
-                      <mat-label>Devise</mat-label>
-                      <input matInput formControlName="currency">
-                    </mat-form-field>
-                  </div>
-
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Limite journalière (Ar)</mat-label>
-                      <input matInput type="number" formControlName="dailyTransferLimit">
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Limite mensuelle (Ar)</mat-label>
-                      <input matInput type="number" formControlName="monthlyTransferLimit">
-                    </mat-form-field>
-                  </div>
-
-                  <mat-slide-toggle formControlName="mobileMoneyEnabled">
-                    Activer Mobile Money
-                  </mat-slide-toggle>
-
-                  <div class="operators-section" formGroupName="mobileMoneyOperators">
-                    <h3>Opérateurs Mobile Money</h3>
-                    <mat-slide-toggle formControlName="airtel">
-                      Airtel Money
-                    </mat-slide-toggle>
-                    <mat-slide-toggle formControlName="orange">
-                      Orange Money
-                    </mat-slide-toggle>
-                    <mat-slide-toggle formControlName="mvola">
-                      MVola
-                    </mat-slide-toggle>
-                  </div>
-
-                  <div class="fees-section" formGroupName="transferFees">
-                    <h3>Frais de transfert (%)</h3>
-                    <div class="form-row">
-                      <mat-form-field appearance="outline" class="quarter-width">
-                        <mat-label>Airtel</mat-label>
-                        <input matInput type="number" step="0.1" formControlName="airtel">
-                      </mat-form-field>
-
-                      <mat-form-field appearance="outline" class="quarter-width">
-                        <mat-label>Orange</mat-label>
-                        <input matInput type="number" step="0.1" formControlName="orange">
-                      </mat-form-field>
-
-                      <mat-form-field appearance="outline" class="quarter-width">
-                        <mat-label>MVola</mat-label>
-                        <input matInput type="number" step="0.1" formControlName="mvola">
-                      </mat-form-field>
-
-                      <mat-form-field appearance="outline" class="quarter-width">
-                        <mat-label>Interne</mat-label>
-                        <input matInput type="number" step="0.1" formControlName="internal">
-                      </mat-form-field>
-                    </div>
-                  </div>
-                </mat-card-content>
-                <mat-card-actions>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="paymentForm.invalid || isSaving">
-                    <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
-                    <span *ngIf="!isSaving">Enregistrer</span>
-                  </button>
-                </mat-card-actions>
-              </mat-card>
-            </form>
-          </div>
-        </mat-tab>
-
-        <!-- Onglet Notifications -->
-        <mat-tab label="Notifications">
-          <div class="tab-content">
-            <form [formGroup]="notificationForm" (ngSubmit)="saveNotificationSettings()">
-              <mat-card class="settings-card">
-                <mat-card-header>
-                  <mat-icon mat-card-avatar>notifications</mat-icon>
-                  <mat-card-title>Notifications système</mat-card-title>
-                  <mat-card-subtitle>Configuration des alertes</mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                  <div class="notifications-section">
-                    <mat-slide-toggle formControlName="emailNotifications">
-                      Notifications par email
-                    </mat-slide-toggle>
-
-                    <mat-slide-toggle formControlName="smsNotifications">
-                      Notifications par SMS
-                    </mat-slide-toggle>
-
-                    <mat-slide-toggle formControlName="pushNotifications">
-                      Notifications push
-                    </mat-slide-toggle>
-
-                    <mat-form-field appearance="outline" class="full-width">
-                      <mat-label>Fréquence des emails</mat-label>
-                      <mat-select formControlName="emailFrequency">
-                        <mat-option *ngFor="let freq of emailFrequencies" [value]="freq.value">
-                          {{ freq.label }}
-                        </mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
-
-                  <div class="admin-alerts" formGroupName="adminAlerts">
-                    <h3>Alertes administrateur</h3>
-                    <mat-slide-toggle formControlName="newUser">
-                      Nouvel utilisateur
-                    </mat-slide-toggle>
-                    <mat-slide-toggle formControlName="newTransaction">
-                      Nouvelle transaction
-                    </mat-slide-toggle>
-                    <mat-slide-toggle formControlName="largeTransaction">
-                      Transaction importante
-                    </mat-slide-toggle>
-                    <mat-slide-toggle formControlName="securityAlert">
-                      Alerte sécurité
-                    </mat-slide-toggle>
-                    <mat-slide-toggle formControlName="systemError">
-                      Erreur système
-                    </mat-slide-toggle>
-                  </div>
-                </mat-card-content>
-                <mat-card-actions>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="notificationForm.invalid || isSaving">
-                    <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
-                    <span *ngIf="!isSaving">Enregistrer</span>
-                  </button>
-                </mat-card-actions>
-              </mat-card>
-            </form>
-          </div>
-        </mat-tab>
-
-        <!-- Onglet Personnalisation -->
+        <!-- ONGLET APPARENCE -->
         <mat-tab label="Apparence">
           <div class="tab-content">
-            <form [formGroup]="customizationForm" (ngSubmit)="saveCustomizationSettings()">
-              <mat-card class="settings-card">
-                <mat-card-header>
-                  <mat-icon mat-card-avatar>palette</mat-icon>
-                  <mat-card-title>Personnalisation</mat-card-title>
-                  <mat-card-subtitle>Thème et apparence</mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Thème</mat-label>
-                    <mat-select formControlName="theme">
-                      <mat-option *ngFor="let theme of themes" [value]="theme.value">
-                        {{ theme.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Couleur primaire</mat-label>
-                      <input matInput type="color" formControlName="primaryColor">
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Couleur secondaire</mat-label>
-                      <input matInput type="color" formControlName="secondaryColor">
-                    </mat-form-field>
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>palette</mat-icon>
+                <mat-card-title>Personnalisation</mat-card-title>
+                <mat-card-subtitle>Thème et apparence</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <form [formGroup]="customizationForm">
+                  
+                  <!-- Sélecteur de thème -->
+                  <div class="form-group">
+                    <label class="form-label">Thème</label>
+                    <div class="theme-buttons">
+                      <button 
+                        type="button"
+                        *ngFor="let theme of themes" 
+                        class="theme-btn"
+                        [class.active]="customizationForm.get('theme')?.value === theme.value"
+                        (click)="setTheme(theme.value)">
+                        <mat-icon>{{ theme.icon }}</mat-icon>
+                        <span>{{ theme.label }}</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>CSS personnalisé</mat-label>
-                    <textarea matInput rows="4" formControlName="customCSS"></textarea>
-                  </mat-form-field>
+                  <!-- Sélecteur de langue -->
+                  <div class="form-group">
+                    <label class="form-label">Langue</label>
+                    <div class="language-buttons">
+                      <button 
+                        type="button"
+                        *ngFor="let lang of languages" 
+                        class="language-btn"
+                        [class.active]="selectedLanguage === lang.value"
+                        (click)="setLanguage(lang.value)">
+                        <span class="flag">{{ lang.flag }}</span>
+                        <span>{{ lang.label }}</span>
+                      </button>
+                    </div>
+                  </div>
 
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>JavaScript personnalisé</mat-label>
-                    <textarea matInput rows="4" formControlName="customJS"></textarea>
-                  </mat-form-field>
-                </mat-card-content>
-                <mat-card-actions>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="customizationForm.invalid || isSaving">
-                    <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
-                    <span *ngIf="!isSaving">Enregistrer</span>
-                  </button>
-                </mat-card-actions>
-              </mat-card>
-            </form>
+                  <!-- Couleurs -->
+                  <div class="form-row">
+                    <div class="half-width">
+                      <label class="form-label">Couleur primaire</label>
+                      <input 
+                        type="color" 
+                        class="color-input"
+                        [value]="customizationForm.get('primaryColor')?.value"
+                        (change)="updatePrimaryColor($event)">
+                    </div>
+                    <div class="half-width">
+                      <label class="form-label">Couleur secondaire</label>
+                      <input 
+                        type="color" 
+                        class="color-input"
+                        [value]="customizationForm.get('secondaryColor')?.value"
+                        (change)="updateSecondaryColor($event)">
+                    </div>
+                  </div>
+
+                  <!-- CSS personnalisé -->
+                  <div class="form-group">
+                    <label class="form-label">CSS personnalisé</label>
+                    <textarea 
+                      class="custom-textarea"
+                      rows="4"
+                      [value]="customizationForm.get('customCSS')?.value"
+                      (input)="updateCustomCSS($event)">
+                    </textarea>
+                  </div>
+
+                </form>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-raised-button color="primary" (click)="saveCustomizationSettings()">
+                  Enregistrer les modifications
+                </button>
+              </mat-card-actions>
+            </mat-card>
           </div>
         </mat-tab>
 
-        <!-- Onglet Système -->
+        <!-- ONGLET SYSTÈME -->
         <mat-tab label="Système">
           <div class="tab-content">
             <mat-card class="settings-card">
@@ -431,18 +200,6 @@
                     <span class="stat-value">{{ versions.angular }}</span>
                   </div>
                   <div class="stat-item">
-                    <span class="stat-label">Node.js</span>
-                    <span class="stat-value">{{ versions.node }}</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">MongoDB</span>
-                    <span class="stat-value">{{ versions.mongodb }}</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">NestJS</span>
-                    <span class="stat-value">{{ versions.nestjs }}</span>
-                  </div>
-                  <div class="stat-item">
                     <span class="stat-label">Uptime</span>
                     <span class="stat-value">{{ systemStats.uptime }}</span>
                   </div>
@@ -450,42 +207,13 @@
                     <span class="stat-label">Mémoire</span>
                     <span class="stat-value">{{ systemStats.memoryUsage }}</span>
                   </div>
-                  <div class="stat-item">
-                    <span class="stat-label">CPU</span>
-                    <span class="stat-value">{{ systemStats.cpuUsage }}</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Base de données</span>
-                    <span class="stat-value">{{ systemStats.databaseSize }}</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Utilisateurs actifs</span>
-                    <span class="stat-value">{{ systemStats.activeUsers }}</span>
-                  </div>
-                </div>
-              </mat-card-content>
-            </mat-card>
-
-            <mat-card class="settings-card">
-              <mat-card-header>
-                <mat-icon mat-card-avatar>history</mat-icon>
-                <mat-card-title>Logs système</mat-card-title>
-                <mat-card-subtitle>Activité récente</mat-card-subtitle>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="logs-list">
-                  <div *ngFor="let log of systemLogs" class="log-item" [ngClass]="getLogLevelClass(log.level)">
-                    <span class="log-time">{{ formatLogDate(log.date) }}</span>
-                    <span class="log-level" [class]="log.level">{{ log.level }}</span>
-                    <span class="log-message">{{ log.message }}</span>
-                    <span class="log-user">{{ log.user }}</span>
-                  </div>
                 </div>
               </mat-card-content>
             </mat-card>
           </div>
         </mat-tab>
+
       </mat-tab-group>
     </ng-container>
   </div>
-</app-sidebar>
+</div>

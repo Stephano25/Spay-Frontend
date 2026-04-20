@@ -9,7 +9,7 @@
     "test": "ng test"
   },
   "dependencies": {
-    "@angular/animations": "^19.2.0",
+    "@angular/animations": "^19.2.21",
     "@angular/cdk": "^19.2.0",
     "@angular/common": "^19.2.0",
     "@angular/compiler": "^19.2.0",
