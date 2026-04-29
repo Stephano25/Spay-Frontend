@@ -443,3 +443,167 @@ body.dark-theme .admin-badge {
   background: rgba(255, 255, 255, 0.1) !important;
   color: white !important;
 }
+/* ============================================
+   VARIABLES DE TAILLE DE POLICE GLOBALES
+   ============================================ */
+
+/* Tailles de police globales */
+:root {
+  /* Tailles par défaut */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-md: 1.125rem;    /* 18px */
+  --font-size-lg: 1.25rem;     /* 20px */
+  --font-size-xl: 1.5rem;      /* 24px */
+  --font-size-2xl: 1.875rem;   /* 30px */
+  --font-size-3xl: 2.25rem;    /* 36px */
+}
+
+/* Police petite (small) */
+.font-small {
+  --font-size-xs: 0.625rem;    /* 10px */
+  --font-size-sm: 0.75rem;     /* 12px */
+  --font-size-base: 0.875rem;  /* 14px */
+  --font-size-md: 1rem;        /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+}
+
+/* Police moyenne (medium) */
+.font-medium {
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-md: 1.125rem;    /* 18px */
+  --font-size-lg: 1.25rem;     /* 20px */
+  --font-size-xl: 1.5rem;      /* 24px */
+  --font-size-2xl: 1.875rem;   /* 30px */
+  --font-size-3xl: 2.25rem;    /* 36px */
+}
+
+/* Police grande (large) */
+.font-large {
+  --font-size-xs: 0.875rem;    /* 14px */
+  --font-size-sm: 1rem;        /* 16px */
+  --font-size-base: 1.125rem;  /* 18px */
+  --font-size-md: 1.25rem;     /* 20px */
+  --font-size-lg: 1.5rem;      /* 24px */
+  --font-size-xl: 1.75rem;     /* 28px */
+  --font-size-2xl: 2rem;       /* 32px */
+  --font-size-3xl: 2.5rem;     /* 40px */
+}
+
+/* Application des variables à tous les éléments */
+* {
+  font-size: var(--font-size-base);
+}
+
+/* Classes utilitaires pour les tailles de police spécifiques */
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-md { font-size: var(--font-size-md); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+.text-3xl { font-size: var(--font-size-3xl); }
+
+/* Titres avec tailles dynamiques */
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
+h5, h6 { font-size: var(--font-size-md); }
+
+/* Éléments Material */
+.mat-toolbar, .mat-toolbar span, .mat-toolbar button {
+  font-size: var(--font-size-base);
+}
+
+.mat-card-title {
+  font-size: var(--font-size-lg) !important;
+}
+
+.mat-card-subtitle {
+  font-size: var(--font-size-sm) !important;
+}
+
+.mat-form-field, .mat-input-element {
+  font-size: var(--font-size-base) !important;
+}
+
+.mat-option {
+  font-size: var(--font-size-base) !important;
+}
+
+.mat-menu-item {
+  font-size: var(--font-size-base) !important;
+}
+
+.mat-tab-label {
+  font-size: var(--font-size-base) !important;
+}
+
+.mat-slide-toggle {
+  font-size: var(--font-size-base) !important;
+}
+
+/* Messages et bulles de chat */
+.message-content .text-message {
+  font-size: var(--font-size-base);
+}
+
+.message-time {
+  font-size: var(--font-size-xs);
+}
+
+/* Liste des amis */
+.contact-name {
+  font-size: var(--font-size-base);
+}
+
+.last-message {
+  font-size: var(--font-size-sm);
+}
+
+/* Wallet */
+.balance-amount {
+  font-size: var(--font-size-3xl);
+}
+
+.stat-value {
+  font-size: var(--font-size-lg);
+}
+
+/* Boutons */
+button, .btn, .mat-button, .mat-raised-button {
+  font-size: var(--font-size-base);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .font-small {
+    --font-size-xs: 0.5625rem;  /* 9px */
+    --font-size-sm: 0.6875rem;  /* 11px */
+    --font-size-base: 0.75rem;  /* 12px */
+    --font-size-md: 0.875rem;   /* 14px */
+    --font-size-lg: 1rem;       /* 16px */
+    --font-size-xl: 1.125rem;   /* 18px */
+    --font-size-2xl: 1.25rem;   /* 20px */
+    --font-size-3xl: 1.5rem;    /* 24px */
+  }
+  
+  .font-large {
+    --font-size-xs: 0.75rem;    /* 12px */
+    --font-size-sm: 0.875rem;   /* 14px */
+    --font-size-base: 1rem;     /* 16px */
+    --font-size-md: 1.125rem;   /* 18px */
+    --font-size-lg: 1.25rem;    /* 20px */
+    --font-size-xl: 1.5rem;     /* 24px */
+    --font-size-2xl: 1.75rem;   /* 28px */
+    --font-size-3xl: 2rem;      /* 32px */
+  }
+}

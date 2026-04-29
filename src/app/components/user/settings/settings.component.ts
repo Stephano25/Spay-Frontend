@@ -8,10 +8,10 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { UserService, UserSettings } from '../../../services/user.service';
-import { TranslationService } from '../../../services/translation.service';  // AJOUT
+import { TranslationService } from '../../../services/translation.service';
 
 // Pipes
-import { TranslatePipe } from '../../../pipes/translate.pipe';  // AJOUT
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 // Models
 import { User } from '../../../models/user.model';
@@ -56,7 +56,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatRadioModule,
     MatSliderModule,
     MatTooltipModule,
-    TranslatePipe  // AJOUT
+    TranslatePipe
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
@@ -144,7 +144,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private notificationService: NotificationService,
     private router: Router,
-    private translationService: TranslationService  // AJOUT
+    private translationService: TranslationService
   ) {
     // Initialiser les formulaires
     this.profileForm = this.fb.group({
@@ -206,7 +206,6 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   private loadSettings(): void {
     this.isLoading = true;
     
-    // Essayer de charger depuis le localStorage d'abord
     const savedSettings = localStorage.getItem('user_settings');
     if (savedSettings) {
       try {
@@ -216,15 +215,18 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Appliquer la langue sauvegardée
+    // Appliquer la taille de police au chargement
+    this.applyFontSize();
+    this.applyTheme();
     this.translationService.setLanguage(this.settings.appearance.language);
 
-    // Puis charger depuis l'API (si disponible)
     this.subscriptions.push(
       this.userService.getUserSettings().subscribe({
         next: (settings: UserSettings) => {
           this.settings = { ...this.settings, ...settings };
           this.saveSettingsToStorage();
+          this.applyFontSize();
+          this.applyTheme();
           this.isLoading = false;
         },
         error: (error: any) => {
@@ -322,7 +324,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   saveAppearanceSettings(): void {
     this.saveSettings();
     this.applyTheme();
-    // Appliquer la langue choisie
+    this.applyFontSize();
     this.translationService.setLanguage(this.settings.appearance.language);
     this.notificationService.showSuccess('Paramètres d\'apparence sauvegardés');
   }
@@ -333,7 +335,6 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   private saveSettings(): void {
     this.saveSettingsToStorage();
     
-    // Envoyer à l'API si disponible
     this.subscriptions.push(
       this.userService.updateUserSettings(this.settings).subscribe({
         next: () => {
@@ -359,6 +360,29 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     } else {
       document.body.classList.add(`${theme}-theme`);
     }
+  }
+
+  /**
+   * Appliquer la taille de police sur toute l'application
+   */
+  private applyFontSize(): void {
+    const fontSize = this.settings.appearance.fontSize;
+    const body = document.body;
+    
+    // Supprimer les classes existantes
+    body.classList.remove('font-small', 'font-medium', 'font-large');
+    
+    // Ajouter la nouvelle classe
+    if (fontSize === 'small') {
+      body.classList.add('font-small');
+    } else if (fontSize === 'medium') {
+      body.classList.add('font-medium');
+    } else if (fontSize === 'large') {
+      body.classList.add('font-large');
+    }
+    
+    // Sauvegarder le choix dans localStorage pour persistance
+    localStorage.setItem('font-size', fontSize);
   }
 
   /**
@@ -394,6 +418,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
       };
       this.saveSettings();
       this.applyTheme();
+      this.applyFontSize();
       this.translationService.setLanguage('fr');
       this.notificationService.showInfo('Paramètres réinitialisés');
     }
