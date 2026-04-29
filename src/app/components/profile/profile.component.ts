@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
+import { environment } from '../../../environments/environment';
 
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -43,7 +44,6 @@ export class ProfileComponent implements OnInit {
   isSaving = false;
   isUploading = false;
   
-  // Pour la prévisualisation de la photo
   previewImage: string | null = null;
   selectedFile: File | null = null;
 
@@ -57,15 +57,26 @@ export class ProfileComponent implements OnInit {
     this.loadUserData();
   }
 
+  /**
+   * Construire l'URL complète de l'image
+   */
+  getFullImageUrl(url: string): string {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads')) {
+      return `${environment.baseUrl}${url}`;
+    }
+    return url;
+  }
+
   loadUserData() {
     this.isLoading = true;
     this.authService.currentUser.subscribe({
       next: (user) => {
         if (user) {
           this.user = user;
-          // Charger la photo de profil si elle existe
           if (user.profilePicture) {
-            this.previewImage = user.profilePicture;
+            this.previewImage = this.getFullImageUrl(user.profilePicture);
           }
         }
         this.isLoading = false;
@@ -80,26 +91,20 @@ export class ProfileComponent implements OnInit {
   toggleEditMode() {
     this.editMode = !this.editMode;
     if (!this.editMode) {
-      // Réinitialiser la prévisualisation quand on annule
-      this.previewImage = this.user?.profilePicture || null;
+      this.previewImage = this.user?.profilePicture ? this.getFullImageUrl(this.user.profilePicture) : null;
       this.selectedFile = null;
     }
   }
 
-  /**
-   * Sélectionner un fichier pour la photo de profil
-   */
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (!file) return;
     
-    // Vérifier le type de fichier
     if (!file.type.startsWith('image/')) {
       this.notificationService.showError('Veuillez sélectionner une image');
       return;
     }
     
-    // Vérifier la taille (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       this.notificationService.showError('L\'image ne doit pas dépasser 5MB');
       return;
@@ -107,7 +112,6 @@ export class ProfileComponent implements OnInit {
     
     this.selectedFile = file;
     
-    // Créer une prévisualisation
     const reader = new FileReader();
     reader.onload = (e: any) => {
       this.previewImage = e.target.result;
@@ -115,9 +119,6 @@ export class ProfileComponent implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  /**
-   * Uploader la photo de profil
-   */
   uploadProfilePicture(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.selectedFile) {
@@ -126,14 +127,15 @@ export class ProfileComponent implements OnInit {
       }
       
       this.isUploading = true;
-      
       const formData = new FormData();
       formData.append('profilePicture', this.selectedFile);
       
       this.authService.uploadProfilePicture(formData).subscribe({
         next: (response: any) => {
+          // Sauvegarder l'URL relative
           this.user.profilePicture = response.profilePictureUrl;
-          this.previewImage = response.profilePictureUrl;
+          // Afficher l'URL complète
+          this.previewImage = this.getFullImageUrl(response.profilePictureUrl);
           this.selectedFile = null;
           this.isUploading = false;
           this.authService.updateCurrentUser(this.user);
@@ -149,9 +151,6 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  /**
-   * Supprimer la photo de profil
-   */
   removeProfilePicture(): void {
     if (confirm('Voulez-vous vraiment supprimer votre photo de profil ?')) {
       this.isUploading = true;
@@ -178,7 +177,6 @@ export class ProfileComponent implements OnInit {
     this.isSaving = true;
     
     try {
-      // Uploader la photo si elle a été sélectionnée
       await this.uploadProfilePicture();
       
       const updatedUser = {
