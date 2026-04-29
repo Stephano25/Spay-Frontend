@@ -6,7 +6,7 @@ import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
 import { FriendService } from './friend.service';
 import { environment } from '../../environments/environment';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, filter, distinctUntilChanged } from 'rxjs/operators';
 
 export interface Message {
   id: string;
@@ -72,12 +72,19 @@ export class ChatService implements OnDestroy {
   private onlineStatusSubject = new BehaviorSubject<{ userId: string; isOnline: boolean; lastSeen?: Date } | null>(null);
   private blockStatusSubject = new BehaviorSubject<{ userId: string; isBlocked: boolean; blockedBy?: string } | null>(null);
   
-  public newMessage$ = this.newMessageSubject.asObservable();
+  // Set pour éviter les doublons de messages
+  private processedMessageIds: Set<string> = new Set();
+  
+  public newMessage$ = this.newMessageSubject.asObservable().pipe(
+    filter(msg => msg !== null),
+    distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
+  );
   public typing$ = this.typingSubject.asObservable();
   public onlineStatus$ = this.onlineStatusSubject.asObservable();
   public blockStatus$ = this.blockStatusSubject.asObservable();
 
   private currentUserId: string = '';
+  private isConnectedFlag: boolean = false;
 
   constructor(
     private http: HttpClient,
@@ -92,11 +99,12 @@ export class ChatService implements OnDestroy {
 
   ngOnDestroy() {
     this.disconnect();
+    this.processedMessageIds.clear();
   }
 
   private connectSocket(): void {
     const token = this.authService.getToken();
-    if (!token) return;
+    if (!token || this.isConnectedFlag) return;
 
     try {
       this.socket = io(this.socketUrl, {
@@ -107,16 +115,45 @@ export class ChatService implements OnDestroy {
         reconnectionDelay: 1000
       });
 
-      this.socket.on('connect', () => console.log('✅ Socket connecté'));
-      this.socket.on('disconnect', () => console.log('❌ Socket déconnecté'));
+      this.socket.on('connect', () => {
+        console.log('✅ Socket connecté');
+        this.isConnectedFlag = true;
+      });
+      
+      this.socket.on('disconnect', () => {
+        console.log('❌ Socket déconnecté');
+        this.isConnectedFlag = false;
+      });
 
       this.socket.on('newMessage', (message: Message) => {
+        // Vérifier si le message a déjà été traité
+        if (this.processedMessageIds.has(message.id)) {
+          console.log('Message déjà traité, ignoré:', message.id);
+          return;
+        }
+        
+        // Ajouter l'ID du message aux messages traités
+        this.processedMessageIds.add(message.id);
+        
+        // Nettoyer le Set périodiquement pour éviter une accumulation excessive
+        setTimeout(() => {
+          this.processedMessageIds.delete(message.id);
+        }, 10000); // Supprimer après 10 secondes
+        
         this.newMessageSubject.next(message);
         this.playNotificationSound();
         if (document.hidden) this.showBrowserNotification(message);
       });
 
-      this.socket.on('messageSent', (message: Message) => console.log('✅ Message envoyé:', message));
+      this.socket.on('messageSent', (message: Message) => {
+        console.log('✅ Message envoyé:', message);
+        // Éviter de traiter le message envoyé comme un nouveau message
+        if (!this.processedMessageIds.has(message.id)) {
+          this.processedMessageIds.add(message.id);
+          this.newMessageSubject.next(message);
+        }
+      });
+      
       this.socket.on('userTyping', (data: TypingIndicator) => this.typingSubject.next(data));
       this.socket.on('userOnline', (data: { userId: string; isOnline: boolean }) => {
         this.onlineStatusSubject.next(data);
@@ -257,14 +294,29 @@ export class ChatService implements OnDestroy {
 
   private playNotificationSound(): void {
     try {
-      const audio = new Audio('/assets/sounds/notification.mp3');
-      audio.play().catch(() => {});
-    } catch (error) {}
+      // Utiliser un son par défaut du navigateur plutôt qu'un fichier externe
+      const audio = new Audio();
+      // Utiliser une data URI pour un bip simple (optionnel)
+      // Ou simplement désactiver le son en développement
+      if (environment.production) {
+        audio.src = '/assets/sounds/notification.mp3';
+        audio.play().catch(() => console.log('Son de notification non disponible'));
+      }
+      // En développement, ne pas jouer de son
+    } catch (error) {
+      console.log('Lecture du son impossible');
+    }
   }
 
   private showBrowserNotification(message: Message): void {
     if (!('Notification' in window)) return;
     if (Notification.permission === 'granted') {
+      // Éviter les doublons de notification
+      const notificationKey = `notif-${message.id}`;
+      if (sessionStorage.getItem(notificationKey)) return;
+      sessionStorage.setItem(notificationKey, 'sent');
+      setTimeout(() => sessionStorage.removeItem(notificationKey), 5000);
+      
       new Notification('Nouveau message', {
         body: message.content || 'Vous avez reçu un message',
         icon: '/assets/icons/icon-72x72.png'
@@ -284,10 +336,16 @@ export class ChatService implements OnDestroy {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
+      this.isConnectedFlag = false;
     }
   }
 
   isConnected(): boolean {
     return this.socket?.connected || false;
+  }
+  
+  // Méthode pour réinitialiser les messages traités (utile en cas de déconnexion)
+  resetProcessedMessages(): void {
+    this.processedMessageIds.clear();
   }
 }

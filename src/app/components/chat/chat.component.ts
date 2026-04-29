@@ -77,6 +77,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private typingUsers: Set<string> = new Set();
   private messagesCache: Map<string, Message[]> = new Map();
+  private pendingTempMessages: Map<string, string> = new Map(); // Pour suivre les messages temporaires
 
   constructor(
     private chatService: ChatService,
@@ -112,6 +113,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     clearTimeout(this.typingTimeout);
+    this.pendingTempMessages.clear();
   }
 
   // ========== MÉTHODES DE TOGGLE ==========
@@ -145,16 +147,13 @@ export class ChatComponent implements OnInit, OnDestroy {
         console.log('Amis reçus:', result.friends);
         console.log('Demandes reçues:', result.requests);
         
-        // Afficher la structure du premier ami pour déboguer
         if (result.friends.length > 0) {
           console.log('Structure du premier ami:', JSON.stringify(result.friends[0], null, 2));
         }
         
-        // Filtrer les amis acceptés
         this.friends = result.friends.filter(f => f.status === 'accepted');
         this.friendRequests = result.requests;
         
-        // Construire les listes d'affichage
         this.buildFriendsLists();
         
         this.isLoading = false;
@@ -172,38 +171,24 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private buildFriendsLists(): void {
-    // Construire la liste des amis avec des IDs uniques pour le tracking
     this.allFriendsList = this.friends.map((friend, index) => {
-      // D'après la structure des logs:
-      // {
-      //   "id": "...",
-      //   "userId": "...",  <- ID de l'utilisateur courant (à NE PAS utiliser)
-      //   "friendId": "...", <- ID de l'ami (à UTILISER!)
-      //   "friend": { firstName, lastName, ... }
-      // }
-      
       let friendUserId = '';
       
-      // Utiliser friend.friendId qui contient l'ID de l'ami
       if (friend.friendId) {
         friendUserId = friend.friendId;
       } else if (friend.friend?.id) {
         friendUserId = friend.friend.id;
       }
       
-      // Si toujours pas d'ID, ne pas inclure cet ami
       if (!friendUserId) {
         console.warn('Ami sans ID valide ignoré:', friend);
         return null;
       }
       
-      // Récupérer les informations depuis friend.friend
       const friendData = friend.friend;
       
       return {
-        // ID UNIQUE pour le tracking Angular (combinaison index + ID réel)
         trackId: `friend-${index}-${friendUserId}`,
-        // ID réel de l'ami pour les appels API
         userId: friendUserId,
         firstName: friendData?.firstName || 'Utilisateur',
         lastName: friendData?.lastName || '',
@@ -213,13 +198,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       };
     }).filter(friend => friend !== null);
     
-    // Filtrer les amis en ligne
     this.onlineFriendsList = this.allFriendsList.filter(f => f.isOnline === true);
-    
-    // Liste pour la recherche
     this.filteredFriendsList = [...this.allFriendsList];
     
-    // Construire la liste des demandes en attente
     this.pendingRequests = this.friendRequests.map((request, index) => ({
       id: request.id || `req-${index}`,
       senderFirstName: request.sender?.firstName || 'Utilisateur',
@@ -229,7 +210,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     console.log('Amis en ligne:', this.onlineFriendsList.length);
     console.log('Total amis valides:', this.allFriendsList.length);
-    console.log('Premier ami:', this.allFriendsList[0]);
   }
 
   // ========== RECHERCHE ==========
@@ -250,7 +230,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   // ========== SÉLECTION DES CONTACTS ==========
 
   selectFriendFromList(friend: any): void {
-    // Vérifier que l'ID est valide
     if (!friend?.userId) {
       console.error('ID ami invalide:', friend);
       this.notificationService.showError('Impossible de sélectionner cet ami');
@@ -302,9 +281,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   // ========== GESTION DES MESSAGES ==========
 
   loadMessages(userId: string): void {
-    // Vérifier que l'ID est valide avant l'appel API
     if (!userId || userId === '') {
-      console.error('ID utilisateur invalide pour charger les messages:', userId);
+      console.error('ID utilisateur invalide:', userId);
       this.notificationService.showError('ID utilisateur invalide');
       this.isLoadingMessages = false;
       return;
@@ -312,7 +290,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     const cached = this.messagesCache.get(userId);
     if (cached && this.selectedContact?.userId === userId) {
-      this.messages = cached;
+      this.messages = [...cached];
       this.scrollToBottom();
       return;
     }
@@ -324,8 +302,15 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     this.chatService.getMessages(userId).subscribe({
       next: (msgs) => {
-        this.messages = msgs || [];
-        this.messagesCache.set(userId, this.messages);
+        // Filtrer les messages temporaires et supprimer les doublons
+        let validMessages = (msgs || []).filter(m => !m.id.startsWith('temp-'));
+        const uniqueMap = new Map<string, Message>();
+        validMessages.forEach(msg => uniqueMap.set(msg.id, msg));
+        validMessages = Array.from(uniqueMap.values());
+        validMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        
+        this.messages = validMessages;
+        this.messagesCache.set(userId, [...this.messages]);
         this.isLoadingMessages = false;
         this.chatService.markAsRead(userId).subscribe();
         setTimeout(() => this.scrollToBottom(), 100);
@@ -347,7 +332,14 @@ export class ChatComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (oldMessages) => {
           if (oldMessages && oldMessages.length > 0) {
-            this.messages = [...oldMessages, ...this.messages];
+            const existingIds = new Set(this.messages.map(m => m.id));
+            const newMessages = oldMessages.filter(m => !existingIds.has(m.id) && !m.id.startsWith('temp-'));
+            
+            if (newMessages.length > 0) {
+              this.messages = [...newMessages, ...this.messages];
+              this.messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+              this.messagesCache.set(this.selectedContact.userId, [...this.messages]);
+            }
           }
           this.isLoadingMore = false;
           if (oldMessages.length < this.pageSize) {
@@ -374,17 +366,58 @@ export class ChatComponent implements OnInit, OnDestroy {
   private handleNewMessage(message: Message): void {
     if (!message) return;
     
-    const otherUserId = message.senderId === this.currentUserId ? message.receiverId : message.senderId;
+    // 🔥 IMPORTANT: Ignorer les messages envoyés par l'utilisateur courant
+    // Ces messages sont déjà affichés via le message temporaire dans sendMessage()
+    if (message.senderId === this.currentUserId) {
+      console.log('Message envoyé par moi-même, mise à jour du temporaire:', message.id);
+      
+      // Remplacer le message temporaire par le vrai message
+      const tempIndex = this.messages.findIndex(m => 
+        m.id.startsWith('temp-') && 
+        m.content === message.content && 
+        m.senderId === this.currentUserId
+      );
+      
+      if (tempIndex !== -1) {
+        // Remplacer le message temporaire
+        this.messages[tempIndex] = message;
+        
+        // Mettre à jour le cache
+        const cached = this.messagesCache.get(message.receiverId) || [];
+        const cacheIndex = cached.findIndex(m => m.id.startsWith('temp-') && m.content === message.content);
+        if (cacheIndex !== -1) {
+          cached[cacheIndex] = message;
+          this.messagesCache.set(message.receiverId, cached);
+        }
+        
+        // Trier les messages par date
+        this.messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        this.scrollToBottom();
+      }
+      return;
+    }
+    
+    // Pour les messages des autres utilisateurs, vérifier les doublons
+    const messageExists = this.messages.some(m => m.id === message.id);
+    if (messageExists) {
+      console.log('Message déjà existant, ignoré:', message.id);
+      return;
+    }
+    
+    const otherUserId = message.senderId;
+    
+    // Ajouter au cache
     const cached = this.messagesCache.get(otherUserId) || [];
     cached.push(message);
+    cached.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     this.messagesCache.set(otherUserId, cached);
     
-    if (this.selectedContact && (message.senderId === this.selectedContact.userId || message.receiverId === this.selectedContact.userId)) {
+    // Ajouter à l'affichage si c'est la conversation ouverte
+    if (this.selectedContact && this.selectedContact.userId === otherUserId) {
       this.messages.push(message);
+      this.messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       this.scrollToBottom();
-      if (message.senderId === this.selectedContact.userId) {
-        this.chatService.markAsRead(this.selectedContact.userId).subscribe();
-      }
+      this.chatService.markAsRead(otherUserId).subscribe();
     }
   }
 
@@ -412,44 +445,51 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (!this.newMessage.trim() || !this.selectedContact?.userId || this.isSending) return;
     this.isSending = true;
     
-    const message = { 
-      receiverId: this.selectedContact.userId, 
-      type: 'text' as const, 
-      content: this.newMessage.trim() 
-    };
+    const messageContent = this.newMessage.trim();
+    const tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
     
-    this.chatService.sendMessage(message);
-    
+    // Créer un message temporaire
     const tempMsg: Message = {
-      id: 'temp-' + Date.now(),
+      id: tempId,
       senderId: this.currentUserId,
       receiverId: this.selectedContact.userId,
       type: 'text',
-      content: this.newMessage.trim(),
+      content: messageContent,
       isRead: false,
       isDelivered: false,
       createdAt: new Date()
     };
+    
+    // Ajouter le message temporaire à l'affichage
     this.messages.push(tempMsg);
+    this.scrollToBottom();
+    
+    // Mettre à jour le dernier message du contact
+    if (this.selectedContact) {
+      this.selectedContact.lastMessage = messageContent;
+      this.selectedContact.lastMessageTime = Date.now();
+      this.selectedContact.hasConversation = true;
+    }
+    
+    // Envoyer via socket
+    const message = { 
+      receiverId: this.selectedContact.userId, 
+      type: 'text' as const, 
+      content: messageContent 
+    };
+    this.chatService.sendMessage(message);
+    
     this.newMessage = '';
     this.isSending = false;
-    this.scrollToBottom();
     this.chatService.sendTyping(this.selectedContact.userId, false);
   }
 
   sendEmoji(emoji: string): void {
     if (!this.selectedContact?.userId) return;
     
-    const message = { 
-      receiverId: this.selectedContact.userId, 
-      type: 'emoji' as const, 
-      emoji: emoji 
-    };
-    
-    this.chatService.sendMessage(message);
-    
+    const tempId = 'temp-emoji-' + Date.now();
     const tempMsg: Message = {
-      id: 'temp-' + Date.now(),
+      id: tempId,
       senderId: this.currentUserId,
       receiverId: this.selectedContact.userId,
       type: 'emoji',
@@ -459,6 +499,14 @@ export class ChatComponent implements OnInit, OnDestroy {
       createdAt: new Date()
     };
     this.messages.push(tempMsg);
+    
+    const message = { 
+      receiverId: this.selectedContact.userId, 
+      type: 'emoji' as const, 
+      emoji: emoji 
+    };
+    this.chatService.sendMessage(message);
+    
     this.showEmojiPicker = false;
     this.scrollToBottom();
   }
@@ -467,15 +515,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (!this.selectedContact?.userId) return;
     const amount = prompt(`Montant à envoyer à ${this.selectedContact.firstName}:`, '1000');
     if (amount && !isNaN(Number(amount)) && Number(amount) > 0) {
-      const message = {
-        receiverId: this.selectedContact.userId,
-        type: 'money' as const,
-        moneyTransfer: { amount: Number(amount) }
-      };
-      this.chatService.sendMessage(message);
-      
+      const tempId = 'temp-money-' + Date.now();
       const tempMsg: Message = {
-        id: 'temp-' + Date.now(),
+        id: tempId,
         senderId: this.currentUserId,
         receiverId: this.selectedContact.userId,
         type: 'money',
@@ -485,6 +527,13 @@ export class ChatComponent implements OnInit, OnDestroy {
         createdAt: new Date()
       };
       this.messages.push(tempMsg);
+      
+      const message = {
+        receiverId: this.selectedContact.userId,
+        type: 'money' as const,
+        moneyTransfer: { amount: Number(amount) }
+      };
+      this.chatService.sendMessage(message);
       this.scrollToBottom();
     }
   }
@@ -507,18 +556,9 @@ export class ChatComponent implements OnInit, OnDestroy {
         if (!result.url) return;
         const type = file.type.startsWith('image/') ? 'image' : 'file';
         
-        const message = {
-          receiverId: this.selectedContact.userId,
-          type: type as 'image' | 'file',
-          fileUrl: result.url,
-          fileName: result.fileName,
-          fileSize: result.fileSize
-        };
-        
-        this.chatService.sendMessage(message);
-        
+        const tempId = 'temp-file-' + Date.now();
         const tempMsg: Message = {
-          id: 'temp-' + Date.now(),
+          id: tempId,
           senderId: this.currentUserId,
           receiverId: this.selectedContact.userId,
           type: type as 'image' | 'file',
@@ -530,6 +570,16 @@ export class ChatComponent implements OnInit, OnDestroy {
           createdAt: new Date()
         };
         this.messages.push(tempMsg);
+        
+        const message = {
+          receiverId: this.selectedContact.userId,
+          type: type as 'image' | 'file',
+          fileUrl: result.url,
+          fileName: result.fileName,
+          fileSize: result.fileSize
+        };
+        
+        this.chatService.sendMessage(message);
         this.isSending = false;
         this.scrollToBottom();
       },
