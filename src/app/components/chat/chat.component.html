@@ -44,7 +44,7 @@
       <div class="menu-content" [class.expanded]="showFriendsList">
         @if (allFriendsList.length > 0) {
           <div class="friends-list-menu">
-            @for (friend of filteredFriendsList; track friend.userId) {
+            @for (friend of onlineFriendsList; track friend.userId) {
               <div class="friend-menu-item" (click)="selectFriendFromList(friend)">
                 <div class="friend-avatar small" [style.background]="getAvatarColor(friend.firstName)">
                   {{ getInitials(friend.firstName, friend.lastName) }}

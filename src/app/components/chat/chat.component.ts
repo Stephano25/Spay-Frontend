@@ -43,7 +43,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   friends: Friend[] = [];
   friendRequests: FriendRequest[] = [];
   
-  // Listes pour l'affichage (CORRIGÉES)
+  // Listes pour l'affichage
   allFriendsList: any[] = [];
   onlineFriendsList: any[] = [];
   filteredFriendsList: any[] = [];
@@ -58,6 +58,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   // États UI
   newMessage = '';
   isLoading = true;
+  isLoadingFriends: boolean = false;
   isLoadingMessages = false;
   isSending = false;
   isTyping = false;
@@ -123,10 +124,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.showRequestsList = !this.showRequestsList;
   }
 
-  // ========== CHARGEMENT DES DONNÉES (CORRIGÉ) ==========
+  // ========== CHARGEMENT DES DONNÉES ==========
 
   private loadData(): void {
     this.isLoading = true;
+    this.isLoadingFriends = true;
     console.log('Chargement des données...');
     
     forkJoin({
@@ -151,11 +153,13 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.buildFriendsLists();
         
         this.isLoading = false;
+        this.isLoadingFriends = false;
         console.log('Liste des amis construite:', this.allFriendsList);
       },
       error: (error) => {
         console.error('Error loading data:', error);
         this.isLoading = false;
+        this.isLoadingFriends = false;
         this.allFriendsList = [];
         this.onlineFriendsList = [];
       }
@@ -163,9 +167,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private buildFriendsLists(): void {
-    // Construire la liste des amis à partir des données
-    this.allFriendsList = this.friends.map(friend => ({
-      userId: friend.friend?.id || '',
+    // Construire la liste des amis à partir des données avec des ID uniques
+    this.allFriendsList = this.friends.map((friend, index) => ({
+      id: `friend-${index}`, // ID unique pour le tracking
+      userId: friend.friend?.id || `temp-${index}`,
       firstName: friend.friend?.firstName || 'Utilisateur',
       lastName: friend.friend?.lastName || '',
       profilePicture: friend.friend?.profilePicture,
@@ -180,8 +185,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.filteredFriendsList = [...this.allFriendsList];
     
     // Construire la liste des demandes en attente
-    this.pendingRequests = this.friendRequests.map(request => ({
-      id: request.id,
+    this.pendingRequests = this.friendRequests.map((request, index) => ({
+      id: request.id || `req-${index}`,
       senderFirstName: request.sender?.firstName || 'Utilisateur',
       senderLastName: request.sender?.lastName || '',
       senderEmail: request.sender?.email || ''
@@ -351,7 +356,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (this.selectedContact?.userId === data.userId) {
       this.selectedContact.isOnline = data.isOnline;
     }
-    // Mettre à jour les listes
     this.onlineFriendsList = this.allFriendsList.filter(f => f.isOnline === true);
   }
 
