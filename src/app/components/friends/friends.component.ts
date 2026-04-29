@@ -110,6 +110,12 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.showRequestsList = !this.showRequestsList;
   }
 
+  // ========== NAVIGATION ==========
+
+  goBack(): void {
+    this.router.navigate(['/user']);
+  }
+
   // ========== CHARGEMENT DES DONNÉES ==========
 
   loadData(): void {

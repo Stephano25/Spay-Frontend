@@ -17,12 +17,12 @@
     @if (isLoading) {
       <div class="skeleton-card"></div>
       <div class="skeleton-grid">
-        @for (let i of [1,2,3,4]; track i) {
+        @for (i of [1,2,3,4]; track i) {
           <div class="skeleton-item"></div>
         }
       </div>
       <div class="skeleton-stats">
-        @for (let i of [1,2,3]; track i) {
+        @for (i of [1,2,3]; track i) {
           <div class="skeleton-stat"></div>
         }
       </div>
@@ -154,6 +154,7 @@
           </div>
         }
       </div>
+
     }
   </div>
 </div>

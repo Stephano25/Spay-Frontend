@@ -761,3 +761,46 @@
     opacity: 0.7;
   }
 }
+
+/* Bouton de retour flottant */
+.fab-back {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.fab-back:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.6);
+}
+
+.fab-back mat-icon {
+  font-size: 24px;
+}
+
+/* Cacher le bouton flottant sur desktop */
+@media (min-width: 769px) {
+  .fab-back {
+    display: none;
+  }
+}
+
+/* Afficher le bouton flottant seulement sur mobile */
+@media (max-width: 768px) {
+  .fab-back {
+    display: flex;
+  }
+}
