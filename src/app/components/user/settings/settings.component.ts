@@ -8,13 +8,13 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { UserService, UserSettings } from '../../../services/user.service';
+import { TranslationService } from '../../../services/translation.service';  // AJOUT
+
+// Pipes
+import { TranslatePipe } from '../../../pipes/translate.pipe';  // AJOUT
 
 // Models
 import { User } from '../../../models/user.model';
-
-// Components
-import { SidebarComponent } from '../../layout/sidebar/sidebar.component';
-import { NavigationHeaderComponent } from '../../layout/navigation-header/navigation-header.component';
 
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -41,8 +41,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    SidebarComponent,           // ← AJOUTER CET IMPORT
-    NavigationHeaderComponent,   // ← AJOUTER CET IMPORT
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -57,7 +55,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatProgressSpinnerModule,
     MatRadioModule,
     MatSliderModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TranslatePipe  // AJOUT
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
@@ -144,7 +143,8 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
+    private translationService: TranslationService  // AJOUT
   ) {
     // Initialiser les formulaires
     this.profileForm = this.fb.group({
@@ -215,6 +215,9 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
         console.error('Erreur chargement settings:', e);
       }
     }
+
+    // Appliquer la langue sauvegardée
+    this.translationService.setLanguage(this.settings.appearance.language);
 
     // Puis charger depuis l'API (si disponible)
     this.subscriptions.push(
@@ -319,6 +322,8 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   saveAppearanceSettings(): void {
     this.saveSettings();
     this.applyTheme();
+    // Appliquer la langue choisie
+    this.translationService.setLanguage(this.settings.appearance.language);
     this.notificationService.showSuccess('Paramètres d\'apparence sauvegardés');
   }
 
@@ -389,6 +394,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
       };
       this.saveSettings();
       this.applyTheme();
+      this.translationService.setLanguage('fr');
       this.notificationService.showInfo('Paramètres réinitialisés');
     }
   }
@@ -423,6 +429,16 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
   }
 
+  /**
+   * Retour au tableau de bord
+   */
+  goBack(): void {
+    this.router.navigate(['/user']);
+  }
+
+  /**
+   * Déconnexion
+   */
   logout(): void {
     this.authService.logout();
   }

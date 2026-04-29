@@ -4,6 +4,9 @@ import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@a
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
 
+// Pipes
+import { TranslatePipe } from './pipes/translate.pipe';  // AJOUT
+
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -39,6 +42,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimations(),
+    TranslatePipe,  // AJOUT
     importProvidersFrom(
       MatToolbarModule,
       MatButtonModule,

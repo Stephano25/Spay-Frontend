@@ -7,6 +7,10 @@ import { Subscription, forkJoin } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { TransactionService } from '../../services/transaction.service';
 import { WalletService } from '../../services/wallet.service';
+import { TranslationService } from '../../services/translation.service';  // AJOUT
+
+// Pipes
+import { TranslatePipe } from '../../pipes/translate.pipe';  // AJOUT
 
 // Models
 import { User } from '../../models/user.model';
@@ -32,7 +36,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatButtonModule,
     MatGridListModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TranslatePipe  // AJOUT
   ],
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
@@ -61,7 +66,8 @@ export class UserComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private transactionService: TransactionService,
     private walletService: WalletService,
-    private router: Router
+    private router: Router,
+    private translationService: TranslationService  // AJOUT
   ) {}
 
   ngOnInit(): void {

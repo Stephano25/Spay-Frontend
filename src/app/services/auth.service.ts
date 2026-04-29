@@ -127,7 +127,8 @@ export class AuthService {
         this.notificationService.showSuccess('Mot de passe modifié avec succès');
       }),
       catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors du changement de mot de passe');
+        const message = error.error?.message || 'Erreur lors du changement de mot de passe';
+        this.notificationService.showError(message);
         return throwError(() => error);
       })
     );
