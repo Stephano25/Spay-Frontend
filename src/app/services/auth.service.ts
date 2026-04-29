@@ -11,6 +11,7 @@ import { User, LoginResponse, RegisterData } from '../models/user.model';
 })
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth`;
+  private usersApiUrl = `${environment.apiUrl}/users`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser = this.currentUserSubject.asObservable();
 
@@ -98,12 +99,7 @@ export class AuthService {
   }
 
   updateProfile(userData: Partial<User>): Observable<User> {
-    const currentUser = this.currentUserSubject.value;
-    if (!currentUser) {
-      return throwError(() => new Error('Utilisateur non connecté'));
-    }
-
-    return this.http.put<User>(`${this.apiUrl}/profile`, userData).pipe(
+    return this.http.put<User>(`${this.usersApiUrl}/profile`, userData).pipe(
       tap(updatedUser => {
         localStorage.setItem('user', JSON.stringify(updatedUser));
         this.currentUserSubject.next(updatedUser);
@@ -129,6 +125,30 @@ export class AuthService {
       catchError(error => {
         const message = error.error?.message || 'Erreur lors du changement de mot de passe';
         this.notificationService.showError(message);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  uploadProfilePicture(formData: FormData): Observable<any> {
+    return this.http.post(`${this.usersApiUrl}/upload-profile-picture`, formData).pipe(
+      tap((response: any) => {
+        console.log('Photo uploadée avec succès:', response);
+      }),
+      catchError(error => {
+        this.notificationService.showError('Erreur lors de l\'upload');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  deleteProfilePicture(): Observable<any> {
+    return this.http.delete(`${this.usersApiUrl}/profile-picture`).pipe(
+      tap(() => {
+        console.log('Photo supprimée avec succès');
+      }),
+      catchError(error => {
+        this.notificationService.showError('Erreur lors de la suppression');
         return throwError(() => error);
       })
     );
