@@ -60,13 +60,16 @@ export class FriendsComponent implements OnInit, OnDestroy {
   suggestions: SearchUser[] = [];
   blockedUsers: Friend[] = [];
   
-  // UI
-  showAddFriend = false;
-  showBlockedUsers = false;
-  searchQuery = '';
-  isLoading = true;
-  isSearching = false;
-  selectedTabIndex = 0;
+  // UI - Menu dépliable
+  showFriendsList: boolean = true;
+  showRequestsList: boolean = true;
+  showAddFriend: boolean = false;
+  showBlockedUsers: boolean = false;
+  
+  searchQuery: string = '';
+  isLoading: boolean = true;
+  isSearching: boolean = false;
+  selectedTabIndex: number = 0;
   
   // Utilisateur courant
   currentUserId: string = '';
@@ -91,9 +94,24 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  /**
-   * Charger toutes les données
-   */
+  // ========== GETTERS ==========
+
+  get onlineFriends(): Friend[] {
+    return this.friends.filter(f => f.friend?.isOnline === true);
+  }
+
+  // ========== MÉTHODES DE TOGGLE ==========
+
+  toggleFriendsList(): void {
+    this.showFriendsList = !this.showFriendsList;
+  }
+
+  toggleRequestsList(): void {
+    this.showRequestsList = !this.showRequestsList;
+  }
+
+  // ========== CHARGEMENT DES DONNÉES ==========
+
   loadData(): void {
     this.isLoading = true;
     
@@ -151,9 +169,8 @@ export class FriendsComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Rechercher des utilisateurs
-   */
+  // ========== RECHERCHE ==========
+
   onSearch(): void {
     if (!this.searchQuery.trim() || this.searchQuery.length < 2) {
       this.searchResults = [];
@@ -175,9 +192,8 @@ export class FriendsComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Envoyer une demande d'ami
-   */
+  // ========== GESTION DES DEMANDES D'AMI ==========
+
   sendFriendRequest(userId: string): void {
     console.log('Envoi demande à:', userId);
   
@@ -196,20 +212,17 @@ export class FriendsComponent implements OnInit, OnDestroy {
           suggestion.hasPendingRequest = true;
         }
       
-        // Recharger les données
         setTimeout(() => {
           this.loadData();
         }, 500);
       },
       error: (error) => {
         console.error('Erreur envoi demande:', error);
+        this.notificationService.showError(error.error?.message || 'Erreur lors de l\'envoi');
       }
     });
   }
 
-  /**
-   * Accepter une demande d'ami
-   */
   acceptRequest(requestId: string): void {
     console.log('Acceptation demande:', requestId);
   
@@ -217,10 +230,8 @@ export class FriendsComponent implements OnInit, OnDestroy {
       next: (response) => {
         console.log('Réponse acceptation:', response);
       
-        // Retirer la demande de la liste
         this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
       
-        // Recharger les amis
         this.friendService.getFriends().subscribe(friends => {
           this.friends = friends.filter(f => f.status === 'accepted');
           console.log('Nouvelle liste amis:', this.friends);
@@ -228,25 +239,21 @@ export class FriendsComponent implements OnInit, OnDestroy {
       
         this.notificationService.showSuccess('Demande d\'ami acceptée');
       
-        // Rediriger vers le chat si une conversation a été créée
         if (response?.conversationId) {
           setTimeout(() => {
             this.router.navigate(['/chat'], { 
-              queryParams: { conversationId: response.conversationId } 
+              queryParams: { friendId: response.conversationId } 
             });
           }, 1500);
         }
       },
       error: (error) => {
         console.error('Erreur acceptation:', error);
-        this.loadData(); // Recharger pour voir l'état actuel
+        this.loadData();
       }
     });
   }
 
-  /**
-   * Refuser une demande d'ami
-   */
   declineRequest(requestId: string): void {
     this.friendService.declineFriendRequest(requestId).subscribe({
       next: () => {
@@ -259,9 +266,8 @@ export class FriendsComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Supprimer un ami
-   */
+  // ========== GESTION DES AMIS ==========
+
   removeFriend(friendId: string): void {
     if (confirm('Voulez-vous vraiment supprimer cet ami ?')) {
       this.friendService.removeFriend(friendId).subscribe({
@@ -277,9 +283,6 @@ export class FriendsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Bloquer un utilisateur
-   */
   blockUser(userId: string, userName: string): void {
     if (confirm(`Voulez-vous vraiment bloquer ${userName} ?`)) {
       this.friendService.blockUser(userId).subscribe({
@@ -294,9 +297,6 @@ export class FriendsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Débloquer un utilisateur
-   */
   unblockUser(userId: string, userName: string): void {
     if (confirm(`Voulez-vous vraiment débloquer ${userName} ?`)) {
       this.friendService.unblockUser(userId).subscribe({
@@ -312,49 +312,41 @@ export class FriendsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Naviguer vers le chat avec un ami
-   */
+  // ========== NAVIGATION ==========
+
   chatWithFriend(friendId: string): void {
-    this.router.navigate(['/chat'], { queryParams: { friendId } });
+    if (friendId) {
+      this.router.navigate(['/chat'], { queryParams: { friendId } });
+    }
   }
 
-  /**
-   * Envoyer de l'argent à un ami
-   */
   sendMoneyToFriend(friendId: string, friendName: string): void {
-    this.router.navigate(['/transactions/send'], { 
-      queryParams: { 
-        friendId, 
-        friendName 
-      } 
-    });
+    if (friendId) {
+      this.router.navigate(['/transactions/send'], { 
+        queryParams: { 
+          friendId, 
+          friendName 
+        } 
+      });
+    }
   }
 
-  /**
-   * Voir le profil d'un ami
-   */
   viewFriendProfile(friendId: string): void {
-    this.router.navigate(['/profile', friendId]);
+    if (friendId) {
+      this.router.navigate(['/profile', friendId]);
+    }
   }
 
-  /**
-   * Scanner un QR code pour ajouter un ami
-   */
   scanQRCode(): void {
     this.router.navigate(['/scan-friend']);
   }
 
-  /**
-   * Obtenir les initiales pour l'avatar
-   */
-  getInitials(firstName: string, lastName: string): string {
+  // ========== UTILITAIRES ==========
+
+  getInitials(firstName: string | undefined, lastName: string | undefined): string {
     return (firstName?.charAt(0) || '') + (lastName?.charAt(0) || '');
   }
 
-  /**
-   * Formater la date de dernière connexion
-   */
   formatLastSeen(date?: Date): string {
     if (!date) return 'Jamais';
     
@@ -372,18 +364,16 @@ export class FriendsComponent implements OnInit, OnDestroy {
     return lastSeen.toLocaleDateString('fr-MG');
   }
 
-  /**
-   * Obtenir la couleur de l'avatar basée sur le nom
-   */
-  getAvatarColor(name: string): string {
+  getAvatarColor(name: string | undefined): string {
     const colors = [
       '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3',
       '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a',
       '#cddc39', '#ffc107', '#ff9800', '#ff5722', '#795548'
     ];
     let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    const str = name || '';
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
   }

@@ -583,3 +583,181 @@
     width: 100%;
   }
 }
+
+/* Menu dépliable */
+.friends-menu, .requests-menu {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.menu-header:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.menu-header mat-icon:first-child {
+  color: #667eea;
+}
+
+.menu-header span {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.menu-arrow {
+  transition: transform 0.3s ease;
+}
+
+.menu-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.menu-content.expanded {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.friends-list-menu, .requests-list-menu {
+  padding: 8px 0;
+}
+
+.friend-menu-item, .request-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.friend-menu-item:hover, .request-menu-item:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.friend-avatar.small {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.friend-status {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.friend-status.online {
+  color: #10b981;
+}
+
+.friend-actions-menu {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.friend-menu-item:hover .friend-actions-menu {
+  opacity: 1;
+}
+
+.request-actions-menu {
+  display: flex;
+  gap: 4px;
+}
+
+.accept-btn {
+  color: #10b981;
+}
+
+.decline-btn {
+  color: #ef4444;
+}
+
+.empty-menu-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+/* Section amis en ligne */
+.online-section {
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.online-section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #10b981;
+  margin-bottom: 12px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: pulse 2s infinite;
+}
+
+.online-friends-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.online-friend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.online-friend-item:hover {
+  transform: translateY(-2px);
+}
+
+.online-friend-item .friend-name {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}

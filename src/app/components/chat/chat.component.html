@@ -8,64 +8,90 @@
       <h2>Messages</h2>
       <div class="search-box">
         <mat-icon>search</mat-icon>
-        <input type="text" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="searchQuery = $any($event.target).value">
+        <input type="text" placeholder="Rechercher un ami..." [(ngModel)]="searchQuery" (input)="onSearch()">
       </div>
     </div>
     
-    <mat-tab-group [(selectedIndex)]="activeTab">
-      <mat-tab label="Conversations">
-        <div class="contacts-list">
-          @for (contact of displayedContacts; track contact.userId) {
-            <div class="contact-item" [class.active]="selectedContact?.userId === contact.userId" (click)="selectContact(contact)">
+    <!-- Affichage direct de la liste des amis -->
+    <div class="friends-list-container">
+      <div class="section-header">
+        <mat-icon>people</mat-icon>
+        <span>Mes amis</span>
+        @if (friends.length > 0) {
+          <span class="friends-count">{{ friends.length }}</span>
+        }
+      </div>
+      
+      <div class="contacts-list">
+        <!-- Afficher tous les amis directement -->
+        @for (friend of filteredFriends; track friend.id) {
+          @if (friend.friend) {
+            <div class="contact-item" [class.active]="selectedContact?.userId === friend.friend.id" (click)="selectFriend(friend)">
               <div class="avatar">
-                @if (contact.profilePicture) {
-                  <img [src]="contact.profilePicture" [alt]="contact.firstName">
+                @if (friend.friend.profilePicture) {
+                  <img [src]="friend.friend.profilePicture" [alt]="friend.friend.firstName">
                 } @else {
-                  <div class="avatar-placeholder" [style.backgroundColor]="getAvatarColor(contact.firstName)">
-                    {{ getInitials(contact.firstName, contact.lastName) }}
+                  <div class="avatar-placeholder" [style.backgroundColor]="getAvatarColor(friend.friend.firstName || '')">
+                    {{ getInitials(friend.friend.firstName || '', friend.friend.lastName || '') }}
                   </div>
                 }
-                <span class="online-status" [class.online]="contact.isOnline"></span>
+                <span class="online-status" [class.online]="friend.friend.isOnline"></span>
               </div>
               <div class="contact-info">
-                <div class="contact-name">{{ contact.firstName }} {{ contact.lastName }}</div>
-                <div class="last-message">{{ contact.lastMessage?.content || 'Nouvelle conversation' }}</div>
+                <div class="contact-name">{{ friend.friend.firstName }} {{ friend.friend.lastName }}</div>
+                <div class="last-message">{{ getLastMessageWithFriend(friend.friend.id) || 'Commencer une conversation' }}</div>
               </div>
-              @if (contact.unreadCount > 0) {
-                <div class="unread-badge">{{ contact.unreadCount }}</div>
+              <div class="contact-status-badge">
+                @if (getUnreadCount(friend.friend.id) > 0) {
+                  <span class="unread-badge">{{ getUnreadCount(friend.friend.id) }}</span>
+                }
+              </div>
+            </div>
+          }
+        }
+        @empty {
+          <div class="empty-state">
+            <mat-icon>people_outline</mat-icon>
+            <p>Vous n'avez pas encore d'amis</p>
+            <button class="btn-gradient-small" (click)="goToFriends()">
+              <mat-icon>person_add</mat-icon>
+              Ajouter des amis
+            </button>
+          </div>
+        }
+      </div>
+      
+      <!-- Section conversations récentes (optionnelle) -->
+      @if (recentConversations.length > 0) {
+        <div class="section-header">
+          <mat-icon>chat</mat-icon>
+          <span>Conversations récentes</span>
+        </div>
+        <div class="contacts-list">
+          @for (conv of recentConversations; track conv.userId) {
+            <div class="contact-item" [class.active]="selectedContact?.userId === conv.userId" (click)="selectRecentConversation(conv)">
+              <div class="avatar">
+                @if (conv.profilePicture) {
+                  <img [src]="conv.profilePicture" [alt]="conv.firstName">
+                } @else {
+                  <div class="avatar-placeholder" [style.backgroundColor]="getAvatarColor(conv.firstName)">
+                    {{ getInitials(conv.firstName, conv.lastName) }}
+                  </div>
+                }
+                <span class="online-status" [class.online]="conv.isOnline"></span>
+              </div>
+              <div class="contact-info">
+                <div class="contact-name">{{ conv.firstName }} {{ conv.lastName }}</div>
+                <div class="last-message">{{ conv.lastMessage?.content || 'Nouvelle conversation' }}</div>
+              </div>
+              @if (conv.unreadCount > 0) {
+                <div class="unread-badge">{{ conv.unreadCount }}</div>
               }
             </div>
           }
-          @empty {
-            <div class="empty-state">Aucune conversation</div>
-          }
         </div>
-      </mat-tab>
-      <mat-tab label="Amis">
-        <div class="contacts-list">
-          @for (contact of displayedContacts; track contact.userId) {
-            <div class="contact-item" [class.active]="selectedContact?.userId === contact.userId" (click)="selectContact(contact)">
-              <div class="avatar">
-                @if (contact.profilePicture) {
-                  <img [src]="contact.profilePicture" [alt]="contact.firstName">
-                } @else {
-                  <div class="avatar-placeholder" [style.backgroundColor]="getAvatarColor(contact.firstName)">
-                    {{ getInitials(contact.firstName, contact.lastName) }}
-                  </div>
-                }
-                <span class="online-status" [class.online]="contact.isOnline"></span>
-              </div>
-              <div class="contact-info">
-                <div class="contact-name">{{ contact.firstName }} {{ contact.lastName }}</div>
-              </div>
-            </div>
-          }
-          @empty {
-            <div class="empty-state">Aucun ami</div>
-          }
-        </div>
-      </mat-tab>
-    </mat-tab-group>
+      }
+    </div>
   </div>
 
   <!-- Chat Area -->
@@ -186,6 +212,14 @@
             </div>
           </div>
         }
+        
+        @if (messages.length === 0 && !isLoading) {
+          <div class="empty-chat">
+            <mat-icon>chat_bubble_outline</mat-icon>
+            <p>Aucun message</p>
+            <small>Envoyez un premier message à {{ selectedContact.firstName }}</small>
+          </div>
+        }
       </div>
 
       <div class="message-input-area">
@@ -225,12 +259,14 @@
           Retour au tableau de bord
         </button>
         <mat-icon>chat</mat-icon>
-        <h3>Sélectionnez une conversation</h3>
-        <p>Choisissez un contact pour commencer à discuter</p>
-        <button class="btn-gradient" (click)="goToFriends()">
-          <mat-icon>people</mat-icon>
-          Voir mes amis
-        </button>
+        <h3>Sélectionnez un ami</h3>
+        <p>Choisissez un ami dans la liste pour commencer à discuter</p>
+        @if (friends.length === 0 && !isLoading) {
+          <button class="btn-gradient" (click)="goToFriends()">
+            <mat-icon>person_add</mat-icon>
+            Ajouter des amis
+          </button>
+        }
       </div>
     </div>
   }

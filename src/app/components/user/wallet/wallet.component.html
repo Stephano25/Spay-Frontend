@@ -14,28 +14,34 @@
   <div class="wallet-content">
 
     <!-- Loading skeleton -->
-    <ng-container *ngIf="isLoading">
+    @if (isLoading) {
       <div class="skeleton-card"></div>
       <div class="skeleton-grid">
-        <div class="skeleton-item" *ngFor="let i of [1,2,3,4]"></div>
+        @for (let i of [1,2,3,4]; track i) {
+          <div class="skeleton-item"></div>
+        }
       </div>
       <div class="skeleton-stats">
-        <div class="skeleton-stat" *ngFor="let i of [1,2,3]"></div>
+        @for (let i of [1,2,3]; track i) {
+          <div class="skeleton-stat"></div>
+        }
       </div>
-    </ng-container>
+    }
 
     <!-- Error state -->
-    <div class="error-state" *ngIf="hasError && !isLoading">
-      <mat-icon>error_outline</mat-icon>
-      <p>{{ errorMessage }}</p>
-      <button class="btn-retry" (click)="loadData()">Réessayer</button>
-    </div>
+    @if (hasError && !isLoading) {
+      <div class="error-state">
+        <mat-icon>error_outline</mat-icon>
+        <p>{{ errorMessage }}</p>
+        <button class="btn-retry" (click)="loadData()">Réessayer</button>
+      </div>
+    }
 
     <!-- Main content -->
-    <ng-container *ngIf="!isLoading && !hasError && wallet">
+    @if (!isLoading && !hasError && wallet) {
 
       <!-- Balance card -->
-      <div class="balance-card" [@fadeUp]>
+      <div class="balance-card">
         <div class="balance-label">Solde disponible</div>
         <div class="balance-amount">{{ formatAmount(wallet.balance) }}</div>
         <div class="balance-currency">
@@ -59,7 +65,7 @@
       </div>
 
       <!-- Quick actions -->
-      <div class="quick-actions" [@staggerFade]>
+      <div class="quick-actions">
         <button class="quick-btn" (click)="sendMoney()">
           <mat-icon>send</mat-icon>
           <span>Envoyer</span>
@@ -79,34 +85,36 @@
       </div>
 
       <!-- Stats -->
-      <div class="stats-grid" *ngIf="stats">
-        <div class="stat-card" [@fadeUp]>
-          <div class="stat-icon income">
-            <mat-icon>arrow_downward</mat-icon>
+      @if (stats) {
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon income">
+              <mat-icon>arrow_downward</mat-icon>
+            </div>
+            <div class="stat-value">{{ formatAmount(stats.totalDeposits || stats.totalReceived || 0) }}</div>
+            <div class="stat-label">Total dépôts</div>
           </div>
-          <div class="stat-value">{{ formatAmount(stats.totalDeposits ?? stats.totalReceived ?? 0) }}</div>
-          <div class="stat-label">Total dépôts</div>
-        </div>
 
-        <div class="stat-card" [@fadeUp]>
-          <div class="stat-icon expense">
-            <mat-icon>arrow_upward</mat-icon>
+          <div class="stat-card">
+            <div class="stat-icon expense">
+              <mat-icon>arrow_upward</mat-icon>
+            </div>
+            <div class="stat-value">{{ formatAmount(stats.totalWithdrawals || stats.totalSent || 0) }}</div>
+            <div class="stat-label">Total retraits</div>
           </div>
-          <div class="stat-value">{{ formatAmount(stats.totalWithdrawals ?? stats.totalSent ?? 0) }}</div>
-          <div class="stat-label">Total retraits</div>
-        </div>
 
-        <div class="stat-card" [@fadeUp]>
-          <div class="stat-icon transfer">
-            <mat-icon>swap_horiz</mat-icon>
+          <div class="stat-card">
+            <div class="stat-icon transfer">
+              <mat-icon>swap_horiz</mat-icon>
+            </div>
+            <div class="stat-value">{{ stats.totalTransactions || 0 }}</div>
+            <div class="stat-label">Transactions</div>
           </div>
-          <div class="stat-value">{{ stats.totalTransactions ?? 0 }}</div>
-          <div class="stat-label">Transactions</div>
         </div>
-      </div>
+      }
 
       <!-- Transactions -->
-      <div class="txn-card" [@fadeUp]>
+      <div class="txn-card">
         <div class="txn-header">
           <span class="txn-title">Transactions récentes</span>
           <button class="btn-link" (click)="viewAllTransactions()">
@@ -114,42 +122,38 @@
           </button>
         </div>
 
-        <!-- Transaction list -->
-        <div class="txn-list" *ngIf="recentTransactions.length > 0">
-          <div
-            class="txn-item"
-            *ngFor="let txn of recentTransactions; trackBy: trackById"
-            (click)="viewTransactionDetails(txn)"
-            [@listItem]
-          >
-            <div class="txn-icon" [ngClass]="getTransactionClass(txn)">
-              <mat-icon>{{ getTransactionIcon(txn) }}</mat-icon>
-            </div>
-            <div class="txn-info">
-              <div class="txn-desc">{{ txn.description || txn.type }}</div>
-              <div class="txn-meta">
-                {{ txn.createdAt | date:'dd MMM yyyy · HH:mm' }}
+        @if (recentTransactions.length > 0) {
+          <div class="txn-list">
+            @for (txn of recentTransactions; track txn.id) {
+              <div class="txn-item" (click)="viewTransactionDetails(txn)">
+                <div class="txn-icon" [ngClass]="getTransactionClass(txn)">
+                  <mat-icon>{{ getTransactionIcon(txn) }}</mat-icon>
+                </div>
+                <div class="txn-info">
+                  <div class="txn-desc">{{ txn.description || txn.type }}</div>
+                  <div class="txn-meta">
+                    {{ txn.createdAt | date:'dd MMM yyyy · HH:mm' }}
+                  </div>
+                  <span class="status-pill" [ngClass]="txn.status">
+                    {{ getStatusLabel(txn.status) }}
+                  </span>
+                </div>
+                <div class="txn-amount" [ngClass]="getAmountClass(txn)">
+                  {{ getAmountSign(txn) }}{{ formatAmount(txn.amount) }} Ar
+                </div>
               </div>
-              <span class="status-pill" [ngClass]="txn.status">
-                {{ getStatusLabel(txn.status) }}
-              </span>
-            </div>
-            <div class="txn-amount" [ngClass]="getAmountClass(txn)">
-              {{ getAmountSign(txn) }}{{ formatAmount(txn.amount) }} Ar
-            </div>
+            }
           </div>
-        </div>
-
-        <!-- Empty state -->
-        <div class="empty-state" *ngIf="recentTransactions.length === 0">
-          <mat-icon>receipt_long</mat-icon>
-          <p>Aucune transaction récente</p>
-          <button class="btn-primary" (click)="sendMoney()">
-            Effectuer une transaction
-          </button>
-        </div>
+        } @else {
+          <div class="empty-state">
+            <mat-icon>receipt_long</mat-icon>
+            <p>Aucune transaction récente</p>
+            <button class="btn-primary" (click)="sendMoney()">
+              Effectuer une transaction
+            </button>
+          </div>
+        }
       </div>
-
-    </ng-container>
+    }
   </div>
 </div>

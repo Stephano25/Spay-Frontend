@@ -1,5 +1,5 @@
 <div class="friends-container">
-  <!-- Header avec glassmorphism -->
+  <!-- Header -->
   <mat-toolbar color="primary" class="glass-header">
     <button mat-icon-button routerLink="/user" class="nav-btn">
       <mat-icon>arrow_back</mat-icon>
@@ -50,14 +50,12 @@
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
 
-            <!-- Loading recherche -->
             @if (isSearching) {
               <div class="search-loading">
                 <div class="spinner-sm"></div>
               </div>
             }
 
-            <!-- Résultats de recherche -->
             @if (searchResults.length > 0 && !isSearching) {
               <div class="search-results">
                 <h4>Résultats de la recherche</h4>
@@ -100,7 +98,6 @@
               </div>
             }
 
-            <!-- Suggestions -->
             @if (suggestions.length > 0 && !searchQuery) {
               <div class="suggestions">
                 <h4>Suggestions</h4>
@@ -151,8 +148,8 @@
             <div class="blocked-grid">
               @for (blocked of blockedUsers; track blocked.id) {
                 <div class="blocked-card-item">
-                  <div class="user-avatar" [style.background]="getAvatarColor(blocked.friend?.firstName || '')">
-                    {{ getInitials(blocked.friend?.firstName || '', blocked.friend?.lastName || '') }}
+                  <div class="user-avatar" [style.background]="getAvatarColor(blocked.friend?.firstName)">
+                    {{ getInitials(blocked.friend?.firstName, blocked.friend?.lastName) }}
                   </div>
                   <div class="user-info">
                     <div class="user-name">{{ blocked.friend?.firstName }} {{ blocked.friend?.lastName }}</div>
@@ -175,132 +172,117 @@
       </mat-card>
     }
 
-    <!-- Onglets -->
-    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="custom-tabs animate-slide-up">
-      <!-- Onglet Mes amis -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>people</mat-icon>
-          Mes amis
-          @if (friends.length > 0) {
-            <span class="tab-badge">{{ friends.length }}</span>
-          }
-        </ng-template>
-        
-        <div class="tab-content">
-          @if (friends.length > 0) {
-            <div class="friends-grid">
-              @for (friend of friends; track friend.id) {
-                <div class="friend-card">
-                  <div class="friend-avatar" [style.background]="getAvatarColor(friend.friend?.firstName || '')">
-                    {{ getInitials(friend.friend?.firstName || '', friend.friend?.lastName || '') }}
-                    <span class="online-dot" [class.online]="friend.friend?.isOnline"></span>
-                  </div>
-                  <div class="friend-info">
-                    <div class="friend-name">
-                      {{ friend.friend?.firstName }} {{ friend.friend?.lastName }}
-                      @if (!friend.friend?.isOnline) {
-                        <span class="friend-status">• {{ formatLastSeen(friend.friend?.lastSeen) }}</span>
-                      }
-                    </div>
-                    <div class="friend-email">{{ friend.friend?.email }}</div>
-                  </div>
-                  <div class="friend-actions">
-                    <button mat-icon-button (click)="chatWithFriend(friend.friend?.id || '')" matTooltip="Discuter" class="action-icon">
-                      <mat-icon>chat</mat-icon>
-                    </button>
-                    <button mat-icon-button (click)="sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')" matTooltip="Envoyer" class="action-icon">
-                      <mat-icon>attach_money</mat-icon>
-                    </button>
-                    <button mat-icon-button [matMenuTriggerFor]="friendMenu" matTooltip="Plus" class="action-icon">
-                      <mat-icon>more_vert</mat-icon>
-                    </button>
-                    <mat-menu #friendMenu="matMenu" class="custom-menu">
-                      <button mat-menu-item (click)="viewFriendProfile(friend.friend?.id || '')">
-                        <mat-icon>person</mat-icon>
-                        <span>Profil</span>
-                      </button>
-                      <button mat-menu-item (click)="chatWithFriend(friend.friend?.id || '')">
-                        <mat-icon>chat</mat-icon>
-                        <span>Discuter</span>
-                      </button>
-                      <button mat-menu-item (click)="sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')">
-                        <mat-icon>attach_money</mat-icon>
-                        <span>Argent</span>
-                      </button>
-                      <mat-divider></mat-divider>
-                      <button mat-menu-item (click)="blockUser(friend.friend?.id || '', friend.friend?.firstName || '')" class="danger-item">
-                        <mat-icon>block</mat-icon>
-                        <span>Bloquer</span>
-                      </button>
-                      <button mat-menu-item (click)="removeFriend(friend.id)" class="danger-item">
-                        <mat-icon>delete</mat-icon>
-                        <span>Supprimer</span>
-                      </button>
-                    </mat-menu>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="empty-state">
-              <mat-icon>people_outline</mat-icon>
-              <h3>Aucun ami pour le moment</h3>
-              <p>Commencez par ajouter des amis en utilisant le bouton +</p>
-              <button mat-raised-button class="btn-gradient" (click)="showAddFriend = true">
-                <mat-icon>person_add</mat-icon>
-                Ajouter un ami
-              </button>
+    <!-- Amis en ligne (section spéciale) -->
+    @if (onlineFriends.length > 0) {
+      <div class="online-section">
+        <div class="section-header">
+          <span class="live-dot"></span>
+          <span>En ligne ({{ onlineFriends.length }})</span>
+        </div>
+        <div class="online-friends-list">
+          @for (friend of onlineFriends; track friend.id) {
+            <div class="online-friend-item" (click)="chatWithFriend(friend.friend?.id || '')">
+              <div class="friend-avatar small" [style.background]="getAvatarColor(friend.friend?.firstName)">
+                {{ getInitials(friend.friend?.firstName, friend.friend?.lastName) }}
+                <span class="online-dot active"></span>
+              </div>
+              <span class="friend-name">{{ friend.friend?.firstName }}</span>
             </div>
           }
         </div>
-      </mat-tab>
+      </div>
+    }
 
-      <!-- Onglet Demandes -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>notifications</mat-icon>
-          Demandes
-          @if (friendRequests.length > 0) {
-            <span class="tab-badge warning">{{ friendRequests.length }}</span>
-          }
-        </ng-template>
-        
-        <div class="tab-content">
-          @if (friendRequests.length > 0) {
-            <div class="requests-grid">
-              @for (request of friendRequests; track request.id) {
-                <div class="request-card">
-                  <div class="request-avatar" [style.background]="getAvatarColor(request.sender?.firstName || '')">
-                    {{ getInitials(request.sender?.firstName || '', request.sender?.lastName || '') }}
-                  </div>
-                  <div class="request-info">
-                    <div class="request-name">{{ request.sender?.firstName || '' }} {{ request.sender?.lastName || '' }}</div>
-                    <div class="request-email">{{ request.sender?.email || '' }}</div>
-                    <div class="request-date">Reçue le {{ request.createdAt | date:'dd/MM/yyyy' }}</div>
-                  </div>
-                  <div class="request-actions">
-                    <button mat-raised-button class="btn-accept" (click)="acceptRequest(request.id)">
-                      <mat-icon>check</mat-icon>
-                      Accepter
-                    </button>
-                    <button mat-stroked-button class="btn-decline" (click)="declineRequest(request.id)">
-                      <mat-icon>close</mat-icon>
-                      Refuser
-                    </button>
+    <!-- Menu des amis (dépliable) -->
+    <div class="friends-menu">
+      <div class="menu-header" (click)="toggleFriendsList()">
+        <mat-icon>people</mat-icon>
+        <span>Mes amis ({{ friends.length }})</span>
+        <mat-icon class="menu-arrow">{{ showFriendsList ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </div>
+      
+      <div class="menu-content" [class.expanded]="showFriendsList">
+        @if (friends.length > 0) {
+          <div class="friends-list-menu">
+            @for (friend of friends; track friend.id) {
+              <div class="friend-menu-item" (click)="chatWithFriend(friend.friend?.id || '')">
+                <div class="friend-avatar small" [style.background]="getAvatarColor(friend.friend?.firstName)">
+                  {{ getInitials(friend.friend?.firstName, friend.friend?.lastName) }}
+                  <span class="online-dot" [class.online]="friend.friend?.isOnline"></span>
+                </div>
+                <div class="friend-info">
+                  <div class="friend-name">{{ friend.friend?.firstName }} {{ friend.friend?.lastName }}</div>
+                  <div class="friend-status" [class.online]="friend.friend?.isOnline">
+                    {{ friend.friend?.isOnline ? 'En ligne' : formatLastSeen(friend.friend?.lastSeen) }}
                   </div>
                 </div>
-              }
-            </div>
-          } @else {
-            <div class="empty-state">
-              <mat-icon>notifications_none</mat-icon>
-              <h3>Aucune demande en attente</h3>
-              <p>Vous n'avez pas de demande d'ami pour le moment</p>
-            </div>
-          }
+                <div class="friend-actions-menu">
+                  <button mat-icon-button (click)="$event.stopPropagation(); viewFriendProfile(friend.friend?.id || '')" matTooltip="Profil">
+                    <mat-icon>person</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="$event.stopPropagation(); sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')" matTooltip="Envoyer">
+                    <mat-icon>attach_money</mat-icon>
+                  </button>
+                  <button mat-icon-button [matMenuTriggerFor]="friendActionMenu" (click)="$event.stopPropagation()" matTooltip="Plus">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #friendActionMenu="matMenu">
+                    <button mat-menu-item (click)="removeFriend(friend.id)">
+                      <mat-icon>delete</mat-icon>
+                      <span>Supprimer</span>
+                    </button>
+                    <button mat-menu-item (click)="blockUser(friend.friend?.id || '', friend.friend?.firstName || '')">
+                      <mat-icon>block</mat-icon>
+                      <span>Bloquer</span>
+                    </button>
+                  </mat-menu>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-menu-state">
+            <mat-icon>people_outline</mat-icon>
+            <p>Aucun ami</p>
+            <button class="btn-gradient-small" (click)="showAddFriend = true">Ajouter</button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Demandes d'ami (menu dépliable) -->
+    @if (friendRequests.length > 0) {
+      <div class="requests-menu">
+        <div class="menu-header" (click)="toggleRequestsList()">
+          <mat-icon>notifications</mat-icon>
+          <span>Demandes reçues ({{ friendRequests.length }})</span>
+          <mat-icon class="menu-arrow">{{ showRequestsList ? 'expand_less' : 'expand_more' }}</mat-icon>
         </div>
-      </mat-tab>
-    </mat-tab-group>
+        
+        <div class="menu-content" [class.expanded]="showRequestsList">
+          <div class="requests-list-menu">
+            @for (request of friendRequests; track request.id) {
+              <div class="request-menu-item">
+                <div class="friend-avatar small" [style.background]="getAvatarColor(request.sender?.firstName)">
+                  {{ getInitials(request.sender?.firstName, request.sender?.lastName) }}
+                </div>
+                <div class="friend-info">
+                  <div class="friend-name">{{ request.sender?.firstName || '' }} {{ request.sender?.lastName || '' }}</div>
+                  <div class="friend-email">{{ request.sender?.email || '' }}</div>
+                </div>
+                <div class="request-actions-menu">
+                  <button mat-icon-button class="accept-btn" (click)="acceptRequest(request.id)" matTooltip="Accepter">
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button mat-icon-button class="decline-btn" (click)="declineRequest(request.id)" matTooltip="Refuser">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
   </div>
 </div>
