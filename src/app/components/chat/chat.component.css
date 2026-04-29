@@ -797,3 +797,201 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Menu dépliable pour les amis */
+.friends-menu, .requests-menu {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  margin: 8px 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.menu-header:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.menu-header mat-icon:first-child {
+  color: #667eea;
+}
+
+.menu-header span {
+  flex: 1;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.menu-arrow {
+  transition: transform 0.3s ease;
+  color: #64748b;
+}
+
+.menu-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.menu-content.expanded {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.friends-list-menu, .requests-list-menu {
+  padding: 8px 0;
+}
+
+.friend-menu-item, .request-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.friend-menu-item:hover, .request-menu-item:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.friend-avatar.small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.friend-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.friend-status {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.friend-status.online {
+  color: #10b981;
+}
+
+.online-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: 2px solid white;
+}
+
+.online-dot.online, .online-dot.active {
+  background: #10b981;
+  animation: pulse 2s infinite;
+}
+
+.friend-actions-menu {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.friend-menu-item:hover .friend-actions-menu {
+  opacity: 1;
+}
+
+.request-actions-menu {
+  display: flex;
+  gap: 4px;
+}
+
+.accept-btn {
+  color: #10b981;
+}
+
+.decline-btn {
+  color: #ef4444;
+}
+
+.empty-menu-state {
+  text-align: center;
+  padding: 30px 20px;
+  color: #64748b;
+}
+
+/* Section amis en ligne */
+.online-section {
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 16px;
+  margin: 8px 12px;
+  padding: 12px;
+}
+
+.online-section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #10b981;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: pulse 2s infinite;
+}
+
+.online-friends-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.online-friend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.online-friend-item:hover {
+  transform: translateY(-2px);
+}
+
+.online-friend-item .friend-name {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #1e293b;
+}

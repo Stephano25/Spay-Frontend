@@ -8,7 +8,7 @@ import { ChatService, Message, Conversation, TypingIndicator } from '../../servi
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { FriendService } from '../../services/friend.service';
-import { Friend } from '../../models/friend.model';
+import { Friend, FriendRequest } from '../../models/friend.model';
 
 // Angular Material imports
 import { MatIconModule } from '@angular/material/icon';
@@ -39,18 +39,26 @@ export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('messageContainer') messageContainer!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef;
 
-  conversations: Conversation[] = [];
+  // Données des amis
   friends: Friend[] = [];
-  filteredFriends: Friend[] = [];
-  recentConversations: any[] = [];
-  allChatContacts: any[] = [];
+  friendRequests: FriendRequest[] = [];
+  
+  // Listes pour l'affichage (CORRIGÉES)
+  allFriendsList: any[] = [];
+  onlineFriendsList: any[] = [];
+  filteredFriendsList: any[] = [];
+  pendingRequests: any[] = [];
+  
+  conversations: Conversation[] = [];
   messages: Message[] = [];
   selectedContact: any = null;
   currentUserId: string = '';
   isFriend: boolean = false;
 
+  // États UI
   newMessage = '';
   isLoading = true;
+  isLoadingMessages = false;
   isSending = false;
   isTyping = false;
   typingTimeout: any;
@@ -60,12 +68,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   hasMoreMessages = true;
   messagePage = 1;
   pageSize = 20;
+  
+  // États des menus dépliables
+  showFriendsList: boolean = true;
+  showRequestsList: boolean = true;
 
   private subscriptions: Subscription[] = [];
   private typingUsers: Set<string> = new Set();
   private messagesCache: Map<string, Message[]> = new Map();
-  private lastMessagesMap: Map<string, string> = new Map();
-  private unreadCountMap: Map<string, number> = new Map();
 
   constructor(
     private chatService: ChatService,
@@ -87,10 +97,12 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.setupSocketListeners();
       this.route.queryParams.subscribe(params => {
         if (params['friendId']) {
-          const friend = this.friends.find(f => f.friend?.id === params['friendId']);
-          if (friend) {
-            setTimeout(() => this.selectFriend(friend), 500);
-          }
+          setTimeout(() => {
+            const friend = this.allFriendsList.find(f => f.userId === params['friendId']);
+            if (friend) {
+              this.selectFriendFromList(friend);
+            }
+          }, 1000);
         }
       });
     }
@@ -101,72 +113,147 @@ export class ChatComponent implements OnInit, OnDestroy {
     clearTimeout(this.typingTimeout);
   }
 
-  // ========== MÉTHODES DE RECHERCHE ET FILTRAGE ==========
+  // ========== MÉTHODES DE TOGGLE ==========
+
+  toggleFriendsList(): void {
+    this.showFriendsList = !this.showFriendsList;
+  }
+
+  toggleRequestsList(): void {
+    this.showRequestsList = !this.showRequestsList;
+  }
+
+  // ========== CHARGEMENT DES DONNÉES (CORRIGÉ) ==========
+
+  private loadData(): void {
+    this.isLoading = true;
+    console.log('Chargement des données...');
+    
+    forkJoin({
+      friends: this.friendService.getFriends().pipe(catchError(error => {
+        console.error('Erreur chargement amis:', error);
+        return of([]);
+      })),
+      requests: this.friendService.getFriendRequests().pipe(catchError(error => {
+        console.error('Erreur chargement demandes:', error);
+        return of([]);
+      }))
+    }).subscribe({
+      next: (result) => {
+        console.log('Amis reçus:', result.friends);
+        console.log('Demandes reçues:', result.requests);
+        
+        // Filtrer les amis acceptés
+        this.friends = result.friends.filter(f => f.status === 'accepted');
+        this.friendRequests = result.requests;
+        
+        // Construire les listes d'affichage
+        this.buildFriendsLists();
+        
+        this.isLoading = false;
+        console.log('Liste des amis construite:', this.allFriendsList);
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.isLoading = false;
+        this.allFriendsList = [];
+        this.onlineFriendsList = [];
+      }
+    });
+  }
+
+  private buildFriendsLists(): void {
+    // Construire la liste des amis à partir des données
+    this.allFriendsList = this.friends.map(friend => ({
+      userId: friend.friend?.id || '',
+      firstName: friend.friend?.firstName || 'Utilisateur',
+      lastName: friend.friend?.lastName || '',
+      profilePicture: friend.friend?.profilePicture,
+      isOnline: friend.friend?.isOnline || false,
+      lastSeen: friend.friend?.lastSeen
+    }));
+    
+    // Filtrer les amis en ligne
+    this.onlineFriendsList = this.allFriendsList.filter(f => f.isOnline === true);
+    
+    // Liste pour la recherche
+    this.filteredFriendsList = [...this.allFriendsList];
+    
+    // Construire la liste des demandes en attente
+    this.pendingRequests = this.friendRequests.map(request => ({
+      id: request.id,
+      senderFirstName: request.sender?.firstName || 'Utilisateur',
+      senderLastName: request.sender?.lastName || '',
+      senderEmail: request.sender?.email || ''
+    }));
+    
+    console.log('Amis en ligne:', this.onlineFriendsList.length);
+    console.log('Total amis:', this.allFriendsList.length);
+  }
+
+  // ========== RECHERCHE ==========
 
   onSearch(): void {
     if (!this.searchQuery.trim()) {
-      this.filteredFriends = this.friends;
+      this.filteredFriendsList = [...this.allFriendsList];
     } else {
       const query = this.searchQuery.toLowerCase();
-      this.filteredFriends = this.friends.filter(friend => 
-        friend.friend?.firstName?.toLowerCase().includes(query) ||
-        friend.friend?.lastName?.toLowerCase().includes(query) ||
-        `${friend.friend?.firstName} ${friend.friend?.lastName}`.toLowerCase().includes(query)
+      this.filteredFriendsList = this.allFriendsList.filter(friend => 
+        (friend.firstName?.toLowerCase() || '').includes(query) ||
+        (friend.lastName?.toLowerCase() || '').includes(query) ||
+        `${friend.firstName} ${friend.lastName}`.toLowerCase().includes(query)
       );
     }
   }
 
   // ========== SÉLECTION DES CONTACTS ==========
 
-  selectFriend(friend: Friend): void {
-    if (!friend.friend?.id) return;
+  selectFriendFromList(friend: any): void {
+    if (!friend?.userId) return;
     
-    const contact = {
-      userId: friend.friend.id,
-      firstName: friend.friend.firstName,
-      lastName: friend.friend.lastName,
-      profilePicture: friend.friend.profilePicture,
-      isOnline: friend.friend.isOnline,
-      lastSeen: friend.friend.lastSeen
+    console.log('Sélection de l\'ami:', friend);
+    
+    this.selectedContact = {
+      userId: friend.userId,
+      firstName: friend.firstName,
+      lastName: friend.lastName,
+      profilePicture: friend.profilePicture,
+      isOnline: friend.isOnline,
+      lastSeen: friend.lastSeen
     };
     
-    this.selectedContact = contact;
-    this.loadMessages(contact.userId);
+    this.loadMessages(friend.userId);
     this.isFriend = true;
-    
-    this.chatService.markAsRead(contact.userId).subscribe();
+    this.chatService.markAsRead(friend.userId).subscribe();
   }
 
-  selectRecentConversation(conv: any): void {
-    this.selectedContact = conv;
-    this.loadMessages(conv.userId);
-    this.checkIfFriend(conv.userId);
+  // ========== GESTION DES DEMANDES D'AMI ==========
+
+  acceptFriendRequest(requestId: string): void {
+    this.friendService.acceptFriendRequest(requestId).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Demande acceptée');
+        this.loadData();
+      },
+      error: (err) => {
+        this.notificationService.showError(err.error?.message || 'Erreur');
+      }
+    });
+  }
+
+  declineFriendRequest(requestId: string): void {
+    this.friendService.declineFriendRequest(requestId).subscribe({
+      next: () => {
+        this.notificationService.showInfo('Demande refusée');
+        this.loadData();
+      },
+      error: (err) => {
+        this.notificationService.showError(err.error?.message || 'Erreur');
+      }
+    });
   }
 
   // ========== GESTION DES MESSAGES ==========
-
-  getLastMessageWithFriend(friendId: string | undefined): string {
-    if (!friendId) return '';
-    return this.lastMessagesMap.get(friendId) || '';
-  }
-
-  getUnreadCount(friendId: string | undefined): number {
-    if (!friendId) return 0;
-    return this.unreadCountMap.get(friendId) || 0;
-  }
-
-  private updateMessagesCache(userId: string, messages: Message[]): void {
-    this.messagesCache.set(userId, messages);
-    
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      const content = lastMessage.content || (lastMessage.type === 'emoji' ? (lastMessage.emoji || '') : 'Message');
-      this.lastMessagesMap.set(userId, content);
-    }
-    
-    const unread = messages.filter(m => m.senderId === userId && !m.isRead).length;
-    this.unreadCountMap.set(userId, unread);
-  }
 
   loadMessages(userId: string): void {
     if (!userId) return;
@@ -178,7 +265,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
     
-    this.isLoading = true;
+    this.isLoadingMessages = true;
     this.messages = [];
     this.messagePage = 1;
     this.hasMoreMessages = true;
@@ -186,14 +273,14 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.chatService.getMessages(userId).subscribe({
       next: (msgs) => {
         this.messages = msgs || [];
-        this.updateMessagesCache(userId, this.messages);
-        this.isLoading = false;
+        this.messagesCache.set(userId, this.messages);
+        this.isLoadingMessages = false;
         this.chatService.markAsRead(userId).subscribe();
         setTimeout(() => this.scrollToBottom(), 100);
       },
       error: (error) => {
         console.error('Error loading messages:', error);
-        this.isLoading = false;
+        this.isLoadingMessages = false;
         this.notificationService.showError('Erreur chargement messages');
       }
     });
@@ -222,116 +309,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ========== CHARGEMENT DES DONNÉES ==========
-
-  private loadData(): void {
-    this.isLoading = true;
-    forkJoin({
-      conversations: this.chatService.getConversations().pipe(catchError(() => of([]))),
-      friends: this.friendService.getFriends().pipe(catchError(() => of([])))
-    }).subscribe({
-      next: (result) => {
-        this.conversations = result.conversations;
-        this.friends = result.friends.filter(f => f.status === 'accepted');
-        this.filteredFriends = this.friends;
-        this.recentConversations = result.conversations.slice(0, 5);
-        this.mergeContacts();
-        this.loadLastMessagesForFriends();
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading data:', error);
-        this.isLoading = false;
-        this.allChatContacts = [];
-      }
-    });
-  }
-
-  private loadLastMessagesForFriends(): void {
-    this.friends.forEach(friend => {
-      if (friend.friend?.id) {
-        this.chatService.getMessages(friend.friend.id).subscribe({
-          next: (msgs) => {
-            if (msgs && msgs.length > 0) {
-              const lastMessage = msgs[msgs.length - 1];
-              const content = lastMessage.content || (lastMessage.type === 'emoji' ? (lastMessage.emoji || '') : 'Message');
-              this.lastMessagesMap.set(friend.friend!.id, content);
-              const unread = msgs.filter(m => m.senderId === friend.friend?.id && !m.isRead).length;
-              this.unreadCountMap.set(friend.friend!.id, unread);
-            }
-          }
-        });
-      }
-    });
-  }
-
-  private mergeContacts(): void {
-    const contactMap = new Map();
-    
-    this.conversations.forEach(conv => {
-      if (conv && conv.userId) {
-        let lastMessageTime = 0;
-        if (conv.lastMessageTime) {
-          lastMessageTime = this.getSafeTimestamp(conv.lastMessageTime);
-        } else if (conv.lastMessage?.createdAt) {
-          lastMessageTime = this.getSafeTimestamp(conv.lastMessage.createdAt);
-        }
-        
-        contactMap.set(conv.userId, {
-          userId: conv.userId,
-          firstName: conv.firstName || 'Utilisateur',
-          lastName: conv.lastName || '',
-          profilePicture: conv.profilePicture,
-          lastMessage: conv.lastMessage,
-          lastMessageTime: lastMessageTime,
-          unreadCount: conv.unreadCount || 0,
-          isOnline: conv.isOnline || false,
-          hasConversation: true,
-          isFriend: true
-        });
-      }
-    });
-    
-    this.friends.forEach(friend => {
-      if (friend?.friend?.id && !contactMap.has(friend.friend.id)) {
-        contactMap.set(friend.friend.id, {
-          userId: friend.friend.id,
-          firstName: friend.friend.firstName || 'Utilisateur',
-          lastName: friend.friend.lastName || '',
-          profilePicture: friend.friend.profilePicture,
-          lastMessage: null,
-          lastMessageTime: 0,
-          unreadCount: 0,
-          isOnline: friend.friend.isOnline || false,
-          hasConversation: false,
-          isFriend: true
-        });
-      } else if (friend?.friend?.id) {
-        const existing = contactMap.get(friend.friend.id);
-        if (existing) {
-          existing.isFriend = true;
-        }
-      }
-    });
-    
-    this.allChatContacts = Array.from(contactMap.values());
-    
-    this.allChatContacts.sort((a, b) => {
-      const timeA = typeof a.lastMessageTime === 'number' ? a.lastMessageTime : 0;
-      const timeB = typeof b.lastMessageTime === 'number' ? b.lastMessageTime : 0;
-      return timeB - timeA;
-    });
-  }
-
-  private getSafeTimestamp(date: any): number {
-    if (!date) return 0;
-    if (date instanceof Date) return date.getTime();
-    if (typeof date === 'string') return new Date(date).getTime();
-    if (typeof date === 'number') return date;
-    return 0;
-  }
-
-  // ========== SOCKET ET ÉVÉNEMENTS EN TEMPS RÉEL ==========
+  // ========== SOCKET ==========
 
   private setupSocketListeners(): void {
     this.subscriptions.push(
@@ -349,44 +327,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     cached.push(message);
     this.messagesCache.set(otherUserId, cached);
     
-    const content = message.content || (message.type === 'emoji' ? (message.emoji || '') : 'Message');
-    this.lastMessagesMap.set(otherUserId, content);
-    
-    if (message.senderId !== this.currentUserId) {
-      const unread = this.unreadCountMap.get(otherUserId) || 0;
-      this.unreadCountMap.set(otherUserId, unread + 1);
-    }
-    
     if (this.selectedContact && (message.senderId === this.selectedContact.userId || message.receiverId === this.selectedContact.userId)) {
       this.messages.push(message);
       this.scrollToBottom();
       if (message.senderId === this.selectedContact.userId) {
         this.chatService.markAsRead(this.selectedContact.userId).subscribe();
-        this.unreadCountMap.set(this.selectedContact.userId, 0);
       }
-    }
-    this.updateContactFromMessage(message);
-  }
-
-  private updateContactFromMessage(message: Message): void {
-    const otherUserId = message.senderId === this.currentUserId ? message.receiverId : message.senderId;
-    let contact = this.allChatContacts.find(c => c.userId === otherUserId);
-    if (contact) {
-      contact.lastMessage = { 
-        content: message.content || (message.type === 'emoji' ? message.emoji : 'Nouveau message'), 
-        type: message.type, 
-        createdAt: message.createdAt 
-      };
-      contact.lastMessageTime = this.getSafeTimestamp(message.createdAt);
-      contact.hasConversation = true;
-      if (message.senderId !== this.currentUserId && (!this.selectedContact || this.selectedContact.userId !== otherUserId)) {
-        contact.unreadCount = (contact.unreadCount || 0) + 1;
-      }
-      this.allChatContacts.sort((a, b) => {
-        const timeA = typeof a.lastMessageTime === 'number' ? a.lastMessageTime : 0;
-        const timeB = typeof b.lastMessageTime === 'number' ? b.lastMessageTime : 0;
-        return timeB - timeA;
-      });
     }
   }
 
@@ -400,11 +346,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private handleOnlineStatus(data: { userId: string; isOnline: boolean }): void {
-    const contact = this.allChatContacts.find(c => c.userId === data.userId);
-    if (contact) contact.isOnline = data.isOnline;
+    const friend = this.allFriendsList.find(f => f.userId === data.userId);
+    if (friend) friend.isOnline = data.isOnline;
     if (this.selectedContact?.userId === data.userId) {
       this.selectedContact.isOnline = data.isOnline;
     }
+    // Mettre à jour les listes
+    this.onlineFriendsList = this.allFriendsList.filter(f => f.isOnline === true);
   }
 
   // ========== ENVOI DE MESSAGES ==========
@@ -432,11 +380,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       createdAt: new Date()
     };
     this.messages.push(tempMsg);
-    if (this.selectedContact) {
-      this.selectedContact.lastMessage = { content: this.newMessage.trim(), type: 'text', createdAt: new Date() };
-      this.selectedContact.lastMessageTime = Date.now();
-      this.selectedContact.hasConversation = true;
-    }
     this.newMessage = '';
     this.isSending = false;
     this.scrollToBottom();
@@ -465,10 +408,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       createdAt: new Date()
     };
     this.messages.push(tempMsg);
-    if (this.selectedContact) {
-      this.selectedContact.lastMessage = { content: emoji, type: 'emoji', createdAt: new Date() };
-      this.selectedContact.lastMessageTime = Date.now();
-    }
     this.showEmojiPicker = false;
     this.scrollToBottom();
   }
@@ -495,10 +434,6 @@ export class ChatComponent implements OnInit, OnDestroy {
         createdAt: new Date()
       };
       this.messages.push(tempMsg);
-      if (this.selectedContact) {
-        this.selectedContact.lastMessage = { content: `💰 ${amount} Ar`, type: 'money', createdAt: new Date() };
-        this.selectedContact.lastMessageTime = Date.now();
-      }
       this.scrollToBottom();
     }
   }
@@ -544,10 +479,6 @@ export class ChatComponent implements OnInit, OnDestroy {
           createdAt: new Date()
         };
         this.messages.push(tempMsg);
-        if (this.selectedContact) {
-          this.selectedContact.lastMessage = { content: type === 'image' ? '📷 Image' : `📎 ${result.fileName}`, type: type, createdAt: new Date() };
-          this.selectedContact.lastMessageTime = Date.now();
-        }
         this.isSending = false;
         this.scrollToBottom();
       },
@@ -567,22 +498,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
     this.chatService.startCall(this.selectedContact.userId, type);
-    this.notificationService.showInfo(`Appel ${type} démarré avec ${this.selectedContact.firstName} (simulation)`);
+    this.notificationService.showInfo(`Appel ${type} démarré avec ${this.selectedContact.firstName}`);
   }
 
   // ========== GESTION DES AMIS ==========
-
-  checkIfFriend(userId: string): void {
-    this.isFriend = this.friends.some(f => f.friend?.id === userId || f.userId === userId);
-  }
-
-  sendFriendRequest(): void {
-    if (!this.selectedContact) return;
-    this.friendService.sendFriendRequest(this.selectedContact.userId).subscribe({
-      next: () => this.notificationService.showSuccess('Demande d\'ami envoyée'),
-      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
-    });
-  }
 
   blockUser(): void {
     if (!this.selectedContact) return;
@@ -590,7 +509,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       next: () => {
         this.notificationService.showSuccess('Utilisateur bloqué');
         this.selectedContact.isBlocked = true;
-        this.selectedContact.canMessage = false;
       },
       error: (err) => {
         this.notificationService.showError(err.error?.message || 'Erreur lors du blocage');
@@ -598,7 +516,37 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ========== ÉDITION ET SUPPRESSION DE MESSAGES ==========
+  // ========== NAVIGATION ==========
+
+  goBack(): void { 
+    this.selectedContact = null; 
+  }
+
+  goToDashboard(): void { 
+    this.router.navigate(['/user']); 
+  }
+
+  goToFriends(): void { 
+    this.router.navigate(['/friends']); 
+  }
+
+  viewFriendProfile(userId: string): void {
+    this.router.navigate(['/profile', userId]);
+  }
+
+  sendMoneyToFriend(userId: string, firstName: string): void {
+    this.router.navigate(['/transactions/send'], { queryParams: { friendId: userId, friendName: firstName } });
+  }
+
+  refreshData(): void { 
+    this.loadData(); 
+  }
+
+  toggleEmojiPicker(): void { 
+    this.showEmojiPicker = !this.showEmojiPicker; 
+  }
+
+  // ========== ÉDITION ET SUPPRESSION ==========
 
   editMessage(message: Message): void {
     const newContent = prompt('Modifier le message:', message.content);
@@ -644,32 +592,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.typingTimeout = setTimeout(() => {
       if (this.selectedContact?.userId) this.chatService.sendTyping(this.selectedContact.userId, false);
     }, 1000);
-  }
-
-  // ========== NAVIGATION ==========
-
-  goBack(): void { 
-    this.selectedContact = null; 
-  }
-
-  goToDashboard(): void { 
-    this.router.navigate(['/user']); 
-  }
-
-  goToFriends(): void { 
-    this.router.navigate(['/friends']); 
-  }
-
-  refreshData(): void { 
-    this.loadData(); 
-  }
-
-  toggleEmojiPicker(): void { 
-    this.showEmojiPicker = !this.showEmojiPicker; 
-  }
-
-  navigateToSendMoney(): void { 
-    this.router.navigate(['/transactions/send']); 
   }
 
   // ========== UTILITAIRES ==========

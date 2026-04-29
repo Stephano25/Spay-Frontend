@@ -1,5 +1,5 @@
 <div class="chat-container">
-  <!-- Sidebar -->
+  <!-- Sidebar avec liste des amis -->
   <div class="chat-sidebar" [class.collapsed]="selectedContact">
     <div class="sidebar-header">
       <button class="back-btn-dashboard" (click)="goToDashboard()" matTooltip="Retour au tableau de bord">
@@ -11,48 +11,66 @@
         <input type="text" placeholder="Rechercher un ami..." [(ngModel)]="searchQuery" (input)="onSearch()">
       </div>
     </div>
-    
-    <!-- Affichage direct de la liste des amis -->
-    <div class="friends-list-container">
-      <div class="section-header">
-        <mat-icon>people</mat-icon>
-        <span>Mes amis</span>
-        @if (friends.length > 0) {
-          <span class="friends-count">{{ friends.length }}</span>
-        }
-      </div>
-      
-      <div class="contacts-list">
-        <!-- Afficher tous les amis directement -->
-        @for (friend of filteredFriends; track friend.id) {
-          @if (friend.friend) {
-            <div class="contact-item" [class.active]="selectedContact?.userId === friend.friend.id" (click)="selectFriend(friend)">
-              <div class="avatar">
-                @if (friend.friend.profilePicture) {
-                  <img [src]="friend.friend.profilePicture" [alt]="friend.friend.firstName">
-                } @else {
-                  <div class="avatar-placeholder" [style.backgroundColor]="getAvatarColor(friend.friend.firstName || '')">
-                    {{ getInitials(friend.friend.firstName || '', friend.friend.lastName || '') }}
-                  </div>
-                }
-                <span class="online-status" [class.online]="friend.friend.isOnline"></span>
+
+    <!-- Amis en ligne (section spéciale) -->
+    @if (onlineFriendsList.length > 0) {
+      <div class="online-section">
+        <div class="section-header">
+          <span class="live-dot"></span>
+          <span>En ligne ({{ onlineFriendsList.length }})</span>
+        </div>
+        <div class="online-friends-list">
+          @for (friend of onlineFriendsList; track friend.userId) {
+            <div class="online-friend-item" (click)="selectFriendFromList(friend)">
+              <div class="friend-avatar small" [style.background]="getAvatarColor(friend.firstName)">
+                {{ getInitials(friend.firstName, friend.lastName) }}
+                <span class="online-dot active"></span>
               </div>
-              <div class="contact-info">
-                <div class="contact-name">{{ friend.friend.firstName }} {{ friend.friend.lastName }}</div>
-                <div class="last-message">{{ getLastMessageWithFriend(friend.friend.id) || 'Commencer une conversation' }}</div>
-              </div>
-              <div class="contact-status-badge">
-                @if (getUnreadCount(friend.friend.id) > 0) {
-                  <span class="unread-badge">{{ getUnreadCount(friend.friend.id) }}</span>
-                }
-              </div>
+              <span class="friend-name">{{ friend.firstName }}</span>
             </div>
           }
-        }
-        @empty {
-          <div class="empty-state">
+        </div>
+      </div>
+    }
+
+    <!-- Menu des amis (dépliable) -->
+    <div class="friends-menu">
+      <div class="menu-header" (click)="toggleFriendsList()">
+        <mat-icon>people</mat-icon>
+        <span>Mes amis ({{ allFriendsList.length }})</span>
+        <mat-icon class="menu-arrow">{{ showFriendsList ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </div>
+      
+      <div class="menu-content" [class.expanded]="showFriendsList">
+        @if (allFriendsList.length > 0) {
+          <div class="friends-list-menu">
+            @for (friend of filteredFriendsList; track friend.userId) {
+              <div class="friend-menu-item" (click)="selectFriendFromList(friend)">
+                <div class="friend-avatar small" [style.background]="getAvatarColor(friend.firstName)">
+                  {{ getInitials(friend.firstName, friend.lastName) }}
+                  <span class="online-dot" [class.online]="friend.isOnline"></span>
+                </div>
+                <div class="friend-info">
+                  <div class="friend-name">{{ friend.firstName }} {{ friend.lastName }}</div>
+                  <div class="friend-status" [class.online]="friend.isOnline">
+                    {{ friend.isOnline ? 'En ligne' : formatLastSeen(friend.lastSeen) }}
+                  </div>
+                </div>
+                <div class="friend-actions-menu">
+                  <button mat-icon-button (click)="$event.stopPropagation(); viewFriendProfile(friend.userId)" matTooltip="Profil">
+                    <mat-icon>person</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="$event.stopPropagation(); sendMoneyToFriend(friend.userId, friend.firstName)" matTooltip="Envoyer">
+                    <mat-icon>attach_money</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-menu-state">
             <mat-icon>people_outline</mat-icon>
-            <p>Vous n'avez pas encore d'amis</p>
+            <p>Aucun ami</p>
             <button class="btn-gradient-small" (click)="goToFriends()">
               <mat-icon>person_add</mat-icon>
               Ajouter des amis
@@ -60,38 +78,42 @@
           </div>
         }
       </div>
-      
-      <!-- Section conversations récentes (optionnelle) -->
-      @if (recentConversations.length > 0) {
-        <div class="section-header">
-          <mat-icon>chat</mat-icon>
-          <span>Conversations récentes</span>
-        </div>
-        <div class="contacts-list">
-          @for (conv of recentConversations; track conv.userId) {
-            <div class="contact-item" [class.active]="selectedContact?.userId === conv.userId" (click)="selectRecentConversation(conv)">
-              <div class="avatar">
-                @if (conv.profilePicture) {
-                  <img [src]="conv.profilePicture" [alt]="conv.firstName">
-                } @else {
-                  <div class="avatar-placeholder" [style.backgroundColor]="getAvatarColor(conv.firstName)">
-                    {{ getInitials(conv.firstName, conv.lastName) }}
-                  </div>
-                }
-                <span class="online-status" [class.online]="conv.isOnline"></span>
-              </div>
-              <div class="contact-info">
-                <div class="contact-name">{{ conv.firstName }} {{ conv.lastName }}</div>
-                <div class="last-message">{{ conv.lastMessage?.content || 'Nouvelle conversation' }}</div>
-              </div>
-              @if (conv.unreadCount > 0) {
-                <div class="unread-badge">{{ conv.unreadCount }}</div>
-              }
-            </div>
-          }
-        </div>
-      }
     </div>
+
+    <!-- Demandes d'ami (menu dépliable) -->
+    @if (pendingRequests.length > 0) {
+      <div class="requests-menu">
+        <div class="menu-header" (click)="toggleRequestsList()">
+          <mat-icon>notifications</mat-icon>
+          <span>Demandes reçues ({{ pendingRequests.length }})</span>
+          <mat-icon class="menu-arrow">{{ showRequestsList ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </div>
+        
+        <div class="menu-content" [class.expanded]="showRequestsList">
+          <div class="requests-list-menu">
+            @for (request of pendingRequests; track request.id) {
+              <div class="request-menu-item">
+                <div class="friend-avatar small" [style.background]="getAvatarColor(request.senderFirstName)">
+                  {{ getInitials(request.senderFirstName, request.senderLastName) }}
+                </div>
+                <div class="friend-info">
+                  <div class="friend-name">{{ request.senderFirstName }} {{ request.senderLastName }}</div>
+                  <div class="friend-email">{{ request.senderEmail }}</div>
+                </div>
+                <div class="request-actions-menu">
+                  <button mat-icon-button class="accept-btn" (click)="acceptFriendRequest(request.id)" matTooltip="Accepter">
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button mat-icon-button class="decline-btn" (click)="declineFriendRequest(request.id)" matTooltip="Refuser">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
   </div>
 
   <!-- Chat Area -->
@@ -131,11 +153,6 @@
           <button mat-icon-button (click)="startCall('video')" matTooltip="Appel vidéo">
             <mat-icon>videocam</mat-icon>
           </button>
-          @if (selectedContact && !isFriend) {
-            <button mat-icon-button (click)="sendFriendRequest()" matTooltip="Ajouter comme ami">
-              <mat-icon>person_add</mat-icon>
-            </button>
-          }
           <button mat-icon-button [matMenuTriggerFor]="chatMenu" matTooltip="Plus d'options">
             <mat-icon>more_vert</mat-icon>
           </button>
@@ -158,7 +175,7 @@
       </div>
 
       <div class="messages-container" #messageContainer (scroll)="onScroll($event)">
-        @if (isLoading) {
+        @if (isLoadingMessages) {
           <div class="loading-messages">
             <mat-spinner diameter="30"></mat-spinner>
           </div>
@@ -213,7 +230,7 @@
           </div>
         }
         
-        @if (messages.length === 0 && !isLoading) {
+        @if (messages.length === 0 && !isLoadingMessages) {
           <div class="empty-chat">
             <mat-icon>chat_bubble_outline</mat-icon>
             <p>Aucun message</p>
@@ -261,7 +278,7 @@
         <mat-icon>chat</mat-icon>
         <h3>Sélectionnez un ami</h3>
         <p>Choisissez un ami dans la liste pour commencer à discuter</p>
-        @if (friends.length === 0 && !isLoading) {
+        @if (allFriendsList.length === 0 && !isLoadingFriends) {
           <button class="btn-gradient" (click)="goToFriends()">
             <mat-icon>person_add</mat-icon>
             Ajouter des amis
