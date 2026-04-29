@@ -33,9 +33,10 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 24px;
-  padding: 20px;
+  padding: 30px 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 12px;
+  position: relative;
 }
 
 .profile-avatar {
@@ -51,8 +52,21 @@
   color: white;
 }
 
-.change-photo-btn {
-  margin-top: 8px;
+.admin-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 16px;
+  border-radius: 20px;
+  color: white;
+  font-size: 14px;
+}
+
+.admin-badge mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .edit-mode {
@@ -62,6 +76,17 @@
 .full-width {
   width: 100%;
   margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
 }
 
 .action-buttons {
@@ -107,64 +132,56 @@
   color: #333;
 }
 
-.info-value.balance {
-  color: #4caf50;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.info-value.qr-code {
-  font-family: monospace;
+.role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: #e3f2fd;
+  color: #1976d2;
   font-size: 12px;
-  color: #666;
 }
 
-.qr-code-section {
-  text-align: center;
-  padding: 24px;
+.role-badge.super-admin {
+  background: #f3e5f5;
+  color: #9c27b0;
+}
+
+.admin-stats {
+  margin-top: 24px;
+  padding: 20px;
   background: #f8f9fa;
   border-radius: 12px;
-  margin: 24px 0;
 }
 
-.qr-code-section h3 {
+.admin-stats h3 {
   margin: 0 0 16px 0;
-  font-size: 18px;
+  font-size: 16px;
   color: #333;
 }
 
-.qr-code-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  margin-bottom: 16px;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
-.qr-code-placeholder mat-icon {
-  font-size: 64px;
-  width: 64px;
-  height: 64px;
+.stat-card {
+  text-align: center;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: bold;
   color: #667eea;
 }
 
-.qr-code-placeholder span {
-  font-family: monospace;
-  font-size: 12px;
-  color: #666;
-}
-
-.qr-hint {
-  font-size: 12px;
+.stat-label {
+  font-size: 11px;
   color: #999;
-  margin: 8px 0;
-}
-
-.download-qr-btn {
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .logout-btn {
@@ -184,7 +201,7 @@
   }
   
   .profile-header {
-    padding: 16px;
+    padding: 20px;
   }
   
   .profile-avatar {
@@ -199,5 +216,10 @@
   
   .action-buttons button {
     width: 100%;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }

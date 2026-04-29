@@ -16,9 +16,6 @@ export class FriendService {
     private notificationService: NotificationService
   ) {}
 
-  /**
-   * Récupérer la liste des amis
-   */
   getFriends(): Observable<Friend[]> {
     console.log('📡 Appel API getFriends');
     return this.http.get<Friend[]>(`${this.apiUrl}`).pipe(
@@ -32,9 +29,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Récupérer les demandes d'amis
-   */
   getFriendRequests(): Observable<FriendRequest[]> {
     return this.http.get<FriendRequest[]>(`${this.apiUrl}/requests`).pipe(
       tap(requests => console.log('Demandes reçues du serveur:', requests)),
@@ -45,9 +39,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Récupérer les suggestions d'amis
-   */
   getSuggestions(): Observable<SearchUser[]> {
     return this.http.get<SearchUser[]>(`${this.apiUrl}/suggestions`).pipe(
       catchError(error => {
@@ -57,9 +48,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Récupérer la liste des utilisateurs bloqués
-   */
   getBlockedUsers(): Observable<Friend[]> {
     return this.http.get<Friend[]>(`${this.apiUrl}/blocked`).pipe(
       catchError(error => {
@@ -73,9 +61,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Rechercher des utilisateurs
-   */
   searchUsers(query: string): Observable<SearchUser[]> {
     return this.http.get<SearchUser[]>(`${this.apiUrl}/search`, {
       params: { q: query }
@@ -87,9 +72,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Envoyer une demande d'ami
-   */
   sendFriendRequest(friendId: string): Observable<FriendResponse> {
     console.log('Envoi demande à:', friendId);
     
@@ -119,9 +101,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Accepter une demande d'ami
-   */
   acceptFriendRequest(requestId: string): Observable<FriendResponse> {
     console.log('Acceptation demande:', requestId);
     
@@ -151,9 +130,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Refuser une demande d'ami
-   */
   declineFriendRequest(requestId: string): Observable<FriendResponse> {
     return this.http.post<FriendResponse>(`${this.apiUrl}/decline/${requestId}`, {}).pipe(
       tap(() => this.notificationService.showInfo('Demande d\'ami refusée')),
@@ -164,9 +140,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Supprimer un ami
-   */
   removeFriend(friendId: string): Observable<FriendResponse> {
     return this.http.delete<FriendResponse>(`${this.apiUrl}/${friendId}`).pipe(
       tap(() => this.notificationService.showSuccess('Ami supprimé')),
@@ -177,9 +150,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Bloquer un utilisateur
-   */
   blockUser(userId: string): Observable<FriendResponse> {
     return this.http.post<FriendResponse>(`${this.apiUrl}/block/${userId}`, {}).pipe(
       tap(() => this.notificationService.showInfo('Utilisateur bloqué')),
@@ -190,9 +160,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Débloquer un utilisateur
-   */
   unblockUser(userId: string): Observable<FriendResponse> {
     return this.http.post<FriendResponse>(`${this.apiUrl}/unblock/${userId}`, {}).pipe(
       tap(() => this.notificationService.showInfo('Utilisateur débloqué')),
@@ -203,9 +170,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * Vérifier le statut de blocage avec un utilisateur
-   */
   checkBlockStatus(userId: string): Observable<BlockStatus> {
     return this.http.get<BlockStatus>(`${this.apiUrl}/block-status/${userId}`).pipe(
       catchError(error => {

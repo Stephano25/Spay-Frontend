@@ -215,4 +215,19 @@ export class AdminService {
       })
     );
   }
+
+  // AJOUT DE LA MÉTHODE updateAdminProfile
+  updateAdminProfile(profileData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/profile`, profileData, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap((response: any) => {
+        this.notificationService.showSuccess('Profil administrateur mis à jour');
+      }),
+      catchError(error => {
+        this.notificationService.showError('Erreur lors de la mise à jour du profil');
+        return throwError(() => error);
+      })
+    );
+  }
 }

@@ -3,7 +3,7 @@
     <button mat-icon-button (click)="goBack()" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span>Mon Profil</span>
+    <span>Mon Profil Administrateur</span>
     <span class="spacer"></span>
     <button mat-icon-button (click)="toggleEditMode()" matTooltip="{{ editMode ? 'Annuler' : 'Modifier' }}">
       <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
@@ -18,13 +18,17 @@
     </div>
 
     <!-- Contenu principal -->
-    <ng-container *ngIf="!isLoading && user">
+    <ng-container *ngIf="!isLoading && admin">
       <mat-card class="profile-card">
         <mat-card-content>
           <!-- Photo de profil -->
           <div class="profile-header">
-            <div class="profile-avatar" [style.background]="'linear-gradient(135deg, #667eea, #764ba2)'">
+            <div class="profile-avatar">
               {{ getInitials() }}
+            </div>
+            <div class="admin-badge">
+              <mat-icon>verified</mat-icon>
+              <span>{{ admin.role === 'super_admin' ? 'Super Administrateur' : 'Administrateur' }}</span>
             </div>
           </div>
 
@@ -32,22 +36,22 @@
           <div *ngIf="editMode; else viewMode" class="edit-mode">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Prénom</mat-label>
-              <input matInput [(ngModel)]="user.firstName" required>
+              <input matInput [(ngModel)]="admin.firstName" required>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Nom</mat-label>
-              <input matInput [(ngModel)]="user.lastName" required>
+              <input matInput [(ngModel)]="admin.lastName" required>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Email</mat-label>
-              <input matInput [(ngModel)]="user.email" type="email" required>
+              <input matInput [(ngModel)]="admin.email" type="email" required>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Téléphone</mat-label>
-              <input matInput [(ngModel)]="user.phoneNumber" placeholder="0341234567">
+              <input matInput [(ngModel)]="admin.phoneNumber" placeholder="0341234567">
             </mat-form-field>
 
             <div class="action-buttons">
@@ -68,10 +72,22 @@
           <ng-template #viewMode>
             <div class="profile-info">
               <div class="info-item">
+                <mat-icon>badge</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Rôle</span>
+                  <span class="info-value role-badge" [class.super-admin]="admin.role === 'super_admin'">
+                    {{ admin.role === 'super_admin' ? 'Super Administrateur' : 'Administrateur' }}
+                  </span>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="info-item">
                 <mat-icon>person</mat-icon>
                 <div class="info-content">
                   <span class="info-label">Nom complet</span>
-                  <span class="info-value">{{ user.firstName }} {{ user.lastName }}</span>
+                  <span class="info-value">{{ admin.firstName }} {{ admin.lastName }}</span>
                 </div>
               </div>
 
@@ -81,7 +97,7 @@
                 <mat-icon>email</mat-icon>
                 <div class="info-content">
                   <span class="info-label">Email</span>
-                  <span class="info-value">{{ user.email }}</span>
+                  <span class="info-value">{{ admin.email }}</span>
                 </div>
               </div>
 
@@ -91,39 +107,48 @@
                 <mat-icon>phone</mat-icon>
                 <div class="info-content">
                   <span class="info-label">Téléphone</span>
-                  <span class="info-value">{{ user.phoneNumber || 'Non renseigné' }}</span>
+                  <span class="info-value">{{ admin.phoneNumber || 'Non renseigné' }}</span>
                 </div>
               </div>
 
               <mat-divider></mat-divider>
 
               <div class="info-item">
-                <mat-icon>account_balance_wallet</mat-icon>
+                <mat-icon>event</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Solde</span>
-                  <span class="info-value balance">{{ formatAmount(user.balance) }} Ar</span>
+                  <span class="info-label">Date d'inscription</span>
+                  <span class="info-value">{{ admin.createdAt | date:'dd/MM/yyyy' }}</span>
                 </div>
               </div>
 
               <mat-divider></mat-divider>
 
               <div class="info-item">
-                <mat-icon>qr_code</mat-icon>
+                <mat-icon>login</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">QR Code</span>
-                  <span class="info-value qr-code">{{ user.qrCode }}</span>
+                  <span class="info-label">Dernière connexion</span>
+                  <span class="info-value">{{ admin.lastLogin | date:'dd/MM/yyyy HH:mm' }}</span>
                 </div>
               </div>
             </div>
 
-            <!-- QR Code Section -->
-            <div class="qr-code-section">
-              <h3>Votre QR Code</h3>
-              <div class="qr-code-placeholder">
-                <mat-icon>qr_code_2</mat-icon>
-                <span>{{ user.qrCode }}</span>
+            <!-- Statistiques admin -->
+            <div class="admin-stats">
+              <h3>Statistiques</h3>
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-value">{{ stats.totalUsers || 0 }}</div>
+                  <div class="stat-label">Utilisateurs</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value">{{ stats.totalTransactions || 0 }}</div>
+                  <div class="stat-label">Transactions</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value">{{ formatAmount(stats.totalVolume || 0) }}</div>
+                  <div class="stat-label">Volume total</div>
+                </div>
               </div>
-              <p class="qr-hint">Scannez ce code pour recevoir des paiements</p>
             </div>
           </ng-template>
 

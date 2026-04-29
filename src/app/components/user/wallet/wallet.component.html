@@ -1,142 +1,155 @@
 <div class="wallet-container">
-  <!-- Header avec bouton retour -->
-  <div class="wallet-header">
-    <button class="back-btn" (click)="goBack()" matTooltip="Retour au tableau de bord">
+
+  <!-- Header -->
+  <header class="wallet-header">
+    <button class="icon-btn" (click)="goBack()" aria-label="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h1>SPaye Wallet</h1>
-    <button class="refresh-btn" (click)="refreshData()" matTooltip="Actualiser">
+    <span class="header-title">SPAYE WALLET</span>
+    <button class="icon-btn" (click)="refreshData()" [class.spinning]="isRefreshing" aria-label="Actualiser">
       <mat-icon>refresh</mat-icon>
     </button>
-  </div>
+  </header>
 
   <div class="wallet-content">
-    <!-- Loading spinner -->
-    <div class="loading-container" *ngIf="isLoading">
-      <mat-spinner diameter="60"></mat-spinner>
-      <p>Chargement de votre portefeuille...</p>
+
+    <!-- Loading skeleton -->
+    <ng-container *ngIf="isLoading">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-grid">
+        <div class="skeleton-item" *ngFor="let i of [1,2,3,4]"></div>
+      </div>
+      <div class="skeleton-stats">
+        <div class="skeleton-stat" *ngFor="let i of [1,2,3]"></div>
+      </div>
+    </ng-container>
+
+    <!-- Error state -->
+    <div class="error-state" *ngIf="hasError && !isLoading">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button class="btn-retry" (click)="loadData()">Réessayer</button>
     </div>
 
-    <!-- Contenu principal -->
-    <ng-container *ngIf="!isLoading && wallet">
-      <!-- Carte de solde -->
-      <mat-card class="balance-card">
-        <mat-card-content>
-          <div class="balance-label">SOLDE DISPONIBLE</div>
-          <div class="balance-amount">{{ formatAmount(wallet.balance) }} Ar</div>
-          <div class="balance-actions">
-            <button mat-raised-button class="action-btn send" (click)="sendMoney()">
-              <mat-icon>send</mat-icon>
-              <span>Envoyer</span>
-            </button>
-            <button mat-raised-button class="action-btn receive" (click)="receiveMoney()">
-              <mat-icon>qr_code</mat-icon>
-              <span>Recevoir</span>
-            </button>
-            <button mat-raised-button class="action-btn mobile" (click)="mobileMoney()">
-              <mat-icon>phone_android</mat-icon>
-              <span>Mobile Money</span>
-            </button>
-          </div>
-        </mat-card-content>
-      </mat-card>
+    <!-- Main content -->
+    <ng-container *ngIf="!isLoading && !hasError && wallet">
 
-      <!-- Actions rapides -->
-      <div class="quick-actions">
-        <button mat-button class="quick-action" (click)="sendMoney()" matTooltip="Envoyer de l'argent">
+      <!-- Balance card -->
+      <div class="balance-card" [@fadeUp]>
+        <div class="balance-label">Solde disponible</div>
+        <div class="balance-amount">{{ formatAmount(wallet.balance) }}</div>
+        <div class="balance-currency">
+          <span class="live-dot"></span>
+          MGA · Ariary malgache
+        </div>
+        <div class="balance-actions">
+          <button class="bal-btn primary" (click)="sendMoney()">
+            <mat-icon>send</mat-icon>
+            Envoyer
+          </button>
+          <button class="bal-btn" (click)="receiveMoney()">
+            <mat-icon>qr_code</mat-icon>
+            Recevoir
+          </button>
+          <button class="bal-btn" (click)="mobileMoney()">
+            <mat-icon>phone_android</mat-icon>
+            Mobile
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="quick-actions" [@staggerFade]>
+        <button class="quick-btn" (click)="sendMoney()">
           <mat-icon>send</mat-icon>
           <span>Envoyer</span>
         </button>
-        <button mat-button class="quick-action" (click)="receiveMoney()" matTooltip="Recevoir de l'argent">
-          <mat-icon>qr_code</mat-icon>
-          <span>Recevoir</span>
-        </button>
-        <button mat-button class="quick-action" (click)="scanQR()" matTooltip="Scanner un QR code">
+        <button class="quick-btn" (click)="scanQR()">
           <mat-icon>qr_code_scanner</mat-icon>
           <span>Scanner</span>
         </button>
-        <button mat-button class="quick-action" (click)="mobileMoney()" matTooltip="Mobile Money">
+        <button class="quick-btn" (click)="mobileMoney()">
           <mat-icon>phone_android</mat-icon>
           <span>Mobile Money</span>
         </button>
+        <button class="quick-btn" (click)="viewAllTransactions()">
+          <mat-icon>receipt_long</mat-icon>
+          <span>Historique</span>
+        </button>
       </div>
 
-      <!-- Statistiques -->
+      <!-- Stats -->
       <div class="stats-grid" *ngIf="stats">
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-icon deposits">
-              <mat-icon>arrow_downward</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ formatAmount(stats.totalDeposits || stats.totalReceived || 0) }} Ar</div>
-              <div class="stat-label">Total dépôts</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+        <div class="stat-card" [@fadeUp]>
+          <div class="stat-icon income">
+            <mat-icon>arrow_downward</mat-icon>
+          </div>
+          <div class="stat-value">{{ formatAmount(stats.totalDeposits ?? stats.totalReceived ?? 0) }}</div>
+          <div class="stat-label">Total dépôts</div>
+        </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-icon withdrawals">
-              <mat-icon>arrow_upward</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ formatAmount(stats.totalWithdrawals || stats.totalSent || 0) }} Ar</div>
-              <div class="stat-label">Total retraits</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+        <div class="stat-card" [@fadeUp]>
+          <div class="stat-icon expense">
+            <mat-icon>arrow_upward</mat-icon>
+          </div>
+          <div class="stat-value">{{ formatAmount(stats.totalWithdrawals ?? stats.totalSent ?? 0) }}</div>
+          <div class="stat-label">Total retraits</div>
+        </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-icon transfers">
-              <mat-icon>swap_horiz</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ stats.totalTransactions || 0 }}</div>
-              <div class="stat-label">Transactions</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+        <div class="stat-card" [@fadeUp]>
+          <div class="stat-icon transfer">
+            <mat-icon>swap_horiz</mat-icon>
+          </div>
+          <div class="stat-value">{{ stats.totalTransactions ?? 0 }}</div>
+          <div class="stat-label">Transactions</div>
+        </div>
       </div>
 
-      <!-- Transactions récentes -->
-      <mat-card class="transactions-card">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>history</mat-icon>
-            Transactions récentes
-          </mat-card-title>
-          <button mat-button color="primary" (click)="viewAllTransactions()" class="view-all">
-            Voir tout
-            <mat-icon>arrow_forward</mat-icon>
+      <!-- Transactions -->
+      <div class="txn-card" [@fadeUp]>
+        <div class="txn-header">
+          <span class="txn-title">Transactions récentes</span>
+          <button class="btn-link" (click)="viewAllTransactions()">
+            Voir tout <mat-icon>arrow_forward</mat-icon>
           </button>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="transactions-list">
-            <div *ngFor="let transaction of recentTransactions" class="transaction-item">
-              <div class="transaction-icon" [ngClass]="getTransactionClass(transaction)">
-                <mat-icon>{{ getTransactionIcon(transaction) }}</mat-icon>
-              </div>
-              <div class="transaction-details">
-                <div class="transaction-desc">{{ transaction.description || transaction.type }}</div>
-                <div class="transaction-date">{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
-              </div>
-              <div class="transaction-amount" [ngClass]="getAmountClass(transaction)">
-                {{ getAmountSign(transaction) }}{{ formatAmount(transaction.amount) }} Ar
-              </div>
-            </div>
+        </div>
 
-            <div *ngIf="recentTransactions.length === 0" class="no-transactions">
-              <mat-icon>receipt</mat-icon>
-              <p>Aucune transaction récente</p>
-              <button mat-stroked-button color="primary" (click)="sendMoney()">
-                Effectuer une transaction
-              </button>
+        <!-- Transaction list -->
+        <div class="txn-list" *ngIf="recentTransactions.length > 0">
+          <div
+            class="txn-item"
+            *ngFor="let txn of recentTransactions; trackBy: trackById"
+            (click)="viewTransactionDetails(txn)"
+            [@listItem]
+          >
+            <div class="txn-icon" [ngClass]="getTransactionClass(txn)">
+              <mat-icon>{{ getTransactionIcon(txn) }}</mat-icon>
+            </div>
+            <div class="txn-info">
+              <div class="txn-desc">{{ txn.description || txn.type }}</div>
+              <div class="txn-meta">
+                {{ txn.createdAt | date:'dd MMM yyyy · HH:mm' }}
+              </div>
+              <span class="status-pill" [ngClass]="txn.status">
+                {{ getStatusLabel(txn.status) }}
+              </span>
+            </div>
+            <div class="txn-amount" [ngClass]="getAmountClass(txn)">
+              {{ getAmountSign(txn) }}{{ formatAmount(txn.amount) }} Ar
             </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" *ngIf="recentTransactions.length === 0">
+          <mat-icon>receipt_long</mat-icon>
+          <p>Aucune transaction récente</p>
+          <button class="btn-primary" (click)="sendMoney()">
+            Effectuer une transaction
+          </button>
+        </div>
+      </div>
+
     </ng-container>
   </div>
 </div>

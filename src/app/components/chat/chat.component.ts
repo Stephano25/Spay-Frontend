@@ -4,30 +4,20 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { Subscription, forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-
-// Services
 import { ChatService, Message, Conversation, TypingIndicator } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { FriendService } from '../../services/friend.service';
-
-// Models
 import { Friend } from '../../models/friend.model';
 
-// Angular Material
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
+// Angular Material imports
 import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
+import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatBadgeModule } from '@angular/material/badge';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-chat',
@@ -36,36 +26,29 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     CommonModule,
     FormsModule,
     RouterModule,
-    MatToolbarModule,
-    MatButtonModule,
     MatIconModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatListModule,
+    MatButtonModule,
     MatMenuModule,
-    MatBadgeModule,
-    MatDividerModule,
-    MatProgressSpinnerModule,
     MatTabsModule,
-    MatTooltipModule
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    MatDividerModule
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
 export class ChatComponent implements OnInit, OnDestroy {
-  @ViewChild('messageContainer') private messageContainer!: ElementRef;
+  @ViewChild('messageContainer') messageContainer!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef;
 
-  // Données
   conversations: Conversation[] = [];
   friends: Friend[] = [];
   allChatContacts: any[] = [];
   messages: Message[] = [];
   selectedContact: any = null;
   currentUserId: string = '';
-  
-  // UI
+  isFriend: boolean = false;
+
   newMessage = '';
   isLoading = true;
   isSending = false;
@@ -74,8 +57,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   showEmojiPicker = false;
   searchQuery = '';
   activeTab = 0;
-  
-  // Pagination
   isLoadingMore = false;
   hasMoreMessages = true;
   messagePage = 1;
@@ -94,12 +75,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ) {
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id || '';
-    
-    if (!this.currentUserId) {
-      console.error('❌ Utilisateur non connecté');
-      this.router.navigate(['/login']);
-    }
-    
+    if (!this.currentUserId) this.router.navigate(['/login']);
     this.chatService.requestNotificationPermission();
   }
 
@@ -107,11 +83,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (this.currentUserId) {
       this.loadData();
       this.setupSocketListeners();
-      
       this.route.queryParams.subscribe(params => {
-        if (params['friendId']) {
-          this.openConversationWithFriend(params['friendId']);
-        }
+        if (params['friendId']) this.openConversationWithFriend(params['friendId']);
       });
     }
   }
@@ -121,78 +94,89 @@ export class ChatComponent implements OnInit, OnDestroy {
     clearTimeout(this.typingTimeout);
   }
 
-  /**
-   * Charger toutes les données (VERSION UNIQUE)
-   */
+  get filteredContacts(): any[] {
+    if (!this.searchQuery.trim()) {
+      return this.allChatContacts;
+    }
+    const query = this.searchQuery.toLowerCase();
+    return this.allChatContacts.filter(contact => 
+      `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(query) ||
+      contact.firstName?.toLowerCase().includes(query) ||
+      contact.lastName?.toLowerCase().includes(query)
+    );
+  }
+
+  get displayedContacts(): any[] {
+    if (this.activeTab === 0) {
+      return this.filteredContacts.filter(c => c.hasConversation);
+    } else {
+      return this.filteredContacts.filter(c => c.isFriend);
+    }
+  }
+
+  getFriendsCount(): number {
+    return this.allChatContacts.filter(c => c.isFriend).length;
+  }
+
+  getConversationsCount(): number {
+    return this.allChatContacts.filter(c => c.hasConversation).length;
+  }
+
+  getFriendsContacts(): any[] {
+    return this.filteredContacts.filter(c => c.isFriend);
+  }
+
+  getConversationsContacts(): any[] {
+    return this.filteredContacts.filter(c => c.hasConversation);
+  }
+
+  private getSafeTimestamp(date: any): number {
+    if (!date) return 0;
+    if (date instanceof Date) return date.getTime();
+    if (typeof date === 'string') return new Date(date).getTime();
+    if (typeof date === 'number') return date;
+    return 0;
+  }
+
   private loadData(): void {
     this.isLoading = true;
-    console.log('🔄 Chargement des données...');
-    console.log('👤 Current User ID:', this.currentUserId);
-    
     forkJoin({
-      conversations: this.chatService.getConversations().pipe(catchError(err => {
-        console.error('❌ Erreur conversations:', err);
-        return of([]);
-      })),
-      friends: this.friendService.getFriends().pipe(catchError(err => {
-        console.error('❌ Erreur friends:', err);
-        return of([]);
-      }))
+      conversations: this.chatService.getConversations().pipe(catchError(() => of([]))),
+      friends: this.friendService.getFriends().pipe(catchError(() => of([])))
     }).subscribe({
       next: (result) => {
-        this.conversations = result.conversations || [];
-        this.friends = result.friends || [];
-        
-        console.log('📋 Conversations chargées:', this.conversations.length);
-        console.log('📋 Amis chargés (RAW):', this.friends);
-        
-        // Afficher les amis en détail
-        if (this.friends.length > 0) {
-          this.friends.forEach((friend, index) => {
-            console.log(`👤 Ami ${index + 1}:`, {
-              id: friend.id,
-              friendId: friend.friendId,
-              userId: friend.userId,
-              status: friend.status,
-              friendDetails: friend.friend
-            });
-          });
-        } else {
-          console.warn('⚠️ Aucun ami trouvé dans la réponse API');
-        }
-        
+        this.conversations = result.conversations;
+        this.friends = result.friends;
         this.mergeContacts();
         this.isLoading = false;
-        
-        console.log('📋 Contacts fusionnés:', this.allChatContacts.length);
-        console.log('📋 Contacts détaillés:', this.allChatContacts);
       },
       error: (error) => {
-        console.error('❌ Erreur chargement données:', error);
+        console.error('Error loading data:', error);
         this.isLoading = false;
         this.allChatContacts = [];
       }
     });
   }
 
-  /**
-   * Fusionner les conversations et les amis
-   */
   private mergeContacts(): void {
     const contactMap = new Map();
     
-    // 1. Ajouter d'abord les conversations
     this.conversations.forEach(conv => {
       if (conv && conv.userId) {
-        console.log('➕ Ajout conversation:', conv.userId, conv.firstName);
+        let lastMessageTime = 0;
+        if (conv.lastMessageTime) {
+          lastMessageTime = this.getSafeTimestamp(conv.lastMessageTime);
+        } else if (conv.lastMessage?.createdAt) {
+          lastMessageTime = this.getSafeTimestamp(conv.lastMessage.createdAt);
+        }
+        
         contactMap.set(conv.userId, {
-          id: conv.userId,
           userId: conv.userId,
           firstName: conv.firstName || 'Utilisateur',
           lastName: conv.lastName || '',
           profilePicture: conv.profilePicture,
           lastMessage: conv.lastMessage,
-          lastMessageTime: conv.lastMessageTime,
+          lastMessageTime: lastMessageTime,
           unreadCount: conv.unreadCount || 0,
           isOnline: conv.isOnline || false,
           hasConversation: true,
@@ -201,242 +185,173 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     });
     
-    // 2. Ajouter les amis qui n'ont pas encore de conversation
     this.friends.forEach(friend => {
-      if (friend && friend.friend && friend.friend.id) {
-        console.log('➕ Ajout ami:', friend.friend.id, friend.friend.firstName, friend.friend.lastName);
-        
-        if (!contactMap.has(friend.friend.id)) {
-          contactMap.set(friend.friend.id, {
-            id: friend.friend.id,
-            userId: friend.friend.id,
-            firstName: friend.friend.firstName || 'Utilisateur',
-            lastName: friend.friend.lastName || '',
-            profilePicture: friend.friend.profilePicture,
-            lastMessage: null,
-            lastMessageTime: null,
-            unreadCount: 0,
-            isOnline: friend.friend.isOnline || false,
-            hasConversation: false,
-            isFriend: true
-          });
-        } else {
-          // Mettre à jour l'ami existant pour s'assurer qu'il est marqué comme ami
-          const existing = contactMap.get(friend.friend.id);
+      if (friend?.friend?.id && !contactMap.has(friend.friend.id)) {
+        contactMap.set(friend.friend.id, {
+          userId: friend.friend.id,
+          firstName: friend.friend.firstName || 'Utilisateur',
+          lastName: friend.friend.lastName || '',
+          profilePicture: friend.friend.profilePicture,
+          lastMessage: null,
+          lastMessageTime: 0,
+          unreadCount: 0,
+          isOnline: friend.friend.isOnline || false,
+          hasConversation: false,
+          isFriend: true
+        });
+      } else if (friend?.friend?.id) {
+        const existing = contactMap.get(friend.friend.id);
+        if (existing) {
           existing.isFriend = true;
-          contactMap.set(friend.friend.id, existing);
         }
       }
     });
     
     this.allChatContacts = Array.from(contactMap.values());
     
-    // Trier par date du dernier message (les plus récents en premier)
     this.allChatContacts.sort((a, b) => {
-      if (!a.lastMessageTime) return 1;
-      if (!b.lastMessageTime) return -1;
-      return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
+      const timeA = typeof a.lastMessageTime === 'number' ? a.lastMessageTime : 0;
+      const timeB = typeof b.lastMessageTime === 'number' ? b.lastMessageTime : 0;
+      return timeB - timeA;
     });
-    
-    console.log('✅ Contacts fusionnés:', this.allChatContacts.length);
   }
 
-  /**
-   * Charger les messages avec un contact
-   */
   loadMessages(userId: string): void {
-    if (!userId) {
-      console.error('❌ Tentative de chargement avec userId undefined');
-      this.notificationService.showError('Erreur: utilisateur inconnu');
-      return;
-    }
-
+    if (!userId) return;
     this.isLoading = true;
     this.messages = [];
     this.messagePage = 1;
     this.hasMoreMessages = true;
+    this.chatService.getMessages(userId).subscribe({
+      next: (msgs) => {
+        this.messages = msgs || [];
+        this.isLoading = false;
+        this.chatService.markAsRead(userId).subscribe();
+        setTimeout(() => this.scrollToBottom(), 100);
+      },
+      error: (error) => {
+        console.error('Error loading messages:', error);
+        this.isLoading = false;
+        this.notificationService.showError('Erreur chargement messages');
+      }
+    });
+  }
+
+  loadMoreMessages(): void {
+    if (!this.selectedContact?.userId || this.isLoadingMore || !this.hasMoreMessages) return;
     
-    this.subscriptions.push(
-      this.chatService.getMessages(userId).subscribe({
-        next: (messages) => {
-          this.messages = messages || [];
-          this.isLoading = false;
-          
-          // Marquer comme lus
-          this.chatService.markAsRead(userId).subscribe();
-          
-          setTimeout(() => this.scrollToBottom(), 100);
+    this.isLoadingMore = true;
+    this.messagePage++;
+    this.chatService.getMessagesPage(this.selectedContact.userId, this.messagePage, this.pageSize)
+      .subscribe({
+        next: (oldMessages) => {
+          if (oldMessages && oldMessages.length > 0) {
+            this.messages = [...oldMessages, ...this.messages];
+          }
+          this.isLoadingMore = false;
+          if (oldMessages.length < this.pageSize) {
+            this.hasMoreMessages = false;
+          }
         },
         error: (error) => {
-          console.error('❌ Erreur chargement messages:', error);
-          this.isLoading = false;
-          this.notificationService.showError('Erreur lors du chargement des messages');
+          console.error('Error loading more messages:', error);
+          this.isLoadingMore = false;
         }
-      })
-    );
+      });
   }
 
-  /**
-   * Sélectionner un contact
-   */
   selectContact(contact: any): void {
-    if (!contact || !contact.userId) {
-      console.error('❌ Tentative de sélection avec contact invalide:', contact);
-      return;
-    }
-    
-    console.log('👤 Contact sélectionné:', contact);
+    if (!contact?.userId) return;
     this.selectedContact = contact;
     this.loadMessages(contact.userId);
-    
-    // Mettre à jour le statut en ligne
+    this.checkIfFriend(contact.userId);
     const friend = this.friends.find(f => f.friend?.id === contact.userId);
     if (friend) {
-      contact.isOnline = friend.friend?.isOnline || false;
+      this.selectedContact.isOnline = friend.friend?.isOnline || false;
     }
   }
 
-  /**
-   * Ouvrir une conversation avec un ami
-   */
   openConversationWithFriend(friendId: string): void {
-    if (!friendId) {
-      console.error('❌ friendId undefined');
-      return;
-    }
-    
     const contact = this.allChatContacts.find(c => c.userId === friendId);
     if (contact) {
       this.selectContact(contact);
     } else {
-      this.notificationService.showInfo('Cet utilisateur n\'est pas dans votre liste d\'amis');
-      this.router.navigate(['/friends']);
+      this.notificationService.showInfo('Ajoutez cet utilisateur comme ami d\'abord');
     }
   }
 
-  /**
-   * Configurer les listeners socket
-   */
   private setupSocketListeners(): void {
     this.subscriptions.push(
-      this.chatService.newMessage$.subscribe(message => {
-        if (message) this.handleNewMessage(message);
-      })
-    );
-
-    this.subscriptions.push(
-      this.chatService.typing$.subscribe(data => {
-        if (data) this.handleTyping(data);
-      })
-    );
-
-    this.subscriptions.push(
-      this.chatService.onlineStatus$.subscribe(data => {
-        if (data) this.handleOnlineStatus(data);
-      })
+      this.chatService.newMessage$.subscribe(msg => msg && this.handleNewMessage(msg)),
+      this.chatService.typing$.subscribe(data => data && this.handleTyping(data)),
+      this.chatService.onlineStatus$.subscribe(data => data && this.handleOnlineStatus(data))
     );
   }
 
-  /**
-   * Gérer un nouveau message
-   */
   private handleNewMessage(message: Message): void {
-    console.log('📨 Nouveau message reçu:', message);
-    
-    if (!message || !message.senderId) return;
-    
-    // Ajouter aux messages si c'est la conversation active
-    if (this.selectedContact && 
-        (message.senderId === this.selectedContact.userId || 
-         message.receiverId === this.selectedContact.userId)) {
+    if (!message) return;
+    if (this.selectedContact && (message.senderId === this.selectedContact.userId || message.receiverId === this.selectedContact.userId)) {
       this.messages.push(message);
       this.scrollToBottom();
-      
       if (message.senderId === this.selectedContact.userId) {
         this.chatService.markAsRead(this.selectedContact.userId).subscribe();
       }
     }
-
-    // Mettre à jour la liste des contacts
     this.updateContactFromMessage(message);
   }
 
-  /**
-   * Mettre à jour un contact à partir d'un message
-   */
   private updateContactFromMessage(message: Message): void {
-    if (!message || !message.senderId || !message.receiverId) return;
-    
     const otherUserId = message.senderId === this.currentUserId ? message.receiverId : message.senderId;
     let contact = this.allChatContacts.find(c => c.userId === otherUserId);
-
     if (contact) {
-      contact.lastMessage = {
-        content: message.content || message.emoji || (message.type === 'image' ? '📷 Image' : 'Nouveau message'),
-        type: message.type,
-        createdAt: message.createdAt
+      contact.lastMessage = { 
+        content: message.content || (message.type === 'emoji' ? message.emoji : 'Nouveau message'), 
+        type: message.type, 
+        createdAt: message.createdAt 
       };
-      contact.lastMessageTime = message.createdAt;
+      contact.lastMessageTime = this.getSafeTimestamp(message.createdAt);
       contact.hasConversation = true;
-      
-      if (message.senderId !== this.currentUserId && 
-          (!this.selectedContact || this.selectedContact.userId !== otherUserId)) {
+      if (message.senderId !== this.currentUserId && (!this.selectedContact || this.selectedContact.userId !== otherUserId)) {
         contact.unreadCount = (contact.unreadCount || 0) + 1;
       }
-      
-      // Remonter le contact dans la liste
       this.allChatContacts.sort((a, b) => {
-        if (!a.lastMessageTime) return 1;
-        if (!b.lastMessageTime) return -1;
-        return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
+        const timeA = typeof a.lastMessageTime === 'number' ? a.lastMessageTime : 0;
+        const timeB = typeof b.lastMessageTime === 'number' ? b.lastMessageTime : 0;
+        return timeB - timeA;
       });
     }
   }
 
   private handleTyping(data: TypingIndicator): void {
-    if (!data || !data.userId) return;
-    
     if (data.isTyping) {
       this.typingUsers.add(data.userId);
     } else {
       this.typingUsers.delete(data.userId);
     }
-
-    this.isTyping = this.selectedContact ? 
-      this.typingUsers.has(this.selectedContact.userId) : false;
+    this.isTyping = this.selectedContact ? this.typingUsers.has(this.selectedContact.userId) : false;
   }
 
   private handleOnlineStatus(data: { userId: string; isOnline: boolean }): void {
-    if (!data || !data.userId) return;
-    
     const contact = this.allChatContacts.find(c => c.userId === data.userId);
-    if (contact) {
-      contact.isOnline = data.isOnline;
-    }
-
+    if (contact) contact.isOnline = data.isOnline;
     if (this.selectedContact?.userId === data.userId) {
       this.selectedContact.isOnline = data.isOnline;
     }
   }
 
-  /**
-   * Envoyer un message
-   */
   sendMessage(): void {
-    if (!this.newMessage.trim() || !this.selectedContact || !this.selectedContact.userId || this.isSending) return;
-
+    if (!this.newMessage.trim() || !this.selectedContact?.userId || this.isSending) return;
     this.isSending = true;
     
-    const message = {
-      receiverId: this.selectedContact.userId,
-      type: 'text' as const,
-      content: this.newMessage.trim()
+    const message = { 
+      receiverId: this.selectedContact.userId, 
+      type: 'text' as const, 
+      content: this.newMessage.trim() 
     };
-
+    
     this.chatService.sendMessage(message);
     
-    // Message temporaire
-    const tempMessage: Message = {
+    const tempMsg: Message = {
       id: 'temp-' + Date.now(),
       senderId: this.currentUserId,
       receiverId: this.selectedContact.userId,
@@ -446,106 +361,30 @@ export class ChatComponent implements OnInit, OnDestroy {
       isDelivered: false,
       createdAt: new Date()
     };
-    this.messages.push(tempMessage);
-    
-    // Mettre à jour le contact
+    this.messages.push(tempMsg);
     if (this.selectedContact) {
-      this.selectedContact.lastMessage = {
-        content: this.newMessage.trim(),
-        type: 'text',
-        createdAt: new Date()
-      };
-      this.selectedContact.lastMessageTime = new Date();
+      this.selectedContact.lastMessage = { content: this.newMessage.trim(), type: 'text', createdAt: new Date() };
+      this.selectedContact.lastMessageTime = Date.now();
       this.selectedContact.hasConversation = true;
     }
-    
     this.newMessage = '';
     this.isSending = false;
     this.scrollToBottom();
-    
     this.chatService.sendTyping(this.selectedContact.userId, false);
   }
 
-  /**
-   * Gérer le scroll pour la pagination
-   */
-  onScroll(event: any): void {
-    if (!this.messageContainer || !this.messageContainer.nativeElement) return;
-    
-    const container = this.messageContainer.nativeElement;
-    if (container.scrollTop < 50 && this.hasMoreMessages && !this.isLoadingMore) {
-      this.loadMoreMessages();
-    }
-  }
-
-  /**
-   * Charger plus de messages (pagination)
-   */
-  loadMoreMessages(): void {
-    if (!this.selectedContact || this.isLoadingMore || !this.hasMoreMessages) return;
-    
-    this.isLoadingMore = true;
-    this.messagePage++;
-    
-    // Simulation de chargement - à remplacer par un vrai appel API
-    setTimeout(() => {
-      this.isLoadingMore = false;
-      if (this.messagePage > 3) {
-        this.hasMoreMessages = false;
-      }
-    }, 1000);
-  }
-
-  /**
-   * Ouvrir une image dans un nouvel onglet
-   */
-  openImage(imageUrl: string | undefined | null): void {
-    if (imageUrl) {
-      window.open(imageUrl, '_blank');
-    }
-  }
-
-  // Filtrer les contacts
-  get filteredContacts(): any[] {
-    if (!this.allChatContacts || this.allChatContacts.length === 0) return [];
-    
-    if (!this.searchQuery.trim()) {
-      return this.allChatContacts;
-    }
-    const query = this.searchQuery.toLowerCase();
-    return this.allChatContacts.filter(contact => 
-      contact.firstName?.toLowerCase().includes(query) ||
-      contact.lastName?.toLowerCase().includes(query) ||
-      `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(query)
-    );
-  }
-
-  get displayedContacts(): any[] {
-    const filtered = this.filteredContacts;
-    
-    switch(this.activeTab) {
-      case 1: // Amis
-        return filtered.filter(c => c.isFriend);
-      case 2: // Conversations
-        return filtered.filter(c => c.hasConversation);
-      default: // Tous
-        return filtered;
-    }
-  }
-
-  // Méthodes utilitaires
   sendEmoji(emoji: string): void {
-    if (!this.selectedContact || !this.selectedContact.userId) return;
-
-    const message = {
-      receiverId: this.selectedContact.userId,
-      type: 'emoji' as const,
-      emoji: emoji
+    if (!this.selectedContact?.userId) return;
+    
+    const message = { 
+      receiverId: this.selectedContact.userId, 
+      type: 'emoji' as const, 
+      emoji: emoji 
     };
-
+    
     this.chatService.sendMessage(message);
     
-    const tempMessage: Message = {
+    const tempMsg: Message = {
       id: 'temp-' + Date.now(),
       senderId: this.currentUserId,
       receiverId: this.selectedContact.userId,
@@ -555,94 +394,78 @@ export class ChatComponent implements OnInit, OnDestroy {
       isDelivered: false,
       createdAt: new Date()
     };
-    this.messages.push(tempMessage);
-    
+    this.messages.push(tempMsg);
     if (this.selectedContact) {
-      this.selectedContact.lastMessage = {
-        content: emoji,
-        type: 'emoji',
-        createdAt: new Date()
-      };
-      this.selectedContact.lastMessageTime = new Date();
+      this.selectedContact.lastMessage = { content: emoji, type: 'emoji', createdAt: new Date() };
+      this.selectedContact.lastMessageTime = Date.now();
     }
-    
     this.showEmojiPicker = false;
     this.scrollToBottom();
   }
 
   sendMoney(): void {
-    if (!this.selectedContact || !this.selectedContact.userId) return;
-
+    if (!this.selectedContact?.userId) return;
     const amount = prompt(`Montant à envoyer à ${this.selectedContact.firstName}:`, '1000');
     if (amount && !isNaN(Number(amount)) && Number(amount) > 0) {
       const message = {
-        receiverId: this.selectedContact!.userId,
+        receiverId: this.selectedContact.userId,
         type: 'money' as const,
-        moneyTransfer: {
-          amount: Number(amount)
-        }
+        moneyTransfer: { amount: Number(amount) }
       };
       this.chatService.sendMessage(message);
       
-      const tempMessage: Message = {
+      const tempMsg: Message = {
         id: 'temp-' + Date.now(),
         senderId: this.currentUserId,
-        receiverId: this.selectedContact!.userId,
+        receiverId: this.selectedContact.userId,
         type: 'money',
-        moneyTransfer: {
-          amount: Number(amount),
-          status: 'pending'
-        },
+        moneyTransfer: { amount: Number(amount), status: 'pending' },
         isRead: false,
         isDelivered: false,
         createdAt: new Date()
       };
-      this.messages.push(tempMessage);
-      
-      this.selectedContact.lastMessage = {
-        content: `💰 ${amount} Ar`,
-        type: 'money',
-        createdAt: new Date()
-      };
-      this.selectedContact.lastMessageTime = new Date();
-      
+      this.messages.push(tempMsg);
+      if (this.selectedContact) {
+        this.selectedContact.lastMessage = { content: `💰 ${amount} Ar`, type: 'money', createdAt: new Date() };
+        this.selectedContact.lastMessageTime = Date.now();
+      }
       this.scrollToBottom();
     }
   }
 
   uploadFile(): void {
-    if (!this.selectedContact || !this.selectedContact.userId) return;
+    if (!this.selectedContact?.userId) return;
     this.fileInput.nativeElement.click();
   }
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
-    if (!file || !this.selectedContact || !this.selectedContact.userId) return;
-
+    if (!file || !this.selectedContact?.userId) return;
     if (file.size > 150 * 1024 * 1024) {
       this.notificationService.showError('Fichier trop volumineux (max 150 Mo)');
       return;
     }
-
     this.isSending = true;
     this.chatService.uploadFile(file).subscribe({
       next: (result) => {
-        if (!result || !result.url) return;
+        if (!result.url) return;
+        const type = file.type.startsWith('image/') ? 'image' : 'file';
         
         const message = {
-          receiverId: this.selectedContact!.userId,
-          type: file.type.startsWith('image/') ? 'image' as const : 'file' as const,
+          receiverId: this.selectedContact.userId,
+          type: type as 'image' | 'file',
           fileUrl: result.url,
           fileName: result.fileName,
           fileSize: result.fileSize
         };
+        
         this.chatService.sendMessage(message);
         
-        const tempMessage: Message = {
+        const tempMsg: Message = {
           id: 'temp-' + Date.now(),
           senderId: this.currentUserId,
-          receiverId: this.selectedContact!.userId,
-          type: file.type.startsWith('image/') ? 'image' : 'file',
+          receiverId: this.selectedContact.userId,
+          type: type as 'image' | 'file',
           fileUrl: result.url,
           fileName: result.fileName,
           fileSize: result.fileSize,
@@ -650,96 +473,133 @@ export class ChatComponent implements OnInit, OnDestroy {
           isDelivered: false,
           createdAt: new Date()
         };
-        this.messages.push(tempMessage);
-        
-        this.selectedContact.lastMessage = {
-          content: file.type.startsWith('image/') ? '📷 Image' : `📎 ${result.fileName}`,
-          type: file.type.startsWith('image/') ? 'image' : 'file',
-          createdAt: new Date()
-        };
-        this.selectedContact.lastMessageTime = new Date();
-        
+        this.messages.push(tempMsg);
+        if (this.selectedContact) {
+          this.selectedContact.lastMessage = { content: type === 'image' ? '📷 Image' : `📎 ${result.fileName}`, type: type, createdAt: new Date() };
+          this.selectedContact.lastMessageTime = Date.now();
+        }
         this.isSending = false;
         this.scrollToBottom();
       },
-      error: (error) => {
-        console.error('❌ Erreur upload:', error);
-        this.notificationService.showError('Erreur lors de l\'upload');
+      error: () => {
+        this.notificationService.showError('Erreur upload');
         this.isSending = false;
       }
     });
   }
 
   startCall(type: 'audio' | 'video'): void {
-    if (!this.selectedContact || !this.selectedContact.userId) return;
-
+    if (!this.selectedContact?.userId) return;
     if (!this.selectedContact.isOnline) {
-      this.notificationService.showWarning('Cet utilisateur n\'est pas en ligne');
+      this.notificationService.showWarning('Utilisateur hors ligne');
       return;
     }
-
+    this.chatService.startCall(this.selectedContact.userId, type);
     this.notificationService.showInfo(`Appel ${type} démarré avec ${this.selectedContact.firstName} (simulation)`);
   }
 
+  checkIfFriend(userId: string): void {
+    this.isFriend = this.friends.some(f => f.friend?.id === userId || f.userId === userId);
+  }
+
+  sendFriendRequest(): void {
+    if (!this.selectedContact) return;
+    this.friendService.sendFriendRequest(this.selectedContact.userId).subscribe({
+      next: () => this.notificationService.showSuccess('Demande d\'ami envoyée'),
+      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
+    });
+  }
+
   onTyping(): void {
-    if (!this.selectedContact || !this.selectedContact.userId) return;
-
+    if (!this.selectedContact?.userId) return;
     this.chatService.sendTyping(this.selectedContact.userId, true);
-
     clearTimeout(this.typingTimeout);
     this.typingTimeout = setTimeout(() => {
-      if (this.selectedContact && this.selectedContact.userId) {
-        this.chatService.sendTyping(this.selectedContact.userId, false);
-      }
+      if (this.selectedContact?.userId) this.chatService.sendTyping(this.selectedContact.userId, false);
     }, 1000);
   }
 
-  formatMessageTime(date: Date): string {
-    if (!date) return '';
-    
-    const messageDate = new Date(date);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+  // ========== MÉTHODES DE NAVIGATION AVEC BOUTONS DE RETOUR ==========
 
-    if (messageDate.toDateString() === today.toDateString()) {
-      return messageDate.toLocaleTimeString('fr-MG', { hour: '2-digit', minute: '2-digit' });
-    } else if (messageDate.toDateString() === yesterday.toDateString()) {
-      return 'Hier ' + messageDate.toLocaleTimeString('fr-MG', { hour: '2-digit', minute: '2-digit' });
-    } else {
-      return messageDate.toLocaleDateString('fr-MG', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  goBack(): void { 
+    this.selectedContact = null; 
+  }
+
+  goToDashboard(): void { 
+    this.router.navigate(['/user']); 
+  }
+
+  goToFriends(): void { 
+    this.router.navigate(['/friends']); 
+  }
+
+  refreshData(): void { 
+    this.loadData(); 
+  }
+
+  toggleEmojiPicker(): void { 
+    this.showEmojiPicker = !this.showEmojiPicker; 
+  }
+
+  navigateToSendMoney(): void { 
+    this.router.navigate(['/transactions/send']); 
+  }
+
+  blockUser(): void {
+    if (!this.selectedContact) return;
+    this.friendService.blockUser(this.selectedContact.userId).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Utilisateur bloqué');
+        this.selectedContact.isBlocked = true;
+        this.selectedContact.canMessage = false;
+      },
+      error: (err) => {
+        this.notificationService.showError(err.error?.message || 'Erreur lors du blocage');
+      }
+    });
+  }
+
+  editMessage(message: Message): void {
+    const newContent = prompt('Modifier le message:', message.content);
+    if (newContent && newContent.trim() && newContent !== message.content) {
+      this.chatService.updateMessage(message.id, newContent.trim()).subscribe({
+        next: (updated) => {
+          const index = this.messages.findIndex(m => m.id === message.id);
+          if (index !== -1) {
+            this.messages[index] = updated;
+          }
+          this.notificationService.showSuccess('Message modifié');
+        },
+        error: () => {
+          this.notificationService.showError('Erreur lors de la modification');
+        }
+      });
     }
   }
 
-  formatLastSeen(date?: Date): string {
-    if (!date) return 'Jamais connecté';
-    
-    const lastSeen = new Date(date);
-    const now = new Date();
-    const diffMs = now.getTime() - lastSeen.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'À l\'instant';
-    if (diffMins < 60) return `Il y a ${diffMins} min`;
-    if (diffHours < 24) return `Il y a ${diffHours} h`;
-    if (diffDays < 7) return `Il y a ${diffDays} j`;
-    return lastSeen.toLocaleDateString('fr-MG');
+  deleteMessage(message: Message): void {
+    if (confirm('Supprimer ce message ?')) {
+      this.chatService.deleteMessage(message.id).subscribe({
+        next: () => {
+          const index = this.messages.findIndex(m => m.id === message.id);
+          if (index !== -1) {
+            this.messages.splice(index, 1);
+          }
+          this.notificationService.showSuccess('Message supprimé');
+        },
+        error: () => {
+          this.notificationService.showError('Erreur lors de la suppression');
+        }
+      });
+    }
   }
 
-  getInitials(firstName: string, lastName: string): string {
-    if (!firstName && !lastName) return '?';
-    return (firstName?.charAt(0) || '') + (lastName?.charAt(0) || '');
+  getInitials(first: string, last: string): string {
+    return (first?.charAt(0) || '') + (last?.charAt(0) || '');
   }
 
   getAvatarColor(name: string): string {
-    if (!name) return '#667eea';
-    
-    const colors = [
-      '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3',
-      '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a'
-    ];
+    const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#43e97b', '#fa709a', '#fee140', '#30cfd0', '#a8edea'];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -747,122 +607,57 @@ export class ChatComponent implements OnInit, OnDestroy {
     return colors[Math.abs(hash) % colors.length];
   }
 
+  formatMessageTime(date: Date): string {
+    if (!date) return '';
+    const d = new Date(date);
+    const now = new Date();
+    const diff = now.getTime() - d.getTime();
+    
+    if (diff < 86400000) {
+      return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    } else if (diff < 604800000) {
+      return d.toLocaleDateString('fr-FR', { weekday: 'short' });
+    } else {
+      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+    }
+  }
+
+  formatLastSeen(date?: Date): string {
+    if (!date) return 'Jamais connecté';
+    const d = new Date(date);
+    const now = new Date();
+    const diff = now.getTime() - d.getTime();
+    
+    if (diff < 60000) return 'En ligne';
+    if (diff < 3600000) return `Il y a ${Math.floor(diff / 60000)} min`;
+    if (diff < 86400000) return `Aujourd'hui à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+  }
+
+  onScroll(event: any): void {
+    const element = event.target;
+    if (element.scrollTop === 0 && !this.isLoadingMore && this.hasMoreMessages && this.selectedContact) {
+      this.loadMoreMessages();
+    }
+  }
+
+  openImage(url: string): void {
+    window.open(url, '_blank');
+  }
+
+  handleImageError(msg: Message): void {
+    if (msg) {
+      msg.fileUrl = undefined;
+      msg.type = 'text';
+      msg.content = '[Image non disponible]';
+    }
+  }
+
   private scrollToBottom(): void {
     setTimeout(() => {
-      try {
-        if (this.messageContainer && this.messageContainer.nativeElement) {
-          this.messageContainer.nativeElement.scrollTop = this.messageContainer.nativeElement.scrollHeight;
-        }
-      } catch (err) {}
+      if (this.messageContainer?.nativeElement) {
+        this.messageContainer.nativeElement.scrollTop = this.messageContainer.nativeElement.scrollHeight;
+      }
     }, 100);
-  }
-
-  goBack(): void {
-    this.selectedContact = null;
-  }
-
-  getFriendsCount(): number {
-    return this.allChatContacts?.filter(c => c.isFriend).length || 0;
-  }
-
-  getConversationsCount(): number {
-    return this.allChatContacts?.filter(c => c.hasConversation).length || 0;
-  }
-
-  getFriendsContacts(): any[] {
-    return this.filteredContacts?.filter(c => c.isFriend) || [];
-  }
-
-  getConversationsContacts(): any[] {
-    return this.filteredContacts?.filter(c => c.hasConversation) || [];
-  }
-
-  handleImageError(message: Message): void {
-    if (message) {
-      message.fileUrl = undefined;
-    }
-  }
-
-  toggleEmojiPicker(): void {
-    this.showEmojiPicker = !this.showEmojiPicker;
-  }
-
-  navigateToSendMoney(): void {
-    if (this.selectedContact && this.selectedContact.userId) {
-      this.router.navigate(['/transactions/send'], {
-        queryParams: {
-          friendId: this.selectedContact.userId,
-          friendName: `${this.selectedContact.firstName} ${this.selectedContact.lastName}`
-        }
-      });
-    } else {
-      this.router.navigate(['/transactions/send']);
-    }
-  }
-
-  goToFriends(): void {
-    this.router.navigate(['/friends']);
-  }
-
-  refreshData(): void {
-    this.loadData();
-  }
-
-  /**
-  * Retourner au tableau de bord
-  */
-  goToDashboard(): void {
-    this.router.navigate(['/user']);
-  }
-
-  /**
-  * Bloquer un utilisateur
-  */
-  blockUser(): void {
-    if (this.selectedContact && confirm(`Voulez-vous vraiment bloquer ${this.selectedContact.firstName} ?`)) {
-      // Implémenter la logique de blocage
-      this.notificationService.showInfo(`${this.selectedContact.firstName} a été bloqué`);
-    }
-  }
-
-  /**
-  * Modifier un message
-  */
-  editMessage(message: Message): void {
-    const newContent = prompt('Modifier votre message:', message.content);
-    if (newContent && newContent.trim()) {
-      // Appel API pour modifier le message
-      this.chatService.updateMessage(message.id, newContent.trim()).subscribe({
-        next: (updatedMessage) => {
-          const index = this.messages.findIndex(m => m.id === message.id);
-          if (index !== -1) {
-            this.messages[index] = updatedMessage;
-          }
-          this.notificationService.showSuccess('Message modifié');
-        },
-        error: (error) => {
-          console.error('Erreur modification:', error);
-          this.notificationService.showError('Erreur lors de la modification');
-        }
-      });
-    }
-  }
-
-  /**
-  * Supprimer un message
-  */
-  deleteMessage(message: Message): void {
-    if (confirm('Voulez-vous vraiment supprimer ce message ?')) {
-      this.chatService.deleteMessage(message.id).subscribe({
-        next: () => {
-          this.messages = this.messages.filter(m => m.id !== message.id);
-          this.notificationService.showSuccess('Message supprimé');
-        },
-        error: (error) => {
-          console.error('Erreur suppression:', error);
-          this.notificationService.showError('Erreur lors de la suppression');
-        }
-      });
-    }
   }
 }

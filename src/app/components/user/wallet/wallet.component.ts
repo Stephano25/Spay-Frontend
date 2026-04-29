@@ -1,7 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
+
+// Animations
+import {
+  trigger, state, style, transition,
+  animate, stagger, query, keyframes
+} from '@angular/animations';
 
 // Services
 import { WalletService, WalletStats } from '../../../services/wallet.service';
@@ -9,17 +16,52 @@ import { TransactionService } from '../../../services/transaction.service';
 import { NotificationService } from '../../../services/notification.service';
 
 // Models
+import { Wallet } from '../../../models/wallet.model';
 import { Transaction } from '../../../models/transaction.model';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
+/** ─────────────────────────────────────────────
+ *  Animation definitions
+ * ───────────────────────────────────────────── */
+const ANIMATIONS = [
+
+  trigger('fadeUp', [
+    transition(':enter', [
+      style({ opacity: 0, transform: 'translateY(14px)' }),
+      animate('400ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        style({ opacity: 1, transform: 'translateY(0)' }))
+    ])
+  ]),
+
+  trigger('staggerFade', [
+    transition(':enter', [
+      query(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        stagger('60ms', [
+          animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+        ])
+      ], { optional: true })
+    ])
+  ]),
+
+  trigger('listItem', [
+    transition(':enter', [
+      style({ opacity: 0, transform: 'translateX(-8px)' }),
+      animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+    ])
+  ])
+];
+
+/** ─────────────────────────────────────────────
+ *  Component
+ * ───────────────────────────────────────────── */
 @Component({
   selector: 'app-wallet',
   standalone: true,
@@ -28,159 +70,160 @@ import { MatDialogModule } from '@angular/material/dialog';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatTabsModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatDialogModule
+    MatSnackBarModule,
   ],
   templateUrl: './wallet.component.html',
-  styleUrls: ['./wallet.component.css']
+  styleUrls: ['./wallet.component.css'],
+  animations: ANIMATIONS,
 })
-export class WalletComponent implements OnInit {
-  wallet: any = null;
-  stats: WalletStats | null = null;
-  recentTransactions: Transaction[] = [];
-  isLoading = true;
-  activeTab = 0;
+export class WalletComponent implements OnInit, OnDestroy {
 
+  // ── State ──
+  wallet:             Wallet | null   = null;
+  stats:              WalletStats | null = null;
+  recentTransactions: Transaction[]   = [];
+  isLoading   = true;
+  isRefreshing = false;
+  hasError    = false;
+  errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
+
+  private destroy$ = new Subject<void>();
+
+  // ── Icon & label maps ──
+  private readonly TRANSACTION_ICONS: Record<string, string> = {
+    deposit:      'arrow_downward',
+    withdrawal:   'arrow_upward',
+    transfer:     'swap_horiz',
+    payment:      'payment',
+    mobile_money: 'phone_android',
+    refund:       'replay',
+  };
+
+  private readonly STATUS_LABELS: Record<string, string> = {
+    completed:  'Réussi',
+    success:    'Réussi',
+    pending:    'En attente',
+    failed:     'Échoué',
+    cancelled:  'Annulé',
+  };
+
+  private readonly EXPENSE_TYPES = new Set(['withdrawal', 'payment', 'fee']);
+
+  // ── Constructor ──
   constructor(
-    private walletService: WalletService,
+    private walletService:      WalletService,
     private transactionService: TransactionService,
     private notificationService: NotificationService,
-    private router: Router,
-    private dialog: MatDialog
+    private router:             Router,
   ) {}
 
+  // ── Lifecycle ──
   ngOnInit(): void {
     this.loadData();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // ── Data loading ──
+
+  /**
+   * Charge le wallet et les stats en parallèle via forkJoin
+   * pour réduire le temps total de chargement.
+   */
   loadData(): void {
     this.isLoading = true;
-    
-    this.walletService.getWallet().subscribe({
-      next: (wallet) => {
-        this.wallet = wallet;
-        this.loadStats();
-      },
-      error: (error) => {
-        console.error('❌ Erreur chargement wallet:', error);
-        this.isLoading = false;
-      }
-    });
-  }
+    this.hasError  = false;
 
-  loadStats(): void {
-    this.walletService.getWalletStats().subscribe({
-      next: (stats: WalletStats) => {
-        this.stats = stats;
-        this.recentTransactions = stats.recentTransactions || [];
-        this.isLoading = false;
-        console.log('📊 Stats wallet chargées:', stats);
-      },
-      error: (error) => {
-        console.error('❌ Erreur chargement stats wallet:', error);
-        this.isLoading = false;
-      }
-    });
-  }
-
-  sendMoney(): void {
-    this.router.navigate(['/wallet/send']);
-  }
-
-  receiveMoney(): void {
-    this.router.navigate(['/wallet/receive']);
-  }
-
-  mobileMoney(): void {
-    this.router.navigate(['/mobile-money']);
-  }
-
-  scanQR(): void {
-    this.router.navigate(['/scan-pay']);
-  }
-
-  viewAllTransactions(): void {
-    this.router.navigate(['/transactions']);
-  }
-
-  viewTransactionDetails(transaction: Transaction): void {
-    this.router.navigate(['/transactions', transaction.id]);
-  }
-
-  repeatTransaction(transaction: Transaction): void {
-    if (transaction.type === 'transfer' && transaction.receiverId) {
-      this.router.navigate(['/wallet/send'], {
-        queryParams: {
-          receiverId: transaction.receiverId,
-          amount: transaction.amount,
-          description: transaction.description
+    forkJoin({
+      wallet: this.walletService.getWallet(),
+      stats:  this.walletService.getWalletStats(),
+    })
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => { this.isLoading = false; this.isRefreshing = false; })
+      )
+      .subscribe({
+        next: ({ wallet, stats }) => {
+          this.wallet             = wallet;
+          this.stats              = stats;
+          this.recentTransactions = (stats.recentTransactions ?? []).slice(0, 10);
+        },
+        error: (err) => {
+          console.error('[WalletComponent] Erreur chargement données:', err);
+          this.hasError    = true;
+          this.errorMessage = err?.error?.message ?? 'Impossible de charger les données.';
+          this.notificationService.showError(this.errorMessage);
         }
       });
-    } else {
-      this.notificationService.showInfo('Cette transaction ne peut pas être répétée');
-    }
-  }
-
-  downloadReceipt(transaction: Transaction): void {
-    const receipt = {
-      id: transaction.id,
-      date: transaction.createdAt,
-      amount: transaction.amount,
-      type: transaction.type,
-      status: transaction.status
-    };
-    
-    const dataStr = JSON.stringify(receipt, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    const exportFileDefaultName = `transaction-${transaction.id}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    this.notificationService.showSuccess('Reçu téléchargé');
-  }
-
-  formatAmount(amount: number): string {
-    if (!amount && amount !== 0) return '0';
-    return new Intl.NumberFormat('fr-MG', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  }
-
-  getTransactionIcon(transaction: Transaction): string {
-    const icons: Record<string, string> = {
-      'deposit': 'arrow_downward',
-      'withdrawal': 'arrow_upward',
-      'transfer': 'swap_horiz',
-      'payment': 'payment',
-      'mobile_money': 'phone_android'
-    };
-    return icons[transaction.type] || 'receipt';
-  }
-
-  getTransactionClass(transaction: Transaction): string {
-    return transaction.type === 'withdrawal' ? 'expense' : 'income';
-  }
-
-  getAmountClass(transaction: Transaction): string {
-    return transaction.type === 'withdrawal' ? 'negative' : 'positive';
-  }
-
-  getAmountSign(transaction: Transaction): string {
-    return transaction.type === 'withdrawal' ? '-' : '+';
   }
 
   refreshData(): void {
+    this.isRefreshing = true;
     this.loadData();
     this.notificationService.showInfo('Données actualisées');
   }
 
-  goBack(): void {
-    this.router.navigate(['/user']);
+  // ── Navigation ──
+  sendMoney():          void { this.router.navigate(['/wallet/send']); }
+  receiveMoney():       void { this.router.navigate(['/wallet/receive']); }
+  mobileMoney():        void { this.router.navigate(['/mobile-money']); }
+  scanQR():             void { this.router.navigate(['/scan-pay']); }
+  viewAllTransactions():void { this.router.navigate(['/transactions']); }
+  goBack():             void { this.router.navigate(['/user']); }
+
+  viewTransactionDetails(txn: Transaction): void {
+    this.router.navigate(['/transactions', txn.id]);
+  }
+
+  // ── Helpers — transactions ──
+
+  /** Retourne l'icône Material correspondant au type de transaction */
+  getTransactionIcon(txn: Transaction): string {
+    return this.TRANSACTION_ICONS[txn.type] ?? 'receipt';
+  }
+
+  /** Classe CSS pour l'icône (income / expense / transfer) */
+  getTransactionClass(txn: Transaction): 'income' | 'expense' | 'transfer' {
+    if (txn.type === 'transfer') return 'transfer';
+    return this.EXPENSE_TYPES.has(txn.type) ? 'expense' : 'income';
+  }
+
+  /** Classe CSS pour le montant (positive / negative) */
+  getAmountClass(txn: Transaction): 'positive' | 'negative' {
+    return this.EXPENSE_TYPES.has(txn.type) ? 'negative' : 'positive';
+  }
+
+  /** Signe (+/-) devant le montant */
+  getAmountSign(txn: Transaction): string {
+    return this.EXPENSE_TYPES.has(txn.type) ? '−' : '+';
+  }
+
+  /** Libellé lisible du statut */
+  getStatusLabel(status: string): string {
+    return this.STATUS_LABELS[status?.toLowerCase()] ?? status ?? '—';
+  }
+
+  // ── Helpers — formatting ──
+
+  /**
+   * Formate un montant en Ariary avec séparateurs de milliers.
+   * Exemple : 1250000 → "1 250 000"
+   */
+  formatAmount(amount: number | null | undefined): string {
+    const value = amount ?? 0;
+    return new Intl.NumberFormat('fr-MG', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  }
+
+  // ── TrackBy ──
+  trackById(_: number, txn: Transaction): string | number {
+    return txn.id;
   }
 }

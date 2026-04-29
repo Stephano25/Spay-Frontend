@@ -55,7 +55,7 @@
       </div>
       <mat-divider></mat-divider>
       
-      <!-- Menu items pour admin -->
+      <!-- Menu items pour admin - UN SEUL "Mon Profil" -->
       <ng-container *ngIf="isAdmin">
         <button mat-menu-item routerLink="/admin/dashboard">
           <mat-icon>dashboard</mat-icon>
@@ -76,6 +76,10 @@
         <button mat-menu-item routerLink="/admin/settings">
           <mat-icon>settings</mat-icon>
           <span>Paramètres</span>
+        </button>
+        <button mat-menu-item routerLink="/admin/profile">
+          <mat-icon>person</mat-icon>
+          <span>Mon Profil</span>
         </button>
       </ng-container>
       

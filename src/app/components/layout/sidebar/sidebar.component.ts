@@ -1,8 +1,10 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { TranslationService } from '../../../services/translation.service';
+import { ThemeService } from '../../../services/theme.service';
+import { Subscription } from 'rxjs';
 
 // Angular Material
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -34,11 +36,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   isCollapsed = false;
   isMobile = false;
   isOpen = false;
   currentUser: any = null;
+  private themeSubscription!: Subscription;
   
   userMenuItems = [
     { icon: 'dashboard', labelKey: 'Tableau de bord', route: '/user' },
@@ -59,13 +62,14 @@ export class SidebarComponent implements OnInit {
     { icon: 'receipt', labelKey: 'Transactions', route: '/admin/transactions' },
     { icon: 'bar_chart', labelKey: 'Statistiques', route: '/admin/stats' },
     { icon: 'settings', labelKey: 'Paramètres', route: '/admin/settings' },
-    { icon: 'person', labelKey: 'Mon Profil', route: '/profile' }
+    { icon: 'person', labelKey: 'Mon Profil', route: '/admin/profile' }
   ];
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private translationService: TranslationService
+    private translationService: TranslationService,
+    private themeService: ThemeService
   ) {}
 
   ngOnInit(): void {
@@ -73,6 +77,20 @@ export class SidebarComponent implements OnInit {
     this.authService.currentUser.subscribe(user => {
       this.currentUser = user;
     });
+    
+    // S'abonner aux changements de thème
+    this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
+      console.log(`🎨 Sidebar - Thème changé: ${theme}`);
+      // Forcer la mise à jour du template
+      this.userMenuItems = [...this.userMenuItems];
+      this.adminMenuItems = [...this.adminMenuItems];
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.themeSubscription) {
+      this.themeSubscription.unsubscribe();
+    }
   }
 
   @HostListener('window:resize', ['$event'])
@@ -114,7 +132,6 @@ export class SidebarComponent implements OnInit {
     return this.isAdmin() ? this.adminMenuItems : this.userMenuItems;
   }
 
-  // Méthode de traduction
   translate(key: string): string {
     return this.translationService.translate(key);
   }

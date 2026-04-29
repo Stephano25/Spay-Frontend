@@ -3,8 +3,6 @@ export interface Friend {
   userId: string;
   friendId: string;
   status: 'pending' | 'accepted' | 'blocked' | 'deleted';
-  blockedBy?: string;
-  deletedBy?: string;
   createdAt: Date;
   updatedAt: Date;
   friend?: {
@@ -12,20 +10,20 @@ export interface Friend {
     firstName: string;
     lastName: string;
     email: string;
-    phoneNumber: string;
     profilePicture?: string;
     isOnline?: boolean;
     lastSeen?: Date;
   };
+  blockedBy?: string;
 }
 
 export interface FriendRequest {
   id: string;
   senderId: string;
   receiverId: string;
-  status: 'pending' | 'accepted' | 'declined';
+  status: string;
   createdAt: Date;
-  sender?: {
+  sender: {
     id: string;
     firstName: string;
     lastName: string;
@@ -39,7 +37,6 @@ export interface SearchUser {
   firstName: string;
   lastName: string;
   email: string;
-  phoneNumber: string;
   profilePicture?: string;
   isFriend: boolean;
   hasPendingRequest: boolean;
@@ -48,9 +45,9 @@ export interface SearchUser {
 }
 
 export interface FriendResponse {
+  message: string;
   success: boolean;
-  message?: string;
-  data?: any;
+  requestId?: string;
   conversationId?: string;
 }
 

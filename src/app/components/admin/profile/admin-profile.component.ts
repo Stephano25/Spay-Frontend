@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../../services/auth.service';
+import { AdminService } from '../../../services/admin.service';
+import { NotificationService } from '../../../services/notification.service';
 
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -14,10 +15,11 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
-  selector: 'app-profile',
+  selector: 'app-admin-profile',
   standalone: true,
   imports: [
     CommonModule,
@@ -31,57 +33,56 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatSlideToggleModule,
     MatTooltipModule
   ],
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.css']
+  templateUrl: './admin-profile.component.html',
+  styleUrls: ['./admin-profile.component.css']
 })
-export class ProfileComponent implements OnInit {
-  user: any = null;
+export class AdminProfileComponent implements OnInit {
+  admin: any = null;
+  stats: any = {};
   editMode = false;
   isLoading = true;
   isSaving = false;
 
   constructor(
     private authService: AuthService,
+    private adminService: AdminService,
     private notificationService: NotificationService,
     private router: Router
   ) {}
 
   ngOnInit() {
-    this.loadUserData();
+    this.loadAdminData();
+    this.loadStats();
   }
 
-  loadUserData() {
+  loadAdminData() {
     this.isLoading = true;
     this.authService.currentUser.subscribe({
       next: (user) => {
         if (user) {
-          this.user = user;
-        } else {
-          this.user = this.getDefaultUser();
+          this.admin = user;
         }
         this.isLoading = false;
       },
       error: (err) => {
         console.error('Erreur:', err);
-        this.user = this.getDefaultUser();
         this.isLoading = false;
       }
     });
   }
 
-  getDefaultUser() {
-    return {
-      id: '1',
-      firstName: 'Jean',
-      lastName: 'Rakoto',
-      email: 'jean.rakoto@example.com',
-      phoneNumber: '0341234567',
-      balance: 150000,
-      qrCode: 'SPAYE-123456',
-      profilePicture: null
-    };
+  loadStats() {
+    this.adminService.getDashboardStats().subscribe({
+      next: (data) => {
+        this.stats = data;
+      },
+      error: (err) => {
+        console.error('Erreur chargement stats:', err);
+      }
+    });
   }
 
   toggleEditMode() {
@@ -91,18 +92,20 @@ export class ProfileComponent implements OnInit {
   saveProfile() {
     this.isSaving = true;
     
-    const updatedUser = {
-      firstName: this.user.firstName,
-      lastName: this.user.lastName,
-      email: this.user.email,
-      phoneNumber: this.user.phoneNumber
+    const updatedAdmin = {
+      firstName: this.admin.firstName,
+      lastName: this.admin.lastName,
+      email: this.admin.email,
+      phoneNumber: this.admin.phoneNumber,
+      notifications: this.admin.notifications
     };
 
-    this.authService.updateProfile(updatedUser).subscribe({
+    this.adminService.updateAdminProfile(updatedAdmin).subscribe({
       next: (response) => {
         this.notificationService.showSuccess('Profil mis à jour avec succès');
         this.editMode = false;
         this.isSaving = false;
+        this.authService.updateCurrentUser(response);
       },
       error: (error) => {
         console.error('Erreur mise à jour:', error);
@@ -113,12 +116,7 @@ export class ProfileComponent implements OnInit {
   }
 
   goBack() {
-    const user = this.authService.getCurrentUser();
-    if (user?.role === 'admin' || user?.role === 'super_admin') {
-      this.router.navigate(['/admin/dashboard']);
-    } else {
-      this.router.navigate(['/user']);
-    }
+    this.router.navigate(['/admin/dashboard']);
   }
 
   logout() {
@@ -126,11 +124,17 @@ export class ProfileComponent implements OnInit {
   }
 
   getInitials(): string {
-    if (!this.user) return '';
-    return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
+    if (!this.admin) return '';
+    return (this.admin.firstName?.charAt(0) || '') + (this.admin.lastName?.charAt(0) || '');
   }
 
   formatAmount(amount: number): string {
-    return new Intl.NumberFormat('fr-MG').format(amount);
+    if (amount >= 1000000) {
+      return (amount / 1000000).toFixed(1) + ' M';
+    }
+    if (amount >= 1000) {
+      return (amount / 1000).toFixed(1) + ' k';
+    }
+    return amount.toString();
   }
 }

@@ -1,260 +1,258 @@
 <div class="friends-container">
-  <!-- Header -->
-  <mat-toolbar color="primary">
-    <button mat-icon-button routerLink="/user">
+  <!-- Header avec glassmorphism -->
+  <mat-toolbar color="primary" class="glass-header">
+    <button mat-icon-button routerLink="/user" class="nav-btn">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span>Mes Amis</span>
+    <span class="header-title">Mes Amis</span>
     <span class="spacer"></span>
-    <button mat-icon-button (click)="scanQRCode()" matTooltip="Scanner un QR code">
+    <button mat-icon-button (click)="scanQRCode()" matTooltip="Scanner un QR code" class="action-btn">
       <mat-icon>qr_code_scanner</mat-icon>
     </button>
-    <button mat-icon-button (click)="showAddFriend = !showAddFriend" matTooltip="Ajouter un ami">
+    <button mat-icon-button (click)="showAddFriend = !showAddFriend" matTooltip="Ajouter un ami" class="action-btn">
       <mat-icon>person_add</mat-icon>
     </button>
-    <button mat-icon-button (click)="showBlockedUsers = !showBlockedUsers" matTooltip="Utilisateurs bloqués">
+    <button mat-icon-button (click)="showBlockedUsers = !showBlockedUsers" matTooltip="Utilisateurs bloqués" class="action-btn">
       <mat-icon>block</mat-icon>
-      <span class="badge" *ngIf="blockedUsers.length > 0">{{ blockedUsers.length }}</span>
+      @if (blockedUsers.length > 0) {
+        <span class="badge">{{ blockedUsers.length }}</span>
+      }
     </button>
   </mat-toolbar>
 
   <div class="friends-content">
     <!-- Loading spinner -->
-    <div class="loading-container" *ngIf="isLoading">
-      <mat-spinner diameter="50"></mat-spinner>
-      <p>Chargement de vos amis...</p>
-    </div>
+    @if (isLoading) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Chargement de vos amis...</p>
+      </div>
+    }
 
     <!-- Formulaire d'ajout d'ami -->
-    <mat-card *ngIf="showAddFriend" class="add-friend-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>person_add</mat-icon>
-          Ajouter un ami
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="search-section">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Rechercher par email ou téléphone</mat-label>
-            <input 
-              matInput 
-              [(ngModel)]="searchQuery" 
-              (ngModelChange)="onSearch()"
-              placeholder="exemple@email.com ou 0341234567">
-            <mat-icon matSuffix>search</mat-icon>
-          </mat-form-field>
+    @if (showAddFriend) {
+      <mat-card class="glass-card add-friend-card animate-slide-up">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon class="title-icon">person_add</mat-icon>
+            Ajouter un ami
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="search-section">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Rechercher par email ou téléphone</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="searchQuery" 
+                (ngModelChange)="onSearch()"
+                placeholder="exemple@email.com ou 0341234567">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
 
-          <!-- Loading recherche -->
-          <div class="search-loading" *ngIf="isSearching">
-            <mat-spinner diameter="30"></mat-spinner>
-          </div>
+            <!-- Loading recherche -->
+            @if (isSearching) {
+              <div class="search-loading">
+                <div class="spinner-sm"></div>
+              </div>
+            }
 
-          <!-- Résultats de recherche -->
-          <div class="search-results" *ngIf="searchResults.length > 0 && !isSearching">
-            <h4>Résultats de la recherche</h4>
-            <mat-list>
-              <mat-list-item *ngFor="let user of searchResults">
-                <div class="search-item">
-                  <div class="user-avatar" [style.background]="getAvatarColor(user.firstName)">
-                    {{ getInitials(user.firstName, user.lastName) }}
-                  </div>
-                  <div class="user-info">
-                    <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
-                    <div class="user-email">{{ user.email }}</div>
-                  </div>
-                  <div class="user-action">
-                    <ng-container [ngSwitch]="true">
-                      <button 
-                        *ngSwitchCase="user.isBlocked" 
-                        mat-stroked-button 
-                        disabled
-                        matTooltip="Cet utilisateur est bloqué">
-                        <mat-icon>block</mat-icon>
-                        Bloqué
-                      </button>
-                      <button 
-                        *ngSwitchCase="user.isFriend" 
-                        mat-stroked-button 
-                        disabled>
-                        <mat-icon>check</mat-icon>
-                        Déjà ami
-                      </button>
-                      <button 
-                        *ngSwitchCase="user.hasPendingRequest" 
-                        mat-stroked-button 
-                        disabled>
-                        <mat-icon>hourglass_empty</mat-icon>
-                        Demande envoyée
-                      </button>
-                      <button 
-                        *ngSwitchDefault 
-                        mat-raised-button 
-                        color="primary"
-                        (click)="sendFriendRequest(user.id)">
-                        <mat-icon>person_add</mat-icon>
-                        Ajouter
-                      </button>
-                    </ng-container>
-                  </div>
+            <!-- Résultats de recherche -->
+            @if (searchResults.length > 0 && !isSearching) {
+              <div class="search-results">
+                <h4>Résultats de la recherche</h4>
+                <div class="results-grid">
+                  @for (user of searchResults; track user.id) {
+                    <div class="search-card">
+                      <div class="user-avatar" [style.background]="getAvatarColor(user.firstName)">
+                        {{ getInitials(user.firstName, user.lastName) }}
+                      </div>
+                      <div class="user-info">
+                        <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+                        <div class="user-email">{{ user.email }}</div>
+                      </div>
+                      <div class="user-action">
+                        @if (user.isBlocked) {
+                          <button mat-stroked-button disabled class="disabled-btn">
+                            <mat-icon>block</mat-icon>
+                            Bloqué
+                          </button>
+                        } @else if (user.isFriend) {
+                          <button mat-stroked-button disabled class="disabled-btn success">
+                            <mat-icon>check</mat-icon>
+                            Ami
+                          </button>
+                        } @else if (user.hasPendingRequest) {
+                          <button mat-stroked-button disabled class="disabled-btn">
+                            <mat-icon>hourglass_empty</mat-icon>
+                            Envoyée
+                          </button>
+                        } @else {
+                          <button mat-raised-button class="btn-gradient" (click)="sendFriendRequest(user.id)">
+                            <mat-icon>person_add</mat-icon>
+                            Ajouter
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
                 </div>
-              </mat-list-item>
-            </mat-list>
-          </div>
+              </div>
+            }
 
-          <!-- Suggestions -->
-          <div class="suggestions" *ngIf="suggestions.length > 0 && !searchQuery">
-            <h4>Suggestions</h4>
-            <mat-list>
-              <mat-list-item *ngFor="let user of suggestions">
-                <div class="search-item">
-                  <div class="user-avatar" [style.background]="getAvatarColor(user.firstName)">
-                    {{ getInitials(user.firstName, user.lastName) }}
-                  </div>
-                  <div class="user-info">
-                    <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
-                    <div class="user-email">{{ user.email }}</div>
-                  </div>
-                  <div class="user-action">
-                    <ng-container [ngSwitch]="true">
-                      <button 
-                        *ngSwitchCase="user.hasPendingRequest" 
-                        mat-stroked-button 
-                        disabled>
-                        <mat-icon>hourglass_empty</mat-icon>
-                        Demande envoyée
-                      </button>
-                      <button 
-                        *ngSwitchDefault 
-                        mat-raised-button 
-                        color="primary"
-                        (click)="sendFriendRequest(user.id)">
-                        <mat-icon>person_add</mat-icon>
-                        Ajouter
-                      </button>
-                    </ng-container>
-                  </div>
+            <!-- Suggestions -->
+            @if (suggestions.length > 0 && !searchQuery) {
+              <div class="suggestions">
+                <h4>Suggestions</h4>
+                <div class="suggestions-grid">
+                  @for (user of suggestions; track user.id) {
+                    <div class="suggestion-card">
+                      <div class="user-avatar" [style.background]="getAvatarColor(user.firstName)">
+                        {{ getInitials(user.firstName, user.lastName) }}
+                      </div>
+                      <div class="user-info">
+                        <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+                        <div class="user-email">{{ user.email }}</div>
+                      </div>
+                      <div class="user-action">
+                        @if (user.hasPendingRequest) {
+                          <button mat-stroked-button disabled class="disabled-btn">
+                            <mat-icon>hourglass_empty</mat-icon>
+                            Envoyée
+                          </button>
+                        } @else {
+                          <button mat-raised-button class="btn-gradient" (click)="sendFriendRequest(user.id)">
+                            <mat-icon>person_add</mat-icon>
+                            Ajouter
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
                 </div>
-              </mat-list-item>
-            </mat-list>
+              </div>
+            }
           </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+        </mat-card-content>
+      </mat-card>
+    }
 
     <!-- Utilisateurs bloqués -->
-    <mat-card *ngIf="showBlockedUsers" class="blocked-users-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>block</mat-icon>
-          Utilisateurs bloqués
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <mat-list *ngIf="blockedUsers.length > 0">
-          <mat-list-item *ngFor="let blocked of blockedUsers">
-            <div class="blocked-item">
-              <div class="user-avatar" [style.background]="getAvatarColor(blocked.friend?.firstName || '')">
-                {{ getInitials(blocked.friend?.firstName || '', blocked.friend?.lastName || '') }}
-              </div>
-              <div class="user-info">
-                <div class="user-name">{{ blocked.friend?.firstName }} {{ blocked.friend?.lastName }}</div>
-                <div class="user-email">{{ blocked.friend?.email }}</div>
-              </div>
-              <div class="user-action">
-                <button 
-                  mat-stroked-button 
-                  color="primary"
-                  (click)="unblockUser(blocked.friendId || blocked.userId, blocked.friend?.firstName || '')">
-                  <mat-icon>lock_open</mat-icon>
-                  Débloquer
-                </button>
-              </div>
+    @if (showBlockedUsers) {
+      <mat-card class="glass-card blocked-card animate-slide-up">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon class="title-icon">block</mat-icon>
+            Utilisateurs bloqués
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (blockedUsers.length > 0) {
+            <div class="blocked-grid">
+              @for (blocked of blockedUsers; track blocked.id) {
+                <div class="blocked-card-item">
+                  <div class="user-avatar" [style.background]="getAvatarColor(blocked.friend?.firstName || '')">
+                    {{ getInitials(blocked.friend?.firstName || '', blocked.friend?.lastName || '') }}
+                  </div>
+                  <div class="user-info">
+                    <div class="user-name">{{ blocked.friend?.firstName }} {{ blocked.friend?.lastName }}</div>
+                    <div class="user-email">{{ blocked.friend?.email }}</div>
+                  </div>
+                  <button mat-stroked-button class="unblock-btn" (click)="unblockUser(blocked.friendId || blocked.userId, blocked.friend?.firstName || '')">
+                    <mat-icon>lock_open</mat-icon>
+                    Débloquer
+                  </button>
+                </div>
+              }
             </div>
-          </mat-list-item>
-        </mat-list>
-        <div *ngIf="blockedUsers.length === 0" class="empty-state small">
-          <mat-icon>block</mat-icon>
-          <p>Aucun utilisateur bloqué</p>
-        </div>
-      </mat-card-content>
-    </mat-card>
+          } @else {
+            <div class="empty-state small">
+              <mat-icon>block</mat-icon>
+              <p>Aucun utilisateur bloqué</p>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
 
     <!-- Onglets -->
-    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="friends-tabs">
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="custom-tabs animate-slide-up">
       <!-- Onglet Mes amis -->
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon>people</mat-icon>
           Mes amis
-          <span class="tab-badge" *ngIf="friends.length > 0">{{ friends.length }}</span>
+          @if (friends.length > 0) {
+            <span class="tab-badge">{{ friends.length }}</span>
+          }
         </ng-template>
         
         <div class="tab-content">
-          <mat-list class="friends-list">
-            <mat-list-item *ngFor="let friend of friends" class="friend-item">
-              <div class="friend-content">
-                <div class="friend-avatar" [style.background]="getAvatarColor(friend.friend?.firstName || '')">
-                  {{ getInitials(friend.friend?.firstName || '', friend.friend?.lastName || '') }}
-                  <span class="online-indicator" [class.online]="friend.friend?.isOnline"></span>
-                </div>
-                <div class="friend-info">
-                  <div class="friend-name">
-                    {{ friend.friend?.firstName }} {{ friend.friend?.lastName }}
-                    <span class="friend-status" *ngIf="!friend.friend?.isOnline">
-                      • {{ formatLastSeen(friend.friend?.lastSeen) }}
-                    </span>
+          @if (friends.length > 0) {
+            <div class="friends-grid">
+              @for (friend of friends; track friend.id) {
+                <div class="friend-card">
+                  <div class="friend-avatar" [style.background]="getAvatarColor(friend.friend?.firstName || '')">
+                    {{ getInitials(friend.friend?.firstName || '', friend.friend?.lastName || '') }}
+                    <span class="online-dot" [class.online]="friend.friend?.isOnline"></span>
                   </div>
-                  <div class="friend-email">{{ friend.friend?.email }}</div>
-                </div>
-                <div class="friend-actions">
-                  <button mat-icon-button (click)="chatWithFriend(friend.friend?.id || '')" matTooltip="Discuter">
-                    <mat-icon>chat</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')" matTooltip="Envoyer de l'argent">
-                    <mat-icon>attach_money</mat-icon>
-                  </button>
-                  <button mat-icon-button [matMenuTriggerFor]="friendMenu" matTooltip="Plus d'options">
-                    <mat-icon>more_vert</mat-icon>
-                  </button>
-                  <mat-menu #friendMenu="matMenu">
-                    <button mat-menu-item (click)="viewFriendProfile(friend.friend?.id || '')">
-                      <mat-icon>person</mat-icon>
-                      <span>Voir le profil</span>
-                    </button>
-                    <button mat-menu-item (click)="chatWithFriend(friend.friend?.id || '')">
+                  <div class="friend-info">
+                    <div class="friend-name">
+                      {{ friend.friend?.firstName }} {{ friend.friend?.lastName }}
+                      @if (!friend.friend?.isOnline) {
+                        <span class="friend-status">• {{ formatLastSeen(friend.friend?.lastSeen) }}</span>
+                      }
+                    </div>
+                    <div class="friend-email">{{ friend.friend?.email }}</div>
+                  </div>
+                  <div class="friend-actions">
+                    <button mat-icon-button (click)="chatWithFriend(friend.friend?.id || '')" matTooltip="Discuter" class="action-icon">
                       <mat-icon>chat</mat-icon>
-                      <span>Discuter</span>
                     </button>
-                    <button mat-menu-item (click)="sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')">
+                    <button mat-icon-button (click)="sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')" matTooltip="Envoyer" class="action-icon">
                       <mat-icon>attach_money</mat-icon>
-                      <span>Envoyer de l'argent</span>
                     </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="blockUser(friend.friend?.id || '', friend.friend?.firstName || '')" class="block-item">
-                      <mat-icon color="warn">block</mat-icon>
-                      <span>Bloquer</span>
+                    <button mat-icon-button [matMenuTriggerFor]="friendMenu" matTooltip="Plus" class="action-icon">
+                      <mat-icon>more_vert</mat-icon>
                     </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="removeFriend(friend.id)" class="delete-item">
-                      <mat-icon color="warn">delete</mat-icon>
-                      <span>Supprimer</span>
-                    </button>
-                  </mat-menu>
+                    <mat-menu #friendMenu="matMenu" class="custom-menu">
+                      <button mat-menu-item (click)="viewFriendProfile(friend.friend?.id || '')">
+                        <mat-icon>person</mat-icon>
+                        <span>Profil</span>
+                      </button>
+                      <button mat-menu-item (click)="chatWithFriend(friend.friend?.id || '')">
+                        <mat-icon>chat</mat-icon>
+                        <span>Discuter</span>
+                      </button>
+                      <button mat-menu-item (click)="sendMoneyToFriend(friend.friend?.id || '', friend.friend?.firstName || '')">
+                        <mat-icon>attach_money</mat-icon>
+                        <span>Argent</span>
+                      </button>
+                      <mat-divider></mat-divider>
+                      <button mat-menu-item (click)="blockUser(friend.friend?.id || '', friend.friend?.firstName || '')" class="danger-item">
+                        <mat-icon>block</mat-icon>
+                        <span>Bloquer</span>
+                      </button>
+                      <button mat-menu-item (click)="removeFriend(friend.id)" class="danger-item">
+                        <mat-icon>delete</mat-icon>
+                        <span>Supprimer</span>
+                      </button>
+                    </mat-menu>
+                  </div>
                 </div>
-              </div>
-            </mat-list-item>
-
-            <div *ngIf="friends.length === 0" class="empty-state">
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
               <mat-icon>people_outline</mat-icon>
               <h3>Aucun ami pour le moment</h3>
               <p>Commencez par ajouter des amis en utilisant le bouton +</p>
-              <button mat-raised-button color="primary" (click)="showAddFriend = true">
+              <button mat-raised-button class="btn-gradient" (click)="showAddFriend = true">
                 <mat-icon>person_add</mat-icon>
                 Ajouter un ami
               </button>
             </div>
-          </mat-list>
+          }
         </div>
       </mat-tab>
 
@@ -263,40 +261,44 @@
         <ng-template mat-tab-label>
           <mat-icon>notifications</mat-icon>
           Demandes
-          <span class="tab-badge warning" *ngIf="friendRequests.length > 0">{{ friendRequests.length }}</span>
+          @if (friendRequests.length > 0) {
+            <span class="tab-badge warning">{{ friendRequests.length }}</span>
+          }
         </ng-template>
         
         <div class="tab-content">
-          <mat-list class="requests-list">
-            <mat-list-item *ngFor="let request of friendRequests" class="request-item">
-              <div class="request-content">
-                <div class="request-avatar" [style.background]="getAvatarColor(request.sender?.firstName || '')">
-                  {{ getInitials(request.sender?.firstName || '', request.sender?.lastName || '') }}
+          @if (friendRequests.length > 0) {
+            <div class="requests-grid">
+              @for (request of friendRequests; track request.id) {
+                <div class="request-card">
+                  <div class="request-avatar" [style.background]="getAvatarColor(request.sender?.firstName || '')">
+                    {{ getInitials(request.sender?.firstName || '', request.sender?.lastName || '') }}
+                  </div>
+                  <div class="request-info">
+                    <div class="request-name">{{ request.sender?.firstName || '' }} {{ request.sender?.lastName || '' }}</div>
+                    <div class="request-email">{{ request.sender?.email || '' }}</div>
+                    <div class="request-date">Reçue le {{ request.createdAt | date:'dd/MM/yyyy' }}</div>
+                  </div>
+                  <div class="request-actions">
+                    <button mat-raised-button class="btn-accept" (click)="acceptRequest(request.id)">
+                      <mat-icon>check</mat-icon>
+                      Accepter
+                    </button>
+                    <button mat-stroked-button class="btn-decline" (click)="declineRequest(request.id)">
+                      <mat-icon>close</mat-icon>
+                      Refuser
+                    </button>
+                  </div>
                 </div>
-                <div class="request-info">
-                  <div class="request-name">{{ request.sender?.firstName }} {{ request.sender?.lastName }}</div>
-                  <div class="request-email">{{ request.sender?.email }}</div>
-                  <div class="request-date">Demande reçue le {{ request.createdAt | date:'dd/MM/yyyy' }}</div>
-                </div>
-                <div class="request-actions">
-                  <button mat-raised-button color="primary" (click)="acceptRequest(request.id)">
-                    <mat-icon>check</mat-icon>
-                    Accepter
-                  </button>
-                  <button mat-stroked-button (click)="declineRequest(request.id)">
-                    <mat-icon>close</mat-icon>
-                    Refuser
-                  </button>
-                </div>
-              </div>
-            </mat-list-item>
-
-            <div *ngIf="friendRequests.length === 0" class="empty-state">
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
               <mat-icon>notifications_none</mat-icon>
               <h3>Aucune demande en attente</h3>
               <p>Vous n'avez pas de demande d'ami pour le moment</p>
             </div>
-          </mat-list>
+          }
         </div>
       </mat-tab>
     </mat-tab-group>

@@ -14,9 +14,6 @@ import { TranslationService } from '../../../services/translation.service';
 // Models
 import { User } from '../../../models/user.model';
 
-// Components
-import { NavigationHeaderComponent } from '../../layout/navigation-header/navigation-header.component';
-
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -45,7 +42,6 @@ import { MatBadgeModule } from '@angular/material/badge';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    NavigationHeaderComponent,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -542,14 +538,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.notificationService.showSuccess(`Thème changé en ${this.getThemeName(themeValue)}`);
   }
 
-  // MÉTHODE SETLANGUAGE CORRIGÉE (sans rechargement de page)
   setLanguage(langValue: string): void {
     this.selectedLanguage = langValue;
     this.translationService.setLanguage(langValue);
     this.notificationService.showSuccess(`Langue changée en ${this.getLanguageName()}`);
-  
-    // Rechargement forcé de la page
-    window.location.href = window.location.href.split('#')[0];
+    setTimeout(() => window.location.reload(), 500);
   }
 
   updatePrimaryColor(event: any): void {
@@ -582,6 +575,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     styleElement.textContent = css;
   }
 
+  // MÉTHODE PUBLIQUE applyTheme - CORRIGÉE
   public applyTheme(): void {
     const theme = this.customizationForm.get('theme')?.value || this.customizationSettings.theme;
     const primaryColor = this.customizationForm.get('primaryColor')?.value || this.customizationSettings.primaryColor;
@@ -591,6 +585,25 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.applyCustomCSS(this.customizationSettings.customCSS);
     
     console.log('✅ Thème appliqué via ThemeService');
+    
+    // Forcer le rechargement des styles Material
+    setTimeout(() => {
+      this.updateMaterialStyles();
+    }, 100);
+  }
+
+  // MÉTHODE PRIVÉE updateMaterialStyles
+  private updateMaterialStyles(): void {
+    // Forcer la mise à jour des composants Material
+    const cards = document.querySelectorAll('.mat-mdc-card');
+    cards.forEach((card) => {
+      (card as HTMLElement).style.backgroundColor = 'var(--card-bg)';
+    });
+    
+    const toolbars = document.querySelectorAll('.mat-toolbar');
+    toolbars.forEach((toolbar) => {
+      (toolbar as HTMLElement).style.backgroundColor = 'var(--header-bg)';
+    });
   }
 
   private getThemeName(themeValue: string): string {

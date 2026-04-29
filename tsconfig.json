@@ -23,19 +23,14 @@
       "dom"
     ]
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "src/**/*.spec.ts",
-    "src/environments/**/*.ts",
-    "src/app/components/shared/confirm-dialog/**/*.ts",
-    "src/app/models/admin.model.ts"
-  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+  "exclude": [
+    "src/app/components/admin/**/*.ts",
+    "src/app/services/admin-data.service.ts"
+  ]
 }

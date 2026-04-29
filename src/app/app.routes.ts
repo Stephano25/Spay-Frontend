@@ -15,17 +15,11 @@ import { AdminGuard } from './guards/admin.guard';
 import { SendMoneyComponent } from './components/user/wallet/send-money/send-money.component';
 import { ReceiveMoneyComponent } from './components/user/wallet/receive-money/receive-money.component';
 
-// Composants admin (à créer si nécessaire)
-import { AdminUsersComponent } from '../app/components/admin/users/admin-users.component';
-import { AdminTransactionsComponent } from '../app/components/admin/transactions/admin-transactions.component';
-import { AdminStatsComponent } from '../app/components/admin/stats/admin-stats.component';
-
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   
-  // Routes utilisateur
   { path: 'user', component: UserComponent, canActivate: [AuthGuard] },
   { path: 'wallet', component: WalletComponent, canActivate: [AuthGuard] },
   { path: 'wallet/send', component: SendMoneyComponent, canActivate: [AuthGuard] },
@@ -38,20 +32,14 @@ export const routes: Routes = [
   { path: 'mobile-money', component: MobileMoneyComponent, canActivate: [AuthGuard] },
   { path: 'friends', component: FriendsComponent, canActivate: [AuthGuard] },
   { path: 'user/settings', component: UserSettingsComponent, canActivate: [AuthGuard] },
-  { path: 'stats', component: AdminStatsComponent, canActivate: [AuthGuard] },
 
-  // Routes admin
   { 
     path: 'admin', 
     loadComponent: () => import('./components/admin/admin.component').then(m => m.AdminComponent),
     canActivate: [AdminGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', loadComponent: () => import('./components/admin/dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent) },
-      { path: 'settings', loadComponent: () => import('./components/admin/settings/settings.component').then(m => m.AdminSettingsComponent) },
-      { path: 'users', loadComponent: () => import('../app/components/admin/users/admin-users.component').then(m => m.AdminUsersComponent) },
-      { path: 'transactions', loadComponent: () => import('../app/components/admin/transactions/admin-transactions.component').then(m => m.AdminTransactionsComponent) },
-      { path: 'stats', loadComponent: () => import('../app/components/admin/stats/admin-stats.component').then(m => m.AdminStatsComponent) }
+      { path: 'dashboard', loadComponent: () => import('./components/admin/dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent) }
     ]
   },
   

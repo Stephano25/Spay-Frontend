@@ -48,7 +48,22 @@ export class ThemeService {
     if (secondaryColor) localStorage.setItem('secondaryColor', secondaryColor);
     
     this.currentThemeSubject.next(actualTheme);
-    console.log(`✅ Thème appliqué: ${actualTheme}`);
+    console.log(`✅ Thème appliqué: ${actualTheme} - Toute la page est maintenant en ${actualTheme === 'dark' ? 'noir' : 'clair'}`);
+    
+    // Forcer la mise à jour de tous les composants
+    this.updateAllComponents();
+  }
+
+  private updateAllComponents(): void {
+    // Forcer la détection des changements sur tous les éléments
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach((element) => {
+      // Forcer le reflow
+      (element as HTMLElement).style.display = 'none';
+      setTimeout(() => {
+        (element as HTMLElement).style.display = '';
+      }, 10);
+    });
   }
 
   getCurrentTheme(): string {
