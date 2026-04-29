@@ -33,7 +33,7 @@
       </div>
     }
 
-    <!-- Menu des amis (dépliable) -->
+    <!-- Menu des amis (dépliable) - CORRIGÉ : utilise filteredFriendsList au lieu de onlineFriendsList -->
     <div class="friends-menu">
       <div class="menu-header" (click)="toggleFriendsList()">
         <mat-icon>people</mat-icon>
@@ -44,7 +44,8 @@
       <div class="menu-content" [class.expanded]="showFriendsList">
         @if (allFriendsList.length > 0) {
           <div class="friends-list-menu">
-            @for (friend of onlineFriendsList; track friend.userId) {
+            <!-- CORRECTION ICI : utiliser filteredFriendsList au lieu de onlineFriendsList -->
+            @for (friend of filteredFriendsList; track friend.userId) {
               <div class="friend-menu-item" (click)="selectFriendFromList(friend)">
                 <div class="friend-avatar small" [style.background]="getAvatarColor(friend.firstName)">
                   {{ getInitials(friend.firstName, friend.lastName) }}
