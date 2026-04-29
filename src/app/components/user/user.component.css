@@ -418,3 +418,27 @@ mat-card-header mat-icon {
     margin-left: 60px;
   }
 }
+
+/* Avatar styles */
+.profile-avatar-container {
+  margin-right: 16px;
+}
+
+.profile-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}

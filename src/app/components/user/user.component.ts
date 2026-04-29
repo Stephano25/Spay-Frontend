@@ -7,10 +7,11 @@ import { Subscription, forkJoin } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { TransactionService } from '../../services/transaction.service';
 import { WalletService } from '../../services/wallet.service';
-import { TranslationService } from '../../services/translation.service';  // AJOUT
+import { TranslationService } from '../../services/translation.service';
+import { environment } from '../../../environments/environment';
 
 // Pipes
-import { TranslatePipe } from '../../pipes/translate.pipe';  // AJOUT
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 // Models
 import { User } from '../../models/user.model';
@@ -37,7 +38,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatGridListModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    TranslatePipe  // AJOUT
+    TranslatePipe
   ],
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
@@ -48,6 +49,7 @@ export class UserComponent implements OnInit, OnDestroy {
   balance: number = 0;
   stats: DashboardStats | null = null;
   isLoading = true;
+  profileImageUrl: string | null = null;
   
   menuItems = [
     { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/wallet' },
@@ -67,7 +69,7 @@ export class UserComponent implements OnInit, OnDestroy {
     private transactionService: TransactionService,
     private walletService: WalletService,
     private router: Router,
-    private translationService: TranslationService  // AJOUT
+    private translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -83,8 +85,31 @@ export class UserComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.authService.currentUser.subscribe((user: User | null) => {
         this.user = user;
+        if (user?.profilePicture) {
+          this.profileImageUrl = this.getFullImageUrl(user.profilePicture);
+        }
       })
     );
+  }
+
+  /**
+   * Construire l'URL complète de l'image
+   */
+  getFullImageUrl(url: string): string {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads')) {
+      return `${environment.baseUrl}${url}`;
+    }
+    return url;
+  }
+
+  /**
+   * Obtenir les initiales pour l'avatar
+   */
+  getInitials(): string {
+    if (!this.user) return '';
+    return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
   }
 
   private loadDashboardData(): void {

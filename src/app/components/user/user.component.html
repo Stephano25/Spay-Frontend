@@ -2,7 +2,16 @@
   <!-- En-tête avec informations utilisateur -->
   <mat-card class="welcome-card">
     <mat-card-header>
-      <mat-icon mat-card-avatar>account_circle</mat-icon>
+      <!-- Affichage de la photo de profil ou des initiales -->
+      <div mat-card-avatar class="profile-avatar-container">
+        @if (profileImageUrl) {
+          <img [src]="profileImageUrl" alt="Photo de profil" class="profile-avatar-img">
+        } @else {
+          <div class="profile-avatar-placeholder" [style.background]="'linear-gradient(135deg, #667eea, #764ba2)'">
+            {{ getInitials() }}
+          </div>
+        }
+      </div>
       <mat-card-title>{{ 'Bienvenue sur SPaye' | translate }}</mat-card-title>
       <mat-card-subtitle>{{ 'Tableau de bord utilisateur' | translate }}</mat-card-subtitle>
     </mat-card-header>
