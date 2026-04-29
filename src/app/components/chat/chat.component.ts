@@ -145,6 +145,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         console.log('Amis reçus:', result.friends);
         console.log('Demandes reçues:', result.requests);
         
+        // Afficher la structure du premier ami pour déboguer
+        if (result.friends.length > 0) {
+          console.log('Structure du premier ami:', JSON.stringify(result.friends[0], null, 2));
+        }
+        
         // Filtrer les amis acceptés
         this.friends = result.friends.filter(f => f.status === 'accepted');
         this.friendRequests = result.requests;
@@ -167,16 +172,40 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private buildFriendsLists(): void {
-    // Construire la liste des amis à partir des données avec des ID uniques
-    this.allFriendsList = this.friends.map((friend, index) => ({
-      id: `friend-${index}`, // ID unique pour le tracking
-      userId: friend.friend?.id || `temp-${index}`,
-      firstName: friend.friend?.firstName || 'Utilisateur',
-      lastName: friend.friend?.lastName || '',
-      profilePicture: friend.friend?.profilePicture,
-      isOnline: friend.friend?.isOnline || false,
-      lastSeen: friend.friend?.lastSeen
-    }));
+    // Construire la liste des amis
+    this.allFriendsList = this.friends.map((friend, index) => {
+      // Essayer différents chemins possibles pour l'ID
+      let userId = '';
+      
+      if (friend.friend?.id) {
+        userId = friend.friend.id;
+      } else if (friend.friendId) {
+        userId = friend.friendId;
+      } else if (friend.userId) {
+        userId = friend.userId;
+      } else if (friend.id) {
+        userId = friend.id;
+      }
+      
+      // Si toujours pas d'ID, ne pas inclure cet ami
+      if (!userId) {
+        console.warn('Ami sans ID valide ignoré:', friend);
+        return null;
+      }
+      
+      // Récupérer les informations depuis friend.friend (qui contient les détails de l'ami)
+      const friendData = friend.friend;
+      
+      return {
+        id: `friend-${index}`,
+        userId: userId,
+        firstName: friendData?.firstName || 'Utilisateur',
+        lastName: friendData?.lastName || '',
+        profilePicture: friendData?.profilePicture,
+        isOnline: friendData?.isOnline || false,
+        lastSeen: friendData?.lastSeen
+      };
+    }).filter(friend => friend !== null);
     
     // Filtrer les amis en ligne
     this.onlineFriendsList = this.allFriendsList.filter(f => f.isOnline === true);
@@ -193,7 +222,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }));
     
     console.log('Amis en ligne:', this.onlineFriendsList.length);
-    console.log('Total amis:', this.allFriendsList.length);
+    console.log('Total amis valides:', this.allFriendsList.length);
   }
 
   // ========== RECHERCHE ==========
@@ -214,7 +243,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   // ========== SÉLECTION DES CONTACTS ==========
 
   selectFriendFromList(friend: any): void {
-    if (!friend?.userId) return;
+    // Vérifier que l'ID est valide
+    if (!friend?.userId) {
+      console.error('ID ami invalide:', friend);
+      this.notificationService.showError('Impossible de sélectionner cet ami');
+      return;
+    }
     
     console.log('Sélection de l\'ami:', friend);
     
@@ -261,7 +295,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   // ========== GESTION DES MESSAGES ==========
 
   loadMessages(userId: string): void {
-    if (!userId) return;
+    // Vérifier que l'ID est valide avant l'appel API
+    if (!userId || userId === '') {
+      console.error('ID utilisateur invalide pour charger les messages:', userId);
+      this.notificationService.showError('ID utilisateur invalide');
+      this.isLoadingMessages = false;
+      return;
+    }
     
     const cached = this.messagesCache.get(userId);
     if (cached && this.selectedContact?.userId === userId) {
