@@ -172,36 +172,42 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private buildFriendsLists(): void {
-    // Construire la liste des amis
+    // Construire la liste des amis avec des IDs uniques pour le tracking
     this.allFriendsList = this.friends.map((friend, index) => {
-      // Essayer différents chemins possibles pour l'ID
-      let userId = '';
+      // D'après la structure des logs:
+      // {
+      //   "id": "...",
+      //   "userId": "...",  <- ID de l'utilisateur courant (à NE PAS utiliser)
+      //   "friendId": "...", <- ID de l'ami (à UTILISER!)
+      //   "friend": { firstName, lastName, ... }
+      // }
       
-      if (friend.friend?.id) {
-        userId = friend.friend.id;
-      } else if (friend.friendId) {
-        userId = friend.friendId;
-      } else if (friend.userId) {
-        userId = friend.userId;
-      } else if (friend.id) {
-        userId = friend.id;
+      let friendUserId = '';
+      
+      // Utiliser friend.friendId qui contient l'ID de l'ami
+      if (friend.friendId) {
+        friendUserId = friend.friendId;
+      } else if (friend.friend?.id) {
+        friendUserId = friend.friend.id;
       }
       
       // Si toujours pas d'ID, ne pas inclure cet ami
-      if (!userId) {
+      if (!friendUserId) {
         console.warn('Ami sans ID valide ignoré:', friend);
         return null;
       }
       
-      // Récupérer les informations depuis friend.friend (qui contient les détails de l'ami)
+      // Récupérer les informations depuis friend.friend
       const friendData = friend.friend;
       
       return {
-        id: `friend-${index}`,
-        userId: userId,
+        // ID UNIQUE pour le tracking Angular (combinaison index + ID réel)
+        trackId: `friend-${index}-${friendUserId}`,
+        // ID réel de l'ami pour les appels API
+        userId: friendUserId,
         firstName: friendData?.firstName || 'Utilisateur',
         lastName: friendData?.lastName || '',
-        profilePicture: friendData?.profilePicture,
+        profilePicture: friendData?.profilePicture || '',
         isOnline: friendData?.isOnline || false,
         lastSeen: friendData?.lastSeen
       };
@@ -223,6 +229,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     console.log('Amis en ligne:', this.onlineFriendsList.length);
     console.log('Total amis valides:', this.allFriendsList.length);
+    console.log('Premier ami:', this.allFriendsList[0]);
   }
 
   // ========== RECHERCHE ==========
