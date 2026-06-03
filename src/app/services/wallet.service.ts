@@ -1,3 +1,4 @@
+// Dans wallet.service.ts du frontend
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
@@ -51,7 +52,7 @@ export class WalletService {
   constructor(private http: HttpClient) {}
 
   getWallet(): Observable<Wallet> {
-    return this.http.get<Wallet>(`${this.apiUrl}/me`);
+    return this.http.get<Wallet>(`${this.apiUrl}`);
   }
 
   getBalance(): Observable<{ balance: number; currency: string }> {
@@ -63,11 +64,11 @@ export class WalletService {
   }
 
   getWalletStats(): Observable<WalletStats> {
-    return this.http.get<WalletStats>(`${this.apiUrl}/me`);
+    return this.http.get<WalletStats>(`${this.apiUrl}`);
   }
 
   transferMoney(data: TransferData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/transfer`, data);
+    return this.http.post(`${this.apiUrl}/send-money`, data);
   }
 
   sendMoney(data: TransferData): Observable<any> {
@@ -86,8 +87,12 @@ export class WalletService {
     return this.http.post(`${this.apiUrl}/sync`, {});
   }
 
-  generateReceiveQRCode(amount?: number): Observable<{ qrCode: string; expiresAt: Date }> {
+  generateReceiveQRCode(amount?: number): Observable<{ qrCode: string; expiresAt: Date; data: any }> {
     const body = amount ? { amount } : {};
-    return this.http.post<{ qrCode: string; expiresAt: Date }>(`${this.apiUrl}/generate-qr`, body);
+    return this.http.post<{ qrCode: string; expiresAt: Date; data: any }>(`${this.apiUrl}/generate-qr`, body);
+  }
+
+  scanQRCode(qrData: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/scan-qr`, { qrData });
   }
 }

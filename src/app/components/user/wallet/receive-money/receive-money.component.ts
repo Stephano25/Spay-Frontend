@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { trigger, transition, style, animate, keyframes } from '@angular/animations'; // AJOUTER CET IMPORT
+import { trigger, transition, style, animate, keyframes } from '@angular/animations';
 
 import { WalletService } from '../../../../services/wallet.service';
 import { NotificationService } from '../../../../services/notification.service';
@@ -34,7 +34,7 @@ import { MatDividerModule } from '@angular/material/divider';
   ],
   templateUrl: './receive-money.component.html',
   styleUrls: ['./receive-money.component.css'],
-  animations: [ // AJOUTER LES ANIMATIONS ICI
+  animations: [
     trigger('fadeIn', [
       transition(':enter', [
         style({ opacity: 0 }),
@@ -79,7 +79,7 @@ import { MatDividerModule } from '@angular/material/divider';
     ])
   ]
 })
-export class ReceiveMoneyComponent implements OnInit {
+export class ReceiveMoneyComponent implements OnInit, OnDestroy {
   qrCode: any = null;
   isLoading: boolean = true;
   showAmountOptions: boolean = false;
@@ -89,6 +89,12 @@ export class ReceiveMoneyComponent implements OnInit {
   qrData: string = '';
   qrImageLoaded: boolean = false;
   qrImageError: boolean = false;
+
+  // Variables pour l'expiration (CORRIGÉ: utiliser des propriétés au lieu de méthodes)
+  expirationTimeText: string = '';
+  expirationProgress: number = 100;
+  expirationColor: string = '#10b981';
+  private expirationInterval: any;
 
   amountOptions = [5000, 10000, 20000, 50000, 100000, 200000];
 
@@ -102,11 +108,22 @@ export class ReceiveMoneyComponent implements OnInit {
     this.generateQR();
   }
 
+  ngOnDestroy() {
+    if (this.expirationInterval) {
+      clearInterval(this.expirationInterval);
+    }
+  }
+
   generateQR(amount?: number) {
     this.isLoading = true;
     this.qrImageLoaded = false;
     this.qrImageError = false;
     this.selectedAmount = amount || null;
+    
+    // Nettoyer l'intervalle précédent
+    if (this.expirationInterval) {
+      clearInterval(this.expirationInterval);
+    }
     
     this.walletService.generateReceiveQRCode(amount).subscribe({
       next: (response) => {
@@ -126,6 +143,9 @@ export class ReceiveMoneyComponent implements OnInit {
         this.isLoading = false;
         this.showAmountOptions = false;
         
+        // Démarrer l'intervalle de mise à jour de l'expiration
+        this.startExpirationTimer();
+        
         this.notificationService.showSuccess('QR code généré avec succès');
       },
       error: (err) => {
@@ -134,6 +154,48 @@ export class ReceiveMoneyComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  startExpirationTimer() {
+    this.updateExpirationInfo();
+    this.expirationInterval = setInterval(() => {
+      this.updateExpirationInfo();
+    }, 1000);
+  }
+
+  updateExpirationInfo() {
+    if (!this.qrCode?.expiresAt) return;
+    
+    const now = new Date();
+    const exp = new Date(this.qrCode.expiresAt);
+    const total = 30 * 60 * 1000; // 30 minutes
+    const remaining = exp.getTime() - now.getTime();
+    
+    // Calculer la progression
+    let progress = (remaining / total) * 100;
+    progress = Math.max(0, Math.min(100, progress));
+    this.expirationProgress = progress;
+    
+    // Calculer le texte
+    const diffMins = Math.floor(remaining / 60000);
+    if (remaining <= 0) {
+      this.expirationTimeText = 'Expiré';
+    } else if (diffMins < 1) {
+      this.expirationTimeText = 'Expire dans moins d\'une minute';
+    } else if (diffMins < 60) {
+      this.expirationTimeText = `Expire dans ${diffMins} minutes`;
+    } else {
+      this.expirationTimeText = `Expire dans ${Math.floor(diffMins / 60)} heures`;
+    }
+    
+    // Calculer la couleur
+    if (progress > 50) {
+      this.expirationColor = '#10b981';
+    } else if (progress > 20) {
+      this.expirationColor = '#f59e0b';
+    } else {
+      this.expirationColor = '#ef4444';
+    }
   }
 
   useCustomAmount() {
@@ -200,39 +262,6 @@ export class ReceiveMoneyComponent implements OnInit {
   onQRError() {
     this.qrImageError = true;
     this.notificationService.showError('Erreur de chargement du QR code');
-  }
-
-  getExpirationTime(): string {
-    if (!this.qrCode?.expiresAt) return '';
-    
-    const now = new Date();
-    const exp = new Date(this.qrCode.expiresAt);
-    const diffMs = exp.getTime() - now.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 0) return 'Expiré';
-    if (diffMins < 1) return 'Expire dans moins d\'une minute';
-    if (diffMins < 60) return `Expire dans ${diffMins} minutes`;
-    return `Expire dans ${Math.floor(diffMins / 60)} heures`;
-  }
-
-  getExpirationProgress(): number {
-    if (!this.qrCode?.expiresAt) return 100;
-    
-    const now = new Date();
-    const exp = new Date(this.qrCode.expiresAt);
-    const total = 30 * 60 * 1000; // 30 minutes
-    const remaining = exp.getTime() - now.getTime();
-    const progress = (remaining / total) * 100;
-    
-    return Math.max(0, Math.min(100, progress));
-  }
-
-  getExpirationColor(): string {
-    const progress = this.getExpirationProgress();
-    if (progress > 50) return '#10b981';
-    if (progress > 20) return '#f59e0b';
-    return '#ef4444';
   }
 
   formatAmount(amount: number): string {

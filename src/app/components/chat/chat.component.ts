@@ -77,7 +77,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private typingUsers: Set<string> = new Set();
   private messagesCache: Map<string, Message[]> = new Map();
-  private pendingTempMessages: Map<string, string> = new Map(); // Pour suivre les messages temporaires
+  private pendingTempMessages: Map<string, string> = new Map();
+  private processedMessageIds: Set<string> = new Set();
 
   constructor(
     private chatService: ChatService,
@@ -114,6 +115,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     clearTimeout(this.typingTimeout);
     this.pendingTempMessages.clear();
+    this.processedMessageIds.clear();
   }
 
   // ========== MÉTHODES DE TOGGLE ==========
@@ -131,7 +133,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private loadData(): void {
     this.isLoading = true;
     this.isLoadingFriends = true;
-    console.log('Chargement des données...');
+    console.log('🔍 Chargement des données...');
     
     forkJoin({
       friends: this.friendService.getFriends().pipe(catchError(error => {
@@ -144,12 +146,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       }))
     }).subscribe({
       next: (result) => {
-        console.log('Amis reçus:', result.friends);
-        console.log('Demandes reçues:', result.requests);
-        
-        if (result.friends.length > 0) {
-          console.log('Structure du premier ami:', JSON.stringify(result.friends[0], null, 2));
-        }
+        console.log('✅ Amis reçus:', result.friends.length);
+        console.log('📋 Demandes reçues:', result.requests.length);
         
         this.friends = result.friends.filter(f => f.status === 'accepted');
         this.friendRequests = result.requests;
@@ -158,20 +156,24 @@ export class ChatComponent implements OnInit, OnDestroy {
         
         this.isLoading = false;
         this.isLoadingFriends = false;
-        console.log('Liste des amis construite:', this.allFriendsList);
+        console.log('📊 Liste des amis construite:', this.allFriendsList.length);
       },
       error: (error) => {
-        console.error('Error loading data:', error);
+        console.error('❌ Error loading data:', error);
         this.isLoading = false;
         this.isLoadingFriends = false;
         this.allFriendsList = [];
         this.onlineFriendsList = [];
+        this.notificationService.showError('Erreur lors du chargement des amis');
       }
     });
   }
 
   private buildFriendsLists(): void {
-    this.allFriendsList = this.friends.map((friend, index) => {
+    // Éliminer les doublons par userId
+    const uniqueFriendsMap = new Map();
+    
+    this.friends.forEach((friend, index) => {
       let friendUserId = '';
       
       if (friend.friendId) {
@@ -182,22 +184,24 @@ export class ChatComponent implements OnInit, OnDestroy {
       
       if (!friendUserId) {
         console.warn('Ami sans ID valide ignoré:', friend);
-        return null;
+        return;
       }
       
-      const friendData = friend.friend;
-      
-      return {
-        trackId: `friend-${index}-${friendUserId}`,
-        userId: friendUserId,
-        firstName: friendData?.firstName || 'Utilisateur',
-        lastName: friendData?.lastName || '',
-        profilePicture: friendData?.profilePicture || '',
-        isOnline: friendData?.isOnline || false,
-        lastSeen: friendData?.lastSeen
-      };
-    }).filter(friend => friend !== null);
+      if (!uniqueFriendsMap.has(friendUserId)) {
+        const friendData = friend.friend;
+        uniqueFriendsMap.set(friendUserId, {
+          trackId: `friend-${index}-${friendUserId}`,
+          userId: friendUserId,
+          firstName: friendData?.firstName || 'Utilisateur',
+          lastName: friendData?.lastName || '',
+          profilePicture: friendData?.profilePicture || '',
+          isOnline: friendData?.isOnline || false,
+          lastSeen: friendData?.lastSeen
+        });
+      }
+    });
     
+    this.allFriendsList = Array.from(uniqueFriendsMap.values());
     this.onlineFriendsList = this.allFriendsList.filter(f => f.isOnline === true);
     this.filteredFriendsList = [...this.allFriendsList];
     
@@ -208,8 +212,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       senderEmail: request.sender?.email || ''
     }));
     
-    console.log('Amis en ligne:', this.onlineFriendsList.length);
-    console.log('Total amis valides:', this.allFriendsList.length);
+    console.log('👥 Amis uniques:', this.allFriendsList.length);
+    console.log('🟢 Amis en ligne:', this.onlineFriendsList.length);
   }
 
   // ========== RECHERCHE ==========
@@ -236,7 +240,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('Sélection de l\'ami:', friend);
+    console.log('👤 Sélection de l\'ami:', friend.firstName, friend.lastName);
     
     this.selectedContact = {
       userId: friend.userId,
@@ -288,10 +292,13 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
     
+    console.log('📨 Chargement des messages pour userId:', userId);
+    
     const cached = this.messagesCache.get(userId);
     if (cached && this.selectedContact?.userId === userId) {
+      console.log('📦 Utilisation du cache, messages:', cached.length);
       this.messages = [...cached];
-      this.scrollToBottom();
+      setTimeout(() => this.scrollToBottom(), 100);
       return;
     }
     
@@ -302,7 +309,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     this.chatService.getMessages(userId).subscribe({
       next: (msgs) => {
-        // Filtrer les messages temporaires et supprimer les doublons
+        console.log('✅ Messages reçus du serveur:', msgs?.length || 0);
+        
         let validMessages = (msgs || []).filter(m => !m.id.startsWith('temp-'));
         const uniqueMap = new Map<string, Message>();
         validMessages.forEach(msg => uniqueMap.set(msg.id, msg));
@@ -314,9 +322,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.isLoadingMessages = false;
         this.chatService.markAsRead(userId).subscribe();
         setTimeout(() => this.scrollToBottom(), 100);
+        
+        console.log('📝 Messages affichés:', this.messages.length);
       },
       error: (error) => {
-        console.error('Error loading messages:', error);
+        console.error('❌ Erreur chargement messages:', error);
         this.isLoadingMessages = false;
         this.notificationService.showError('Erreur chargement messages');
       }
@@ -366,12 +376,18 @@ export class ChatComponent implements OnInit, OnDestroy {
   private handleNewMessage(message: Message): void {
     if (!message) return;
     
-    // 🔥 IMPORTANT: Ignorer les messages envoyés par l'utilisateur courant
-    // Ces messages sont déjà affichés via le message temporaire dans sendMessage()
+    // Ignorer les messages déjà traités
+    if (this.processedMessageIds.has(message.id)) {
+      console.log('Message déjà traité, ignoré:', message.id);
+      return;
+    }
+    this.processedMessageIds.add(message.id);
+    setTimeout(() => this.processedMessageIds.delete(message.id), 5000);
+    
+    // Ignorer les messages envoyés par l'utilisateur courant
     if (message.senderId === this.currentUserId) {
       console.log('Message envoyé par moi-même, mise à jour du temporaire:', message.id);
       
-      // Remplacer le message temporaire par le vrai message
       const tempIndex = this.messages.findIndex(m => 
         m.id.startsWith('temp-') && 
         m.content === message.content && 
@@ -379,10 +395,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       );
       
       if (tempIndex !== -1) {
-        // Remplacer le message temporaire
         this.messages[tempIndex] = message;
         
-        // Mettre à jour le cache
         const cached = this.messagesCache.get(message.receiverId) || [];
         const cacheIndex = cached.findIndex(m => m.id.startsWith('temp-') && m.content === message.content);
         if (cacheIndex !== -1) {
@@ -390,14 +404,13 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.messagesCache.set(message.receiverId, cached);
         }
         
-        // Trier les messages par date
         this.messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         this.scrollToBottom();
       }
       return;
     }
     
-    // Pour les messages des autres utilisateurs, vérifier les doublons
+    // Pour les messages des autres utilisateurs
     const messageExists = this.messages.some(m => m.id === message.id);
     if (messageExists) {
       console.log('Message déjà existant, ignoré:', message.id);
@@ -406,13 +419,13 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     const otherUserId = message.senderId;
     
-    // Ajouter au cache
     const cached = this.messagesCache.get(otherUserId) || [];
-    cached.push(message);
-    cached.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    this.messagesCache.set(otherUserId, cached);
+    if (!cached.some(m => m.id === message.id)) {
+      cached.push(message);
+      cached.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      this.messagesCache.set(otherUserId, cached);
+    }
     
-    // Ajouter à l'affichage si c'est la conversation ouverte
     if (this.selectedContact && this.selectedContact.userId === otherUserId) {
       this.messages.push(message);
       this.messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -448,7 +461,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     const messageContent = this.newMessage.trim();
     const tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
     
-    // Créer un message temporaire
     const tempMsg: Message = {
       id: tempId,
       senderId: this.currentUserId,
@@ -460,18 +472,15 @@ export class ChatComponent implements OnInit, OnDestroy {
       createdAt: new Date()
     };
     
-    // Ajouter le message temporaire à l'affichage
     this.messages.push(tempMsg);
     this.scrollToBottom();
     
-    // Mettre à jour le dernier message du contact
     if (this.selectedContact) {
       this.selectedContact.lastMessage = messageContent;
       this.selectedContact.lastMessageTime = Date.now();
       this.selectedContact.hasConversation = true;
     }
     
-    // Envoyer via socket
     const message = { 
       receiverId: this.selectedContact.userId, 
       type: 'text' as const, 
@@ -482,6 +491,37 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.newMessage = '';
     this.isSending = false;
     this.chatService.sendTyping(this.selectedContact.userId, false);
+  }
+
+  // Méthode de test pour envoyer un message
+  sendTestMessage(): void {
+    if (!this.selectedContact?.userId) {
+      this.notificationService.showWarning('Sélectionnez d\'abord un ami');
+      return;
+    }
+    
+    const testMessage = {
+      receiverId: this.selectedContact.userId,
+      type: 'text' as const,
+      content: 'Bonjour, ceci est un message de test !'
+    };
+    
+    console.log('📤 Envoi message test:', testMessage);
+    this.chatService.sendMessage(testMessage);
+    
+    const tempMsg: Message = {
+      id: 'test-' + Date.now(),
+      senderId: this.currentUserId,
+      receiverId: this.selectedContact.userId,
+      type: 'text',
+      content: testMessage.content,
+      isRead: false,
+      isDelivered: false,
+      createdAt: new Date()
+    };
+    this.messages.push(tempMsg);
+    this.scrollToBottom();
+    this.notificationService.showSuccess('Message test envoyé');
   }
 
   sendEmoji(emoji: string): void {
