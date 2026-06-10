@@ -28,6 +28,11 @@
   <!-- Colonne centrale : chat -->
   <div class="chat-area" *ngIf="selectedContact; else noChat">
     <div class="chat-header">
+      <!-- Bouton retour -->
+      <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
       <div class="contact-info">
         <div class="avatar large">{{ getInitials(selectedContact.firstName, selectedContact.lastName) }}</div>
         <div>
@@ -39,6 +44,7 @@
           </div>
         </div>
       </div>
+
       <div class="chat-actions">
         <button mat-icon-button (click)="startCall('audio')" matTooltip="Appel audio">
           <mat-icon>call</mat-icon>

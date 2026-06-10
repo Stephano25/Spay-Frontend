@@ -1,19 +1,13 @@
+// src/app/components/friends/friends.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { Subscription, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-
-// Services
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { FriendService } from '../../services/friend.service';
-
-// Models
 import { Friend, FriendRequest, SearchUser } from '../../models/friend.model';
-
-// Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,48 +26,32 @@ import { MatChipsModule } from '@angular/material/chips';
   selector: 'app-friends',
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatListModule,
-    MatTabsModule,
-    MatMenuModule,
-    MatDividerModule,
-    MatProgressSpinnerModule,
-    MatBadgeModule,
-    MatChipsModule
+    CommonModule, FormsModule, RouterModule,
+    MatToolbarModule, MatButtonModule, MatIconModule, MatCardModule,
+    MatFormFieldModule, MatInputModule, MatListModule, MatTabsModule,
+    MatMenuModule, MatDividerModule, MatProgressSpinnerModule,
+    MatBadgeModule, MatChipsModule
   ],
   templateUrl: './friends.component.html',
   styleUrls: ['./friends.component.css']
 })
 export class FriendsComponent implements OnInit, OnDestroy {
-  // États
   friends: Friend[] = [];
   friendRequests: FriendRequest[] = [];
   searchResults: SearchUser[] = [];
   suggestions: SearchUser[] = [];
   blockedUsers: Friend[] = [];
-  
-  // UI - Menu dépliable
-  showFriendsList: boolean = true;
-  showRequestsList: boolean = true;
-  showAddFriend: boolean = false;
-  showBlockedUsers: boolean = false;
-  
-  searchQuery: string = '';
-  isLoading: boolean = true;
-  isSearching: boolean = false;
-  selectedTabIndex: number = 0;
-  
-  // Utilisateur courant
-  currentUserId: string = '';
-  
+
+  showFriendsList = true;
+  showRequestsList = true;
+  showAddFriend = false;
+  showBlockedUsers = false;
+
+  searchQuery = '';
+  isLoading = true;
+  isSearching = false;
+  currentUserId = '';
+
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -87,175 +65,119 @@ export class FriendsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadData();
+    this.loadAllData();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  // ========== GETTERS ==========
-
   get onlineFriends(): Friend[] {
     return this.friends.filter(f => f.friend?.isOnline === true);
   }
 
-  // ========== MÉTHODES DE TOGGLE ==========
-
-  toggleFriendsList(): void {
-    this.showFriendsList = !this.showFriendsList;
-  }
-
-  toggleRequestsList(): void {
-    this.showRequestsList = !this.showRequestsList;
-  }
-
-  // ========== NAVIGATION ==========
-
-  goBack(): void {
-    this.router.navigate(['/user']);
-  }
-
-  // ========== CHARGEMENT DES DONNÉES ==========
-
-  loadData(): void {
+  loadAllData(): void {
     this.isLoading = true;
-    
-    // Charger les amis
-    this.subscriptions.push(
-      this.friendService.getFriends().pipe(
-        catchError(error => {
-          console.error('Erreur chargement amis:', error);
-          return of([]);
-        })
-      ).subscribe(friends => {
-        this.friends = friends.filter(f => f.status === 'accepted');
-        console.log('Amis chargés:', this.friends);
-      })
-    );
-
-    // Charger les demandes d'amis
-    this.subscriptions.push(
-      this.friendService.getFriendRequests().pipe(
-        catchError(error => {
-          console.error('Erreur chargement demandes:', error);
-          return of([]);
-        })
-      ).subscribe(requests => {
-        this.friendRequests = requests;
-        console.log('Demandes reçues:', this.friendRequests);
-      })
-    );
-
-    // Charger les suggestions
-    this.subscriptions.push(
-      this.friendService.getSuggestions().pipe(
-        catchError(error => {
-          console.error('Erreur chargement suggestions:', error);
-          return of([]);
-        })
-      ).subscribe(suggestions => {
-        this.suggestions = suggestions;
-        console.log('Suggestions chargées:', this.suggestions);
-      })
-    );
-
-    // Charger les bloqués
-    this.subscriptions.push(
-      this.friendService.getBlockedUsers().pipe(
-        catchError(error => {
-          console.error('Erreur chargement bloqués:', error);
-          return of([]);
-        })
-      ).subscribe(blocked => {
-        this.blockedUsers = blocked;
-        console.log('Bloqués chargés:', this.blockedUsers);
-        this.isLoading = false;
-      })
-    );
+    this.loadFriends();
+    this.loadRequests();
+    this.loadSuggestions();
+    this.loadBlocked();
   }
 
-  // ========== RECHERCHE ==========
+  loadFriends(): void {
+    this.friendService.getFriends().subscribe({
+      next: (friends) => {
+        // Filtrer les amis acceptés
+        const accepted = friends.filter(f => f.status === 'accepted');
+        // Supprimer les doublons basés sur l'ID de l'ami
+        const unique = accepted.filter((friend, index, self) =>
+          index === self.findIndex(f => f.friend?.id === friend.friend?.id)
+        );
+        this.friends = unique;
+        console.log('📋 Amis (acceptés, uniques):', this.friends);
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  loadRequests(): void {
+    this.friendService.getFriendRequests().subscribe({
+      next: (requests) => {
+        this.friendRequests = requests;
+        console.log('📩 Demandes:', this.friendRequests);
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  loadSuggestions(): void {
+    this.friendService.getSuggestions().subscribe({
+      next: (suggestions) => {
+        this.suggestions = suggestions;
+        console.log('💡 Suggestions:', this.suggestions);
+        this.isLoading = false;
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  loadBlocked(): void {
+    this.friendService.getBlockedUsers().subscribe({
+      next: (blocked) => {
+        this.blockedUsers = blocked;
+        console.log('🚫 Bloqués:', this.blockedUsers);
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  toggleFriendsList(): void { this.showFriendsList = !this.showFriendsList; }
+  toggleRequestsList(): void { this.showRequestsList = !this.showRequestsList; }
+  goBack(): void { this.router.navigate(['/user']); }
 
   onSearch(): void {
     if (!this.searchQuery.trim() || this.searchQuery.length < 2) {
       this.searchResults = [];
       return;
     }
-
     this.isSearching = true;
-    
-    this.friendService.searchUsers(this.searchQuery).pipe(
-      catchError(error => {
-        console.error('Erreur recherche:', error);
+    this.friendService.searchUsers(this.searchQuery).subscribe({
+      next: (results) => {
+        this.searchResults = results;
         this.isSearching = false;
-        return of([]);
-      })
-    ).subscribe(results => {
-      this.searchResults = results;
-      console.log('Résultats recherche:', this.searchResults);
-      this.isSearching = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.isSearching = false;
+      }
     });
   }
 
-  // ========== GESTION DES DEMANDES D'AMI ==========
-
   sendFriendRequest(userId: string): void {
-    console.log('Envoi demande à:', userId);
-  
+    // Vérifier que l'utilisateur ne s'ajoute pas lui-même
+    if (userId === this.currentUserId) {
+      this.notificationService.showWarning('Vous ne pouvez pas vous ajouter vous-même');
+      return;
+    }
+
     this.friendService.sendFriendRequest(userId).subscribe({
-      next: (response) => {
-        console.log('Réponse:', response);
-      
-        // Mettre à jour l'UI immédiatement
-        const user = this.searchResults.find(u => u.id === userId);
-        if (user) {
-          user.hasPendingRequest = true;
-        }
-        
-        const suggestion = this.suggestions.find(u => u.id === userId);
-        if (suggestion) {
-          suggestion.hasPendingRequest = true;
-        }
-      
-        setTimeout(() => {
-          this.loadData();
-        }, 500);
+      next: () => {
+        // Mettre à jour localement
+        const user = [...this.searchResults, ...this.suggestions].find(u => u.id === userId);
+        if (user) user.hasPendingRequest = true;
+        this.loadAllData();
       },
-      error: (error) => {
-        console.error('Erreur envoi demande:', error);
-        this.notificationService.showError(error.error?.message || 'Erreur lors de l\'envoi');
+      error: (err) => {
+        console.error('Erreur envoi demande:', err);
+        // Le service affiche déjà le message d'erreur
       }
     });
   }
 
   acceptRequest(requestId: string): void {
-    console.log('Acceptation demande:', requestId);
-  
     this.friendService.acceptFriendRequest(requestId).subscribe({
-      next: (response) => {
-        console.log('Réponse acceptation:', response);
-      
-        this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
-      
-        this.friendService.getFriends().subscribe(friends => {
-          this.friends = friends.filter(f => f.status === 'accepted');
-          console.log('Nouvelle liste amis:', this.friends);
-        });
-      
-        this.notificationService.showSuccess('Demande d\'ami acceptée');
-      
-        if (response?.conversationId) {
-          setTimeout(() => {
-            this.router.navigate(['/chat'], { 
-              queryParams: { friendId: response.conversationId } 
-            });
-          }, 1500);
-        }
-      },
-      error: (error) => {
-        console.error('Erreur acceptation:', error);
-        this.loadData();
+      next: () => {
+        this.loadAllData();
       }
     });
   }
@@ -264,123 +186,69 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.friendService.declineFriendRequest(requestId).subscribe({
       next: () => {
         this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
-        this.notificationService.showInfo('Demande d\'ami refusée');
-      },
-      error: (error) => {
-        console.error('Erreur refus:', error);
       }
     });
   }
 
-  // ========== GESTION DES AMIS ==========
-
   removeFriend(friendId: string): void {
-    if (confirm('Voulez-vous vraiment supprimer cet ami ?')) {
+    if (confirm('Supprimer cet ami ?')) {
       this.friendService.removeFriend(friendId).subscribe({
-        next: () => {
-          this.friends = this.friends.filter(f => f.id !== friendId);
-          this.notificationService.showSuccess('Ami supprimé');
-          this.loadData();
-        },
-        error: (error) => {
-          console.error('Erreur suppression:', error);
-        }
+        next: () => this.loadAllData()
       });
     }
   }
 
   blockUser(userId: string, userName: string): void {
-    if (confirm(`Voulez-vous vraiment bloquer ${userName} ?`)) {
+    if (confirm(`Bloquer ${userName} ?`)) {
       this.friendService.blockUser(userId).subscribe({
-        next: () => {
-          this.loadData();
-          this.notificationService.showInfo(`${userName} a été bloqué`);
-        },
-        error: (error) => {
-          console.error('Erreur blocage:', error);
-        }
+        next: () => this.loadAllData()
       });
     }
   }
 
   unblockUser(userId: string, userName: string): void {
-    if (confirm(`Voulez-vous vraiment débloquer ${userName} ?`)) {
+    if (confirm(`Débloquer ${userName} ?`)) {
       this.friendService.unblockUser(userId).subscribe({
-        next: () => {
-          this.blockedUsers = this.blockedUsers.filter(b => b.friendId !== userId && b.userId !== userId);
-          this.notificationService.showInfo(`${userName} a été débloqué`);
-          this.loadData();
-        },
-        error: (error) => {
-          console.error('Erreur déblocage:', error);
-        }
+        next: () => this.loadAllData()
       });
     }
   }
 
-  // ========== NAVIGATION ==========
-
   chatWithFriend(friendId: string): void {
-    if (friendId) {
-      this.router.navigate(['/chat'], { queryParams: { friendId } });
-    }
+    this.router.navigate(['/chat'], { queryParams: { friendId } });
   }
 
   sendMoneyToFriend(friendId: string, friendName: string): void {
-    if (friendId) {
-      this.router.navigate(['/transactions/send'], { 
-        queryParams: { 
-          friendId, 
-          friendName 
-        } 
-      });
-    }
+    this.router.navigate(['/transactions/send'], { queryParams: { friendId, friendName } });
   }
 
   viewFriendProfile(friendId: string): void {
-    if (friendId) {
-      this.router.navigate(['/profile', friendId]);
-    }
+    this.router.navigate(['/profile', friendId]);
   }
 
   scanQRCode(): void {
     this.router.navigate(['/scan-friend']);
   }
 
-  // ========== UTILITAIRES ==========
-
-  getInitials(firstName: string | undefined, lastName: string | undefined): string {
-    return (firstName?.charAt(0) || '') + (lastName?.charAt(0) || '');
+  getInitials(first?: string, last?: string): string {
+    return (first?.charAt(0) || '') + (last?.charAt(0) || '');
   }
 
   formatLastSeen(date?: Date): string {
     if (!date) return 'Jamais';
-    
     const now = new Date();
-    const lastSeen = new Date(date);
-    const diffMs = now.getTime() - lastSeen.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'À l\'instant';
-    if (diffMins < 60) return `Il y a ${diffMins} min`;
-    if (diffHours < 24) return `Il y a ${diffHours} h`;
-    if (diffDays < 7) return `Il y a ${diffDays} j`;
-    return lastSeen.toLocaleDateString('fr-MG');
+    const last = new Date(date);
+    const diff = Math.floor((now.getTime() - last.getTime()) / 60000);
+    if (diff < 1) return 'À l\'instant';
+    if (diff < 60) return `Il y a ${diff} min`;
+    if (diff < 1440) return `Il y a ${Math.floor(diff / 60)} h`;
+    return last.toLocaleDateString('fr-MG');
   }
 
-  getAvatarColor(name: string | undefined): string {
-    const colors = [
-      '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3',
-      '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a',
-      '#cddc39', '#ffc107', '#ff9800', '#ff5722', '#795548'
-    ];
+  getAvatarColor(name: string): string {
+    const colors = ['#e91e63','#9c27b0','#673ab7','#3f51b5','#2196f3','#03a9f4','#00bcd4','#009688','#4caf50','#ffc107','#ff5722'];
     let hash = 0;
-    const str = name || '';
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
   }
 }

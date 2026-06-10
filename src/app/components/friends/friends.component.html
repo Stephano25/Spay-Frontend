@@ -1,5 +1,5 @@
 <div class="friends-container">
-  <!-- Header avec bouton de retour -->
+  <!-- Header avec bouton de retour (visible sur tous les écrans) -->
   <mat-toolbar color="primary" class="glass-header">
     <button mat-icon-button (click)="goBack()" class="nav-btn" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
@@ -21,7 +21,7 @@
   </mat-toolbar>
 
   <div class="friends-content">
-    <!-- Bouton de retour flottant (visible sur mobile) -->
+    <!-- Bouton de retour flottant (visible uniquement sur mobile) -->
     <button class="fab-back" (click)="goBack()" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>

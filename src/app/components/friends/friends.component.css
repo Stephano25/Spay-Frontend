@@ -1,3 +1,26 @@
+/* Rendre le bouton retour visible */
+.glass-header .nav-btn {
+  color: var(--primary) !important;      /* violet */
+  background: rgba(99, 102, 241, 0.1);   /* fond violet clair */
+  border-radius: 50%;
+  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.glass-header .nav-btn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  transform: scale(1.05);
+}
+
+/* Optionnel : améliorer la visibilité des autres boutons */
+.glass-header .action-btn {
+  color: var(--primary) !important;
+}
+
+.glass-header .action-btn:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
 /* ============================================
    FRIENDS COMPONENT - MODERN UI
    ============================================ */

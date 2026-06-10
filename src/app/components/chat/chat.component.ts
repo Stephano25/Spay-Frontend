@@ -50,7 +50,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
-  // Liste étendue d'emojis
   emojis = [
     '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰',
     '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
@@ -230,7 +229,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ========== NOUVELLES FONCTIONNALITÉS ==========
   toggleEmojiPicker(): void {
     this.showEmojiPicker = !this.showEmojiPicker;
   }
@@ -293,7 +291,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   startVoiceRecording(): void {
     this.notificationService.showInfo('Fonctionnalité de message vocal bientôt disponible');
-    // À implémenter avec MediaRecorder si nécessaire
   }
 
   sendMoney(): void {
@@ -329,6 +326,11 @@ export class ChatComponent implements OnInit, OnDestroy {
       },
       error: (err) => this.notificationService.showError(err.error?.message || 'Erreur blocage')
     });
+  }
+
+  // 👉 Bouton de retour
+  goBack(): void {
+    this.router.navigate(['/user']);
   }
 
   ngOnDestroy(): void {
