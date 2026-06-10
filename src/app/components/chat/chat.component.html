@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  <!-- Colonne centrale : zone de chat -->
+  <!-- Colonne centrale : chat -->
   <div class="chat-area" *ngIf="selectedContact; else noChat">
     <div class="chat-header">
       <div class="contact-info">
@@ -39,6 +39,32 @@
           </div>
         </div>
       </div>
+      <div class="chat-actions">
+        <button mat-icon-button (click)="startCall('audio')" matTooltip="Appel audio">
+          <mat-icon>call</mat-icon>
+        </button>
+        <button mat-icon-button (click)="startCall('video')" matTooltip="Appel vidéo">
+          <mat-icon>videocam</mat-icon>
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="chatMenu" matTooltip="Plus d'options">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #chatMenu="matMenu">
+          <button mat-menu-item (click)="sendMoney()">
+            <mat-icon>attach_money</mat-icon>
+            <span>Envoyer de l'argent</span>
+          </button>
+          <button mat-menu-item [routerLink]="['/profile', selectedContact.userId]">
+            <mat-icon>person</mat-icon>
+            <span>Voir le profil</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="blockUser()">
+            <mat-icon>block</mat-icon>
+            <span>Bloquer</span>
+          </button>
+        </mat-menu>
+      </div>
     </div>
 
     <div class="messages-container" #messageContainer>
@@ -50,13 +76,33 @@
       </div>
     </div>
 
-    <div class="message-input">
+    <div class="message-input-area">
+      <button mat-icon-button (click)="toggleEmojiPicker()" matTooltip="Emojis">
+        <mat-icon>tag_faces</mat-icon>
+      </button>
+      <button mat-icon-button (click)="uploadFile()" matTooltip="Joindre un fichier">
+        <mat-icon>attach_file</mat-icon>
+      </button>
+      <button mat-icon-button *ngIf="isVoiceSupported" (click)="startVoiceRecording()" matTooltip="Message vocal">
+        <mat-icon>mic</mat-icon>
+      </button>
+      <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" accept="image/*,audio/*,video/*,application/pdf">
       <input type="text" 
              [(ngModel)]="newMessage" 
              (keyup.enter)="sendMessage()" 
              (keyup)="onTyping()" 
              placeholder="Écrire un message...">
-      <button (click)="sendMessage()" [disabled]="!newMessage.trim()">Envoyer</button>
+      <button mat-icon-button (click)="sendMessage()" [disabled]="!newMessage.trim() || isSending">
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+
+    <!-- Picker d'emojis étendu -->
+    <div class="emoji-picker" *ngIf="showEmojiPicker">
+      <div class="emoji-grid">
+        <span *ngFor="let emoji of emojis" class="emoji-item" (click)="sendEmoji(emoji)">{{ emoji }}</span>
+      </div>
+      <button class="emoji-close" (click)="showEmojiPicker = false">Fermer</button>
     </div>
   </div>
 

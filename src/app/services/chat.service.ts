@@ -108,4 +108,19 @@ export class ChatService implements OnDestroy {
       new Notification(title, { body, icon: '/assets/icons/icon-192x192.png' });
     }
   }
+
+  // À l'intérieur de la classe ChatService, après les autres méthodes
+  uploadFile(file: File): Observable<{ url: string; fileName: string; fileSize: number }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ url: string; fileName: string; fileSize: number }>(`${this.apiUrl}/upload`, formData).pipe(
+      catchError(() => of({ url: '', fileName: '', fileSize: 0 }))
+    );
+  } 
+
+  startCall(receiverId: string, type: 'audio' | 'video'): void {
+    if (this.socket?.connected) {
+      this.socket.emit('startCall', { receiverId, type });
+    }
+  }
 }
