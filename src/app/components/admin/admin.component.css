@@ -1,11 +1,23 @@
 .admin-content {
-  padding: 0 20px;
+  padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
+  animation: fadeSlideUp 0.5s ease-out;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
   .admin-content {
-    padding: 0 16px;
+    padding: 16px;
   }
 }

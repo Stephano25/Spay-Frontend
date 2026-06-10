@@ -1,12 +1,12 @@
-import { Component, OnInit, HostListener, OnDestroy } from '@angular/core';
+// src/app/components/layout/sidebar/sidebar.component.ts
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { TranslationService } from '../../../services/translation.service';
 import { ThemeService } from '../../../services/theme.service';
 import { Subscription } from 'rxjs';
 
-// Angular Material
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,9 +37,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent implements OnInit, OnDestroy {
-  isCollapsed = false;
+  isCollapsed = false;      // pour desktop (mode réduit)
   isMobile = false;
-  isOpen = false;
+  isOpen = false;           // pour mobile (overlay)
   currentUser: any = null;
   private themeSubscription!: Subscription;
   
@@ -67,7 +67,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private router: Router,
     private translationService: TranslationService,
     private themeService: ThemeService
   ) {}
@@ -77,20 +76,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.authService.currentUser.subscribe(user => {
       this.currentUser = user;
     });
-    
-    // S'abonner aux changements de thème
-    this.themeSubscription = this.themeService.currentTheme$.subscribe(theme => {
-      console.log(`🎨 Sidebar - Thème changé: ${theme}`);
-      // Forcer la mise à jour du template
+    this.themeSubscription = this.themeService.currentTheme$.subscribe(() => {
+      // rafraîchir les menus si besoin
       this.userMenuItems = [...this.userMenuItems];
       this.adminMenuItems = [...this.adminMenuItems];
     });
   }
 
   ngOnDestroy(): void {
-    if (this.themeSubscription) {
-      this.themeSubscription.unsubscribe();
-    }
+    if (this.themeSubscription) this.themeSubscription.unsubscribe();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -99,10 +93,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   checkScreenSize() {
+    const wasMobile = this.isMobile;
     this.isMobile = window.innerWidth <= 768;
     if (this.isMobile) {
       this.isCollapsed = true;
       this.isOpen = false;
+    } else if (wasMobile && !this.isMobile) {
+      // passage mobile -> desktop
+      this.isOpen = false;
+      this.isCollapsed = false;
     }
   }
 

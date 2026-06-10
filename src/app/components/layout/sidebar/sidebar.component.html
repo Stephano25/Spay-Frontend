@@ -1,14 +1,10 @@
 <div class="sidebar-container" [class.mobile]="isMobile">
-  <button 
-    *ngIf="isMobile" 
-    class="menu-toggle" 
-    (click)="toggleSidebar()"
-    mat-fab 
-    color="primary"
-    [matTooltip]="isOpen ? 'Fermer le menu' : 'Ouvrir le menu'">
+  <!-- Bouton toggle pour mobile -->
+  <button *ngIf="isMobile" class="menu-toggle" (click)="toggleSidebar()" mat-fab color="primary" [matTooltip]="isOpen ? 'Fermer le menu' : 'Ouvrir le menu'">
     <mat-icon>{{ isOpen ? 'close' : 'menu' }}</mat-icon>
   </button>
 
+  <!-- Overlay pour mobile -->
   <div *ngIf="isMobile && isOpen" class="overlay" (click)="closeSidebar()"></div>
 
   <mat-sidenav-container class="sidenav-container">
@@ -19,22 +15,20 @@
       [class.collapsed]="!isMobile && isCollapsed"
       class="sidebar">
       
+      <!-- Header avec logo et bouton collapse (desktop) -->
       <div class="sidebar-header" (click)="!isMobile && toggleSidebar()">
         <div class="logo-container">
           <mat-icon class="logo-icon">account_balance_wallet</mat-icon>
           <span class="logo-text" *ngIf="!isCollapsed || isMobile">SPaye</span>
         </div>
-        <button 
-          *ngIf="!isMobile" 
-          mat-icon-button 
-          class="collapse-btn"
-          [matTooltip]="isCollapsed ? 'Développer' : 'Réduire'">
+        <button *ngIf="!isMobile" mat-icon-button class="collapse-btn" [matTooltip]="isCollapsed ? 'Développer' : 'Réduire'">
           <mat-icon>{{ isCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
         </button>
       </div>
 
       <mat-divider></mat-divider>
 
+      <!-- Profil utilisateur -->
       <div class="user-profile" *ngIf="currentUser">
         <div class="user-avatar">{{ getInitials() }}</div>
         <div class="user-info" *ngIf="!isCollapsed || isMobile">
@@ -46,6 +40,7 @@
 
       <mat-divider></mat-divider>
 
+      <!-- Menu de navigation -->
       <mat-nav-list class="nav-list">
         <a
           *ngFor="let item of menuItems"
@@ -62,6 +57,7 @@
 
       <mat-divider></mat-divider>
 
+      <!-- Déconnexion -->
       <div class="logout-container">
         <button
           mat-raised-button

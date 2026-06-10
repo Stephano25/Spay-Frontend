@@ -607,3 +607,16 @@ button, .btn, .mat-button, .mat-raised-button {
     --font-size-3xl: 2rem;      /* 32px */
   }
 }
+:root {
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --primary-light: #818cf8;
+  --secondary: #8b5cf6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --dark: #1e293b;
+  --gray: #64748b;
+  --light: #f8fafc;
+  --white: #ffffff;
+}
