@@ -1,3 +1,4 @@
+// src/app/models/transaction.model.ts
 export interface Transaction {
   id: string;
   senderId: string;
@@ -27,10 +28,5 @@ export interface DashboardStats {
   lastThreeTransactions: Transaction[];
   lastDeposit?: Transaction;
   largestTransaction?: Transaction;
-  monthlyStats: {
-    month: string;
-    sent: number;
-    received: number;
-    total: number;
-  }[];
+  monthlyStats: { month: string; sent: number; received: number; total: number }[];
 }

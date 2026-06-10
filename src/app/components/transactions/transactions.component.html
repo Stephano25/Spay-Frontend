@@ -1,3 +1,4 @@
+<!-- src/app/components/transactions/transactions.component.html -->
 <div class="transactions-container">
   <mat-toolbar color="primary">
     <button mat-icon-button routerLink="/dashboard">
@@ -25,28 +26,28 @@
   </mat-toolbar>
 
   <div class="transactions-content">
-    <!-- Cartes de résumé -->
+    <!-- Cartes de résumé avec totaux réels -->
     <div class="summary-cards">
-      <mat-card class="summary-card received" routerLink="/transactions" [queryParams]="{filter: 'received'}">
+      <mat-card class="summary-card received" (click)="selectedTabIndex = 1">
         <mat-card-content>
           <div class="summary-icon">
             <mat-icon>arrow_downward</mat-icon>
           </div>
           <div class="summary-details">
             <span class="summary-label">Total reçu</span>
-            <span class="summary-value">145 000 Ar</span>
+            <span class="summary-value">{{ totalReceived | number }} Ar</span>
           </div>
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="summary-card sent" routerLink="/transactions" [queryParams]="{filter: 'sent'}">
+      <mat-card class="summary-card sent" (click)="selectedTabIndex = 2">
         <mat-card-content>
           <div class="summary-icon">
             <mat-icon>arrow_upward</mat-icon>
           </div>
           <div class="summary-details">
             <span class="summary-label">Total envoyé</span>
-            <span class="summary-value">72 000 Ar</span>
+            <span class="summary-value">{{ totalSent | number }} Ar</span>
           </div>
         </mat-card-content>
       </mat-card>
@@ -59,8 +60,21 @@
       <mat-tab label="Envoyées"></mat-tab>
     </mat-tab-group>
 
+    <!-- État de chargement -->
+    <div *ngIf="isLoading" class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Chargement des transactions...</p>
+    </div>
+
+    <!-- État d'erreur -->
+    <div *ngIf="hasError && !isLoading" class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button mat-raised-button color="primary" (click)="retry()">Réessayer</button>
+    </div>
+
     <!-- Liste des transactions -->
-    <mat-card class="transactions-list-card">
+    <mat-card class="transactions-list-card" *ngIf="!isLoading && !hasError">
       <mat-card-content>
         <mat-list class="transactions-list">
           <mat-list-item *ngFor="let transaction of filteredTransactions" class="transaction-item">
@@ -73,14 +87,14 @@
               
               <div class="transaction-info">
                 <div class="transaction-header">
-                  <span class="transaction-description">{{ transaction.description }}</span>
+                  <span class="transaction-description">{{ transaction.description || transaction.type }}</span>
                   <span class="transaction-amount" [ngClass]="transaction.type">
-                    {{ transaction.type === 'sent' ? '-' : '+' }}{{ transaction.amount | number }} Ar
+                    {{ (transaction.type !== 'deposit' ? '-' : '+') }}{{ transaction.amount | number }} Ar
                   </span>
                 </div>
                 
                 <div class="transaction-details">
-                  <span class="transaction-date">{{ transaction.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="transaction-date">{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
                   <span class="transaction-counterparty">{{ getCounterparty(transaction) }}</span>
                   <span class="transaction-status" [class.completed]="transaction.status === 'completed'">
                     {{ getStatusText(transaction.status) }}
@@ -92,15 +106,15 @@
                 <mat-icon>more_vert</mat-icon>
               </button>
               <mat-menu #transactionMenu="matMenu">
-                <button mat-menu-item>
+                <button mat-menu-item (click)="viewDetails(transaction)">
                   <mat-icon>visibility</mat-icon>
                   <span>Détails</span>
                 </button>
-                <button mat-menu-item>
+                <button mat-menu-item *ngIf="transaction.status === 'completed'">
                   <mat-icon>receipt</mat-icon>
                   <span>Reçu</span>
                 </button>
-                <button mat-menu-item>
+                <button mat-menu-item *ngIf="transaction.type !== 'deposit'" (click)="repeatTransaction(transaction)">
                   <mat-icon>repeat</mat-icon>
                   <span>Répéter</span>
                 </button>

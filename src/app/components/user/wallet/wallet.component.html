@@ -1,3 +1,4 @@
+<!-- src/app/components/wallet/wallet.component.html -->
 <div class="wallet-container">
 
   <!-- Header -->
@@ -84,36 +85,34 @@
         </button>
       </div>
 
-      <!-- Stats -->
-      @if (stats) {
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon income">
-              <mat-icon>arrow_downward</mat-icon>
-            </div>
-            <div class="stat-value">{{ formatAmount(stats.totalDeposits || stats.totalReceived || 0) }}</div>
-            <div class="stat-label">Total dépôts</div>
+      <!-- Stats (calculées localement) -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon income">
+            <mat-icon>arrow_downward</mat-icon>
           </div>
-
-          <div class="stat-card">
-            <div class="stat-icon expense">
-              <mat-icon>arrow_upward</mat-icon>
-            </div>
-            <div class="stat-value">{{ formatAmount(stats.totalWithdrawals || stats.totalSent || 0) }}</div>
-            <div class="stat-label">Total retraits</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon transfer">
-              <mat-icon>swap_horiz</mat-icon>
-            </div>
-            <div class="stat-value">{{ stats.totalTransactions || 0 }}</div>
-            <div class="stat-label">Transactions</div>
-          </div>
+          <div class="stat-value">{{ formatAmount(totalDeposits) }}</div>
+          <div class="stat-label">Total dépôts</div>
         </div>
-      }
 
-      <!-- Transactions -->
+        <div class="stat-card">
+          <div class="stat-icon expense">
+            <mat-icon>arrow_upward</mat-icon>
+          </div>
+          <div class="stat-value">{{ formatAmount(totalWithdrawals) }}</div>
+          <div class="stat-label">Total retraits</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon transfer">
+            <mat-icon>swap_horiz</mat-icon>
+          </div>
+          <div class="stat-value">{{ totalTransactions }}</div>
+          <div class="stat-label">Transactions</div>
+        </div>
+      </div>
+
+      <!-- Transactions récentes -->
       <div class="txn-card">
         <div class="txn-header">
           <span class="txn-title">Transactions récentes</span>

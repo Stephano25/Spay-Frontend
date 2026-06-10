@@ -45,4 +45,22 @@ export class TransactionService {
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG').format(amount);
   }
+  // transaction.service.ts (extrait ajouté)
+  // Dans la classe TransactionService, ajoutez :
+  getTransactions(page: number = 1, limit: number = 50): Observable<{ transactions: Transaction[], total: number }> {
+    return this.http.get<{ transactions: Transaction[], total: number }>(`${this.apiUrl}`, { params: { page, limit } }).pipe(
+      tap(data => console.log('Transactions chargées:', data.transactions.length)),
+      catchError(error => { this.notificationService.showError('Erreur chargement des transactions'); return throwError(() => error); })
+    );
+  }
+
+  // Dans transaction.service.ts
+  getAllTransactions(): Observable<Transaction[]> {
+    return this.http.get<Transaction[]>(`${this.apiUrl}/all`).pipe(
+      catchError(error => {
+        this.notificationService.showError('Erreur chargement des transactions');
+        return throwError(() => error);
+      })
+    );
+  }
 }

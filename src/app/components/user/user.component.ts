@@ -1,30 +1,26 @@
+// src/app/components/user/user.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, forkJoin } from 'rxjs';
 
-// Services
 import { AuthService } from '../../services/auth.service';
 import { TransactionService } from '../../services/transaction.service';
 import { WalletService } from '../../services/wallet.service';
 import { TranslationService } from '../../services/translation.service';
 import { environment } from '../../../environments/environment';
-
-// Pipes
 import { TranslatePipe } from '../../pipes/translate.pipe';
-
-// Models
 import { User } from '../../models/user.model';
 import { DashboardStats } from '../../models/transaction.model';
 import { Wallet } from '../../models/wallet.model';
 
-// Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Transaction } from '../../models/transaction.model';
 
 @Component({
   selector: 'app-user',
@@ -92,9 +88,6 @@ export class UserComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Construire l'URL complète de l'image
-   */
   getFullImageUrl(url: string): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
@@ -104,9 +97,6 @@ export class UserComponent implements OnInit, OnDestroy {
     return url;
   }
 
-  /**
-   * Obtenir les initiales pour l'avatar
-   */
   getInitials(): string {
     if (!this.user) return '';
     return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
@@ -123,40 +113,12 @@ export class UserComponent implements OnInit, OnDestroy {
         this.wallet = result.wallet;
         this.balance = result.wallet?.balance || 0;
         this.stats = result.stats;
-        
         console.log('💰 Solde du wallet:', this.balance);
         console.log('📊 Stats transactions:', result.stats);
-        
         this.isLoading = false;
       },
       error: (error) => {
         console.error('❌ Erreur chargement données:', error);
-        this.isLoading = false;
-      }
-    });
-  }
-
-  private loadWalletData(): void {
-    this.walletService.getWallet().subscribe({
-      next: (wallet) => {
-        this.wallet = wallet;
-        this.balance = wallet.balance;
-        console.log('💰 Solde wallet (fallback):', this.balance);
-      },
-      error: (error) => {
-        console.error('❌ Erreur chargement wallet:', error);
-      }
-    });
-  }
-
-  private loadStatsData(): void {
-    this.transactionService.getUserDashboardStats().subscribe({
-      next: (data) => {
-        this.stats = data;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('❌ Erreur chargement stats:', error);
         this.isLoading = false;
       }
     });

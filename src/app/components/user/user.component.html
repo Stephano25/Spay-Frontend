@@ -1,3 +1,4 @@
+<!-- src/app/components/user/user.component.html -->
 <div class="user-dashboard">
   <!-- En-tête avec informations utilisateur -->
   <mat-card class="welcome-card">
@@ -101,7 +102,7 @@
                 <mat-icon>{{ transaction.senderId === user?.id ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
               </div>
               <div class="transaction-details">
-                <div class="transaction-desc">{{ transaction.description || 'Transfert' | translate }}</div>
+                <div class="transaction-desc">{{ transaction.description || ('Transfert' | translate) }}</div>
                 <div class="transaction-date">{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
               </div>
               <div class="transaction-amount" 

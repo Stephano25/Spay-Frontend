@@ -1,15 +1,20 @@
+// src/app/components/transactions/transactions.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
-// Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatMenuModule } from '@angular/material/menu'; // AJOUTER CET IMPORT
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+import { TransactionService } from '../../services/transaction.service';
+import { NotificationService } from '../../services/notification.service';
+import { Transaction } from '../../models/transaction.model';
 
 @Component({
   selector: 'app-transactions',
@@ -23,126 +28,125 @@ import { MatMenuModule } from '@angular/material/menu'; // AJOUTER CET IMPORT
     MatListModule,
     MatCardModule,
     MatTabsModule,
-    MatMenuModule, // AJOUTER ICI
+    MatMenuModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './transactions.component.html',
   styleUrls: ['./transactions.component.css']
 })
 export class TransactionsComponent implements OnInit {
   selectedTabIndex = 0;
-  
-  transactions = [
-    {
-      id: 1,
-      type: 'sent',
-      description: 'Paiement restaurant',
-      amount: 25000,
-      date: new Date(),
-      status: 'completed',
-      recipient: 'Restaurant La Varangue'
-    },
-    {
-      id: 2,
-      type: 'received',
-      description: 'Virement de Jean',
-      amount: 50000,
-      date: new Date(Date.now() - 86400000),
-      status: 'completed',
-      sender: 'Jean Rakoto'
-    },
-    {
-      id: 3,
-      type: 'sent',
-      description: 'Achat en ligne',
-      amount: 15000,
-      date: new Date(Date.now() - 172800000),
-      status: 'completed',
-      recipient: 'Amazon'
-    },
-    {
-      id: 4,
-      type: 'mobile_money',
-      description: 'Retrait MVola',
-      amount: 20000,
-      date: new Date(Date.now() - 259200000),
-      status: 'completed',
-      operator: 'MVola',
-      phoneNumber: '0341234567'
-    },
-    {
-      id: 5,
-      type: 'received',
-      description: 'Paiement de Marie',
-      amount: 35000,
-      date: new Date(Date.now() - 345600000),
-      status: 'pending',
-      sender: 'Marie Rabe'
-    },
-    {
-      id: 6,
-      type: 'sent',
-      description: 'Transfert à Pierre',
-      amount: 12000,
-      date: new Date(Date.now() - 432000000),
-      status: 'completed',
-      recipient: 'Pierre Randria'
-    },
-    {
-      id: 7,
-      type: 'scan_pay',
-      description: 'Paiement par scan',
-      amount: 8500,
-      date: new Date(Date.now() - 518400000),
-      status: 'completed',
-      recipient: 'Boutique ABC'
-    }
-  ];
+  allTransactions: Transaction[] = [];
+  isLoading = true;
+  hasError = false;
+  errorMessage = '';
+  totalReceived = 0;
+  totalSent = 0;
 
-  constructor() {}
+  constructor(
+    private transactionService: TransactionService,
+    private notificationService: NotificationService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    // Charger les transactions depuis l'API plus tard
+    this.loadTransactions();
   }
 
-  get filteredTransactions() {
+  loadTransactions(): void {
+    this.isLoading = true;
+    this.hasError = false;
+    this.transactionService.getAllTransactions().subscribe({
+      next: (transactions) => {
+        this.allTransactions = transactions.sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        this.calculateTotals();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.hasError = true;
+        this.errorMessage = err.error?.message || 'Impossible de charger les transactions.';
+        this.notificationService.showError(this.errorMessage);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  calculateTotals(): void {
+    const incomeTypes: Transaction['type'][] = ['deposit'];
+    const expenseTypes: Transaction['type'][] = ['withdrawal', 'payment', 'mobile_money', 'transfer'];
+
+    this.totalReceived = this.allTransactions
+      .filter(t => incomeTypes.includes(t.type) && t.status === 'completed')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    this.totalSent = this.allTransactions
+      .filter(t => expenseTypes.includes(t.type) && t.status === 'completed')
+      .reduce((sum, t) => sum + t.amount, 0);
+  }
+
+  get filteredTransactions(): Transaction[] {
     if (this.selectedTabIndex === 0) {
-      return this.transactions; // Toutes
+      return this.allTransactions;
     } else if (this.selectedTabIndex === 1) {
-      return this.transactions.filter(t => t.type === 'received'); // Reçus
+      return this.allTransactions.filter(t => t.type === 'deposit');
     } else if (this.selectedTabIndex === 2) {
-      return this.transactions.filter(t => t.type === 'sent'); // Envoyés
+      const expenseTypes: Transaction['type'][] = ['withdrawal', 'payment', 'transfer', 'mobile_money'];
+      return this.allTransactions.filter(t => expenseTypes.includes(t.type));
     }
-    return this.transactions;
+    return this.allTransactions;
   }
 
-  getTransactionIcon(type: string): string {
-    switch(type) {
-      case 'sent': return 'arrow_upward';
-      case 'received': return 'arrow_downward';
+  getTransactionIcon(type: Transaction['type']): string {
+    switch (type) {
+      case 'deposit': return 'arrow_downward';
+      case 'withdrawal': return 'arrow_upward';
+      case 'payment': return 'payment';
+      case 'transfer': return 'swap_horiz';
       case 'mobile_money': return 'phone_android';
-      case 'scan_pay': return 'qr_code_scanner';
-      default: return 'swap_horiz';
+      default: return 'receipt';
     }
   }
 
-  getTransactionColor(type: string): string {
-    switch(type) {
-      case 'sent': return 'warn';
-      case 'received': return 'accent';
-      case 'mobile_money': return 'primary';
-      case 'scan_pay': return 'primary';
-      default: return 'primary';
-    }
+  getTransactionColor(type: Transaction['type']): string {
+    if (type === 'deposit') return 'accent';
+    if (['withdrawal', 'payment', 'transfer', 'mobile_money'].includes(type)) return 'warn';
+    return 'primary';
   }
 
   getStatusText(status: string): string {
-    return status === 'completed' ? 'Complété' : 'En cours';
+    const map: Record<string, string> = {
+      completed: 'Réussi',
+      pending: 'En attente',
+      failed: 'Échoué',
+      cancelled: 'Annulé'
+    };
+    return map[status] || status;
   }
 
-  getCounterparty(transaction: any): string {
-    if (transaction.recipient) return `À: ${transaction.recipient}`;
-    if (transaction.sender) return `De: ${transaction.sender}`;
-    if (transaction.operator) return `${transaction.operator} ${transaction.phoneNumber}`;
+  getCounterparty(transaction: Transaction): string {
+    if (transaction.type === 'deposit' && transaction.sender) {
+      return `De: ${transaction.sender.firstName} ${transaction.sender.lastName}`;
+    }
+    if (transaction.type !== 'deposit' && transaction.receiver) {
+      return `À: ${transaction.receiver.firstName} ${transaction.receiver.lastName}`;
+    }
     return '';
+  }
+
+  viewDetails(transaction: Transaction): void {
+    this.router.navigate(['/transactions', transaction.id]);
+  }
+
+  repeatTransaction(transaction: Transaction): void {
+    this.router.navigate(['/wallet/send'], {
+      queryParams: { amount: transaction.amount, description: transaction.description }
+    });
+  }
+
+  retry(): void {
+    this.loadTransactions();
   }
 }
