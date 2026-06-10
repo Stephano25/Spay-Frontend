@@ -1,7 +1,7 @@
 // src/app/services/friend.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, catchError, throwError, tap, of } from 'rxjs';
+import { Observable, catchError, tap, of } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 import { Friend, FriendRequest, SearchUser, FriendResponse, BlockStatus } from '../models/friend.model';
@@ -14,14 +14,14 @@ export class FriendService {
 
   getFriends(): Observable<Friend[]> {
     return this.http.get<Friend[]>(`${this.apiUrl}`).pipe(
-      tap(friends => console.log('✅ Amis reçus du backend:', friends)),
+      tap(friends => console.log('✅ Amis reçus:', friends)),
       catchError(this.handleError<Friend[]>('getFriends', []))
     );
   }
 
   getFriendRequests(): Observable<FriendRequest[]> {
     return this.http.get<FriendRequest[]>(`${this.apiUrl}/requests`).pipe(
-      tap(requests => console.log('✅ Demandes reçues:', requests)),
+      tap(requests => console.log('✅ Demandes:', requests)),
       catchError(this.handleError<FriendRequest[]>('getFriendRequests', []))
     );
   }
@@ -92,23 +92,16 @@ export class FriendService {
     );
   }
 
+  findUsersByPhones(phones: string[]): Observable<SearchUser[]> {
+    return this.http.post<SearchUser[]>(`${this.apiUrl}/find-by-phones`, { phones }).pipe(
+      catchError(this.handleError<SearchUser[]>('findUsersByPhones', []))
+    );
+  }
+
   private handleError<T>(operation: string, fallback?: T) {
     return (error: HttpErrorResponse): Observable<T> => {
       console.error(`❌ ${operation} échoué:`, error);
-      
-      let message = `Erreur lors de ${operation}`;
-      if (error.error?.message) {
-        message = error.error.message;
-      } else if (error.status === 400) {
-        message = 'Requête invalide. Vérifiez que l\'utilisateur existe et que vous n\'êtes pas déjà ami.';
-      } else if (error.status === 403) {
-        message = 'Action non autorisée (blocage ou autre).';
-      } else if (error.status === 404) {
-        message = 'Ressource non trouvée.';
-      } else if (error.status === 409) {
-        message = 'Conflit : cette demande est déjà en cours.';
-      }
-      
+      let message = error.error?.message || `Erreur lors de ${operation}`;
       this.notificationService.showError(message);
       return of(fallback as T);
     };

@@ -1,13 +1,15 @@
-// src/app/components/friends/friends.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
+import * as QRCode from 'qrcode';
+
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { FriendService } from '../../services/friend.service';
 import { Friend, FriendRequest, SearchUser } from '../../models/friend.model';
+
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -46,6 +48,8 @@ export class FriendsComponent implements OnInit, OnDestroy {
   showRequestsList = true;
   showAddFriend = false;
   showBlockedUsers = false;
+  showQRCode = false;
+  qrCodeImage = '';
 
   searchQuery = '';
   isLoading = true;
@@ -66,6 +70,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadAllData();
+    // Pas de synchronisation des contacts dans Angular (gérée par React Native)
   }
 
   ngOnDestroy(): void {
@@ -87,14 +92,12 @@ export class FriendsComponent implements OnInit, OnDestroy {
   loadFriends(): void {
     this.friendService.getFriends().subscribe({
       next: (friends) => {
-        // Filtrer les amis acceptés
         const accepted = friends.filter(f => f.status === 'accepted');
-        // Supprimer les doublons basés sur l'ID de l'ami
-        const unique = accepted.filter((friend, index, self) =>
-          index === self.findIndex(f => f.friend?.id === friend.friend?.id)
+        const unique = accepted.filter((f, i, self) =>
+          i === self.findIndex(t => t.friend?.id === f.friend?.id)
         );
         this.friends = unique;
-        console.log('📋 Amis (acceptés, uniques):', this.friends);
+        console.log('📋 Amis:', this.friends);
       },
       error: (err) => console.error(err)
     });
@@ -131,6 +134,37 @@ export class FriendsComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Afficher son propre QR code
+  async showMyQRCode(): Promise<void> {
+    try {
+      const qrData = JSON.stringify({ userId: this.currentUserId, type: 'add_friend' });
+      this.qrCodeImage = await QRCode.toDataURL(qrData);
+      this.showQRCode = true;
+    } catch (err) {
+      this.notificationService.showError('Erreur génération QR code');
+    }
+  }
+
+  // Scanner un QR code (ajout d'ami)
+  scanQRCode(): void {
+    // Version web : utiliser une entrée texte
+    const qrText = prompt('Collez le contenu du QR code :');
+    if (qrText) this.processScannedQR(qrText);
+  }
+
+  private processScannedQR(data: string): void {
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed.userId && parsed.type === 'add_friend') {
+        this.sendFriendRequest(parsed.userId);
+      } else {
+        this.notificationService.showError('QR code invalide');
+      }
+    } catch {
+      this.sendFriendRequest(data);
+    }
+  }
+
   toggleFriendsList(): void { this.showFriendsList = !this.showFriendsList; }
   toggleRequestsList(): void { this.showRequestsList = !this.showRequestsList; }
   goBack(): void { this.router.navigate(['/user']); }
@@ -154,31 +188,19 @@ export class FriendsComponent implements OnInit, OnDestroy {
   }
 
   sendFriendRequest(userId: string): void {
-    // Vérifier que l'utilisateur ne s'ajoute pas lui-même
     if (userId === this.currentUserId) {
       this.notificationService.showWarning('Vous ne pouvez pas vous ajouter vous-même');
       return;
     }
-
     this.friendService.sendFriendRequest(userId).subscribe({
-      next: () => {
-        // Mettre à jour localement
-        const user = [...this.searchResults, ...this.suggestions].find(u => u.id === userId);
-        if (user) user.hasPendingRequest = true;
-        this.loadAllData();
-      },
-      error: (err) => {
-        console.error('Erreur envoi demande:', err);
-        // Le service affiche déjà le message d'erreur
-      }
+      next: () => this.loadAllData(),
+      error: (err) => console.error(err)
     });
   }
 
   acceptRequest(requestId: string): void {
     this.friendService.acceptFriendRequest(requestId).subscribe({
-      next: () => {
-        this.loadAllData();
-      }
+      next: () => this.loadAllData()
     });
   }
 
@@ -224,10 +246,6 @@ export class FriendsComponent implements OnInit, OnDestroy {
 
   viewFriendProfile(friendId: string): void {
     this.router.navigate(['/profile', friendId]);
-  }
-
-  scanQRCode(): void {
-    this.router.navigate(['/scan-friend']);
   }
 
   getInitials(first?: string, last?: string): string {
