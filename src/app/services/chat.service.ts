@@ -100,12 +100,12 @@ export class ChatService implements OnDestroy {
         type: 'SHOW_NOTIFICATION',
         title: title,
         body: body,
-        icon: '/assets/icons/icon-192x192.png',
+        icon: '/assets/icons/image02.png',
         url: `/chat?friendId=${message.senderId}`
       });
     } else if (Notification.permission === 'granted') {
       // Fallback : notification standard
-      new Notification(title, { body, icon: '/assets/icons/icon-192x192.png' });
+      new Notification(title, { body, icon: '/assets/icons/image02.png' });
     }
   }
 
