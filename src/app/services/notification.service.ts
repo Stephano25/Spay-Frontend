@@ -5,9 +5,25 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   providedIn: 'root'
 })
 export class NotificationService {
-  constructor(private snackBar: MatSnackBar) {}
+  private audio: HTMLAudioElement | null = null;
+
+  constructor(private snackBar: MatSnackBar) {
+    if (typeof window !== 'undefined') {
+      this.audio = new Audio('/assets/sounds/notification.mp3');
+      this.audio.onerror = () => console.warn('Son de notification non disponible');
+    }
+  }
+
+  private playSound(): void {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.currentTime = 0;
+      this.audio.play().catch(() => {});
+    }
+  }
 
   showSuccess(message: string): void {
+    this.playSound();
     this.snackBar.open(message, 'Fermer', {
       duration: 3000,
       panelClass: ['success-snackbar'],
@@ -17,6 +33,7 @@ export class NotificationService {
   }
 
   showError(message: string): void {
+    this.playSound();
     this.snackBar.open(message, 'Fermer', {
       duration: 5000,
       panelClass: ['error-snackbar'],
@@ -26,6 +43,7 @@ export class NotificationService {
   }
 
   showInfo(message: string): void {
+    this.playSound();
     this.snackBar.open(message, 'Fermer', {
       duration: 3000,
       panelClass: ['info-snackbar'],
@@ -35,6 +53,7 @@ export class NotificationService {
   }
 
   showWarning(message: string): void {
+    this.playSound();
     this.snackBar.open(message, 'Fermer', {
       duration: 4000,
       panelClass: ['warning-snackbar'],

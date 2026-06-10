@@ -12,6 +12,14 @@ export class ThemeService {
   constructor(rendererFactory: RendererFactory2) {
     this.renderer = rendererFactory.createRenderer(null, null);
     this.loadTheme();
+    
+    // Écouter les changements de préférence système
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'system') {
+        this.applyTheme('system');
+      }
+    });
   }
 
   loadTheme(): void {
@@ -27,14 +35,10 @@ export class ThemeService {
       actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
     
-    // Supprimer les anciennes classes
     this.renderer.removeClass(document.body, 'light-theme');
     this.renderer.removeClass(document.body, 'dark-theme');
-    
-    // Ajouter la nouvelle classe
     this.renderer.addClass(document.body, `${actualTheme}-theme`);
     
-    // Appliquer les couleurs personnalisées
     if (primaryColor) {
       document.documentElement.style.setProperty('--primary-color', primaryColor);
     }
@@ -42,28 +46,21 @@ export class ThemeService {
       document.documentElement.style.setProperty('--secondary-color', secondaryColor);
     }
     
-    // Sauvegarder
     localStorage.setItem('theme', theme);
     if (primaryColor) localStorage.setItem('primaryColor', primaryColor);
     if (secondaryColor) localStorage.setItem('secondaryColor', secondaryColor);
     
     this.currentThemeSubject.next(actualTheme);
-    console.log(`✅ Thème appliqué: ${actualTheme} - Toute la page est maintenant en ${actualTheme === 'dark' ? 'noir' : 'clair'}`);
-    
-    // Forcer la mise à jour de tous les composants
-    this.updateAllComponents();
+    console.log(`✅ Thème appliqué: ${actualTheme}`);
   }
 
-  private updateAllComponents(): void {
-    // Forcer la détection des changements sur tous les éléments
-    const allElements = document.querySelectorAll('*');
-    allElements.forEach((element) => {
-      // Forcer le reflow
-      (element as HTMLElement).style.display = 'none';
-      setTimeout(() => {
-        (element as HTMLElement).style.display = '';
-      }, 10);
-    });
+  applyFontSize(size: string): void {
+    const body = document.body;
+    body.classList.remove('font-small', 'font-medium', 'font-large');
+    if (size === 'small') body.classList.add('font-small');
+    else if (size === 'large') body.classList.add('font-large');
+    else body.classList.add('font-medium');
+    localStorage.setItem('font-size', size);
   }
 
   getCurrentTheme(): string {

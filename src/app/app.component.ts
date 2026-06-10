@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+import { ThemeService } from './services/theme.service';
+import { TranslationService } from './services/translation.service';
 
 @Component({
   selector: 'app-root',
@@ -10,18 +12,16 @@ import { RouterOutlet } from '@angular/router';
   styles: []
 })
 export class AppComponent implements OnInit {
-  title = 'SPaye - Service de Paiement';
+  constructor(
+    private themeService: ThemeService,
+    private translationService: TranslationService
+  ) {}
 
   ngOnInit(): void {
-    // Charger la taille de police sauvegardée
-    const savedFontSize = localStorage.getItem('font-size');
-    if (savedFontSize && ['small', 'medium', 'large'].includes(savedFontSize)) {
-      const body = document.body;
-      body.classList.remove('font-small', 'font-medium', 'font-large');
-      body.classList.add(`font-${savedFontSize}`);
-    } else {
-      // Appliquer la taille par défaut (medium)
-      document.body.classList.add('font-medium');
-    }
+    this.themeService.loadTheme();
+    const savedLang = localStorage.getItem('user_language') || 'fr';
+    this.translationService.setLanguage(savedLang);
+    const savedFontSize = localStorage.getItem('font-size') || 'medium';
+    document.body.classList.add(`font-${savedFontSize}`);
   }
 }

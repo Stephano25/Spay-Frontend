@@ -4,19 +4,14 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-// Services
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { UserService, UserSettings } from '../../../services/user.service';
 import { TranslationService } from '../../../services/translation.service';
-
-// Pipes
+import { ThemeService } from '../../../services/theme.service';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
-
-// Models
 import { User } from '../../../models/user.model';
 
-// Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,65 +32,27 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   selector: 'app-user-settings',
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    RouterModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatDividerModule,
-    MatTabsModule,
-    MatSnackBarModule,
-    MatProgressSpinnerModule,
-    MatRadioModule,
-    MatSliderModule,
-    MatTooltipModule,
-    TranslatePipe
+    CommonModule, FormsModule, ReactiveFormsModule, RouterModule,
+    MatToolbarModule, MatButtonModule, MatIconModule, MatCardModule,
+    MatFormFieldModule, MatInputModule, MatSelectModule, MatSlideToggleModule,
+    MatDividerModule, MatTabsModule, MatSnackBarModule, MatProgressSpinnerModule,
+    MatRadioModule, MatSliderModule, MatTooltipModule, TranslatePipe
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
 })
 export class UserSettingsComponent implements OnInit, OnDestroy {
-  // Données
   user: User | null = null;
   settings: UserSettings = {
-    notifications: {
-      email: true,
-      push: true,
-      sms: false,
-      transactionAlerts: true,
-      promoEmails: false
-    },
-    privacy: {
-      profileVisibility: 'friends',
-      showLastSeen: true,
-      showOnlineStatus: true,
-      allowFriendRequests: true
-    },
-    security: {
-      twoFactorAuth: false,
-      sessionTimeout: 30,
-      loginAlerts: true
-    },
-    appearance: {
-      theme: 'light',
-      fontSize: 'medium',
-      language: 'fr',
-      compactMode: false
-    }
+    notifications: { email: true, push: true, sms: false, transactionAlerts: true, promoEmails: false },
+    privacy: { profileVisibility: 'friends', showLastSeen: true, showOnlineStatus: true, allowFriendRequests: true },
+    security: { twoFactorAuth: false, sessionTimeout: 30, loginAlerts: true },
+    appearance: { theme: 'light', fontSize: 'medium', language: 'fr', compactMode: false }
   };
 
-  // Formulaires
   profileForm: FormGroup;
   passwordForm: FormGroup;
   
-  // UI
   isLoading = true;
   isSaving = false;
   activeTab = 0;
@@ -105,31 +62,26 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
-  // Options pour les sélecteurs
   languages = [
     { value: 'fr', label: 'Français' },
     { value: 'mg', label: 'Malagasy' },
     { value: 'en', label: 'English' }
   ];
-
   themes = [
     { value: 'light', label: 'Clair' },
     { value: 'dark', label: 'Sombre' },
     { value: 'system', label: 'Système' }
   ];
-
   fontSizes = [
     { value: 'small', label: 'Petite' },
     { value: 'medium', label: 'Moyenne' },
     { value: 'large', label: 'Grande' }
   ];
-
   privacyOptions = [
     { value: 'public', label: 'Public' },
     { value: 'friends', label: 'Amis uniquement' },
     { value: 'private', label: 'Privé' }
   ];
-
   sessionTimeouts = [
     { value: 15, label: '15 minutes' },
     { value: 30, label: '30 minutes' },
@@ -144,9 +96,9 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private notificationService: NotificationService,
     private router: Router,
-    private translationService: TranslationService
+    private translationService: TranslationService,
+    private themeService: ThemeService
   ) {
-    // Initialiser les formulaires
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
@@ -154,7 +106,6 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
       phoneNumber: ['', [Validators.pattern('^[0-9]{9,10}$')]],
       bio: ['', [Validators.maxLength(500)]]
     });
-
     this.passwordForm = this.fb.group({
       currentPassword: ['', [Validators.required]],
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
@@ -171,18 +122,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  /**
-   * Valider la correspondance des mots de passe
-   */
   passwordMatchValidator(g: FormGroup) {
-    const newPassword = g.get('newPassword')?.value;
-    const confirmPassword = g.get('confirmPassword')?.value;
-    return newPassword === confirmPassword ? null : { mismatch: true };
+    return g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true };
   }
 
-  /**
-   * Charger les données de l'utilisateur
-   */
   private loadUserData(): void {
     this.subscriptions.push(
       this.authService.currentUser.subscribe((user: User | null) => {
@@ -200,24 +143,16 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Charger les paramètres (depuis le localStorage ou l'API)
-   */
   private loadSettings(): void {
     this.isLoading = true;
-    
     const savedSettings = localStorage.getItem('user_settings');
     if (savedSettings) {
       try {
         this.settings = JSON.parse(savedSettings);
-      } catch (e) {
-        console.error('Erreur chargement settings:', e);
-      }
+      } catch (e) { console.error(e); }
     }
-
-    // Appliquer la taille de police au chargement
-    this.applyFontSize();
     this.applyTheme();
+    this.applyFontSize();
     this.translationService.setLanguage(this.settings.appearance.language);
 
     this.subscriptions.push(
@@ -225,102 +160,68 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
         next: (settings: UserSettings) => {
           this.settings = { ...this.settings, ...settings };
           this.saveSettingsToStorage();
-          this.applyFontSize();
           this.applyTheme();
+          this.applyFontSize();
           this.isLoading = false;
         },
-        error: (error: any) => {
-          console.warn('API settings non disponible, utilisation des settings locaux');
-          this.isLoading = false;
-        }
+        error: () => { this.isLoading = false; }
       })
     );
   }
 
-  /**
-   * Sauvegarder les paramètres dans le localStorage
-   */
   private saveSettingsToStorage(): void {
     localStorage.setItem('user_settings', JSON.stringify(this.settings));
   }
 
-  /**
-   * Sauvegarder le profil
-   */
   saveProfile(): void {
     if (this.profileForm.invalid) return;
-
     this.isSaving = true;
-    const userData = this.profileForm.value;
-
     this.subscriptions.push(
-      this.authService.updateProfile(userData).subscribe({
-        next: (updatedUser: User) => {
+      this.authService.updateProfile(this.profileForm.value).subscribe({
+        next: (updatedUser) => {
           this.user = updatedUser;
-          this.notificationService.showSuccess('Profil mis à jour avec succès');
+          this.notificationService.showSuccess('Profil mis à jour');
           this.isSaving = false;
         },
-        error: (error: any) => {
-          console.error('Erreur mise à jour profil:', error);
-          this.notificationService.showError('Erreur lors de la mise à jour du profil');
+        error: () => {
+          this.notificationService.showError('Erreur mise à jour');
           this.isSaving = false;
         }
       })
     );
   }
 
-  /**
-   * Changer le mot de passe
-   */
   changePassword(): void {
     if (this.passwordForm.invalid) return;
-
     this.isSaving = true;
     const { currentPassword, newPassword } = this.passwordForm.value;
-
     this.subscriptions.push(
       this.authService.changePassword(currentPassword, newPassword).subscribe({
         next: () => {
-          this.notificationService.showSuccess('Mot de passe modifié avec succès');
+          this.notificationService.showSuccess('Mot de passe modifié');
           this.passwordForm.reset();
           this.isSaving = false;
         },
-        error: (error: any) => {
-          console.error('Erreur changement mot de passe:', error);
-          this.notificationService.showError('Erreur lors du changement de mot de passe');
+        error: () => {
+          this.notificationService.showError('Erreur changement');
           this.isSaving = false;
         }
       })
     );
   }
 
-  /**
-   * Sauvegarder les paramètres de notification
-   */
   saveNotificationSettings(): void {
     this.saveSettings();
     this.notificationService.showSuccess('Paramètres de notification sauvegardés');
   }
-
-  /**
-   * Sauvegarder les paramètres de confidentialité
-   */
   savePrivacySettings(): void {
     this.saveSettings();
     this.notificationService.showSuccess('Paramètres de confidentialité sauvegardés');
   }
-
-  /**
-   * Sauvegarder les paramètres de sécurité
-   */
   saveSecuritySettings(): void {
     this.saveSettings();
     this.notificationService.showSuccess('Paramètres de sécurité sauvegardés');
   }
-
-  /**
-   * Sauvegarder les paramètres d'apparence
-   */
   saveAppearanceSettings(): void {
     this.saveSettings();
     this.applyTheme();
@@ -329,92 +230,34 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     this.notificationService.showSuccess('Paramètres d\'apparence sauvegardés');
   }
 
-  /**
-   * Sauvegarder tous les paramètres
-   */
   private saveSettings(): void {
     this.saveSettingsToStorage();
-    
     this.subscriptions.push(
       this.userService.updateUserSettings(this.settings).subscribe({
-        next: () => {
-          console.log('Settings sauvegardés sur le serveur');
-        },
-        error: (error: any) => {
-          console.warn('Impossible de sauvegarder sur le serveur:', error);
-        }
+        next: () => console.log('Saved on server'),
+        error: () => console.warn('Could not save on server')
       })
     );
   }
 
-  /**
-   * Appliquer le thème
-   */
   private applyTheme(): void {
     const theme = this.settings.appearance.theme;
-    document.body.classList.remove('light-theme', 'dark-theme');
-    
-    if (theme === 'system') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.body.classList.add(prefersDark ? 'dark-theme' : 'light-theme');
-    } else {
-      document.body.classList.add(`${theme}-theme`);
-    }
+    const primaryColor = '#667eea';
+    const secondaryColor = '#764ba2';
+    this.themeService.applyTheme(theme, primaryColor, secondaryColor);
   }
 
-  /**
-   * Appliquer la taille de police sur toute l'application
-   */
   private applyFontSize(): void {
-    const fontSize = this.settings.appearance.fontSize;
-    const body = document.body;
-    
-    // Supprimer les classes existantes
-    body.classList.remove('font-small', 'font-medium', 'font-large');
-    
-    // Ajouter la nouvelle classe
-    if (fontSize === 'small') {
-      body.classList.add('font-small');
-    } else if (fontSize === 'medium') {
-      body.classList.add('font-medium');
-    } else if (fontSize === 'large') {
-      body.classList.add('font-large');
-    }
-    
-    // Sauvegarder le choix dans localStorage pour persistance
-    localStorage.setItem('font-size', fontSize);
+    this.themeService.applyFontSize(this.settings.appearance.fontSize);
   }
 
-  /**
-   * Réinitialiser tous les paramètres
-   */
   resetAllSettings(): void {
-    if (confirm('Êtes-vous sûr de vouloir réinitialiser tous vos paramètres ?')) {
+    if (confirm('Réinitialiser tous les paramètres ?')) {
       this.settings = {
-        notifications: {
-          email: true,
-          push: true,
-          sms: false,
-          transactionAlerts: true,
-          promoEmails: false
-        },
-        privacy: {
-          profileVisibility: 'friends',
-          showLastSeen: true,
-          showOnlineStatus: true,
-          allowFriendRequests: true
-        },
-        security: {
-          twoFactorAuth: false,
-          sessionTimeout: 30,
-          loginAlerts: true
-        },
-        appearance: {
-          theme: 'light',
-          fontSize: 'medium',
-          language: 'fr',
-          compactMode: false
-        }
+        notifications: { email: true, push: true, sms: false, transactionAlerts: true, promoEmails: false },
+        privacy: { profileVisibility: 'friends', showLastSeen: true, showOnlineStatus: true, allowFriendRequests: true },
+        security: { twoFactorAuth: false, sessionTimeout: 30, loginAlerts: true },
+        appearance: { theme: 'light', fontSize: 'medium', language: 'fr', compactMode: false }
       };
       this.saveSettings();
       this.applyTheme();
@@ -424,51 +267,31 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Supprimer le compte
-   */
   deleteAccount(): void {
-    if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
-      const password = prompt('Veuillez entrer votre mot de passe pour confirmer:');
+    if (confirm('Supprimer votre compte ? Action irréversible.')) {
+      const password = prompt('Entrez votre mot de passe pour confirmer :');
       if (password) {
         this.subscriptions.push(
           this.userService.deleteAccount(password).subscribe({
             next: () => {
-              this.notificationService.showInfo('Votre compte a été supprimé');
+              this.notificationService.showInfo('Compte supprimé');
               this.authService.logout();
             },
-            error: (error: any) => {
-              this.notificationService.showError('Erreur lors de la suppression du compte');
-            }
+            error: () => this.notificationService.showError('Erreur suppression')
           })
         );
       }
     }
   }
 
-  /**
-   * Obtenir les initiales
-   */
   getInitials(): string {
     if (!this.user) return '';
     return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
   }
 
-  /**
-   * Retour au tableau de bord
-   */
-  goBack(): void {
-    this.router.navigate(['/user']);
-  }
+  goBack(): void { this.router.navigate(['/user']); }
+  logout(): void { this.authService.logout(); }
 
-  /**
-   * Déconnexion
-   */
-  logout(): void {
-    this.authService.logout();
-  }
-
-  // Getters pour les formulaires
   get currentPassword() { return this.passwordForm.get('currentPassword'); }
   get newPassword() { return this.passwordForm.get('newPassword'); }
   get confirmPassword() { return this.passwordForm.get('confirmPassword'); }
