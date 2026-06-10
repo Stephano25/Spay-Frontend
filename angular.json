@@ -20,7 +20,8 @@
             "tsConfig": "tsconfig.json",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "public/notification-sw.js"
             ],
             "styles": [
               "src/styles.css"

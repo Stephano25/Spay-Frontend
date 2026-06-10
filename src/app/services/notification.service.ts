@@ -5,20 +5,25 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   providedIn: 'root'
 })
 export class NotificationService {
-  private audio: HTMLAudioElement | null = null;
+  constructor(private snackBar: MatSnackBar) {}
 
-  constructor(private snackBar: MatSnackBar) {
-    if (typeof window !== 'undefined') {
-      this.audio = new Audio('/assets/sounds/notification.mp3');
-      this.audio.onerror = () => console.warn('Son de notification non disponible');
-    }
-  }
-
+  /**
+   * Joue un bip sonore via l'API Web Audio (sans fichier externe)
+   */
   private playSound(): void {
-    if (this.audio) {
-      this.audio.pause();
-      this.audio.currentTime = 0;
-      this.audio.play().catch(() => {});
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.frequency.value = 880;
+      gainNode.gain.value = 0.2;
+      oscillator.start();
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+      oscillator.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {
+      // Silencieux
     }
   }
 

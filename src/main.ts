@@ -10,7 +10,7 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, appConfig)
   .then(() => {
-    // Charger le thème sauvegardé
+    // 1. Thème
     const savedTheme = localStorage.getItem('theme') || 'light';
     const savedPrimaryColor = localStorage.getItem('primaryColor') || '#667eea';
     const savedSecondaryColor = localStorage.getItem('secondaryColor') || '#764ba2';
@@ -19,7 +19,6 @@ bootstrapApplication(AppComponent, appConfig)
     if (savedTheme === 'system') {
       actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-    
     document.body.classList.add(`${actualTheme}-theme`);
     document.documentElement.style.setProperty('--primary-color', savedPrimaryColor);
     document.documentElement.style.setProperty('--secondary-color', savedSecondaryColor);
@@ -34,10 +33,19 @@ bootstrapApplication(AppComponent, appConfig)
       }
     });
     
-    // Vérifier la langue sauvegardée
+    // 2. Langue
     const savedLang = localStorage.getItem('language');
     if (savedLang && savedLang !== 'fr') {
       console.log(`🌐 Langue chargée: ${savedLang}`);
+    }
+    
+    // 3. Service Worker (notifications push)
+    if ('serviceWorker' in navigator && !environment.production) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/notification-sw.js')
+          .then(reg => console.log('✅ Service Worker enregistré', reg))
+          .catch(err => console.error('❌ Erreur SW', err));
+      });
     }
   })
   .catch((err) => {
