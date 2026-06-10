@@ -6,12 +6,11 @@ import { Subscription } from 'rxjs';
 import { ChatService, Message, Conversation } from '../../services/chat.service';
 import { FriendService } from '../../services/friend.service';
 import { AuthService } from '../../services/auth.service';
-import { FilterPipe } from '../../pipes/filter.pipe';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, FilterPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
@@ -91,7 +90,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       conv.unreadCount = 0;
     });
   }
-  
+
   get filteredConversations() {
     if (!this.searchQuery) return this.conversations;
     const query = this.searchQuery.toLowerCase();
