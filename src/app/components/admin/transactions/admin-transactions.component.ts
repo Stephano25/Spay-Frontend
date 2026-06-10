@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
 
 @Component({
   selector: 'app-admin-transactions',
@@ -85,6 +86,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         </mat-card-content>
       </mat-card>
     </div>
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <span>Gestion des transactions</span>
+    </mat-toolbar>
   `,
   styles: [`
     .transactions-container {
@@ -152,8 +159,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class AdminTransactionsComponent implements OnInit {
   transactions: Transaction[] = [];
   isLoading = true;
+  router: any;
 
-  constructor(private adminDataService: AdminDataService) {}
+  constructor(private adminDataService: AdminDataService, private _router: Router) {}
 
   ngOnInit(): void {
     this.loadTransactions();
@@ -209,5 +217,8 @@ export class AdminTransactionsComponent implements OnInit {
 
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG').format(amount);
+  }
+  goBack(): void {
+    this.router.navigate(['/admin/dashboard']);
   }
 }

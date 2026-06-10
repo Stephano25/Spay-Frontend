@@ -6,63 +6,38 @@ import { AuthService } from '../../../services/auth.service';
 import { TranslationService } from '../../../services/translation.service';
 import { ThemeService } from '../../../services/theme.service';
 import { Subscription } from 'rxjs';
-
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
   imports: [
-    CommonModule,
-    RouterModule,
-    MatSidenavModule,
-    MatListModule,
-    MatIconModule,
-    MatButtonModule,
-    MatToolbarModule,
-    MatMenuModule,
-    MatDividerModule,
-    MatBadgeModule,
-    MatTooltipModule
+    CommonModule, RouterModule,
+    MatSidenavModule, MatListModule, MatIconModule, MatButtonModule,
+    MatDividerModule, MatTooltipModule
   ],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent implements OnInit, OnDestroy {
-  isCollapsed = false;      // pour desktop (mode réduit)
+  isCollapsed = false;      // mode réduit (desktop)
   isMobile = false;
-  isOpen = false;           // pour mobile (overlay)
+  isOpen = false;           // overlay mobile
   currentUser: any = null;
   private themeSubscription!: Subscription;
-  
-  userMenuItems = [
-    { icon: 'dashboard', labelKey: 'Tableau de bord', route: '/user' },
-    { icon: 'account_balance_wallet', labelKey: 'Portefeuille', route: '/wallet' },
-    { icon: 'swap_horiz', labelKey: 'Transactions', route: '/transactions' },
-    { icon: 'people', labelKey: 'Amis', route: '/friends' },
-    { icon: 'chat', labelKey: 'Messages', route: '/chat' },
-    { icon: 'qr_code_scanner', labelKey: 'Scanner', route: '/scan-pay' },
-    { icon: 'phone_android', labelKey: 'Mobile Money', route: '/mobile-money' },
-    { icon: 'bar_chart', labelKey: 'Statistiques', route: '/stats' },
-    { icon: 'person', labelKey: 'Profil', route: '/profile' },
-    { icon: 'settings', labelKey: 'Paramètres', route: '/user/settings' }
-  ];
 
   adminMenuItems = [
-    { icon: 'dashboard', labelKey: 'Tableau de bord', route: '/admin/dashboard' },
-    { icon: 'people', labelKey: 'Utilisateurs', route: '/admin/users' },
-    { icon: 'receipt', labelKey: 'Transactions', route: '/admin/transactions' },
-    { icon: 'bar_chart', labelKey: 'Statistiques', route: '/admin/stats' },
-    { icon: 'settings', labelKey: 'Paramètres', route: '/admin/settings' },
-    { icon: 'person', labelKey: 'Mon Profil', route: '/admin/profile' }
+    { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
+    { icon: 'people', label: 'Utilisateurs', route: '/admin/users' },
+    { icon: 'receipt', label: 'Transactions', route: '/admin/transactions' },
+    { icon: 'bar_chart', label: 'Statistiques', route: '/admin/stats' },
+    { icon: 'settings', label: 'Paramètres', route: '/admin/settings' },
+    { icon: 'person', label: 'Mon Profil', route: '/admin/profile' }
   ];
 
   constructor(
@@ -73,18 +48,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.checkScreenSize();
-    this.authService.currentUser.subscribe(user => {
-      this.currentUser = user;
-    });
+    this.authService.currentUser.subscribe(user => (this.currentUser = user));
     this.themeSubscription = this.themeService.currentTheme$.subscribe(() => {
-      // rafraîchir les menus si besoin
-      this.userMenuItems = [...this.userMenuItems];
+      // rafraîchir le template si besoin
       this.adminMenuItems = [...this.adminMenuItems];
     });
   }
 
   ngOnDestroy(): void {
-    if (this.themeSubscription) this.themeSubscription.unsubscribe();
+    this.themeSubscription?.unsubscribe();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -99,7 +71,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.isCollapsed = true;
       this.isOpen = false;
     } else if (wasMobile && !this.isMobile) {
-      // passage mobile -> desktop
       this.isOpen = false;
       this.isCollapsed = false;
     }
@@ -114,9 +85,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   closeSidebar() {
-    if (this.isMobile) {
-      this.isOpen = false;
-    }
+    if (this.isMobile) this.isOpen = false;
   }
 
   logout() {
@@ -128,7 +97,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get menuItems() {
-    return this.isAdmin() ? this.adminMenuItems : this.userMenuItems;
+    return this.adminMenuItems;
   }
 
   translate(key: string): string {
@@ -137,14 +106,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   getInitials(): string {
     if (!this.currentUser) return '';
-    return (this.currentUser.firstName?.charAt(0) || '') + 
+    return (this.currentUser.firstName?.charAt(0) || '') +
            (this.currentUser.lastName?.charAt(0) || '');
   }
 
   formatAmount(amount: number): string {
-    return new Intl.NumberFormat('fr-MG', { 
-      minimumFractionDigits: 0, 
-      maximumFractionDigits: 0 
-    }).format(amount);
+    return new Intl.NumberFormat('fr-MG').format(amount);
   }
 }

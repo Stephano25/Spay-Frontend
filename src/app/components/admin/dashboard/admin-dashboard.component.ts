@@ -222,6 +222,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   changePeriod(period: 'day' | 'week' | 'month'): void { this.selectedPeriod = period; this.loadDashboardData(); }
   navigateTo(route: string): void { this.router.navigate([`/admin/${route}`]); }
   logout(): void { this.authService.logout(); }
+  goBack(): void {
+  this.router.navigate(['/admin/dashboard']); }
   formatVolume(volume: number): string { return volume >= 1e6 ? (volume / 1e6).toFixed(1) + ' M' : volume >= 1e3 ? (volume / 1e3).toFixed(1) + ' k' : volume.toString(); }
   formatNumber(num: number): string { return new Intl.NumberFormat('fr-MG').format(num); }
   getInitials(first: string, last: string): string { return (first?.charAt(0) || '') + (last?.charAt(0) || ''); }

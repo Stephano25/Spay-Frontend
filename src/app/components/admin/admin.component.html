@@ -1,10 +1,4 @@
 <app-sidebar>
-  <app-navigation-header 
-    [user]="admin" 
-    title="Administration" 
-    [isAdmin]="true"
-    (logout)="logout()">
-  </app-navigation-header>
   <div class="admin-content">
     <router-outlet></router-outlet>
   </div>

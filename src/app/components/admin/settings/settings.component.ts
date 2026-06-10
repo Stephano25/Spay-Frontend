@@ -734,4 +734,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout();
   }
+  
+  goBack(): void {
+    this.router.navigate(['/admin/dashboard']);
+  }
 }

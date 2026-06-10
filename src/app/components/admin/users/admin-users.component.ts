@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
+import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
 
 @Component({
   selector: 'app-admin-users',
@@ -107,6 +108,12 @@ import { MatDialogModule } from '@angular/material/dialog';
         </mat-card-content>
       </mat-card>
     </div>
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <span>Gestion des utilisateurs</span>
+    </mat-toolbar>
   `,
   styles: [`
     .users-container {
@@ -196,7 +203,8 @@ export class AdminUsersComponent implements OnInit {
 
   constructor(
     private adminDataService: AdminDataService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -263,5 +271,8 @@ export class AdminUsersComponent implements OnInit {
 
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG').format(amount);
+  }
+  goBack(): void {
+    this.router.navigate(['/admin/dashboard']);
   }
 }

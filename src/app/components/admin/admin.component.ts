@@ -6,12 +6,11 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
 import { SidebarComponent } from '../layout/sidebar/sidebar.component';
-import { NavigationHeaderComponent } from '../layout/navigation-header/navigation-header.component';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, RouterModule, SidebarComponent, NavigationHeaderComponent],
+  imports: [CommonModule, RouterModule, SidebarComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
