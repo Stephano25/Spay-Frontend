@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import * as QRCode from 'qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
@@ -57,6 +58,8 @@ export class FriendsComponent implements OnInit, OnDestroy {
   currentUserId = '';
 
   private subscriptions: Subscription[] = [];
+  private html5QrCode: Html5Qrcode | null = null;
+  private isScanning = false;
 
   constructor(
     private authService: AuthService,
@@ -74,6 +77,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.stopScan();
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
@@ -145,11 +149,74 @@ export class FriendsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Scanner un QR code (ajout d'ami)
+  // Scanner un QR code avec la caméra
   scanQRCode(): void {
-    // Version web : utiliser une entrée texte
-    const qrText = prompt('Collez le contenu du QR code :');
-    if (qrText) this.processScannedQR(qrText);
+    if (this.isScanning) {
+      this.stopScan();
+      return;
+    }
+
+    const scannerContainer = document.createElement('div');
+    scannerContainer.id = 'qr-scanner-container';
+    scannerContainer.style.position = 'fixed';
+    scannerContainer.style.top = '0';
+    scannerContainer.style.left = '0';
+    scannerContainer.style.width = '100%';
+    scannerContainer.style.height = '100%';
+    scannerContainer.style.backgroundColor = 'rgba(0,0,0,0.9)';
+    scannerContainer.style.zIndex = '3000';
+    scannerContainer.style.display = 'flex';
+    scannerContainer.style.flexDirection = 'column';
+    scannerContainer.style.alignItems = 'center';
+    scannerContainer.style.justifyContent = 'center';
+
+    const videoContainer = document.createElement('div');
+    videoContainer.id = 'qr-reader';
+    videoContainer.style.width = '100%';
+    videoContainer.style.maxWidth = '400px';
+    videoContainer.style.margin = 'auto';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.innerText = 'Fermer';
+    closeBtn.style.marginTop = '20px';
+    closeBtn.style.padding = '10px 20px';
+    closeBtn.style.backgroundColor = '#ef4444';
+    closeBtn.style.color = 'white';
+    closeBtn.style.border = 'none';
+    closeBtn.style.borderRadius = '8px';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.onclick = () => this.stopScan();
+
+    scannerContainer.appendChild(videoContainer);
+    scannerContainer.appendChild(closeBtn);
+    document.body.appendChild(scannerContainer);
+
+    this.html5QrCode = new Html5Qrcode('qr-reader');
+    this.isScanning = true;
+
+    this.html5QrCode.start(
+      { facingMode: 'environment' }, // caméra arrière
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        this.stopScan();
+        this.processScannedQR(decodedText);
+      },
+      () => {} // ignore les erreurs intermédiaires
+    ).catch((err) => {
+      console.error('Erreur démarrage caméra', err);
+      this.notificationService.showError('Impossible d\'accéder à la caméra');
+      this.stopScan();
+    });
+  }
+
+  private stopScan(): void {
+    if (this.html5QrCode && this.isScanning) {
+      this.html5QrCode.stop().catch(console.error);
+      this.html5QrCode = null;
+    }
+    this.isScanning = false;
+    const container = document.getElementById('qr-scanner-container');
+    if (container) container.remove();
   }
 
   private processScannedQR(data: string): void {
