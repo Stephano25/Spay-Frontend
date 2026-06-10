@@ -1,3 +1,4 @@
+// src/app/components/friends/friends.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -73,7 +74,6 @@ export class FriendsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadAllData();
-    // Pas de synchronisation des contacts dans Angular (gérée par React Native)
   }
 
   ngOnDestroy(): void {
@@ -138,7 +138,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Afficher son propre QR code
+  // QR Code perso
   async showMyQRCode(): Promise<void> {
     try {
       const qrData = JSON.stringify({ userId: this.currentUserId, type: 'add_friend' });
@@ -195,13 +195,13 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.isScanning = true;
 
     this.html5QrCode.start(
-      { facingMode: 'environment' }, // caméra arrière
+      { facingMode: 'environment' },
       { fps: 10, qrbox: { width: 250, height: 250 } },
       (decodedText) => {
         this.stopScan();
         this.processScannedQR(decodedText);
       },
-      () => {} // ignore les erreurs intermédiaires
+      () => {}
     ).catch((err) => {
       console.error('Erreur démarrage caméra', err);
       this.notificationService.showError('Impossible d\'accéder à la caméra');

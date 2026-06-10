@@ -19,9 +19,6 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
-    "@capacitor-community/barcode-scanner": "^4.0.1",
-    "@zxing/ngx-scanner": "^21.0.0",
-    "angularx-qrcode": "^19.0.0",
     "chart.js": "^4.5.1",
     "html5-qrcode": "^2.3.8",
     "qrcode": "^1.5.4",
@@ -36,6 +33,6 @@
     "@angular/compiler-cli": "^19.2.0",
     "@types/node": "^20.0.0",
     "@types/qrcode": "^1.5.6",
-    "typescript": "^5.6.3"
+    "typescript": "5.8.2"
   }
 }

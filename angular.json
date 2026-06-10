@@ -29,7 +29,8 @@
             "allowedCommonJsDependencies": [
               "debug",
               "socket.io-parser",
-              "socket.io-client"
+              "socket.io-client",
+              "qrcode"
             ]
           },
           "configurations": {
