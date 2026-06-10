@@ -47,14 +47,15 @@ export class UserComponent implements OnInit, OnDestroy {
   isLoading = true;
   profileImageUrl: string | null = null;
   
+  // ✅ Routes corrigées : ajout du préfixe /user/
   menuItems = [
-    { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/wallet' },
-    { icon: 'chat', label: 'Messages', route: '/chat' },
-    { icon: 'swap_horiz', label: 'Transactions', route: '/transactions' },
-    { icon: 'person', label: 'Profil', route: '/profile' },
-    { icon: 'qr_code_scanner', label: 'Scanner', route: '/scan-pay' },
-    { icon: 'phone_android', label: 'Mobile Money', route: '/mobile-money' },
-    { icon: 'people', label: 'Amis', route: '/friends' },
+    { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/user/wallet' },
+    { icon: 'chat', label: 'Messages', route: '/user/chat' },
+    { icon: 'swap_horiz', label: 'Transactions', route: '/user/transactions' },
+    { icon: 'person', label: 'Profil', route: '/user/profile' },
+    { icon: 'qr_code_scanner', label: 'Scanner', route: '/user/scan-pay' },
+    { icon: 'phone_android', label: 'Mobile Money', route: '/user/mobile-money' },
+    { icon: 'people', label: 'Amis', route: '/user/friends' },
     { icon: 'settings', label: 'Paramètres', route: '/user/settings' }
   ];
 
