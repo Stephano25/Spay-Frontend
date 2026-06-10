@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
 import { AdminDataService, DashboardStats } from '../../../services/admin-data.service';
 import Chart from 'chart.js/auto';
 
@@ -8,18 +9,30 @@ import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-admin-stats',
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     MatCardModule,
     MatGridListModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatToolbarModule,
+    MatButtonModule
   ],
   template: `
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <span>Statistiques</span>
+    </mat-toolbar>
+
     <div class="stats-container">
       <div class="loading-container" *ngIf="isLoading">
         <mat-spinner diameter="60"></mat-spinner>
@@ -27,13 +40,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       </div>
 
       <div *ngIf="!isLoading && stats" class="stats-content">
-        <!-- Cartes KPIs -->
         <div class="kpi-grid">
           <mat-card class="kpi-card">
             <mat-card-content>
-              <div class="kpi-icon users">
-                <mat-icon>people</mat-icon>
-              </div>
+              <div class="kpi-icon users"><mat-icon>people</mat-icon></div>
               <div class="kpi-info">
                 <div class="kpi-value">{{ formatNumber(stats.totalUsers) }}</div>
                 <div class="kpi-label">Utilisateurs</div>
@@ -43,9 +53,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
           <mat-card class="kpi-card">
             <mat-card-content>
-              <div class="kpi-icon active">
-                <mat-icon>online_prediction</mat-icon>
-              </div>
+              <div class="kpi-icon active"><mat-icon>online_prediction</mat-icon></div>
               <div class="kpi-info">
                 <div class="kpi-value">{{ formatNumber(stats.activeUsers) }}</div>
                 <div class="kpi-label">Utilisateurs actifs</div>
@@ -55,9 +63,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
           <mat-card class="kpi-card">
             <mat-card-content>
-              <div class="kpi-icon transactions">
-                <mat-icon>swap_horiz</mat-icon>
-              </div>
+              <div class="kpi-icon transactions"><mat-icon>swap_horiz</mat-icon></div>
               <div class="kpi-info">
                 <div class="kpi-value">{{ formatNumber(stats.totalTransactions) }}</div>
                 <div class="kpi-label">Transactions</div>
@@ -67,9 +73,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
           <mat-card class="kpi-card">
             <mat-card-content>
-              <div class="kpi-icon volume">
-                <mat-icon>account_balance_wallet</mat-icon>
-              </div>
+              <div class="kpi-icon volume"><mat-icon>account_balance_wallet</mat-icon></div>
               <div class="kpi-info">
                 <div class="kpi-value">{{ formatAmount(stats.totalVolume) }} Ar</div>
                 <div class="kpi-label">Volume total</div>
@@ -78,7 +82,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           </mat-card>
         </div>
 
-        <!-- Graphique d'activité -->
         <mat-card class="chart-card">
           <mat-card-header>
             <mat-card-title>Activité récente</mat-card-title>
@@ -148,7 +151,7 @@ export class AdminStatsComponent implements OnInit {
   isLoading = true;
   private chart: Chart | null = null;
 
-  constructor(private adminDataService: AdminDataService) {}
+  constructor(private adminDataService: AdminDataService, private router: Router) {}
 
   ngOnInit(): void {
     this.loadStats();
@@ -173,10 +176,10 @@ export class AdminStatsComponent implements OnInit {
     const ctx = document.getElementById('activityChart') as HTMLCanvasElement;
     if (ctx && this.stats?.recentTransactions) {
       if (this.chart) this.chart.destroy();
-      
+
       const last7Days = this.getLast7Days();
       const transactionsPerDay = last7Days.map(day => {
-        return this.stats!.recentTransactions.filter(t => 
+        return this.stats!.recentTransactions.filter(t =>
           new Date(t.createdAt).toDateString() === day.toDateString()
         ).length;
       });
@@ -227,5 +230,9 @@ export class AdminStatsComponent implements OnInit {
       return (amount / 1000).toFixed(1) + ' k';
     }
     return amount.toString();
+  }
+
+  goBack(): void {
+    this.router.navigate(['/admin/dashboard']);
   }
 }

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';  // ← import correct
 import { AdminDataService, Transaction } from '../../../services/admin-data.service';
 
 // Angular Material
@@ -10,22 +11,32 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
   selector: 'app-admin-transactions',
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     MatCardModule,
     MatTableModule,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatToolbarModule
   ],
   template: `
+    <!-- Barre d'outils avec bouton retour -->
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <span>Gestion des transactions</span>
+    </mat-toolbar>
+
     <div class="transactions-container">
       <mat-card class="transactions-card">
         <mat-card-header>
@@ -86,12 +97,6 @@ import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
         </mat-card-content>
       </mat-card>
     </div>
-    <mat-toolbar color="primary">
-      <button mat-icon-button (click)="goBack()" matTooltip="Retour">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-      <span>Gestion des transactions</span>
-    </mat-toolbar>
   `,
   styles: [`
     .transactions-container {
@@ -159,9 +164,11 @@ import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
 export class AdminTransactionsComponent implements OnInit {
   transactions: Transaction[] = [];
   isLoading = true;
-  router: any;
 
-  constructor(private adminDataService: AdminDataService, private _router: Router) {}
+  constructor(
+    private adminDataService: AdminDataService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadTransactions();
@@ -218,6 +225,7 @@ export class AdminTransactionsComponent implements OnInit {
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG').format(amount);
   }
+
   goBack(): void {
     this.router.navigate(['/admin/dashboard']);
   }

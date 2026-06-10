@@ -10,8 +10,8 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, appConfig)
   .then(() => {
-    // 1. Thème
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    // 1. Thème – on force "dark" par défaut si aucune préférence
+    const savedTheme = localStorage.getItem('theme') || 'dark';   // ← CHANGEMENT ICI
     const savedPrimaryColor = localStorage.getItem('primaryColor') || '#667eea';
     const savedSecondaryColor = localStorage.getItem('secondaryColor') || '#764ba2';
     
@@ -19,9 +19,16 @@ bootstrapApplication(AppComponent, appConfig)
     if (savedTheme === 'system') {
       actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
+    // S'assurer que la classe dark-theme est ajoutée
+    document.body.classList.remove('light-theme', 'dark-theme');
     document.body.classList.add(`${actualTheme}-theme`);
     document.documentElement.style.setProperty('--primary-color', savedPrimaryColor);
     document.documentElement.style.setProperty('--secondary-color', savedSecondaryColor);
+    
+    // Si le thème enregistré était "dark", on force aussi localStorage pour cohérence
+    if (savedTheme === 'dark') {
+      localStorage.setItem('theme', 'dark');
+    }
     
     // Écouter les changements de thème système
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {

@@ -306,3 +306,19 @@
   .kpi-grid, .recent-grid { grid-template-columns: 1fr; }
   .period-selector { display: none; }
 }
+/* Toolbar spécifique au dashboard */
+.dashboard-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, var(--primary, #6366f1), var(--secondary, #8b5cf6));
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+/* Ajustement du contenu principal (pour qu'il ne soit pas collé à la toolbar) */
+.admin-dashboard {
+  padding: 24px;
+}

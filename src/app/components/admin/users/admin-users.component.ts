@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';  // ← import correct
 import { AdminDataService, User } from '../../../services/admin-data.service';
 import { NotificationService } from '../../../services/notification.service';
 
@@ -14,7 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
-import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
   selector: 'app-admin-users',
@@ -22,6 +23,7 @@ import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,      // ajouté pour les liens éventuels
     MatCardModule,
     MatTableModule,
     MatButtonModule,
@@ -30,9 +32,18 @@ import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
     MatProgressSpinnerModule,
     MatChipsModule,
     MatTooltipModule,
-    MatDialogModule
+    MatDialogModule,
+    MatToolbarModule
   ],
   template: `
+    <!-- Barre d'outils avec bouton retour -->
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <span>Gestion des utilisateurs</span>
+    </mat-toolbar>
+
     <div class="users-container">
       <mat-card class="users-card">
         <mat-card-header>
@@ -66,13 +77,9 @@ import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
               <tbody>
                 <tr *ngFor="let user of users">
                   <td class="user-cell">
-                    <div class="user-avatar">
-                      {{ getUserInitials(user) }}
-                    </div>
-                    <div class="user-name">
-                      {{ user.firstName }} {{ user.lastName }}
-                    </div>
-                   </td>
+                    <div class="user-avatar">{{ getUserInitials(user) }}</div>
+                    <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+                  </td>
                   <td>{{ user.email }}</td>
                   <td>{{ user.phoneNumber || '-' }}</td>
                   <td class="balance">{{ formatAmount(user.balance) }} Ar</td>
@@ -80,7 +87,7 @@ import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
                     <mat-chip [class]="'role-' + user.role">
                       {{ getRoleLabel(user.role) }}
                     </mat-chip>
-                   </td>
+                  </td>
                   <td>
                     <mat-slide-toggle
                       [checked]="user.isActive"
@@ -88,14 +95,14 @@ import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
                       color="primary">
                       {{ user.isActive ? 'Actif' : 'Inactif' }}
                     </mat-slide-toggle>
-                   </td>
+                  </td>
                   <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
                   <td class="actions-cell">
                     <button mat-icon-button color="warn" (click)="deleteUser(user)" matTooltip="Supprimer">
                       <mat-icon>delete</mat-icon>
                     </button>
-                   </td>
-                 </tr>
+                  </td>
+                </tr>
               </tbody>
             </table>
 
@@ -108,12 +115,6 @@ import { Router } from '@angular/router/router_module.d-Bx9ArA6K';
         </mat-card-content>
       </mat-card>
     </div>
-    <mat-toolbar color="primary">
-      <button mat-icon-button (click)="goBack()" matTooltip="Retour">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-      <span>Gestion des utilisateurs</span>
-    </mat-toolbar>
   `,
   styles: [`
     .users-container {
@@ -226,7 +227,6 @@ export class AdminUsersComponent implements OnInit {
     });
   }
 
-  // CORRECTION: Nouvelle méthode pour obtenir les initiales
   getUserInitials(user: User): string {
     const firstName = user.firstName || '';
     const lastName = user.lastName || '';
@@ -272,6 +272,7 @@ export class AdminUsersComponent implements OnInit {
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG').format(amount);
   }
+
   goBack(): void {
     this.router.navigate(['/admin/dashboard']);
   }

@@ -23,7 +23,7 @@ export class ThemeService {
   }
 
   loadTheme(): void {
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     const savedPrimaryColor = localStorage.getItem('primaryColor') || '#667eea';
     const savedSecondaryColor = localStorage.getItem('secondaryColor') || '#764ba2';
     this.applyTheme(savedTheme, savedPrimaryColor, savedSecondaryColor);
