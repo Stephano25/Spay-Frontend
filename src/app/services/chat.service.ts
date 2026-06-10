@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
-import { filter, distinctUntilChanged } from 'rxjs/operators';
+import { catchError,filter, distinctUntilChanged } from 'rxjs/operators';
 
 export interface Message { id: string; senderId: string; receiverId: string; type: 'text'|'image'|'file'|'emoji'|'money'; content?: string; fileUrl?: string; fileName?: string; fileSize?: number; emoji?: string; isRead: boolean; isDelivered: boolean; createdAt: Date; moneyTransfer?: { amount: number; status: string; transactionId?: string }; sender?: { id: string; firstName: string; lastName: string; profilePicture?: string }; }
 export interface Conversation { userId: string; firstName: string; lastName: string; profilePicture?: string; lastMessage?: { content: string; type: string; createdAt: Date }; lastMessageTime: Date; unreadCount: number; isOnline: boolean; lastSeen?: Date; }
@@ -61,4 +61,7 @@ export class ChatService implements OnDestroy {
     return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {}).pipe(catchError(() => of(void 0)));
   }
   ngOnDestroy(): void { this.socket?.disconnect(); }
+  getMessagesPage(userId: string, page: number, limit: number): Observable<Message[]> {
+    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`, { params: { page: page.toString(), limit: limit.toString() } }).pipe(catchError(() => of([])));
+  }
 }

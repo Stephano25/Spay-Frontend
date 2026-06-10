@@ -6,11 +6,12 @@ import { Subscription } from 'rxjs';
 import { ChatService, Message, Conversation } from '../../services/chat.service';
 import { FriendService } from '../../services/friend.service';
 import { AuthService } from '../../services/auth.service';
+import { FilterPipe } from '../../pipes/filter.pipe';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FilterPipe],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
@@ -57,6 +58,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         if (data && this.selectedContact && data.userId === this.selectedContact.userId) this.isTyping = data.isTyping;
       }),
       this.chatService.onlineStatus$.subscribe(data => {
+        if (!data) return;
         const conv = this.conversations.find(c => c.userId === data.userId);
         if (conv) conv.isOnline = data.isOnline;
         this.loadOnlineFriends();
@@ -89,7 +91,14 @@ export class ChatComponent implements OnInit, OnDestroy {
       conv.unreadCount = 0;
     });
   }
-
+  
+  get filteredConversations() {
+    if (!this.searchQuery) return this.conversations;
+    const query = this.searchQuery.toLowerCase();
+    return this.conversations.filter(conv => 
+      `${conv.firstName} ${conv.lastName}`.toLowerCase().includes(query)
+    );
+  }
   sendMessage(): void {
     if (!this.newMessage.trim() || !this.selectedContact) return;
     const tempMsg: Message = {

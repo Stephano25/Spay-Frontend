@@ -5,7 +5,10 @@
       <input type="text" placeholder="Rechercher..." [(ngModel)]="searchQuery">
     </div>
     <div class="conversations-list">
-      <div *ngFor="let conv of conversations | filter:searchQuery" class="conversation-item" [class.active]="selectedContact?.userId === conv.userId" (click)="selectConversation(conv)">
+      <div *ngFor="let conv of filteredConversations" 
+           class="conversation-item" 
+           [class.active]="selectedContact?.userId === conv.userId" 
+           (click)="selectConversation(conv)">
         <div class="avatar" [style.background]="getAvatarColor(conv.firstName)">
           {{ getInitials(conv.firstName, conv.lastName) }}
           <span class="online-dot" *ngIf="conv.isOnline"></span>
@@ -22,7 +25,7 @@
     </div>
   </div>
 
-  <!-- Colonne centrale : chat -->
+  <!-- Colonne centrale : zone de chat -->
   <div class="chat-area" *ngIf="selectedContact; else noChat">
     <div class="chat-header">
       <div class="contact-info">
@@ -37,6 +40,7 @@
         </div>
       </div>
     </div>
+
     <div class="messages-container" #messageContainer>
       <div *ngFor="let msg of messages" class="message" [class.own]="msg.senderId === currentUserId">
         <div class="message-bubble">
@@ -45,12 +49,20 @@
         </div>
       </div>
     </div>
+
     <div class="message-input">
-      <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (keyup)="onTyping()" placeholder="Écrire un message...">
+      <input type="text" 
+             [(ngModel)]="newMessage" 
+             (keyup.enter)="sendMessage()" 
+             (keyup)="onTyping()" 
+             placeholder="Écrire un message...">
       <button (click)="sendMessage()" [disabled]="!newMessage.trim()">Envoyer</button>
     </div>
   </div>
-  <ng-template #noChat><div class="no-chat">Sélectionnez une conversation</div></ng-template>
+
+  <ng-template #noChat>
+    <div class="no-chat">Sélectionnez une conversation</div>
+  </ng-template>
 
   <!-- Colonne droite : amis en ligne -->
   <div class="online-friends-panel">
