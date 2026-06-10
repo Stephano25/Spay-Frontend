@@ -501,4 +501,10 @@
   .emoji-grid {
     grid-template-columns: repeat(6, 1fr);
   }
+}.chat-layout {
+  background: #0a0a0a !important;
+}
+.conversations-panel, .chat-area, .online-friends-panel {
+  background: #1a1a1a !important;
+  border-color: #2a2a2a;
 }

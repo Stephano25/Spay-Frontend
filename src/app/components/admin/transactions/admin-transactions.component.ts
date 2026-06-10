@@ -159,6 +159,16 @@ import { MatToolbarModule } from '@angular/material/toolbar';
       height: 64px;
       margin-bottom: 16px;
     }
+      .transactions-container {
+  background: #0a0a0a;
+}
+.transactions-card {
+  background: #1a1a1a;
+}
+.transactions-table th {
+  background: #121212;
+  color: #ccc;
+}
   `]
 })
 export class AdminTransactionsComponent implements OnInit {

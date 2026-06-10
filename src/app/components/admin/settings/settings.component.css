@@ -359,4 +359,15 @@
   .tab-content {
     padding: 16px;
   }
+}.settings-page {
+  background: #0a0a0a !important;
+}
+.settings-tabs {
+  background: #1a1a1a !important;
+}
+.settings-card {
+  background: #1a1a1a !important;
+}
+.admin-profile-card {
+  background: linear-gradient(135deg, #1e1e2a, #121212) !important;
 }

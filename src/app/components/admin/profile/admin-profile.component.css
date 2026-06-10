@@ -490,4 +490,9 @@
   .action-buttons button { width: 100%; }
   .stats-grid { grid-template-columns: 1fr; gap: 10px; }
   .change-photo-section { flex-direction: column; }
+}.profile-container, .profile-content {
+  background: #0a0a0a !important;
+}
+.profile-card {
+  background: #1a1a1a !important;
 }

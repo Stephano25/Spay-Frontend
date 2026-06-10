@@ -855,4 +855,10 @@
   height: 200px;
   margin: 16px auto;
   display: block;
+}.friends-container {
+  background: #0a0a0a !important;
+}
+.glass-header, .glass-card {
+  background: rgba(30,30,30,0.9) !important;
+  backdrop-filter: blur(10px);
 }

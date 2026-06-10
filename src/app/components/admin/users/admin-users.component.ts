@@ -190,6 +190,16 @@ import { MatToolbarModule } from '@angular/material/toolbar';
       padding: 60px;
       color: #999;
     }
+      .transactions-container {
+  background: #0a0a0a;
+}
+.transactions-card {
+  background: #1a1a1a;
+}
+.transactions-table th {
+  background: #121212;
+  color: #ccc;
+}
     .empty-state mat-icon {
       font-size: 64px;
       width: 64px;

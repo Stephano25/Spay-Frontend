@@ -441,4 +441,9 @@ mat-card-header mat-icon {
   font-size: 16px;
   font-weight: bold;
   color: white;
+}.user-dashboard {
+  background: #0a0a0a !important;
+}
+.welcome-card, .menu-card, .transactions-card, .stats-row .stat-card {
+  background: #1a1a1a !important;
 }

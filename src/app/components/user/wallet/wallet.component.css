@@ -569,4 +569,9 @@
   .txn-item { gap: 0.65rem; }
 
   .stat-value { font-size: 0.9rem; }
+}.wallet-container {
+  background: #0a0a0a !important;
+}
+.balance-card, .txn-card, .stats-grid .stat-card {
+  background: #1a1a1a !important;
 }
