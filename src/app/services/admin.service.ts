@@ -99,26 +99,11 @@ export class AdminService {
   }
 
   getDashboardStats(): Observable<AdminDashboardStats> {
-    console.log('📡 Appel API admin vers:', `${this.apiUrl}/dashboard/stats`);
-    
-    return this.http.get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`, {
-      headers: this.getHeaders()
-    }).pipe(
-      tap(data => {
-        console.log('✅ Données admin reçues:', data);
-      }),
+  return this.http.get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`, { headers: this.getHeaders() }).pipe(
+      tap(data => console.log('Stats admin reçues:', data)),
       catchError(error => {
-        console.error('❌ Erreur chargement stats admin:', error);
-        
-        if (error.status === 401 || error.status === 403) {
-          this.notificationService.showError('Non autorisé - Veuillez vous reconnecter');
-          this.authService.logout();
-        } else if (error.status === 404) {
-          this.notificationService.showError('API non disponible');
-        } else {
-          this.notificationService.showError('Erreur lors du chargement des statistiques');
-        }
-        
+        if (error.status === 401) this.authService.logout();
+        this.notificationService.showError('Erreur chargement stats');
         return throwError(() => error);
       })
     );

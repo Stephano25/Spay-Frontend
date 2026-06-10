@@ -1,292 +1,68 @@
-<div class="chat-container">
-  <!-- Sidebar avec liste des amis -->
-  <div class="chat-sidebar" [class.collapsed]="selectedContact">
-    <div class="sidebar-header">
-      <button class="back-btn-dashboard" (click)="goToDashboard()" matTooltip="Retour au tableau de bord">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-      <h2>Messages</h2>
-      <div class="search-box">
-        <mat-icon>search</mat-icon>
-        <input type="text" placeholder="Rechercher un ami..." [(ngModel)]="searchQuery" (input)="onSearch()">
+<div class="chat-layout">
+  <!-- Colonne gauche : conversations -->
+  <div class="conversations-panel">
+    <div class="search-box">
+      <input type="text" placeholder="Rechercher..." [(ngModel)]="searchQuery">
+    </div>
+    <div class="conversations-list">
+      <div *ngFor="let conv of conversations | filter:searchQuery" class="conversation-item" [class.active]="selectedContact?.userId === conv.userId" (click)="selectConversation(conv)">
+        <div class="avatar" [style.background]="getAvatarColor(conv.firstName)">
+          {{ getInitials(conv.firstName, conv.lastName) }}
+          <span class="online-dot" *ngIf="conv.isOnline"></span>
+        </div>
+        <div class="conv-info">
+          <div class="conv-name">{{ conv.firstName }} {{ conv.lastName }}</div>
+          <div class="last-message">{{ conv.lastMessage?.content | slice:0:30 }}</div>
+        </div>
+        <div class="conv-meta">
+          <div class="time">{{ conv.lastMessageTime | date:'HH:mm' }}</div>
+          <div class="unread-badge" *ngIf="conv.unreadCount > 0">{{ conv.unreadCount }}</div>
+        </div>
       </div>
     </div>
-
-    <!-- Amis en ligne (section spéciale) -->
-    @if (onlineFriendsList.length > 0) {
-      <div class="online-section">
-        <div class="section-header">
-          <span class="live-dot"></span>
-          <span>En ligne ({{ onlineFriendsList.length }})</span>
-        </div>
-        <div class="online-friends-list">
-          <!-- CORRECTION: utiliser track friend.trackId -->
-          @for (friend of onlineFriendsList; track friend.trackId) {
-            <div class="online-friend-item" (click)="selectFriendFromList(friend)">
-              <div class="friend-avatar small" [style.background]="getAvatarColor(friend.firstName)">
-                {{ getInitials(friend.firstName, friend.lastName) }}
-                <span class="online-dot active"></span>
-              </div>
-              <span class="friend-name">{{ friend.firstName }}</span>
-            </div>
-          }
-        </div>
-      </div>
-    }
-
-    <!-- Menu des amis (dépliable) -->
-    <div class="friends-menu">
-      <div class="menu-header" (click)="toggleFriendsList()">
-        <mat-icon>people</mat-icon>
-        <span>Mes amis ({{ allFriendsList.length }})</span>
-        <mat-icon class="menu-arrow">{{ showFriendsList ? 'expand_less' : 'expand_more' }}</mat-icon>
-      </div>
-      
-      <div class="menu-content" [class.expanded]="showFriendsList">
-        @if (allFriendsList.length > 0) {
-          <div class="friends-list-menu">
-            <!-- CORRECTION: utiliser track friend.trackId -->
-            @for (friend of filteredFriendsList; track friend.trackId) {
-              <div class="friend-menu-item" (click)="selectFriendFromList(friend)">
-                <div class="friend-avatar small" [style.background]="getAvatarColor(friend.firstName)">
-                  {{ getInitials(friend.firstName, friend.lastName) }}
-                  <span class="online-dot" [class.online]="friend.isOnline"></span>
-                </div>
-                <div class="friend-info">
-                  <div class="friend-name">{{ friend.firstName }} {{ friend.lastName }}</div>
-                  <div class="friend-status" [class.online]="friend.isOnline">
-                    {{ friend.isOnline ? 'En ligne' : formatLastSeen(friend.lastSeen) }}
-                  </div>
-                </div>
-                <div class="friend-actions-menu">
-                  <button mat-icon-button (click)="$event.stopPropagation(); viewFriendProfile(friend.userId)" matTooltip="Profil">
-                    <mat-icon>person</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="$event.stopPropagation(); sendMoneyToFriend(friend.userId, friend.firstName)" matTooltip="Envoyer">
-                    <mat-icon>attach_money</mat-icon>
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="empty-menu-state">
-            <mat-icon>people_outline</mat-icon>
-            <p>Aucun ami</p>
-            <button class="btn-gradient-small" (click)="goToFriends()">
-              <mat-icon>person_add</mat-icon>
-              Ajouter des amis
-            </button>
-          </div>
-        }
-      </div>
-    </div>
-
-    <!-- Demandes d'ami (menu dépliable) -->
-    @if (pendingRequests.length > 0) {
-      <div class="requests-menu">
-        <div class="menu-header" (click)="toggleRequestsList()">
-          <mat-icon>notifications</mat-icon>
-          <span>Demandes reçues ({{ pendingRequests.length }})</span>
-          <mat-icon class="menu-arrow">{{ showRequestsList ? 'expand_less' : 'expand_more' }}</mat-icon>
-        </div>
-        
-        <div class="menu-content" [class.expanded]="showRequestsList">
-          <div class="requests-list-menu">
-            @for (request of pendingRequests; track request.id) {
-              <div class="request-menu-item">
-                <div class="friend-avatar small" [style.background]="getAvatarColor(request.senderFirstName)">
-                  {{ getInitials(request.senderFirstName, request.senderLastName) }}
-                </div>
-                <div class="friend-info">
-                  <div class="friend-name">{{ request.senderFirstName }} {{ request.senderLastName }}</div>
-                  <div class="friend-email">{{ request.senderEmail }}</div>
-                </div>
-                <div class="request-actions-menu">
-                  <button mat-icon-button class="accept-btn" (click)="acceptFriendRequest(request.id)" matTooltip="Accepter">
-                    <mat-icon>check</mat-icon>
-                  </button>
-                  <button mat-icon-button class="decline-btn" (click)="declineFriendRequest(request.id)" matTooltip="Refuser">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-    }
   </div>
 
-  <!-- Chat Area -->
-  @if (selectedContact) {
-    <div class="chat-area">
-      <div class="chat-header">
-        <button class="back-btn" (click)="goBack()" matTooltip="Retour à la liste">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        <div class="chat-contact-info">
-          <div class="avatar">
-            @if (selectedContact.profilePicture) {
-              <img [src]="selectedContact.profilePicture" [alt]="selectedContact.firstName">
-            } @else {
-              <div class="avatar-placeholder small" [style.backgroundColor]="getAvatarColor(selectedContact.firstName)">
-                {{ getInitials(selectedContact.firstName, selectedContact.lastName) }}
-              </div>
-            }
-          </div>
-          <div class="contact-details">
-            <div class="contact-name">{{ selectedContact.firstName }} {{ selectedContact.lastName }}</div>
-            <div class="contact-status">
-              @if (isTyping) {
-                <span class="typing-indicator">En train d'écrire...</span>
-              } @else if (selectedContact.isOnline) {
-                <span class="online">En ligne</span>
-              } @else {
-                <span class="offline">{{ formatLastSeen(selectedContact.lastSeen) }}</span>
-              }
-            </div>
+  <!-- Colonne centrale : chat -->
+  <div class="chat-area" *ngIf="selectedContact; else noChat">
+    <div class="chat-header">
+      <div class="contact-info">
+        <div class="avatar large">{{ getInitials(selectedContact.firstName, selectedContact.lastName) }}</div>
+        <div>
+          <div class="contact-name">{{ selectedContact.firstName }} {{ selectedContact.lastName }}</div>
+          <div class="contact-status">
+            <span *ngIf="isTyping" class="typing">En train d'écrire...</span>
+            <span *ngIf="!isTyping && selectedContact.isOnline" class="online">En ligne</span>
+            <span *ngIf="!isTyping && !selectedContact.isOnline" class="offline">Hors ligne</span>
           </div>
         </div>
-        <div class="chat-actions">
-          <button mat-icon-button (click)="startCall('audio')" matTooltip="Appel audio">
-            <mat-icon>call</mat-icon>
-          </button>
-          <button mat-icon-button (click)="startCall('video')" matTooltip="Appel vidéo">
-            <mat-icon>videocam</mat-icon>
-          </button>
-          <button mat-icon-button [matMenuTriggerFor]="chatMenu" matTooltip="Plus d'options">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #chatMenu="matMenu">
-            <button mat-menu-item (click)="sendMoney()">
-              <mat-icon>attach_money</mat-icon>
-              <span>Envoyer de l'argent</span>
-            </button>
-            <button mat-menu-item [routerLink]="['/profile', selectedContact.userId]">
-              <mat-icon>person</mat-icon>
-              <span>Voir le profil</span>
-            </button>
-            <mat-divider></mat-divider>
-            <button mat-menu-item (click)="blockUser()">
-              <mat-icon>block</mat-icon>
-              <span>Bloquer</span>
-            </button>
-          </mat-menu>
-        </div>
-      </div>
-
-      <div class="messages-container" #messageContainer (scroll)="onScroll($event)">
-        @if (isLoadingMessages) {
-          <div class="loading-messages">
-            <mat-spinner diameter="30"></mat-spinner>
-          </div>
-        }
-        @if (isLoadingMore) {
-          <div class="loading-messages">
-            <mat-spinner diameter="20"></mat-spinner>
-          </div>
-        }
-        @for (message of messages; track message.id) {
-          <div class="message" [class.own-message]="message.senderId === currentUserId" [class.other-message]="message.senderId !== currentUserId">
-            <div class="message-content">
-              @switch (message.type) {
-                @case ('text') {
-                  <div class="text-message">{{ message.content }}</div>
-                }
-                @case ('emoji') {
-                  <div class="emoji-message">{{ message.emoji }}</div>
-                }
-                @case ('image') {
-                  <img [src]="message.fileUrl" (click)="openImage(message.fileUrl!)" (error)="handleImageError(message)" class="image-message">
-                }
-                @case ('file') {
-                  <div class="file-message">
-                    <mat-icon>attach_file</mat-icon>
-                    <a [href]="message.fileUrl" download>{{ message.fileName }}</a>
-                    <span class="file-size">({{ (message.fileSize || 0) / 1024 | number:'1.0-0' }} KB)</span>
-                  </div>
-                }
-                @case ('money') {
-                  <div class="money-message">
-                    <mat-icon>attach_money</mat-icon>
-                    <span>{{ message.moneyTransfer?.amount | number }} Ar</span>
-                    <span class="money-status" [class.completed]="message.moneyTransfer?.status === 'completed'">
-                      {{ message.moneyTransfer?.status === 'pending' ? '⏳' : '✅' }}
-                    </span>
-                  </div>
-                }
-              }
-              <div class="message-time">{{ formatMessageTime(message.createdAt) }}</div>
-            </div>
-            <div class="message-actions">
-              @if (message.senderId === currentUserId && message.type === 'text') {
-                <button mat-icon-button (click)="editMessage(message)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button (click)="deleteMessage(message)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              }
-            </div>
-          </div>
-        }
-        
-        @if (messages.length === 0 && !isLoadingMessages) {
-          <div class="empty-chat">
-            <mat-icon>chat_bubble_outline</mat-icon>
-            <p>Aucun message</p>
-            <small>Envoyez un premier message à {{ selectedContact.firstName }}</small>
-          </div>
-        }
-      </div>
-
-      <div class="message-input-area">
-        <button mat-icon-button (click)="toggleEmojiPicker()" matTooltip="Emoji">
-          <mat-icon>tag_faces</mat-icon>
-        </button>
-        <button mat-icon-button (click)="uploadFile()" matTooltip="Joindre un fichier">
-          <mat-icon>attach_file</mat-icon>
-        </button>
-        <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)">
-        <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (keyup)="onTyping()" placeholder="Écrire un message..." [disabled]="isSending">
-        <button mat-icon-button (click)="sendMessage()" [disabled]="!newMessage.trim() || isSending" matTooltip="Envoyer">
-          <mat-icon>send</mat-icon>
-        </button>
-      </div>
-
-      @if (showEmojiPicker) {
-        <div class="emoji-picker">
-          <div class="simple-emoji-picker">
-            <span (click)="sendEmoji('😀')">😀</span>
-            <span (click)="sendEmoji('😂')">😂</span>
-            <span (click)="sendEmoji('🥰')">🥰</span>
-            <span (click)="sendEmoji('😍')">😍</span>
-            <span (click)="sendEmoji('🎉')">🎉</span>
-            <span (click)="sendEmoji('👍')">👍</span>
-            <span (click)="sendEmoji('❤️')">❤️</span>
-            <span (click)="sendEmoji('🔥')">🔥</span>
-          </div>
-        </div>
-      }
-    </div>
-  } @else {
-    <div class="no-chat-selected">
-      <div class="no-chat-content">
-        <button class="dashboard-back-btn" (click)="goToDashboard()">
-          <mat-icon>arrow_back</mat-icon>
-          Retour au tableau de bord
-        </button>
-        <mat-icon>chat</mat-icon>
-        <h3>Sélectionnez un ami</h3>
-        <p>Choisissez un ami dans la liste pour commencer à discuter</p>
-        @if (allFriendsList.length === 0 && !isLoadingFriends) {
-          <button class="btn-gradient" (click)="goToFriends()">
-            <mat-icon>person_add</mat-icon>
-            Ajouter des amis
-          </button>
-        }
       </div>
     </div>
-  }
+    <div class="messages-container" #messageContainer>
+      <div *ngFor="let msg of messages" class="message" [class.own]="msg.senderId === currentUserId">
+        <div class="message-bubble">
+          <span class="content">{{ msg.content || (msg.type === 'emoji' ? msg.emoji : '') }}</span>
+          <span class="time">{{ msg.createdAt | date:'HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="message-input">
+      <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (keyup)="onTyping()" placeholder="Écrire un message...">
+      <button (click)="sendMessage()" [disabled]="!newMessage.trim()">Envoyer</button>
+    </div>
+  </div>
+  <ng-template #noChat><div class="no-chat">Sélectionnez une conversation</div></ng-template>
+
+  <!-- Colonne droite : amis en ligne -->
+  <div class="online-friends-panel">
+    <h3>En ligne ({{ onlineFriends.length }})</h3>
+    <div class="online-list">
+      <div *ngFor="let friend of onlineFriends" class="online-friend" (click)="startChat(friend.friend.id)">
+        <div class="avatar small" [style.background]="getAvatarColor(friend.friend.firstName)">
+          {{ getInitials(friend.friend.firstName, friend.friend.lastName) }}
+          <span class="live-dot"></span>
+        </div>
+        <div class="friend-name">{{ friend.friend.firstName }} {{ friend.friend.lastName }}</div>
+      </div>
+    </div>
+  </div>
 </div>
