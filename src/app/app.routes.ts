@@ -1,4 +1,4 @@
-// app.routes.ts (version modifiée)
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
@@ -10,7 +10,7 @@ export const routes: Routes = [
   {
     path: 'user',
     canActivate: [AuthGuard],
-    loadComponent: () => import('./components/user/user.component').then(m => m.UserComponent)
+    loadChildren: () => import('./components/user/user.routes').then(m => m.USER_ROUTES)
   },
   {
     path: 'admin',
