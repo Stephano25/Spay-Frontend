@@ -8,27 +8,27 @@ export class NotificationService {
   constructor(private snackBar: MatSnackBar) {}
 
   /**
-   * Joue un bip sonore via l'API Web Audio (sans fichier externe)
+   * Joue le son de notification depuis le fichier MP3
    */
-  private playSound(): void {
+  public playNotificationSound(): void {
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      oscillator.frequency.value = 880;
-      gainNode.gain.value = 0.2;
-      oscillator.start();
-      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
-      oscillator.stop(audioCtx.currentTime + 0.5);
+      const audio = new Audio('/assets/sounds/notifications.mp3');
+      audio.play().catch(err => {
+        // Ignorer silencieusement les erreurs de lecture (autoplay bloqué)
+        console.warn('Lecture du son impossible', err);
+      });
     } catch (e) {
-      // Silencieux
+      // Ignorer
     }
   }
 
+  // Alias pour ne pas casser les appels existants
+  private playSound(): void {
+    this.playNotificationSound();
+  }
+
   showSuccess(message: string): void {
-    this.playSound();
+    this.playNotificationSound();
     this.snackBar.open(message, 'Fermer', {
       duration: 3000,
       panelClass: ['success-snackbar'],
@@ -38,7 +38,7 @@ export class NotificationService {
   }
 
   showError(message: string): void {
-    this.playSound();
+    this.playNotificationSound();
     this.snackBar.open(message, 'Fermer', {
       duration: 5000,
       panelClass: ['error-snackbar'],
@@ -48,7 +48,7 @@ export class NotificationService {
   }
 
   showInfo(message: string): void {
-    this.playSound();
+    this.playNotificationSound();
     this.snackBar.open(message, 'Fermer', {
       duration: 3000,
       panelClass: ['info-snackbar'],
@@ -58,7 +58,7 @@ export class NotificationService {
   }
 
   showWarning(message: string): void {
-    this.playSound();
+    this.playNotificationSound();
     this.snackBar.open(message, 'Fermer', {
       duration: 4000,
       panelClass: ['warning-snackbar'],
