@@ -42,7 +42,7 @@ bootstrapApplication(AppComponent, appConfig)
     // 3. Service Worker (notifications push)
     if ('serviceWorker' in navigator && !environment.production) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/notification-sw.js')
+        navigator.serviceWorker.register('/assets/notification-sw.js')
           .then(reg => console.log('✅ Service Worker enregistré', reg))
           .catch(err => console.error('❌ Erreur SW', err));
       });
