@@ -143,30 +143,41 @@ export class ChatService implements OnDestroy {
     if (Notification.permission === 'default') {
       const permission = await Notification.requestPermission();
       console.log('Permission notification:', permission);
+    } else if (Notification.permission === 'denied') {
+      console.warn('Notifications refusées par l’utilisateur');
     }
   }
 
   private showPushNotification(message: Message): void {
-    // Ne pas afficher de notification si l'onglet est actif
-    if (!document.hidden && Notification.permission !== 'granted') return;
+    // Ne pas notifier si l'onglet est actif (l'utilisateur est sur l'application)
+    if (!document.hidden) {
+      return;
+    }
+
+    // Vérifier que la permission est accordée
+    if (Notification.permission !== 'granted') {
+      return;
+    }
 
     const title = `📩 ${message.sender?.firstName || 'Nouveau message'}`;
     const body = message.content || (message.type === 'emoji' ? message.emoji : 'Message');
+    const iconUrl = '/assets/icons/image02.png'; // Chemin vers votre icône
 
-    // Utilisation du Service Worker si disponible
+    // Utiliser le Service Worker s'il est actif et capable d'afficher des notifications
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
         type: 'SHOW_NOTIFICATION',
         title: title,
         body: body,
-        icon: '/assets/icons/image02.png',   // ✅ icône personnalisée
+        icon: iconUrl,
         url: `/chat?friendId=${message.senderId}`
       });
-    } else if (Notification.permission === 'granted') {
+    } else {
       // Fallback : notification standard du navigateur
       new Notification(title, {
         body: body,
-        icon: '/assets/icons/image02.png'    // ✅ icône personnalisée
+        icon: iconUrl,
+        badge: iconUrl
       });
     }
   }
