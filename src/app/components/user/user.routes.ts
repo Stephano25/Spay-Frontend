@@ -67,7 +67,7 @@ export const USER_ROUTES: Routes = [
   },
 
   // Scanner un ami (QR code) – composant manquant, commenté temporairement
-  // {
+  //{
   //   path: 'scan-friend',
   //   loadComponent: () => import('../scan-friend/scan-friend.component').then(m => m.ScanFriendComponent)
   // },

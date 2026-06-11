@@ -1,287 +1,177 @@
-/* Réutiliser les variables du login */
+/* ============================================================
+   REGISTER — SPaye
+   ============================================================ */
 
 .register-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  background: var(--brand-grad);
+  padding: 28px 20px;
   position: relative;
   overflow: hidden;
 }
 
-.register-container::before {
+.register-container::before,
+.register-container::after {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  animation: rotate 30s linear infinite;
+  border-radius: 50%;
   pointer-events: none;
+}
+
+.register-container::before {
+  width: 500px; height: 500px;
+  top: -180px; left: -120px;
+  background: rgba(255,255,255,0.05);
+  animation: orb 20s ease-in-out infinite;
+}
+
+.register-container::after {
+  width: 360px; height: 360px;
+  bottom: -120px; right: -80px;
+  background: rgba(255,255,255,0.04);
+  animation: orb 28s ease-in-out infinite reverse;
 }
 
 .register-card {
   width: 100%;
-  max-width: 600px;
-  padding: 40px;
-  border-radius: var(--border-radius-2xl);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-2xl);
-  animation: slideInUp 0.6s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 560px;
+  padding: 44px 40px;
+  border-radius: var(--r-xl) !important;
+  background: rgba(255,255,255,0.97) !important;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 32px 64px rgba(0,0,0,0.18) !important;
+  border: none !important;
+  animation: fadeUp 0.55s var(--ease) both;
   position: relative;
   z-index: 10;
-  overflow: hidden;
 }
 
-.register-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-  animation: rotate 20s linear infinite;
+body.dark-theme .register-card {
+  background: rgba(19,19,28,0.97) !important;
 }
 
 .logo {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: var(--primary-gradient);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  animation: pulse 2s infinite;
-  box-shadow: var(--shadow-lg);
+  width: 64px; height: 64px;
+  border-radius: 18px;
+  background: var(--brand-grad);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 22px;
+  box-shadow: var(--shadow-brand);
+  animation: float 4s ease-in-out infinite;
 }
 
 .logo mat-icon {
-  font-size: 40px;
-  width: 40px;
-  height: 40px;
+  font-size: 32px; width: 32px; height: 32px;
   color: white;
-  animation: float 3s infinite;
 }
 
 .form-section {
-  margin-bottom: 30px;
-  animation: fadeIn 0.5s ease;
-  animation-fill-mode: both;
+  margin-bottom: 28px;
 }
 
-.form-section:nth-child(1) { animation-delay: 0.1s; }
-.form-section:nth-child(2) { animation-delay: 0.2s; }
-
 .form-section h3 {
-  font-size: 18px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
-  position: relative;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .form-section h3::after {
   content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 50px;
-  height: 2px;
-  background: var(--primary-gradient);
-  animation: expandWidth 1s ease;
-}
-
-@keyframes expandWidth {
-  from { width: 0; }
-  to { width: 50px; }
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 
 .row {
   display: flex;
-  gap: 15px;
-  margin-bottom: 0;
+  gap: 14px;
 }
 
 .half-width {
-  width: 50%;
-  margin-bottom: 16px;
-  animation: slideInLeft 0.5s ease;
-  animation-fill-mode: both;
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 14px;
 }
-
-.half-width:nth-child(1) { animation-delay: 0.15s; }
-.half-width:nth-child(2) { animation-delay: 0.25s; }
 
 .full-width {
   width: 100%;
-  margin-bottom: 16px;
-  animation: slideInLeft 0.5s ease;
-  animation-fill-mode: both;
+  margin-bottom: 14px;
 }
 
-.full-width:nth-child(3) { animation-delay: 0.2s; }
-.full-width:nth-child(4) { animation-delay: 0.3s; }
-
 .terms {
-  margin: 25px 0 20px;
-  animation: fadeIn 0.5s ease 0.4s both;
+  margin: 20px 0 16px;
 }
 
 .terms-error {
-  color: var(--danger-color);
-  font-size: 12px;
-  margin-top: 5px;
+  color: var(--danger);
+  font-size: 0.75rem;
+  margin-top: 4px;
   display: block;
-  animation: shake 0.3s ease;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  animation: fadeIn 0.2s var(--ease);
 }
 
 .terms a {
-  color: var(--primary-color);
+  color: var(--brand-1);
   text-decoration: none;
   font-weight: 500;
-  transition: all var(--transition-base);
-  position: relative;
 }
 
-.terms a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--primary-gradient);
-  transition: width var(--transition-base);
-}
-
-.terms a:hover {
-  color: var(--secondary-color);
-}
-
-.terms a:hover::after {
-  width: 100%;
-}
+.terms a:hover { text-decoration: underline; }
 
 .register-button {
   width: 100%;
-  height: 52px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 50px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  background: var(--primary-gradient) !important;
+  height: 50px;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  border-radius: var(--r-pill) !important;
+  background: var(--brand-grad) !important;
   color: white !important;
-  transition: all var(--transition-base) !important;
-  position: relative;
-  overflow: hidden;
-  animation: slideInUp 0.5s ease 0.5s both;
+  border: none !important;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  position: relative; overflow: hidden;
+  transition: transform var(--trans-base), box-shadow var(--trans-base) !important;
+  margin-bottom: 18px;
 }
 
-.register-button::before {
+.register-button::after {
   content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transform: rotate(45deg) translateX(-100%);
-  transition: transform 0.6s ease;
+  position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.5s var(--ease);
 }
 
-.register-button:hover::before {
-  transform: rotate(45deg) translateX(100%);
-}
-
-.register-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-}
+.register-button:hover::after { transform: translateX(100%); }
+.register-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-brand) !important; }
+.register-button:disabled { opacity: 0.6; }
 
 .login-link {
   text-align: center;
-  font-size: 14px;
-  color: var(--text-secondary);
-  animation: fadeIn 0.5s ease 0.6s both;
+  font-size: 0.875rem;
+  color: var(--text-3);
 }
 
 .login-link a {
-  color: var(--primary-color);
+  color: var(--brand-1);
   text-decoration: none;
   font-weight: 600;
-  margin-left: 5px;
-  transition: all var(--transition-base);
-  position: relative;
+  margin-left: 4px;
 }
 
-.login-link a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--primary-gradient);
-  transition: width var(--transition-base);
-}
+.login-link a:hover { text-decoration: underline; }
 
-.login-link a:hover {
-  color: var(--secondary-color);
-}
-
-.login-link a:hover::after {
-  width: 100%;
-}
-
-/* Style des checkbox */
-::ng-deep .mat-checkbox-checked.mat-accent .mat-checkbox-background {
-  background-color: var(--primary-color) !important;
-}
-
-::ng-deep .mat-checkbox .mat-checkbox-frame {
-  border-color: rgba(102, 126, 234, 0.3);
-}
-
-::ng-deep .mat-checkbox:hover .mat-checkbox-frame {
-  border-color: var(--primary-color);
-}
-
-/* Responsive */
 @media (max-width: 600px) {
-  .register-card {
-    padding: 30px 20px;
-  }
-  
-  .row {
-    flex-direction: column;
-    gap: 0;
-  }
-  
-  .half-width {
-    width: 100%;
-  }
-  
-  mat-card-title {
-    font-size: 28px;
-  }
+  .register-card { padding: 32px 20px; }
+  .row { flex-direction: column; gap: 0; }
+  .half-width { width: 100%; }
 }

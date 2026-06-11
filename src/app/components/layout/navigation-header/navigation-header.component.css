@@ -1,145 +1,158 @@
+/* ============================================================
+   NAVIGATION HEADER — SPaye
+   ============================================================ */
+
 .header-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.admin-header {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: white;
-}
-
-.admin-header h1 {
-  color: white;
-}
-
-.admin-header .profile-btn {
-  background: rgba(255,255,255,0.1);
-  color: white;
-}
-
-.admin-header .user-info-desktop {
-  color: white;
-}
-
-.admin-header .action-btn {
-  color: white;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 0.5px solid var(--border);
+  box-shadow: var(--shadow-xs);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  backdrop-filter: blur(12px);
+  transition: background var(--trans-base);
+  min-height: 60px;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .header-left h1 {
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
   margin: 0;
-  font-size: 24px;
-  font-weight: 500;
-  color: #333;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .back-btn {
-  color: inherit;
+  color: var(--text-2) !important;
+  transition: color var(--trans-base), background var(--trans-base) !important;
+  border-radius: 50% !important;
+}
+
+.back-btn:hover {
+  color: var(--brand-1) !important;
+  background: var(--active) !important;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .action-btn {
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--surface-2) !important;
+  border-radius: 50% !important;
+  color: var(--text-2) !important;
+  transition: all var(--trans-base) !important;
 }
 
+.action-btn:hover {
+  background: var(--active) !important;
+  color: var(--brand-1) !important;
+  transform: translateY(-1px);
+}
+
+/* User info pill */
 .user-info-desktop {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 4px 12px;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 30px;
+  gap: 10px;
+  padding: 6px 14px 6px 10px;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-pill);
+  transition: background var(--trans-base);
 }
 
+.user-info-desktop:hover { background: var(--surface-3); }
+
 .user-name {
-  font-size: 14px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: #333;
+  color: var(--text-2);
+  white-space: nowrap;
 }
 
 .user-avatar-small {
-  width: 32px;
-  height: 32px;
+  width: 28px; height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--brand-grad);
   color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .profile-btn {
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--surface-2) !important;
+  color: var(--text-2) !important;
+  border-radius: 50% !important;
+  transition: all var(--trans-base) !important;
 }
 
+.profile-btn:hover {
+  background: var(--active) !important;
+  color: var(--brand-1) !important;
+}
+
+/* Menu header */
 .menu-header {
-  padding: 16px;
+  padding: 14px 16px 10px;
   min-width: 220px;
+  border-bottom: 0.5px solid var(--border);
+  margin-bottom: 4px;
 }
 
 .menu-user-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .menu-user-info strong {
-  font-size: 14px;
-  color: #333;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .menu-user-info small {
-  font-size: 12px;
-  color: #666;
+  font-size: 0.75rem;
+  color: var(--text-3);
 }
 
 .role-badge {
-  display: inline-block;
-  background: #667eea;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 500;
-  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  background: var(--active);
+  color: var(--brand-1);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-top: 6px;
   align-self: flex-start;
+  border: 0.5px solid var(--border);
 }
 
-.logout-item {
-  color: #f44336;
-}
-
-.logout-item mat-icon {
-  color: #f44336;
-}
+/* Logout menu item */
+.logout-item { color: var(--danger) !important; }
+.logout-item mat-icon { color: var(--danger) !important; }
 
 @media (max-width: 768px) {
-  .header-container {
-    padding: 12px 16px;
-  }
-  
-  .header-left h1 {
-    font-size: 20px;
-  }
-
-  .user-info-desktop {
-    display: none;
-  }
+  .header-container { padding: 10px 16px; }
+  .header-left h1 { font-size: 1rem; }
+  .user-info-desktop { display: none; }
 }

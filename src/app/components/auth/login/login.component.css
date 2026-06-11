@@ -1,340 +1,172 @@
-/* Variables */
-:root {
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --success-gradient: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-  --primary-color: #667eea;
-  --secondary-color: #764ba2;
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --danger-color: #ef4444;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-light: #9ca3af;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --border-radius-sm: 0.375rem;
-  --border-radius-md: 0.5rem;
-  --border-radius-lg: 1rem;
-  --border-radius-xl: 1.5rem;
-  --border-radius-2xl: 2rem;
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* ============================================================
+   LOGIN — SPaye
+   ============================================================ */
 
 .login-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--brand-grad);
   padding: 20px;
   position: relative;
   overflow: hidden;
 }
 
-/* Particules animées */
-.login-container::before {
+.login-container::before,
+.login-container::after {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  animation: rotate 30s linear infinite;
+  border-radius: 50%;
   pointer-events: none;
 }
 
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.login-container::before {
+  width: 600px; height: 600px;
+  top: -200px; right: -200px;
+  background: rgba(255,255,255,0.06);
+  animation: orb 18s ease-in-out infinite;
+}
+
+.login-container::after {
+  width: 400px; height: 400px;
+  bottom: -150px; left: -100px;
+  background: rgba(255,255,255,0.04);
+  animation: orb 24s ease-in-out infinite reverse;
 }
 
 .login-card {
   width: 100%;
-  max-width: 450px;
-  padding: 40px;
-  border-radius: var(--border-radius-2xl);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-2xl);
-  animation: slideInUp 0.6s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 440px;
+  padding: 44px 40px;
+  border-radius: var(--r-xl) !important;
+  background: rgba(255,255,255,0.97) !important;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 32px 64px rgba(0,0,0,0.18) !important;
+  border: none !important;
+  animation: scaleIn 0.5s var(--ease-spring) both;
   position: relative;
   z-index: 10;
-  overflow: hidden;
 }
 
-.login-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-  animation: rotate 20s linear infinite;
+body.dark-theme .login-card {
+  background: rgba(19,19,28,0.97) !important;
 }
 
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* Logo */
 .logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: var(--primary-gradient);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  animation: pulse 2s infinite;
-  position: relative;
-  z-index: 2;
-  box-shadow: var(--shadow-lg);
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 15px rgba(102, 126, 234, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
-  }
+  width: 72px; height: 72px;
+  border-radius: 20px;
+  background: var(--brand-grad);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: var(--shadow-brand);
+  animation: float 4s ease-in-out infinite;
 }
 
 .logo mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
+  font-size: 36px; width: 36px; height: 36px;
   color: white;
-  animation: float 3s infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
 }
 
 mat-card-header {
   flex-direction: column;
   text-align: center;
-  margin-bottom: 30px;
-  position: relative;
-  z-index: 2;
+  margin-bottom: 32px;
 }
 
 mat-card-title {
-  font-size: 32px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-  animation: fadeIn 0.8s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  font-family: var(--font-sans) !important;
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
 }
 
 mat-card-subtitle {
-  color: var(--text-secondary);
-  font-size: 16px;
+  color: var(--text-3) !important;
+  font-size: 15px;
 }
 
 .full-width {
   width: 100%;
-  margin-bottom: 20px;
-  animation: slideInLeft 0.5s ease;
-  animation-fill-mode: both;
-}
-
-.full-width:nth-child(1) { animation-delay: 0.1s; }
-.full-width:nth-child(2) { animation-delay: 0.2s; }
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Style des champs de formulaire */
-::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
-  color: rgba(102, 126, 234, 0.2);
-}
-
-::ng-deep .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline {
-  color: var(--primary-color);
-}
-
-::ng-deep .mat-form-field-label {
-  color: var(--text-secondary) !important;
-}
-
-::ng-deep .mat-form-field.mat-focused .mat-form-field-label {
-  color: var(--primary-color) !important;
-}
-
-::ng-deep .mat-input-element {
-  color: var(--text-primary) !important;
+  margin-bottom: 18px;
 }
 
 .form-options {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 25px;
-  animation: fadeIn 0.5s ease 0.3s both;
+  margin-bottom: 24px;
 }
 
 .forgot-password {
-  color: var(--primary-color);
+  color: var(--brand-1);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
-  transition: all var(--transition-base);
+  transition: opacity var(--trans-base);
   position: relative;
 }
 
 .forgot-password::after {
   content: '';
   position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--primary-gradient);
-  transition: width var(--transition-base);
+  bottom: -1px; left: 0;
+  width: 0; height: 1.5px;
+  background: var(--brand-1);
+  transition: width var(--trans-base);
 }
 
-.forgot-password:hover {
-  color: var(--secondary-color);
-}
-
-.forgot-password:hover::after {
-  width: 100%;
-}
+.forgot-password:hover { opacity: 0.75; }
+.forgot-password:hover::after { width: 100%; }
 
 .login-button {
   width: 100%;
-  height: 52px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 50px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: var(--primary-gradient) !important;
+  height: 50px;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  border-radius: var(--r-pill) !important;
+  background: var(--brand-grad) !important;
   color: white !important;
-  transition: all var(--transition-base) !important;
+  border: none !important;
   position: relative;
   overflow: hidden;
-  animation: slideInUp 0.5s ease 0.4s both;
+  transition: transform var(--trans-base), box-shadow var(--trans-base) !important;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 
-.login-button::before {
+.login-button::after {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transform: rotate(45deg) translateX(-100%);
-  transition: transform 0.6s ease;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.5s var(--ease);
 }
 
-.login-button:hover::before {
-  transform: rotate(45deg) translateX(100%);
-}
-
-.login-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-}
-
-.login-button:disabled {
-  opacity: 0.7;
-}
+.login-button:hover::after { transform: translateX(100%); }
+.login-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-brand) !important; }
+.login-button:disabled { opacity: 0.6; }
 
 .register-link {
   text-align: center;
-  margin-top: 25px;
-  font-size: 14px;
-  color: var(--text-secondary);
-  animation: fadeIn 0.5s ease 0.5s both;
+  margin-top: 24px;
+  font-size: 0.875rem;
+  color: var(--text-3);
 }
 
 .register-link a {
-  color: var(--primary-color);
+  color: var(--brand-1);
   text-decoration: none;
   font-weight: 600;
-  margin-left: 5px;
-  transition: all var(--transition-base);
-  position: relative;
+  margin-left: 4px;
+  transition: opacity var(--trans-base);
 }
 
-.register-link a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--primary-gradient);
-  transition: width var(--transition-base);
-}
+.register-link a:hover { opacity: 0.75; }
 
-.register-link a:hover {
-  color: var(--secondary-color);
-}
-
-.register-link a:hover::after {
-  width: 100%;
-}
-
-/* Responsive */
 @media (max-width: 480px) {
-  .login-card {
-    padding: 30px 20px;
-  }
-  
-  mat-card-title {
-    font-size: 28px;
-  }
-  
-  .logo {
-    width: 70px;
-    height: 70px;
-  }
-  
-  .logo mat-icon {
-    font-size: 40px;
-    width: 40px;
-    height: 40px;
-  }
+  .login-card { padding: 32px 24px; }
+  mat-card-title { font-size: 22px !important; }
 }

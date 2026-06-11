@@ -1,23 +1,14 @@
+/* ============================================================
+   ADMIN SHELL — SPaye
+   ============================================================ */
+
 .admin-content {
-  padding: 24px;
+  padding: 28px 24px;
   max-width: 1400px;
   margin: 0 auto;
-  animation: fadeSlideUp 0.5s ease-out;
-}
-
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  animation: fadeUp 0.4s var(--ease) both;
 }
 
 @media (max-width: 768px) {
-  .admin-content {
-    padding: 16px;
-  }
+  .admin-content { padding: 16px 14px; }
 }
