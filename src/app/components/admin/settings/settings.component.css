@@ -1,8 +1,8 @@
 /* ============================================================
-   SETTINGS PAGE – MODERN DESIGN
+   SETTINGS PAGE – THÈME DYNAMIQUE
    ============================================================ */
 
-/* Variables */
+/* Variables (réutilisées depuis le thème) */
 :root {
   --primary: #6366f1;
   --primary-dark: #4f46e5;
@@ -11,10 +11,6 @@
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --dark: #1e293b;
-  --gray: #64748b;
-  --light: #f8fafc;
-  --white: #ffffff;
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
   --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1);
@@ -26,7 +22,7 @@
 /* Container principal */
 .settings-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--light), #eef2ff);
+  background-color: var(--bg-primary);
   padding: 0 24px;
 }
 
@@ -44,7 +40,7 @@
   justify-content: center;
   min-height: 400px;
   gap: 20px;
-  color: var(--gray);
+  color: var(--text-secondary);
 }
 
 /* Carte admin */
@@ -52,7 +48,6 @@
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: white;
   border-radius: var(--radius);
-  padding: 0;
   margin-bottom: 32px;
   animation: fadeSlideUp 0.5s ease-out;
   box-shadow: var(--shadow-lg);
@@ -132,7 +127,7 @@
 
 /* Onglets */
 .settings-tabs {
-  background: var(--white);
+  background-color: var(--card-bg);
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -140,8 +135,8 @@
 }
 
 .settings-tabs .mat-mdc-tab-header {
-  background: var(--white);
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .settings-tabs .mat-mdc-tab {
@@ -166,6 +161,8 @@
 .settings-card {
   margin-bottom: 24px;
   border-radius: 16px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow);
   transition: var(--transition);
   overflow: hidden;
@@ -177,14 +174,14 @@
 }
 
 .settings-card .mat-mdc-card-header {
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(99, 102, 241, 0.08);
   padding: 16px 24px;
 }
 
 .settings-card mat-card-actions {
   padding: 16px 24px;
-  border-top: 1px solid rgba(0,0,0,0.05);
-  background: #fafbff;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
 }
 
 /* Formulaires */
@@ -225,13 +222,13 @@
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  background: var(--white);
-  border: 1.5px solid #e2e8f0;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border-color);
   border-radius: 60px;
   cursor: pointer;
   font-weight: 500;
   transition: var(--transition);
-  color: var(--dark);
+  color: var(--text-primary);
 }
 
 .theme-btn:hover, .language-btn:hover {
@@ -255,10 +252,10 @@
   width: 100%;
   height: 48px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   padding: 4px;
-  background: var(--white);
+  background: var(--card-bg);
   transition: var(--transition);
 }
 
@@ -272,11 +269,12 @@
   width: 100%;
   padding: 12px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   font-family: monospace;
   font-size: 0.85rem;
   resize: vertical;
-  background: var(--white);
+  background: var(--card-bg);
+  color: var(--text-primary);
   transition: var(--transition);
 }
 
@@ -297,24 +295,24 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background: #f8fafc;
+  background: var(--bg-secondary);
   border-radius: 12px;
   transition: var(--transition);
 }
 
 .stat-item:hover {
-  background: #f1f5f9;
+  background: var(--hover-bg);
   transform: translateX(4px);
 }
 
 .stat-label {
   font-weight: 500;
-  color: var(--gray);
+  color: var(--text-secondary);
 }
 
 .stat-value {
   font-weight: 700;
-  color: var(--dark);
+  color: var(--text-primary);
   font-family: monospace;
 }
 
@@ -359,15 +357,4 @@
   .tab-content {
     padding: 16px;
   }
-}.settings-page {
-  background: #0a0a0a !important;
-}
-.settings-tabs {
-  background: #1a1a1a !important;
-}
-.settings-card {
-  background: #1a1a1a !important;
-}
-.admin-profile-card {
-  background: linear-gradient(135deg, #1e1e2a, #121212) !important;
 }

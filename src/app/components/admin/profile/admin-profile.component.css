@@ -1,36 +1,23 @@
 /* ============================================================
-   PROFILE — ADMIN  |  Spaye Wallet
-   Animated · Professional · Modern
+   PROFILE — ADMIN  |  Thème dynamique
    ============================================================ */
 
 /* ── Variables ── */
 :root {
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --primary:        #667eea;
-  --secondary:      #764ba2;
-  --success:        #10b981;
-  --danger:         #ef4444;
-  --ink:            #111827;
-  --ink-2:          #374151;
-  --ink-3:          #6b7280;
-  --ink-4:          #9ca3af;
-  --surface:        #ffffff;
-  --surface-2:      #f9fafb;
-  --border:         rgba(0, 0, 0, 0.07);
-  --border-2:       rgba(102, 126, 234, 0.2);
-  --shadow-sm:      0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-md:      0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg:      0 10px 30px rgba(0, 0, 0, 0.10);
-  --shadow-xl:      0 20px 40px rgba(102, 126, 234, 0.15);
-  --radius:         20px;
-  --radius-sm:      12px;
-  --trans:          0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --primary: #667eea;
+  --secondary: #764ba2;
+  --success: #10b981;
+  --danger: #ef4444;
+  --radius: 20px;
+  --radius-sm: 12px;
+  --trans: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Container ── */
 .profile-container {
   min-height: 100vh;
-  background: var(--surface-2);
+  background-color: var(--bg-primary);
   font-family: 'DM Sans', system-ui, sans-serif;
 }
 
@@ -53,7 +40,7 @@
 
 .loading-container p {
   margin: 0;
-  color: var(--ink-3);
+  color: var(--text-secondary);
   font-size: 0.875rem;
   animation: pulse 2s infinite;
 }
@@ -63,8 +50,8 @@
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
-  background: var(--surface);
-  border: 0.5px solid var(--border);
+  background-color: var(--card-bg);
+  border: 0.5px solid var(--border-color);
   animation: scaleIn 0.4s var(--trans) both;
 }
 
@@ -80,26 +67,26 @@
   overflow: hidden;
 }
 
-.profile-header::before {
+.profile-header::before,
+.profile-header::after {
   content: '';
   position: absolute;
-  top: -80px; right: -80px;
-  width: 260px; height: 260px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.07);
   pointer-events: none;
   animation: floatOrb 12s ease-in-out infinite;
 }
 
+.profile-header::before {
+  top: -80px; right: -80px;
+  width: 260px; height: 260px;
+}
+
 .profile-header::after {
-  content: '';
-  position: absolute;
   bottom: -60px; left: -40px;
   width: 200px; height: 200px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
-  pointer-events: none;
-  animation: floatOrb 16s ease-in-out infinite reverse;
+  animation-duration: 16s;
+  animation-direction: reverse;
 }
 
 /* ── Avatar ── */
@@ -117,7 +104,6 @@
   position: relative;
   z-index: 2;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  animation: avatarEntrance 0.6s var(--trans) both;
   transition: transform var(--trans), box-shadow var(--trans);
 }
 
@@ -161,16 +147,6 @@
 }
 
 .profile-avatar-image:hover .avatar-overlay { opacity: 1; }
-
-/* ── Header texts ── */
-.profile-header h2,
-.profile-header h3 {
-  color: white;
-  margin: 0;
-  position: relative;
-  z-index: 2;
-  text-align: center;
-}
 
 /* ── Admin Badge ── */
 .admin-badge {
@@ -235,17 +211,11 @@
   align-items: center;
   gap: 16px;
   padding: 16px 0;
-  border-bottom: 0.5px solid var(--border);
+  border-bottom: 0.5px solid var(--border-color);
   transition: background var(--trans);
-  animation: slideInLeft 0.4s var(--trans) both;
 }
 
-.info-item:last-child { border-bottom: none; }
-.info-item:nth-child(1) { animation-delay: 0.05s; }
-.info-item:nth-child(2) { animation-delay: 0.10s; }
-.info-item:nth-child(3) { animation-delay: 0.15s; }
-.info-item:nth-child(4) { animation-delay: 0.20s; }
-.info-item:nth-child(5) { animation-delay: 0.25s; }
+.info-item:hover { background: var(--hover-bg); }
 
 .info-item mat-icon {
   color: var(--primary);
@@ -269,7 +239,7 @@
 
 .info-label {
   font-size: 0.68rem;
-  color: var(--ink-4);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 500;
@@ -278,7 +248,7 @@
 .info-value {
   font-size: 0.95rem;
   font-weight: 500;
-  color: var(--ink-2);
+  color: var(--text-primary);
   transition: color var(--trans);
 }
 
@@ -292,7 +262,7 @@
 .info-value.qr-code {
   font-family: 'Space Mono', monospace;
   font-size: 0.75rem;
-  color: var(--ink-3);
+  color: var(--text-secondary);
   letter-spacing: 0.04em;
 }
 
@@ -319,17 +289,16 @@
 .qr-code-section {
   text-align: center;
   padding: 28px 24px;
-  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  background: var(--bg-secondary);
   border-radius: var(--radius-sm);
   margin: 24px 0;
-  border: 0.5px solid var(--border);
-  animation: fadeSlideUp 0.5s var(--trans) 0.2s both;
+  border: 0.5px solid var(--border-color);
 }
 
 .qr-code-section h3 {
   margin: 0 0 16px;
   font-size: 1rem;
-  color: var(--ink-2);
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -339,11 +308,11 @@
   align-items: center;
   gap: 10px;
   padding: 28px;
-  background: white;
+  background: var(--card-bg);
   border-radius: var(--radius-sm);
   margin-bottom: 14px;
   box-shadow: var(--shadow-sm);
-  border: 0.5px solid var(--border);
+  border: 0.5px solid var(--border-color);
   transition: box-shadow var(--trans), transform var(--trans);
 }
 
@@ -361,13 +330,13 @@
 .qr-code-placeholder span {
   font-family: 'Space Mono', monospace;
   font-size: 0.72rem;
-  color: var(--ink-3);
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
 }
 
 .qr-hint {
   font-size: 0.75rem;
-  color: var(--ink-4);
+  color: var(--text-secondary);
   margin: 8px 0 0;
 }
 
@@ -375,17 +344,16 @@
 .admin-stats {
   margin-top: 24px;
   padding: 20px;
-  background: linear-gradient(135deg, #f9fafb, #f0f4ff);
+  background: var(--bg-secondary);
   border-radius: var(--radius-sm);
-  border: 0.5px solid var(--border-2);
-  animation: fadeSlideUp 0.5s var(--trans) 0.3s both;
+  border: 0.5px solid var(--border-color);
 }
 
 .admin-stats h3 {
   margin: 0 0 16px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--ink-2);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -399,12 +367,11 @@
 .stat-card {
   text-align: center;
   padding: 16px 12px;
-  background: white;
+  background: var(--card-bg);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
-  border: 0.5px solid var(--border);
+  border: 0.5px solid var(--border-color);
   transition: transform var(--trans), box-shadow var(--trans);
-  animation: scaleIn 0.4s var(--trans) both;
 }
 
 .stat-card:hover {
@@ -422,7 +389,7 @@
 
 .stat-label {
   font-size: 0.68rem;
-  color: var(--ink-4);
+  color: var(--text-secondary);
   margin-top: 4px;
   display: block;
   text-transform: uppercase;
@@ -458,17 +425,6 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes avatarEntrance {
-  0%   { opacity: 0; transform: scale(0.6) translateY(10px); }
-  70%  { transform: scale(1.06) translateY(0); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
 @keyframes floatOrb {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33%  { transform: translate(-20px, 15px) scale(1.05); }
@@ -490,9 +446,4 @@
   .action-buttons button { width: 100%; }
   .stats-grid { grid-template-columns: 1fr; gap: 10px; }
   .change-photo-section { flex-direction: column; }
-}.profile-container, .profile-content {
-  background: #0a0a0a !important;
-}
-.profile-card {
-  background: #1a1a1a !important;
 }
