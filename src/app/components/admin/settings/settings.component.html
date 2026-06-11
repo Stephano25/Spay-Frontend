@@ -1,4 +1,4 @@
-<!-- Barre d’outils avec bouton retour -->
+<!-- src/app/components/admin/settings/settings.component.html -->
 <mat-toolbar color="primary">
   <button mat-icon-button (click)="goBack()" matTooltip="Retour">
     <mat-icon>arrow_back</mat-icon>
@@ -27,24 +27,16 @@
             </div>
           </div>
           <div class="system-info">
-            <div class="info-item">
-              <span class="info-label">Version</span>
-              <span class="info-value">{{ versions.app }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Uptime</span>
-              <span class="info-value">{{ systemStats.uptime }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Sessions actives</span>
-              <span class="info-value">{{ systemStats.activeSessions }}</span>
-            </div>
+            <div class="info-item"><span class="info-label">Version</span><span class="info-value">{{ versions.app }}</span></div>
+            <div class="info-item"><span class="info-label">Uptime</span><span class="info-value">{{ systemStats.uptime }}</span></div>
+            <div class="info-item"><span class="info-label">Sessions actives</span><span class="info-value">{{ systemStats.activeSessions }}</span></div>
           </div>
         </mat-card-content>
       </mat-card>
 
       <!-- Onglets -->
       <mat-tab-group class="settings-tabs" (selectedIndexChange)="activeTab = $event" [selectedIndex]="activeTab">
+        <!-- Onglet Général -->
         <mat-tab label="Général">
           <div class="tab-content">
             <form [formGroup]="generalForm" (ngSubmit)="saveGeneralSettings()">
@@ -106,6 +98,7 @@
           </div>
         </mat-tab>
 
+        <!-- Onglet Apparence -->
         <mat-tab label="Apparence">
           <div class="tab-content">
             <mat-card class="settings-card">
@@ -164,6 +157,7 @@
           </div>
         </mat-tab>
 
+        <!-- Onglet Système -->
         <mat-tab label="Système">
           <div class="tab-content">
             <mat-card class="settings-card">

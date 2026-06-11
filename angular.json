@@ -30,7 +30,8 @@
               "debug",
               "socket.io-parser",
               "socket.io-client",
-              "qrcode"
+              "qrcode",
+              "html5-qrcode"
             ]
           },
           "configurations": {

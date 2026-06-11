@@ -1,8 +1,4 @@
-/* ============================================================
-   SETTINGS PAGE – THÈME DYNAMIQUE
-   ============================================================ */
-
-/* Variables (réutilisées depuis le thème) */
+/* src/app/components/admin/settings/settings.component.css */
 :root {
   --primary: #6366f1;
   --primary-dark: #4f46e5;

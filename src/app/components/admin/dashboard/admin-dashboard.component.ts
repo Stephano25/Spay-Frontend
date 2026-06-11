@@ -27,7 +27,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatGridListModule, MatProgressSpinnerModule, MatTooltipModule, MatButtonToggleModule, MatRippleModule, MatToolbarModule
   ],
   templateUrl: './admin-dashboard.component.html',
-  styleUrls: ['./admin-dashboard.component.css']
+  styleUrls: ['./admin-dashboard.component.css']  // ✅ CORRECTION : pointe vers le bon fichier CSS
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   user: User | null = null;
@@ -37,6 +37,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   currentDate = new Date();
   private subscriptions: Subscription[] = [];
   private charts: Chart[] = [];
+
+  recentEvents: any[] = [];
 
   constructor(private adminService: AdminService, private authService: AuthService, private router: Router) {}
 
@@ -60,6 +62,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       this.adminService.getDashboardStats().subscribe({
         next: (data) => {
           this.stats = data;
+          this.generateRecentEvents();
           setTimeout(() => this.createCharts(), 200);
           this.isLoading = false;
         },
@@ -69,6 +72,30 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         }
       })
     );
+  }
+
+  private generateRecentEvents(): void {
+    if (!this.stats) return;
+    const events: any[] = [];
+    if (this.stats.recentUsers?.length) {
+      this.stats.recentUsers.slice(0, 3).forEach(user => {
+        events.push({
+          icon: 'person_add',
+          message: `Nouvel utilisateur : ${user.firstName} ${user.lastName}`,
+          time: user.createdAt
+        });
+      });
+    }
+    if (this.stats.recentTransactions?.length) {
+      this.stats.recentTransactions.slice(0, 3).forEach(tx => {
+        events.push({
+          icon: 'receipt',
+          message: `Transaction de ${this.formatVolume(tx.amount)} Ar`,
+          time: tx.createdAt
+        });
+      });
+    }
+    this.recentEvents = events.sort((a,b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
   }
 
   private createCharts(): void {
@@ -223,8 +250,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   changePeriod(period: 'day' | 'week' | 'month'): void { this.selectedPeriod = period; this.loadDashboardData(); }
   navigateTo(route: string): void { this.router.navigate([`/admin/${route}`]); }
   logout(): void { this.authService.logout(); }
-  goBack(): void {
-  this.router.navigate(['/admin/dashboard']); }
+  goBack(): void { this.router.navigate(['/admin/dashboard']); }
   formatVolume(volume: number): string { return volume >= 1e6 ? (volume / 1e6).toFixed(1) + ' M' : volume >= 1e3 ? (volume / 1e3).toFixed(1) + ' k' : volume.toString(); }
   formatNumber(num: number): string { return new Intl.NumberFormat('fr-MG').format(num); }
   getInitials(first: string, last: string): string { return (first?.charAt(0) || '') + (last?.charAt(0) || ''); }

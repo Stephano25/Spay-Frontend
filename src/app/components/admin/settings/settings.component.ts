@@ -1,17 +1,15 @@
+// src/app/components/admin/settings/settings.component.ts
 import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-// Services
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { AdminService } from '../../../services/admin.service';
 import { ThemeService } from '../../../services/theme.service';
 import { TranslationService } from '../../../services/translation.service';
-
-// Models
 import { User } from '../../../models/user.model';
 
 // Angular Material
@@ -212,7 +210,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadAdminData();
     this.loadSettings();
-    this.loadSavedPreferences();
+    this.loadThemeFromService();
   }
 
   ngOnDestroy(): void {
@@ -352,29 +350,20 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     );
   }
 
-  private loadSavedPreferences(): void {
-    const savedTheme = localStorage.getItem('theme');
-    const savedLanguage = localStorage.getItem('language');
-    const savedPrimaryColor = localStorage.getItem('primaryColor');
-    const savedSecondaryColor = localStorage.getItem('secondaryColor');
-    
-    if (savedTheme) {
-      this.customizationSettings.theme = savedTheme;
-      this.customizationForm.patchValue({ theme: savedTheme });
-    }
-    if (savedLanguage) {
-      this.selectedLanguage = savedLanguage;
-    }
-    if (savedPrimaryColor) {
-      this.customizationSettings.primaryColor = savedPrimaryColor;
-      this.customizationForm.patchValue({ primaryColor: savedPrimaryColor });
-    }
-    if (savedSecondaryColor) {
-      this.customizationSettings.secondaryColor = savedSecondaryColor;
-      this.customizationForm.patchValue({ secondaryColor: savedSecondaryColor });
-    }
-    
-    this.applyTheme();
+  private loadThemeFromService(): void {
+    const currentTheme = this.themeService.getCurrentTheme();
+    const primaryColor = this.themeService.getCurrentPrimaryColor();
+    const secondaryColor = this.themeService.getCurrentSecondaryColor();
+
+    this.customizationSettings.theme = currentTheme;
+    this.customizationSettings.primaryColor = primaryColor;
+    this.customizationSettings.secondaryColor = secondaryColor;
+
+    this.customizationForm.patchValue({
+      theme: currentTheme,
+      primaryColor: primaryColor,
+      secondaryColor: secondaryColor
+    });
   }
 
   private updateForms(): void {
@@ -400,7 +389,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       this.adminService.updateSettings(updatedSettings).subscribe({
         next: () => {
           this.generalSettings = updatedSettings.general;
-          this.saveToStorage();
           this.notificationService.showSuccess('Paramètres généraux sauvegardés');
           this.isSaving = false;
         },
@@ -428,7 +416,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       this.adminService.updateSettings(updatedSettings).subscribe({
         next: () => {
           this.securitySettings = updatedSettings.security;
-          this.saveToStorage();
           this.notificationService.showSuccess('Paramètres de sécurité sauvegardés');
           this.isSaving = false;
         },
@@ -456,7 +443,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       this.adminService.updateSettings(updatedSettings).subscribe({
         next: () => {
           this.paymentSettings = updatedSettings.payment;
-          this.saveToStorage();
           this.notificationService.showSuccess('Paramètres de paiement sauvegardés');
           this.isSaving = false;
         },
@@ -484,7 +470,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       this.adminService.updateSettings(updatedSettings).subscribe({
         next: () => {
           this.notificationSettings = updatedSettings.notification;
-          this.saveToStorage();
           this.notificationService.showSuccess('Paramètres de notification sauvegardés');
           this.isSaving = false;
         },
@@ -500,41 +485,33 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   saveCustomizationSettings(): void {
     if (this.customizationForm.invalid) return;
     this.isSaving = true;
-    const updatedSettings = {
-      ...this.customizationSettings,
-      theme: this.customizationForm.get('theme')?.value,
-      primaryColor: this.customizationForm.get('primaryColor')?.value,
-      secondaryColor: this.customizationForm.get('secondaryColor')?.value,
-      customCSS: this.customizationForm.get('customCSS')?.value,
-      customJS: this.customizationForm.get('customJS')?.value
-    };
-    
-    this.customizationSettings = updatedSettings;
-    this.saveToStorage();
-    this.applyTheme();
-    
+    const theme = this.customizationForm.get('theme')?.value;
+    const primaryColor = this.customizationForm.get('primaryColor')?.value;
+    const secondaryColor = this.customizationForm.get('secondaryColor')?.value;
+    const customCSS = this.customizationForm.get('customCSS')?.value;
+
+    this.customizationSettings.theme = theme;
+    this.customizationSettings.primaryColor = primaryColor;
+    this.customizationSettings.secondaryColor = secondaryColor;
+    this.customizationSettings.customCSS = customCSS;
+
+    this.themeService.applyTheme(theme, primaryColor, secondaryColor);
+    this.applyCustomCSS(customCSS);
+
     setTimeout(() => {
       this.notificationService.showSuccess('Paramètres de personnalisation sauvegardés');
       this.isSaving = false;
     }, 500);
   }
 
-  private saveToStorage(): void {
-    const settings = {
-      general: this.generalSettings,
-      security: this.securitySettings,
-      payment: this.paymentSettings,
-      notification: this.notificationSettings,
-      customization: this.customizationSettings
-    };
-    localStorage.setItem('admin_settings', JSON.stringify(settings));
-  }
-
   setTheme(themeValue: string): void {
     this.customizationForm.patchValue({ theme: themeValue });
     this.customizationSettings.theme = themeValue;
-    this.applyTheme();
-    this.saveToStorage();
+    this.themeService.applyTheme(
+      themeValue,
+      this.customizationSettings.primaryColor,
+      this.customizationSettings.secondaryColor
+    );
     this.notificationService.showSuccess(`Thème changé en ${this.getThemeName(themeValue)}`);
   }
 
@@ -549,20 +526,29 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     const color = event.target.value;
     this.customizationForm.patchValue({ primaryColor: color });
     this.customizationSettings.primaryColor = color;
-    this.applyTheme();
+    this.themeService.applyTheme(
+      this.customizationSettings.theme,
+      color,
+      this.customizationSettings.secondaryColor
+    );
   }
 
   updateSecondaryColor(event: any): void {
     const color = event.target.value;
     this.customizationForm.patchValue({ secondaryColor: color });
     this.customizationSettings.secondaryColor = color;
-    this.applyTheme();
+    this.themeService.applyTheme(
+      this.customizationSettings.theme,
+      this.customizationSettings.primaryColor,
+      color
+    );
   }
 
   updateCustomCSS(event: any): void {
     const css = event.target.value;
     this.customizationForm.patchValue({ customCSS: css });
     this.customizationSettings.customCSS = css;
+    this.applyCustomCSS(css);
   }
 
   private applyCustomCSS(css: string): void {
@@ -573,37 +559,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       document.head.appendChild(styleElement);
     }
     styleElement.textContent = css;
-  }
-
-  // MÉTHODE PUBLIQUE applyTheme - CORRIGÉE
-  public applyTheme(): void {
-    const theme = this.customizationForm.get('theme')?.value || this.customizationSettings.theme;
-    const primaryColor = this.customizationForm.get('primaryColor')?.value || this.customizationSettings.primaryColor;
-    const secondaryColor = this.customizationForm.get('secondaryColor')?.value || this.customizationSettings.secondaryColor;
-    
-    this.themeService.applyTheme(theme, primaryColor, secondaryColor);
-    this.applyCustomCSS(this.customizationSettings.customCSS);
-    
-    console.log('✅ Thème appliqué via ThemeService');
-    
-    // Forcer le rechargement des styles Material
-    setTimeout(() => {
-      this.updateMaterialStyles();
-    }, 100);
-  }
-
-  // MÉTHODE PRIVÉE updateMaterialStyles
-  private updateMaterialStyles(): void {
-    // Forcer la mise à jour des composants Material
-    const cards = document.querySelectorAll('.mat-mdc-card');
-    cards.forEach((card) => {
-      (card as HTMLElement).style.backgroundColor = 'var(--card-bg)';
-    });
-    
-    const toolbars = document.querySelectorAll('.mat-toolbar');
-    toolbars.forEach((toolbar) => {
-      (toolbar as HTMLElement).style.backgroundColor = 'var(--header-bg)';
-    });
   }
 
   private getThemeName(themeValue: string): string {
@@ -619,11 +574,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   resetAllSettings(): void {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les paramètres ?')) {
       localStorage.removeItem('admin_settings');
-      localStorage.removeItem('theme');
-      localStorage.removeItem('language');
-      localStorage.removeItem('primaryColor');
-      localStorage.removeItem('secondaryColor');
-      
       this.generalSettings = {
         siteName: 'SPaye',
         siteUrl: 'https://spaye.com',
@@ -635,7 +585,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         maxFileSize: 150,
         sessionTimeout: 30
       };
-      
       this.customizationSettings = {
         theme: 'light',
         primaryColor: '#667eea',
@@ -645,12 +594,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         customCSS: '',
         customJS: ''
       };
-      
       this.selectedLanguage = 'fr';
       this.updateForms();
-      this.applyTheme();
-      
-      this.notificationService.showInfo('Tous les paramètres ont été réinitialisés');
+      this.themeService.applyTheme('light', '#667eea', '#764ba2');
+      this.notificationService.showInfo('Paramètres généraux réinitialisés');
       setTimeout(() => window.location.reload(), 1500);
     }
   }
@@ -665,23 +612,19 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       language: this.selectedLanguage,
       exportedAt: new Date()
     };
-    
     const dataStr = JSON.stringify(settings, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
     const exportFileDefaultName = `spaye-settings-${new Date().toISOString().split('T')[0]}.json`;
-    
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
-    
     this.notificationService.showSuccess('Paramètres exportés avec succès');
   }
 
   importSettings(event: any): void {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -692,10 +635,12 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         this.notificationSettings = settings.notification || this.notificationSettings;
         this.customizationSettings = settings.customization || this.customizationSettings;
         if (settings.language) this.selectedLanguage = settings.language;
-        
         this.updateForms();
-        this.saveToStorage();
-        this.applyTheme();
+        this.themeService.applyTheme(
+          this.customizationSettings.theme,
+          this.customizationSettings.primaryColor,
+          this.customizationSettings.secondaryColor
+        );
         this.notificationService.showSuccess('Paramètres importés avec succès');
       } catch (error) {
         this.notificationService.showError('Erreur lors de l\'importation');
@@ -711,7 +656,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-
     if (diffMins < 1) return 'À l\'instant';
     if (diffMins < 60) return `Il y a ${diffMins} min`;
     if (diffHours < 24) return `Il y a ${diffHours} h`;
