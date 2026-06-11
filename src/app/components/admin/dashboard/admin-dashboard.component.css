@@ -1,13 +1,10 @@
-/* Variables sombres */
+/* Variables utilisées par le thème clair/sombre */
 :root {
   --primary: #6366f1;
   --secondary: #8b5cf6;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --dark: #0a0a0a;
-  --gray: #888888;
-  --light: #1a1a1a;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   --radius: 1rem;
@@ -16,12 +13,11 @@
 
 .admin-dashboard {
   min-height: 100vh;
-  background: #0a0a0a !important;
+  background-color: var(--bg-primary) !important;
   padding: 24px;
   animation: fadeIn 0.5s ease-out;
 }
 
-/* Toolbar */
 .dashboard-toolbar {
   position: sticky;
   top: 0;
@@ -34,7 +30,6 @@
   flex: 1 1 auto;
 }
 
-/* Loading */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -45,7 +40,6 @@
   color: var(--gray);
 }
 
-/* KPIs */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -54,8 +48,8 @@
 }
 
 .kpi-card {
-  background: #1a1a1a !important;
-  border: 1px solid #2a2a2a !important;
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: var(--radius);
   cursor: pointer;
   transition: var(--transition);
@@ -88,11 +82,11 @@
 .kpi-value {
   font-size: 2rem;
   font-weight: 800;
-  color: #e0e0e0;
+  color: var(--text-primary);
 }
 .kpi-label {
   font-size: 0.875rem;
-  color: var(--gray);
+  color: var(--text-secondary);
   margin-bottom: 4px;
 }
 .kpi-trend {
@@ -101,10 +95,10 @@
   gap: 4px;
   font-size: 0.75rem;
   font-weight: 600;
+  color: var(--text-secondary);
 }
 .kpi-trend.positive { color: var(--success); }
 
-/* Graphiques */
 .charts-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -113,8 +107,8 @@
 }
 .charts-small-grid { display: grid; gap: 24px; }
 .chart-card {
-  background: #1a1a1a !important;
-  border: 1px solid #2a2a2a !important;
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: var(--radius);
   padding: 20px;
   box-shadow: var(--shadow);
@@ -122,7 +116,6 @@
 .chart-container { height: 300px; width: 100%; }
 .chart-container.small { height: 200px; }
 
-/* Section title */
 .section-title {
   display: flex;
   align-items: center;
@@ -130,17 +123,16 @@
   font-size: 1.25rem;
   font-weight: 700;
   margin: 40px 0 20px;
-  color: #e0e0e0;
+  color: var(--text-primary);
 }
 
-/* Menu cards */
 .menu-grid { margin-bottom: 30px; }
 .menu-card {
   width: 100%;
   height: 100%;
   cursor: pointer;
-  background: #1a1a1a !important;
-  border: 1px solid #2a2a2a !important;
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: var(--radius);
   transition: var(--transition);
 }
@@ -169,7 +161,7 @@
 .menu-icon.stats { background: rgba(76,175,80,0.2); color: #4caf50; }
 .menu-icon.settings { background: rgba(156,39,176,0.2); color: #9c27b0; }
 .menu-card:hover .menu-icon { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; transform: scale(1.1); }
-.menu-card span { font-weight: 600; color: #e0e0e0; }
+.menu-card span { font-weight: 600; color: var(--text-primary); }
 .menu-badge {
   position: absolute;
   top: 10px;
@@ -182,7 +174,6 @@
   font-weight: 600;
 }
 
-/* Recent cards */
 .recent-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -190,8 +181,8 @@
   margin-top: 30px;
 }
 .recent-card {
-  background: #1a1a1a !important;
-  border: 1px solid #2a2a2a !important;
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -207,10 +198,10 @@
   align-items: center;
   gap: 12px;
   padding: 12px 20px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-color);
   transition: background 0.2s;
 }
-.recent-item:hover { background: #2a2a2a; }
+.recent-item:hover { background-color: var(--hover-bg); }
 .recent-avatar, .transaction-icon {
   width: 45px;
   height: 45px;
@@ -224,12 +215,12 @@
 .recent-info { flex: 1; min-width: 0; }
 .recent-name {
   font-weight: 600;
-  color: #e0e0e0;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 .recent-email {
   font-size: 0.75rem;
-  color: var(--gray);
+  color: var(--text-secondary);
 }
 .recent-status {
   font-size: 0.7rem;
@@ -242,7 +233,7 @@
 .recent-status.active, .recent-status.completed { background: var(--success); }
 .recent-date, .recent-volume {
   font-size: 0.75rem;
-  color: var(--gray);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 .rank-badge {
@@ -253,14 +244,13 @@
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  background: #2a2a2a;
-  color: #e0e0e0;
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 .rank-badge.gold { background: linear-gradient(135deg, #ffd700, #ffb347); color: #333; }
 .rank-badge.silver { background: linear-gradient(135deg, #c0c0c0, #a9a9a9); color: #333; }
 .rank-badge.bronze { background: linear-gradient(135deg, #cd7f32, #b87333); color: white; }
 
-/* Animations */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 

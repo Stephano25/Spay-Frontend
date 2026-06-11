@@ -1,6 +1,6 @@
 .user-dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: var(--bg-primary) !important;
   padding: 20px;
   position: relative;
 }
@@ -11,20 +11,15 @@
   margin: 0 auto 30px auto;
   padding: 20px;
   border-radius: 20px;
-  background: white;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  background-color: var(--card-bg) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   animation: slideDown 0.5s ease;
+  color: var(--text-primary);
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 mat-card-header {
@@ -35,7 +30,7 @@ mat-card-header mat-icon {
   font-size: 40px;
   width: 40px;
   height: 40px;
-  color: #667eea;
+  color: var(--primary-color, #667eea);
 }
 
 .user-info {
@@ -43,26 +38,25 @@ mat-card-header mat-icon {
 }
 
 .user-info p {
-  color: #333;
+  color: var(--text-secondary);
   margin: 10px 0;
 }
 
 .user-info strong {
-  color: #667eea;
+  color: var(--primary-color, #667eea);
 }
 
-/* Balance Section */
 .balance-section {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 2px solid #f0f0f0;
+  border-top: 2px solid var(--border-color);
 }
 
 .loading-container {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .balance-container {
@@ -74,7 +68,7 @@ mat-card-header mat-icon {
 
 .balance-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -88,18 +82,11 @@ mat-card-header mat-icon {
 }
 
 @keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
-/* Menu Grid */
 .menu-grid {
   max-width: 500px;
   margin: 0 auto 30px auto;
@@ -111,7 +98,7 @@ mat-card-header mat-icon {
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 16px;
-  background: white;
+  background-color: var(--card-bg) !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
@@ -136,7 +123,7 @@ mat-card-header mat-icon {
   font-size: 32px;
   width: 32px;
   height: 32px;
-  color: #667eea;
+  color: var(--primary-color, #667eea);
   transition: all 0.3s ease;
 }
 
@@ -149,9 +136,13 @@ mat-card-header mat-icon {
   font-size: 14px;
   font-weight: 500;
   text-align: center;
+  color: var(--text-primary);
 }
 
-/* Stats Row */
+.menu-card:hover span {
+  color: white;
+}
+
 .stats-row {
   max-width: 500px;
   margin: 0 auto 30px auto;
@@ -161,7 +152,7 @@ mat-card-header mat-icon {
 }
 
 .stat-card {
-  background: white;
+  background-color: var(--card-bg) !important;
   padding: 16px;
   border-radius: 16px;
   display: flex;
@@ -186,7 +177,7 @@ mat-card-header mat-icon {
 }
 
 .stat-icon mat-icon {
-  color: #667eea;
+  color: var(--primary-color, #667eea);
   font-size: 24px;
 }
 
@@ -197,7 +188,7 @@ mat-card-header mat-icon {
 .stat-label {
   display: block;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 4px;
 }
 
@@ -205,15 +196,14 @@ mat-card-header mat-icon {
   display: block;
   font-size: 20px;
   font-weight: bold;
-  color: #333;
+  color: var(--text-primary);
 }
 
-/* Transactions Card */
 .transactions-card {
   max-width: 500px;
   margin: 0 auto 30px auto;
   border-radius: 20px;
-  background: white;
+  background-color: var(--card-bg) !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   animation: fadeIn 0.5s ease;
 }
@@ -228,7 +218,7 @@ mat-card-header mat-icon {
 .transactions-card mat-card-title {
   font-size: 18px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .view-all {
@@ -246,16 +236,12 @@ mat-card-header mat-icon {
   align-items: center;
   gap: 16px;
   padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
   transition: background 0.3s ease;
 }
 
 .transaction-item:hover {
-  background: #f8f9fa;
-}
-
-.transaction-item:last-child {
-  border-bottom: none;
+  background-color: var(--hover-bg);
 }
 
 .transaction-icon {
@@ -284,13 +270,13 @@ mat-card-header mat-icon {
 
 .transaction-desc {
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .transaction-date {
   font-size: 12px;
-  color: #999;
+  color: var(--text-secondary);
 }
 
 .transaction-amount {
@@ -307,12 +293,11 @@ mat-card-header mat-icon {
   color: #f44336;
 }
 
-/* Empty Card */
 .empty-card {
   max-width: 500px;
   margin: 0 auto 30px auto;
   border-radius: 20px;
-  background: white;
+  background-color: var(--card-bg) !important;
   text-align: center;
   padding: 40px 20px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -322,17 +307,17 @@ mat-card-header mat-icon {
   font-size: 64px;
   width: 64px;
   height: 64px;
-  color: #ddd;
+  color: var(--text-secondary);
   margin-bottom: 16px;
 }
 
 .empty-card h3 {
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .empty-card p {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 24px;
 }
 
@@ -341,7 +326,6 @@ mat-card-header mat-icon {
   padding: 8px 24px;
 }
 
-/* Refresh Button */
 .refresh-container {
   max-width: 500px;
   margin: 0 auto 20px auto;
@@ -349,7 +333,7 @@ mat-card-header mat-icon {
 }
 
 .refresh-container button {
-  background: white;
+  background-color: var(--card-bg);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
@@ -358,7 +342,6 @@ mat-card-header mat-icon {
   transition: transform 0.5s ease;
 }
 
-/* Logout Button */
 .logout-container {
   max-width: 500px;
   margin: 0 auto;
@@ -386,51 +369,26 @@ mat-card-header mat-icon {
   box-shadow: 0 8px 16px rgba(244, 67, 54, 0.4);
 }
 
-/* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Responsive */
 @media (max-width: 600px) {
-  .user-dashboard {
-    padding: 16px;
-  }
-  
-  .balance-amount {
-    font-size: 32px;
-  }
-  
-  .stats-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .transaction-item {
-    flex-wrap: wrap;
-  }
-  
-  .transaction-amount {
-    margin-left: 60px;
-  }
+  .user-dashboard { padding: 16px; }
+  .balance-amount { font-size: 32px; }
+  .stats-row { grid-template-columns: 1fr; }
+  .transaction-item { flex-wrap: wrap; }
+  .transaction-amount { margin-left: 60px; }
 }
 
-/* Avatar styles */
-.profile-avatar-container {
-  margin-right: 16px;
-}
-
+.profile-avatar-container { margin-right: 16px; }
 .profile-avatar-img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
 }
-
 .profile-avatar-placeholder {
   width: 40px;
   height: 40px;
@@ -441,9 +399,4 @@ mat-card-header mat-icon {
   font-size: 16px;
   font-weight: bold;
   color: white;
-}.user-dashboard {
-  background: #0a0a0a !important;
-}
-.welcome-card, .menu-card, .transactions-card, .stats-row .stat-card {
-  background: #1a1a1a !important;
 }
