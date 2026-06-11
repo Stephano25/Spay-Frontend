@@ -37,89 +37,569 @@
             @if (user.phoneNumber) {
               <p>{{ user.phoneNumber }}</p>
             }
+            <div class="profile-stats">
+              <span><mat-icon>people</mat-icon> {{ friendsCount }} amis</span>
+              <span><mat-icon>post_add</mat-icon> {{ postsCount }} publications</span>
+            </div>
           </div>
+          <button mat-raised-button color="primary" (click)="editProfile()">
+            <mat-icon>edit</mat-icon> Modifier le profil
+          </button>
         </mat-card-content>
       </mat-card>
 
       <!-- Onglets de paramètres -->
-      <mat-tab-group [(selectedIndex)]="activeTab" class="settings-tabs">
-        <!-- Onglet Profil -->
-        <mat-tab [label]="'Profil' | translate">
-          <div class="tab-content">
-            <!-- ... contenu existant ... -->
-          </div>
-        </mat-tab>
-
-        <!-- Onglet Notifications -->
-        <mat-tab [label]="'Notifications' | translate">
-          <!-- ... -->
-        </mat-tab>
-
-        <!-- Onglet Confidentialité -->
-        <mat-tab [label]="'Confidentialité' | translate">
-          <!-- ... -->
-        </mat-tab>
-
-        <!-- Onglet Sécurité -->
-        <mat-tab [label]="'Sécurité' | translate">
-          <!-- ... -->
-        </mat-tab>
-
-        <!-- Onglet Apparence -->
-        <mat-tab [label]="'Apparence' | translate">
+      <mat-tab-group [(selectedIndex)]="activeTab" class="settings-tabs" [dynamicHeight]="true">
+        
+        <!-- Onglet Général -->
+        <mat-tab [label]="'Général' | translate">
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
-                <mat-icon mat-card-avatar>palette</mat-icon>
-                <mat-card-title>{{ 'Apparence' | translate }}</mat-card-title>
-                <mat-card-subtitle>{{ 'Personnalisez l\'apparence de l\'application' | translate }}</mat-card-subtitle>
+                <mat-icon mat-card-avatar>public</mat-icon>
+                <mat-card-title>{{ 'Paramètres généraux' | translate }}</mat-card-title>
+                <mat-card-subtitle>{{ 'Préférences de l\'application' | translate }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>
-                <div class="settings-list">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ 'Langue' | translate }}</mat-label>
+                  <mat-select [(ngModel)]="settings.appearance.language" (selectionChange)="saveAppearanceSettings()">
+                    @for (lang of languages; track lang.value) {
+                      <mat-option [value]="lang.value">{{ lang.label | translate }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ 'Thème' | translate }}</mat-label>
+                  <mat-select [(ngModel)]="settings.appearance.theme" (selectionChange)="saveAppearanceSettings()">
+                    @for (theme of themes; track theme.value) {
+                      <mat-option [value]="theme.value">{{ theme.label | translate }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ 'Taille de police' | translate }}</mat-label>
+                  <mat-select [(ngModel)]="settings.appearance.fontSize" (selectionChange)="saveAppearanceSettings()">
+                    @for (size of fontSizes; track size.value) {
+                      <mat-option [value]="size.value">{{ size.label | translate }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-slide-toggle [(ngModel)]="settings.appearance.compactMode" (change)="saveAppearanceSettings()">
+                  {{ 'Mode compact' | translate }}
+                </mat-slide-toggle>
+                <p class="setting-description">{{ 'Afficher plus d\'informations en réduisant les espacements' | translate }}</p>
+
+                <mat-divider></mat-divider>
+
+                <mat-slide-toggle [(ngModel)]="settings.general.autoplayVideos" (change)="saveGeneralSettings()">
+                  {{ 'Lecture automatique des vidéos' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.general.nsfwFilter" (change)="saveGeneralSettings()">
+                  {{ 'Filtrer les contenus sensibles' | translate }}
+                </mat-slide-toggle>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Onglet Profil -->
+        <mat-tab [label]="'Profil' | translate">
+          <div class="tab-content">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>person</mat-icon>
+                <mat-card-title>{{ 'Informations personnelles' | translate }}</mat-card-title>
+                <mat-card-subtitle>{{ 'Modifiez vos informations de profil' | translate }}</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <form [formGroup]="profileForm">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'Prénom' | translate }}</mat-label>
+                      <input matInput formControlName="firstName">
+                      <mat-error *ngIf="profileForm.get('firstName')?.hasError('required')">Prénom requis</mat-error>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'Nom' | translate }}</mat-label>
+                      <input matInput formControlName="lastName">
+                      <mat-error *ngIf="profileForm.get('lastName')?.hasError('required')">Nom requis</mat-error>
+                    </mat-form-field>
+                  </div>
+
                   <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'Langue' | translate }}</mat-label>
-                    <mat-select [(ngModel)]="settings.appearance.language" (selectionChange)="saveAppearanceSettings()">
-                      @for (lang of languages; track lang.value) {
-                        <mat-option [value]="lang.value">
-                          {{ lang.label | translate }}
-                        </mat-option>
-                      }
-                    </mat-select>
+                    <mat-label>{{ 'Email' | translate }}</mat-label>
+                    <input matInput formControlName="email" type="email">
+                    <mat-error *ngIf="profileForm.get('email')?.hasError('required')">Email requis</mat-error>
+                    <mat-error *ngIf="profileForm.get('email')?.hasError('email')">Email invalide</mat-error>
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'Thème' | translate }}</mat-label>
-                    <mat-select [(ngModel)]="settings.appearance.theme" (selectionChange)="saveAppearanceSettings()">
-                      @for (theme of themes; track theme.value) {
-                        <mat-option [value]="theme.value">
-                          {{ theme.label | translate }}
-                        </mat-option>
-                      }
-                    </mat-select>
+                    <mat-label>{{ 'Téléphone' | translate }}</mat-label>
+                    <input matInput formControlName="phoneNumber">
+                    <mat-error>Numéro invalide (9-10 chiffres)</mat-error>
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'Taille de police' | translate }}</mat-label>
-                    <mat-select [(ngModel)]="settings.appearance.fontSize" (selectionChange)="saveAppearanceSettings()">
-                      @for (size of fontSizes; track size.value) {
-                        <mat-option [value]="size.value">
-                          {{ size.label | translate }}
-                        </mat-option>
-                      }
+                    <mat-label>{{ 'Bio' | translate }}</mat-label>
+                    <textarea matInput formControlName="bio" rows="3" maxlength="500"></textarea>
+                    <mat-hint align="end">{{ profileForm.get('bio')?.value?.length || 0 }}/500</mat-hint>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'Date de naissance' | translate }}</mat-label>
+                    <input matInput [matDatepicker]="birthdayPicker" formControlName="birthday">
+                    <mat-datepicker-toggle matSuffix [for]="birthdayPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #birthdayPicker></mat-datepicker>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'Genre' | translate }}</mat-label>
+                    <mat-select formControlName="gender">
+                      <mat-option value="male">Homme</mat-option>
+                      <mat-option value="female">Femme</mat-option>
+                      <mat-option value="other">Autre</mat-option>
+                      <mat-option value="prefer_not">Préfère ne pas dire</mat-option>
                     </mat-select>
                   </mat-form-field>
 
-                  <mat-slide-toggle 
-                    [(ngModel)]="settings.appearance.compactMode"
-                    (change)="saveAppearanceSettings()">
-                    {{ 'Mode compact' | translate }}
-                  </mat-slide-toggle>
-                  <p class="setting-description">{{ 'Afficher plus d\'informations en réduisant les espacements' | translate }}</p>
+                  <div class="form-actions">
+                    <button mat-raised-button color="primary" (click)="saveProfile()" [disabled]="profileForm.invalid || isSaving">
+                      <mat-icon>save</mat-icon> {{ isSaving ? 'Enregistrement...' : 'Enregistrer' | translate }}
+                    </button>
+                  </div>
+                </form>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>photo_camera</mat-icon>
+                <mat-card-title>{{ 'Photo de profil' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="avatar-upload">
+                  <div class="current-avatar">
+                    <img [src]="profilePhotoUrl || 'assets/default-avatar.png'" [alt]="user.firstName">
+                    <button mat-mini-fab color="primary" (click)="uploadProfilePhoto.click()">
+                      <mat-icon>camera_alt</mat-icon>
+                    </button>
+                    <input type="file" #uploadProfilePhoto (change)="onProfilePhotoSelected($event)" accept="image/*" style="display: none">
+                  </div>
+                  <button mat-stroked-button color="warn" (click)="removeProfilePhoto()" *ngIf="profilePhotoUrl">
+                    Supprimer
+                  </button>
                 </div>
               </mat-card-content>
             </mat-card>
           </div>
         </mat-tab>
+
+        <!-- Onglet Sécurité -->
+        <mat-tab [label]="'Sécurité' | translate">
+          <div class="tab-content">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>lock</mat-icon>
+                <mat-card-title>{{ 'Mot de passe' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <form [formGroup]="passwordForm">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'Mot de passe actuel' | translate }}</mat-label>
+                    <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="currentPassword">
+                    <button mat-icon-button matSuffix (click)="showPassword = !showPassword">
+                      <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    <mat-error>Requis</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'Nouveau mot de passe' | translate }}</mat-label>
+                    <input matInput [type]="showNewPassword ? 'text' : 'password'" formControlName="newPassword">
+                    <button mat-icon-button matSuffix (click)="showNewPassword = !showNewPassword">
+                      <mat-icon>{{ showNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    <mat-error>Minimum 6 caractères</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'Confirmer le mot de passe' | translate }}</mat-label>
+                    <input matInput [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword">
+                    <button mat-icon-button matSuffix (click)="showConfirmPassword = !showConfirmPassword">
+                      <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    <mat-error *ngIf="passwordForm.hasError('mismatch')">Les mots de passe ne correspondent pas</mat-error>
+                  </mat-form-field>
+
+                  <div class="form-actions">
+                    <button mat-raised-button color="primary" (click)="changePassword()" [disabled]="passwordForm.invalid || isSaving">
+                      {{ isSaving ? 'Changement...' : 'Changer le mot de passe' | translate }}
+                    </button>
+                  </div>
+                </form>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>security</mat-icon>
+                <mat-card-title>{{ 'Authentification à deux facteurs' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <mat-slide-toggle [(ngModel)]="settings.security.twoFactorAuth" (change)="saveSecuritySettings()">
+                  {{ 'Activer 2FA' | translate }}
+                </mat-slide-toggle>
+                <p class="setting-description">{{ 'Sécurisez votre compte avec une double authentification' | translate }}</p>
+                
+                <mat-divider></mat-divider>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ 'Délai d\'expiration de session' | translate }}</mat-label>
+                  <mat-select [(ngModel)]="settings.security.sessionTimeout" (selectionChange)="saveSecuritySettings()">
+                    @for (timeout of sessionTimeouts; track timeout.value) {
+                      <mat-option [value]="timeout.value">{{ timeout.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-slide-toggle [(ngModel)]="settings.security.loginAlerts" (change)="saveSecuritySettings()">
+                  {{ 'Alertes de connexion' | translate }}
+                </mat-slide-toggle>
+                <p class="setting-description">{{ 'Recevez une notification lors d\'une nouvelle connexion' | translate }}</p>
+
+                <mat-divider></mat-divider>
+
+                <h4>Appareils connectés</h4>
+                <div class="devices-list">
+                  @for (device of activeDevices; track device.id) {
+                    <div class="device-item">
+                      <mat-icon>devices</mat-icon>
+                      <div class="device-info">
+                        <strong>{{ device.name }}</strong>
+                        <span>{{ device.location }} • {{ device.lastActive | date }}</span>
+                      </div>
+                      <button mat-icon-button color="warn" (click)="revokeDevice(device.id)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  }
+                  <button mat-stroked-button (click)="logoutAllDevices()">
+                    Déconnecter tous les appareils
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Onglet Confidentialité -->
+        <mat-tab [label]="'Confidentialité' | translate">
+          <div class="tab-content">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>visibility</mat-icon>
+                <mat-card-title>{{ 'Qui peut voir votre contenu ?' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ 'Visibilité du profil' | translate }}</mat-label>
+                  <mat-select [(ngModel)]="settings.privacy.profileVisibility" (selectionChange)="savePrivacySettings()">
+                    @for (option of privacyOptions; track option.value) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ 'Visibilité des publications' | translate }}</mat-label>
+                  <mat-select [(ngModel)]="settings.privacy.postVisibility" (selectionChange)="savePrivacySettings()">
+                    <mat-option value="public">Public</mat-option>
+                    <mat-option value="friends">Amis uniquement</mat-option>
+                    <mat-option value="only_me">Moi seulement</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-divider></mat-divider>
+
+                <mat-slide-toggle [(ngModel)]="settings.privacy.showLastSeen" (change)="savePrivacySettings()">
+                  {{ 'Afficher ma dernière connexion' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.privacy.showOnlineStatus" (change)="savePrivacySettings()">
+                  {{ 'Afficher mon statut en ligne' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.privacy.allowFriendRequests" (change)="savePrivacySettings()">
+                  {{ 'Autoriser les demandes d\'amis' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.privacy.allowMessagesFromNonFriends" (change)="savePrivacySettings()">
+                  {{ 'Autoriser les messages d\'inconnus' | translate }}
+                </mat-slide-toggle>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>block</mat-icon>
+                <mat-card-title>{{ 'Utilisateurs bloqués' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @if (blockedUsers.length === 0) {
+                  <p class="empty-state">Aucun utilisateur bloqué</p>
+                } @else {
+                  <div class="blocked-users-list">
+                    @for (blocked of blockedUsers; track blocked.id) {
+                      <div class="blocked-user">
+                        <img [src]="blocked.avatar || 'assets/default-avatar.png'" alt="">
+                        <span>{{ blocked.name }}</span>
+                        <button mat-button color="primary" (click)="unblockUser(blocked.id)">Débloquer</button>
+                      </div>
+                    }
+                  </div>
+                }
+                <button mat-stroked-button (click)="searchUsersToBlock()">
+                  <mat-icon>person_add_disabled</mat-icon> Bloquer un utilisateur
+                </button>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>download</mat-icon>
+                <mat-card-title>{{ 'Vos données' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <button mat-stroked-button color="primary" (click)="downloadMyData()">
+                  <mat-icon>file_download</mat-icon> Télécharger mes données
+                </button>
+                <p class="setting-description">Téléchargez une copie de vos informations personnelles</p>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Onglet Notifications -->
+        <mat-tab [label]="'Notifications' | translate">
+          <div class="tab-content">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>notifications</mat-icon>
+                <mat-card-title>{{ 'Préférences de notification' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <mat-slide-toggle [(ngModel)]="settings.notifications.email" (change)="saveNotificationSettings()">
+                  {{ 'Notifications par email' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.notifications.push" (change)="saveNotificationSettings()">
+                  {{ 'Notifications push' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.notifications.sms" (change)="saveNotificationSettings()">
+                  {{ 'Notifications par SMS' | translate }}
+                </mat-slide-toggle>
+
+                <mat-divider></mat-divider>
+
+                <h4>Types de notifications</h4>
+
+                <mat-slide-toggle [(ngModel)]="settings.notifications.friendRequests" (change)="saveNotificationSettings()">
+                  {{ 'Demandes d\'amis' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.notifications.comments" (change)="saveNotificationSettings()">
+                  {{ 'Commentaires sur mes publications' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.notifications.likes" (change)="saveNotificationSettings()">
+                  {{ 'J\'aime sur mes publications' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.notifications.messages" (change)="saveNotificationSettings()">
+                  {{ 'Nouveaux messages' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.notifications.mentions" (change)="saveNotificationSettings()">
+                  {{ 'Mentions (@moi)' | translate }}
+                </mat-slide-toggle>
+
+                <mat-slide-toggle [(ngModel)]="settings.notifications.groupActivities" (change)="saveNotificationSettings()">
+                  {{ 'Activités de groupe' | translate }}
+                </mat-slide-toggle>
+
+                <mat-divider></mat-divider>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ 'Résumé quotidien' | translate }}</mat-label>
+                  <mat-select [(ngModel)]="settings.notifications.dailyDigest" (selectionChange)="saveNotificationSettings()">
+                    <mat-option value="never">Jamais</mat-option>
+                    <mat-option value="daily">Quotidien</mat-option>
+                    <mat-option value="weekly">Hebdomadaire</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Onglet Amis et Famille -->
+        <mat-tab [label]="'Amis' | translate">
+          <div class="tab-content">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>people</mat-icon>
+                <mat-card-title>{{ 'Demandes d\'amis en attente' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @if (pendingFriendRequests.length === 0) {
+                  <p class="empty-state">Aucune demande en attente</p>
+                } @else {
+                  <div class="friend-requests">
+                    @for (request of pendingFriendRequests; track request.id) {
+                      <div class="friend-request-item">
+                        <img [src]="request.avatar || 'assets/default-avatar.png'" alt="">
+                        <div class="request-info">
+                          <strong>{{ request.name }}</strong>
+                          <span>Demande d'ami envoyée le {{ request.date | date }}</span>
+                        </div>
+                        <div class="request-actions">
+                          <button mat-raised-button color="primary" (click)="acceptFriendRequest(request.id)">Accepter</button>
+                          <button mat-stroked-button color="warn" (click)="rejectFriendRequest(request.id)">Refuser</button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>group</mat-icon>
+                <mat-card-title>{{ 'Liste d\'amis' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="friend-categories">
+                  <button mat-stroked-button (click)="createFriendList()">
+                    <mat-icon>playlist_add</mat-icon> Créer une liste d'amis
+                  </button>
+                </div>
+
+                <mat-tab-group>
+                  <mat-tab label="Tous les amis">
+                    <div class="friends-list">
+                      @for (friend of friendsList; track friend.id) {
+                        <div class="friend-card">
+                          <img [src]="friend.avatar || 'assets/default-avatar.png'" alt="">
+                          <div class="friend-details">
+                            <strong>{{ friend.name }}</strong>
+                            <span>{{ friend.mutualFriends }} amis en commun</span>
+                          </div>
+                          <button mat-icon-button [matMenuTriggerFor]="friendMenu">
+                            <mat-icon>more_vert</mat-icon>
+                          </button>
+                          <mat-menu #friendMenu="matMenu">
+                            <button mat-menu-item (click)="unfriend(friend.id)">Supprimer des amis</button>
+                            <button mat-menu-item (click)="blockUserFromFriend(friend.id)">Bloquer</button>
+                            <button mat-menu-item (click)="reportUser(friend.id)">Signaler</button>
+                          </mat-menu>
+                        </div>
+                      }
+                    </div>
+                  </mat-tab>
+                  <mat-tab label="Amis proches">
+                    <div class="friends-list">
+                      @for (friend of closeFriends; track friend.id) {
+                        <div class="friend-card">
+                          <img [src]="friend.avatar || 'assets/default-avatar.png'" alt="">
+                          <div class="friend-details">
+                            <strong>{{ friend.name }}</strong>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </mat-tab>
+                  <mat-tab label="Acquaintances">
+                    <div class="friends-list">
+                      @for (friend of acquaintances; track friend.id) {
+                        <div class="friend-card">
+                          <img [src]="friend.avatar || 'assets/default-avatar.png'" alt="">
+                          <div class="friend-details">
+                            <strong>{{ friend.name }}</strong>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </mat-tab>
+                </mat-tab-group>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>person_search</mat-icon>
+                <mat-card-title>{{ 'Suggestions d\'amis' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="friend-suggestions">
+                  @for (suggestion of friendSuggestions; track suggestion.id) {
+                    <div class="suggestion-card">
+                      <img [src]="suggestion.avatar || 'assets/default-avatar.png'" alt="">
+                      <div class="suggestion-info">
+                        <strong>{{ suggestion.name }}</strong>
+                        <span>{{ suggestion.mutualFriends }} amis en commun</span>
+                      </div>
+                      <button mat-raised-button color="primary" size="small" (click)="sendFriendRequest(suggestion.id)">
+                        Ajouter
+                      </button>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Onglet Compte -->
+        <mat-tab [label]="'Compte' | translate">
+          <div class="tab-content">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>account_circle</mat-icon>
+                <mat-card-title>{{ 'Gestion du compte' | translate }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <button mat-stroked-button color="primary" (click)="changeEmail()">
+                  <mat-icon>email</mat-icon> Changer d'adresse email
+                </button>
+
+                <button mat-stroked-button color="primary" (click)="changePhoneNumber()">
+                  <mat-icon>phone</mat-icon> Changer de numéro de téléphone
+                </button>
+
+                <mat-divider></mat-divider>
+
+                <div class="danger-zone">
+                  <h3><mat-icon>warning</mat-icon> Zone dangereuse</h3>
+                  <button mat-raised-button color="warn" (click)="deactivateAccount()">
+                    <mat-icon>block</mat-icon> Désactiver mon compte
+                  </button>
+                  <button mat-raised-button color="warn" (click)="deleteAccount()">
+                    <mat-icon>delete_forever</mat-icon> Supprimer définitivement mon compte
+                  </button>
+                  <p class="warning-text">⚠️ Ces actions sont irréversibles</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
       </mat-tab-group>
     }
   </div>

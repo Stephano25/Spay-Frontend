@@ -1,3 +1,5 @@
+// src/app/services/auth.service.ts
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -134,6 +136,9 @@ export class AuthService {
     return this.http.post(`${this.usersApiUrl}/upload-profile-picture`, formData).pipe(
       tap((response: any) => {
         console.log('Photo uploadée avec succès:', response);
+        if (response.user) {
+          this.updateCurrentUser(response.user);
+        }
       }),
       catchError(error => {
         this.notificationService.showError('Erreur lors de l\'upload');

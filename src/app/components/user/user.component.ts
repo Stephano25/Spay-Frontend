@@ -1,4 +1,5 @@
 // src/app/components/user/user.component.ts
+
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -47,7 +48,6 @@ export class UserComponent implements OnInit, OnDestroy {
   isLoading = true;
   profileImageUrl: string | null = null;
   
-  // ✅ Routes corrigées : ajout du préfixe /user/
   menuItems = [
     { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/user/wallet' },
     { icon: 'chat', label: 'Messages', route: '/user/chat' },
@@ -82,8 +82,10 @@ export class UserComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.authService.currentUser.subscribe((user: User | null) => {
         this.user = user;
-        if (user?.profilePicture) {
-          this.profileImageUrl = this.getFullImageUrl(user.profilePicture);
+        // Utiliser profilePicture ou profilePhoto
+        const photo = user?.profilePicture || user?.profilePhoto;
+        if (photo) {
+          this.profileImageUrl = this.getFullImageUrl(photo);
         }
       })
     );
