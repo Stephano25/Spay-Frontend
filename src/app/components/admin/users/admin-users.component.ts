@@ -117,95 +117,209 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     </div>
   `,
   styles: [`
-    .users-container {
-      padding: 24px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-    .users-card {
-      border-radius: 16px;
-    }
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 300px;
-    }
-    .table-container {
-      overflow-x: auto;
-    }
-    .users-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .users-table th,
-    .users-table td {
-      padding: 12px 16px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-    .users-table th {
-      background: #f8f9fa;
-      font-weight: 600;
-      color: #333;
-    }
-    .user-cell {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-    }
-    .balance {
-      font-weight: 600;
-      color: #4caf50;
-    }
-    .role-admin {
-      background: #ff9800;
-      color: white;
-    }
-    .role-super_admin {
-      background: #f44336;
-      color: white;
-    }
-    .role-user {
-      background: #2196f3;
-      color: white;
-    }
-    .actions-cell {
-      white-space: nowrap;
-    }
-    .empty-state {
-      text-align: center;
-      padding: 60px;
-      color: #999;
-    }
-      .transactions-container {
-  background: #0a0a0a;
+    /* ============================================================
+   ADMIN USERS — SPaye
+   ============================================================ */
+
+.users-container {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 0;
 }
-.transactions-card {
-  background: #1a1a1a;
+
+/* ── Toolbar ── */
+mat-toolbar {
+  background: var(--surface) !important;
+  border-bottom: 0.5px solid var(--border) !important;
+  color: var(--text) !important;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: var(--shadow-xs) !important;
 }
-.transactions-table th {
-  background: #121212;
-  color: #ccc;
+
+mat-toolbar button {
+  color: var(--text-2) !important;
+  border-radius: 50% !important;
+  transition: all var(--trans-base) !important;
 }
-    .empty-state mat-icon {
-      font-size: 64px;
-      width: 64px;
-      height: 64px;
-      margin-bottom: 16px;
-    }
+
+mat-toolbar button:hover {
+  background: var(--hover) !important;
+  color: var(--brand-1) !important;
+}
+
+/* ── Content wrapper ── */
+.users-content {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 28px 24px;
+}
+
+/* ── Users Card ── */
+.users-card {
+  border-radius: var(--r-xl) !important;
+  background: var(--surface) !important;
+  border: 0.5px solid var(--border) !important;
+  box-shadow: var(--shadow-md) !important;
+  overflow: hidden;
+  animation: fadeUp 0.4s var(--ease) both;
+}
+
+.users-card mat-card-header {
+  padding: 22px 24px 0 !important;
+  border-bottom: 0.5px solid var(--border);
+  padding-bottom: 16px !important;
+  background: var(--brand-grad-soft);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.users-card mat-card-title {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-sans) !important;
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+}
+
+.users-card mat-card-title mat-icon { color: var(--brand-1) !important; }
+
+.users-card mat-card-subtitle {
+  color: var(--text-3) !important;
+  font-size: 0.8125rem !important;
+}
+
+/* ── Loading ── */
+.loading-container {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 320px; gap: 16px;
+  color: var(--text-3);
+}
+
+/* ── Table wrapper ── */
+.table-container { overflow-x: auto; }
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.users-table th,
+.users-table td {
+  padding: 13px 18px;
+  text-align: left;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.users-table th {
+  background: var(--surface-2);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-3);
+  white-space: nowrap;
+  position: sticky; top: 0; z-index: 2;
+}
+
+.users-table tbody tr {
+  transition: background var(--trans-base);
+  animation: fadeUp 0.25s var(--ease) both;
+}
+
+.users-table tbody tr:hover { background: var(--hover); }
+.users-table tbody tr:last-child td { border-bottom: none; }
+
+/* ── User Cell ── */
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--brand-grad);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 13px;
+  flex-shrink: 0; box-shadow: var(--shadow-brand);
+}
+
+.user-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+/* ── Balance ── */
+td.balance {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--success);
+}
+
+/* ── Role chips ── */
+.role-admin,
+.role-super_admin,
+.role-user {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.role-admin     { background: var(--warning-bg); color: var(--warning); }
+.role-super_admin { background: var(--danger-bg); color: var(--danger); }
+.role-user      { background: var(--info-bg);    color: var(--info); }
+
+/* ── Actions cell ── */
+.actions-cell { white-space: nowrap; }
+
+.actions-cell button {
+  transition: all var(--trans-base) !important;
+  border-radius: 50% !important;
+}
+
+.actions-cell button:hover {
+  background: var(--danger-bg) !important;
+  color: var(--danger) !important;
+  transform: scale(1.1);
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 56px 24px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 12px;
+}
+
+.empty-state mat-icon {
+  font-size: 64px !important; width: 64px !important; height: 64px !important;
+  color: var(--text-4); animation: float 3s ease-in-out infinite;
+}
+
+.empty-state h3 {
+  font-family: var(--font-sans); font-size: 1.1rem;
+  color: var(--text-2); margin: 0;
+}
+
+.empty-state p { color: var(--text-3); font-size: 0.875rem; margin: 0; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .users-content { padding: 16px 14px; }
+
+  .users-table th,
+  .users-table td { padding: 10px 12px; }
+
+  .user-name { font-size: 0.8125rem; }
+}
   `]
 })
 export class AdminUsersComponent implements OnInit {
