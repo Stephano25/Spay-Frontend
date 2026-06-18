@@ -5,23 +5,20 @@
     </button>
     <span>Mon Profil Administrateur</span>
     <span class="spacer"></span>
-    <button mat-icon-button (click)="toggleEditMode()" matTooltip="{{ editMode ? 'Annuler' : 'Modifier' }}">
+    <button mat-icon-button (click)="toggleEditMode()" [matTooltip]="editMode ? 'Annuler' : 'Modifier'">
       <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
     </button>
   </mat-toolbar>
 
   <div class="profile-content">
-    <!-- Loading spinner -->
     <div class="loading-container" *ngIf="isLoading">
       <mat-spinner diameter="50"></mat-spinner>
       <p>Chargement de votre profil...</p>
     </div>
 
-    <!-- Contenu principal -->
     <ng-container *ngIf="!isLoading && admin">
       <mat-card class="profile-card">
         <mat-card-content>
-          <!-- Photo de profil -->
           <div class="profile-header">
             <div class="profile-avatar">
               {{ getInitials() }}
@@ -32,28 +29,23 @@
             </div>
           </div>
 
-          <!-- Mode édition -->
           <div *ngIf="editMode; else viewMode" class="edit-mode">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Prénom</mat-label>
-              <input matInput [(ngModel)]="admin.firstName" required>
+              <input matInput [(ngModel)]="admin.firstName" required />
             </mat-form-field>
-
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Nom</mat-label>
-              <input matInput [(ngModel)]="admin.lastName" required>
+              <input matInput [(ngModel)]="admin.lastName" required />
             </mat-form-field>
-
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Email</mat-label>
-              <input matInput [(ngModel)]="admin.email" type="email" required>
+              <input matInput [(ngModel)]="admin.email" type="email" required />
             </mat-form-field>
-
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Téléphone</mat-label>
-              <input matInput [(ngModel)]="admin.phoneNumber" placeholder="0341234567">
+              <input matInput [(ngModel)]="admin.phoneNumber" placeholder="0341234567" />
             </mat-form-field>
-
             <div class="action-buttons">
               <button mat-stroked-button (click)="toggleEditMode()" [disabled]="isSaving">
                 Annuler
@@ -68,7 +60,6 @@
             </div>
           </div>
 
-          <!-- Mode visualisation -->
           <ng-template #viewMode>
             <div class="profile-info">
               <div class="info-item">
@@ -80,9 +71,7 @@
                   </span>
                 </div>
               </div>
-
               <mat-divider></mat-divider>
-
               <div class="info-item">
                 <mat-icon>person</mat-icon>
                 <div class="info-content">
@@ -90,9 +79,7 @@
                   <span class="info-value">{{ admin.firstName }} {{ admin.lastName }}</span>
                 </div>
               </div>
-
               <mat-divider></mat-divider>
-
               <div class="info-item">
                 <mat-icon>email</mat-icon>
                 <div class="info-content">
@@ -100,9 +87,7 @@
                   <span class="info-value">{{ admin.email }}</span>
                 </div>
               </div>
-
               <mat-divider></mat-divider>
-
               <div class="info-item">
                 <mat-icon>phone</mat-icon>
                 <div class="info-content">
@@ -110,9 +95,7 @@
                   <span class="info-value">{{ admin.phoneNumber || 'Non renseigné' }}</span>
                 </div>
               </div>
-
               <mat-divider></mat-divider>
-
               <div class="info-item">
                 <mat-icon>event</mat-icon>
                 <div class="info-content">
@@ -120,9 +103,7 @@
                   <span class="info-value">{{ admin.createdAt | date:'dd/MM/yyyy' }}</span>
                 </div>
               </div>
-
               <mat-divider></mat-divider>
-
               <div class="info-item">
                 <mat-icon>login</mat-icon>
                 <div class="info-content">
@@ -132,7 +113,6 @@
               </div>
             </div>
 
-            <!-- Statistiques admin -->
             <div class="admin-stats">
               <h3>Statistiques</h3>
               <div class="stats-grid">

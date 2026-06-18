@@ -1,31 +1,44 @@
-// src/app/components/admin/admin.routes.ts
 import { Routes } from '@angular/router';
 
 export const ADMIN_ROUTES: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
     path: 'dashboard',
-    loadComponent: () => import('./dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+    loadComponent: () =>
+      import('./dashboard/admin-dashboard.component').then(
+        (m) => m.AdminDashboardComponent
+      ),
   },
   {
     path: 'profile',
-    loadComponent: () => import('./profile/admin-profile.component').then(m => m.AdminProfileComponent)
+    loadComponent: () =>
+      import('./profile/admin-profile.component').then(
+        (m) => m.AdminProfileComponent
+      ),
   },
   {
     path: 'users',
-    loadComponent: () => import('./users/admin-users.component').then(m => m.AdminUsersComponent)
+    loadComponent: () =>
+      import('./users/admin-users.component').then((m) => m.AdminUsersComponent),
   },
   {
     path: 'transactions',
-    loadComponent: () => import('./transactions/admin-transactions.component').then(m => m.AdminTransactionsComponent)
+    loadComponent: () =>
+      import('./transactions/admin-transactions.component').then(
+        (m) => m.AdminTransactionsComponent
+      ),
   },
   {
     path: 'stats',
-    loadComponent: () => import('./stats/admin-stats.component').then(m => m.AdminStatsComponent)
+    loadComponent: () =>
+      import('./stats/admin-stats.component').then((m) => m.AdminStatsComponent),
   },
   {
     path: 'settings',
-    loadComponent: () => import('./settings/settings.component').then(m => m.AdminSettingsComponent)
+    loadComponent: () =>
+      import('./settings/settings.component').then(
+        (m) => m.AdminSettingsComponent
+      ),
   },
-  { path: '**', redirectTo: 'dashboard' }
+  { path: '**', redirectTo: 'dashboard' },
 ];

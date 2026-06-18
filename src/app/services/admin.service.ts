@@ -78,9 +78,7 @@ export interface SystemSettings {
   };
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AdminService {
   private apiUrl = `${environment.apiUrl}/admin`;
 
@@ -93,15 +91,15 @@ export class AdminService {
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     });
   }
 
   getDashboardStats(): Observable<AdminDashboardStats> {
-  return this.http.get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`, { headers: this.getHeaders() }).pipe(
-      tap(data => console.log('Stats admin reçues:', data)),
-      catchError(error => {
+    return this.http.get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`, { headers: this.getHeaders() }).pipe(
+      tap((data) => console.log('Stats admin reçues:', data)),
+      catchError((error) => {
         if (error.status === 401) this.authService.logout();
         this.notificationService.showError('Erreur chargement stats');
         return throwError(() => error);
@@ -110,10 +108,8 @@ export class AdminService {
   }
 
   getAllUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/users`, {
-      headers: this.getHeaders()
-    }).pipe(
-      catchError(error => {
+    return this.http.get<User[]>(`${this.apiUrl}/users`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
         return throwError(() => error);
       })
@@ -121,10 +117,8 @@ export class AdminService {
   }
 
   getAllTransactions(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/transactions`, {
-      headers: this.getHeaders()
-    }).pipe(
-      catchError(error => {
+    return this.http.get<any[]>(`${this.apiUrl}/transactions`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
         this.notificationService.showError('Erreur lors du chargement des transactions');
         return throwError(() => error);
       })
@@ -132,12 +126,9 @@ export class AdminService {
   }
 
   updateUserStatus(userId: string, isActive: boolean): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/users/${userId}/status`, 
-      { isActive },
-      { headers: this.getHeaders() }
-    ).pipe(
+    return this.http.patch(`${this.apiUrl}/users/${userId}/status`, { isActive }, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess(`Utilisateur ${isActive ? 'activé' : 'désactivé'}`)),
-      catchError(error => {
+      catchError((error) => {
         this.notificationService.showError('Erreur lors de la mise à jour');
         return throwError(() => error);
       })
@@ -145,11 +136,9 @@ export class AdminService {
   }
 
   deleteUser(userId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/users/${userId}`, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.delete(`${this.apiUrl}/users/${userId}`, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Utilisateur supprimé')),
-      catchError(error => {
+      catchError((error) => {
         this.notificationService.showError('Erreur lors de la suppression');
         return throwError(() => error);
       })
@@ -157,10 +146,8 @@ export class AdminService {
   }
 
   getSettings(): Observable<SystemSettings> {
-    return this.http.get<SystemSettings>(`${this.apiUrl}/settings`, {
-      headers: this.getHeaders()
-    }).pipe(
-      catchError(error => {
+    return this.http.get<SystemSettings>(`${this.apiUrl}/settings`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
         this.notificationService.showError('Erreur lors du chargement des paramètres');
         return throwError(() => error);
       })
@@ -168,11 +155,9 @@ export class AdminService {
   }
 
   updateSettings(settings: SystemSettings): Observable<SystemSettings> {
-    return this.http.patch<SystemSettings>(`${this.apiUrl}/settings`, settings, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.patch<SystemSettings>(`${this.apiUrl}/settings`, settings, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Paramètres sauvegardés')),
-      catchError(error => {
+      catchError((error) => {
         this.notificationService.showError('Erreur lors de la sauvegarde');
         return throwError(() => error);
       })
@@ -180,10 +165,8 @@ export class AdminService {
   }
 
   getSystemLogs(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/system/logs`, {
-      headers: this.getHeaders()
-    }).pipe(
-      catchError(error => {
+    return this.http.get<any[]>(`${this.apiUrl}/system/logs`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
         console.error('Erreur logs:', error);
         return throwError(() => error);
       })
@@ -191,25 +174,20 @@ export class AdminService {
   }
 
   getSystemStats(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/system/stats`, {
-      headers: this.getHeaders()
-    }).pipe(
-      catchError(error => {
+    return this.http.get<any>(`${this.apiUrl}/system/stats`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
         console.error('Erreur stats système:', error);
         return throwError(() => error);
       })
     );
   }
 
-  // AJOUT DE LA MÉTHODE updateAdminProfile
   updateAdminProfile(profileData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/profile`, profileData, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.put(`${this.apiUrl}/profile`, profileData, { headers: this.getHeaders() }).pipe(
       tap((response: any) => {
         this.notificationService.showSuccess('Profil administrateur mis à jour');
       }),
-      catchError(error => {
+      catchError((error) => {
         this.notificationService.showError('Erreur lors de la mise à jour du profil');
         return throwError(() => error);
       })

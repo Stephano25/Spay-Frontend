@@ -1,0 +1,66 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Statistiques</span>
+</mat-toolbar>
+
+<div class="stats-container">
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="60"></mat-spinner>
+    <p>Chargement des statistiques...</p>
+  </div>
+
+  <div *ngIf="!isLoading && stats" class="stats-content">
+    <div class="kpi-grid">
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi-icon users"><mat-icon>people</mat-icon></div>
+          <div class="kpi-info">
+            <div class="kpi-value">{{ formatNumber(stats.totalUsers) }}</div>
+            <div class="kpi-label">Utilisateurs</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi-icon active"><mat-icon>online_prediction</mat-icon></div>
+          <div class="kpi-info">
+            <div class="kpi-value">{{ formatNumber(stats.activeUsers) }}</div>
+            <div class="kpi-label">Utilisateurs actifs</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi-icon transactions"><mat-icon>swap_horiz</mat-icon></div>
+          <div class="kpi-info">
+            <div class="kpi-value">{{ formatNumber(stats.totalTransactions) }}</div>
+            <div class="kpi-label">Transactions</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi-icon volume"><mat-icon>account_balance_wallet</mat-icon></div>
+          <div class="kpi-info">
+            <div class="kpi-value">{{ formatAmount(stats.totalVolume) }} Ar</div>
+            <div class="kpi-label">Volume total</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Activité récente</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <canvas id="activityChart"></canvas>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

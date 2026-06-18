@@ -1,4 +1,3 @@
-<!-- Toolbar avec bouton retour et déconnexion -->
 <mat-toolbar color="primary" class="dashboard-toolbar">
   <button mat-icon-button (click)="goBack()" matTooltip="Retour">
     <mat-icon>arrow_back</mat-icon>
@@ -14,7 +13,6 @@
 </mat-toolbar>
 
 <div class="admin-dashboard">
-  <!-- Loading -->
   <div class="loading-container" *ngIf="isLoading">
     <mat-spinner diameter="60"></mat-spinner>
     <p>Chargement...</p>

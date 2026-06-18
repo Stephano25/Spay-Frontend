@@ -40,9 +40,7 @@ export interface DashboardStats {
   recentTransactions: Transaction[];
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AdminDataService {
   private apiUrl = environment.apiUrl;
 
@@ -55,16 +53,14 @@ export class AdminDataService {
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     });
   }
 
   getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/admin/users`, {
-      headers: this.getHeaders()
-    }).pipe(
-      catchError(error => {
+    return this.http.get<User[]>(`${this.apiUrl}/admin/users`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
         return throwError(() => error);
       })
@@ -72,10 +68,8 @@ export class AdminDataService {
   }
 
   getTransactions(): Observable<Transaction[]> {
-    return this.http.get<Transaction[]>(`${this.apiUrl}/admin/transactions`, {
-      headers: this.getHeaders()
-    }).pipe(
-      catchError(error => {
+    return this.http.get<Transaction[]>(`${this.apiUrl}/admin/transactions`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
         this.notificationService.showError('Erreur lors du chargement des transactions');
         return throwError(() => error);
       })
@@ -83,10 +77,8 @@ export class AdminDataService {
   }
 
   getStats(): Observable<DashboardStats> {
-    return this.http.get<DashboardStats>(`${this.apiUrl}/admin/dashboard/stats`, {
-      headers: this.getHeaders()
-    }).pipe(
-      catchError(error => {
+    return this.http.get<DashboardStats>(`${this.apiUrl}/admin/dashboard/stats`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
         this.notificationService.showError('Erreur lors du chargement des statistiques');
         return throwError(() => error);
       })
@@ -94,12 +86,9 @@ export class AdminDataService {
   }
 
   updateUserStatus(userId: string, isActive: boolean): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/admin/users/${userId}/status`, 
-      { isActive },
-      { headers: this.getHeaders() }
-    ).pipe(
+    return this.http.patch(`${this.apiUrl}/admin/users/${userId}/status`, { isActive }, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess(`Utilisateur ${isActive ? 'activé' : 'désactivé'}`)),
-      catchError(error => {
+      catchError((error) => {
         this.notificationService.showError('Erreur lors de la mise à jour');
         return throwError(() => error);
       })
@@ -107,11 +96,9 @@ export class AdminDataService {
   }
 
   deleteUser(userId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/admin/users/${userId}`, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.delete(`${this.apiUrl}/admin/users/${userId}`, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Utilisateur supprimé')),
-      catchError(error => {
+      catchError((error) => {
         this.notificationService.showError('Erreur lors de la suppression');
         return throwError(() => error);
       })

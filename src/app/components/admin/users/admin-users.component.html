@@ -1,0 +1,78 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Gestion des utilisateurs</span>
+</mat-toolbar>
+
+<div class="users-container">
+  <mat-card class="users-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>people</mat-icon>
+        Gestion des utilisateurs
+      </mat-card-title>
+      <mat-card-subtitle>Total: {{ users.length }} utilisateurs</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="loading-container" *ngIf="isLoading">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Chargement des utilisateurs...</p>
+      </div>
+
+      <div *ngIf="!isLoading" class="table-container">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Utilisateur</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Solde</th>
+              <th>Rôle</th>
+              <th>Statut</th>
+              <th>Date d'inscription</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+              <td class="user-cell">
+                <div class="user-avatar">{{ getUserInitials(user) }}</div>
+                <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+              </td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.phoneNumber || '-' }}</td>
+              <td class="balance">{{ formatAmount(user.balance) }} Ar</td>
+              <td>
+                <mat-chip [class]="'role-' + user.role">
+                  {{ getRoleLabel(user.role) }}
+                </mat-chip>
+              </td>
+              <td>
+                <mat-slide-toggle
+                  [checked]="user.isActive"
+                  (change)="toggleUserStatus(user)"
+                  color="primary">
+                  {{ user.isActive ? 'Actif' : 'Inactif' }}
+                </mat-slide-toggle>
+              </td>
+              <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td class="actions-cell">
+                <button mat-icon-button color="warn" (click)="deleteUser(user)" matTooltip="Supprimer">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="users.length === 0" class="empty-state">
+          <mat-icon>people_outline</mat-icon>
+          <h3>Aucun utilisateur</h3>
+          <p>Aucun utilisateur n'est enregistré pour le moment</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

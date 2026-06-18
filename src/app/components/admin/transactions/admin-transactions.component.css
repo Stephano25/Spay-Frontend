@@ -1,0 +1,85 @@
+.transactions-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.transactions-card {
+  border-radius: 16px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transactions-table th,
+.transactions-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.transactions-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.id-cell {
+  font-family: monospace;
+  font-size: 12px;
+  color: #666;
+}
+
+.amount {
+  font-weight: 600;
+  color: #4caf50;
+}
+
+.type-transfer mat-icon,
+.type-send mat-icon { color: #2196f3; }
+.type-deposit mat-icon { color: #4caf50; }
+.type-withdrawal mat-icon { color: #f44336; }
+.type-mobile_money mat-icon { color: #ff9800; }
+
+.status-completed { background: #4caf50; color: white; }
+.status-pending { background: #ff9800; color: white; }
+.status-failed { background: #f44336; color: white; }
+
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  color: #999;
+}
+
+.empty-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+}
+
+/* Pour corriger les styles précédents en dur */
+.transactions-container {
+  background: #0a0a0a;
+}
+.transactions-card {
+  background: #1a1a1a;
+}
+.transactions-table th {
+  background: #121212;
+  color: #ccc;
+}

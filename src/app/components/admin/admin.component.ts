@@ -1,4 +1,3 @@
-// src/app/components/admin/admin.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -12,7 +11,7 @@ import { SidebarComponent } from '../layout/sidebar/sidebar.component';
   standalone: true,
   imports: [CommonModule, RouterModule, SidebarComponent],
   templateUrl: './admin.component.html',
-  styleUrls: ['./admin.component.css']
+  styleUrls: ['./admin.component.css'],
 })
 export class AdminComponent implements OnInit, OnDestroy {
   admin: User | null = null;
@@ -22,12 +21,12 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscriptions.push(
-      this.authService.currentUser.subscribe(user => (this.admin = user))
+      this.authService.currentUser.subscribe((user) => (this.admin = user))
     );
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
 
   logout(): void {

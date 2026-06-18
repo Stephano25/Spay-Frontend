@@ -1,4 +1,3 @@
-// src/app/components/admin/dashboard/admin-dashboard.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -7,8 +6,6 @@ import Chart from 'chart.js/auto';
 import { AdminService, AdminDashboardStats } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth.service';
 import { User } from '../../../models/user.model';
-
-// Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -23,24 +20,34 @@ import { MatToolbarModule } from '@angular/material/toolbar';
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [
-    CommonModule, RouterModule, MatCardModule, MatButtonModule, MatIconModule,
-    MatGridListModule, MatProgressSpinnerModule, MatTooltipModule, MatButtonToggleModule, MatRippleModule, MatToolbarModule
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatGridListModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    MatButtonToggleModule,
+    MatRippleModule,
+    MatToolbarModule,
   ],
   templateUrl: './admin-dashboard.component.html',
-  styleUrls: ['./admin-dashboard.component.css']  // ✅ CORRECTION : pointe vers le bon fichier CSS
+  styleUrls: ['./admin-dashboard.component.css'],
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   user: User | null = null;
   stats: AdminDashboardStats | null = null;
   isLoading = true;
   selectedPeriod: 'day' | 'week' | 'month' = 'week';
-  currentDate = new Date();
   private subscriptions: Subscription[] = [];
   private charts: Chart[] = [];
 
-  recentEvents: any[] = [];
-
-  constructor(private adminService: AdminService, private authService: AuthService, private router: Router) {}
+  constructor(
+    private adminService: AdminService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadUserData();
@@ -48,12 +55,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-    this.charts.forEach(chart => chart.destroy());
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+    this.charts.forEach((chart) => chart.destroy());
   }
 
   private loadUserData(): void {
-    this.subscriptions.push(this.authService.currentUser.subscribe(user => (this.user = user)));
+    this.subscriptions.push(
+      this.authService.currentUser.subscribe((user) => (this.user = user))
+    );
   }
 
   private loadDashboardData(): void {
@@ -62,40 +71,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       this.adminService.getDashboardStats().subscribe({
         next: (data) => {
           this.stats = data;
-          this.generateRecentEvents();
           setTimeout(() => this.createCharts(), 200);
           this.isLoading = false;
         },
         error: (err) => {
           console.error(err);
           this.isLoading = false;
-        }
+        },
       })
     );
-  }
-
-  private generateRecentEvents(): void {
-    if (!this.stats) return;
-    const events: any[] = [];
-    if (this.stats.recentUsers?.length) {
-      this.stats.recentUsers.slice(0, 3).forEach(user => {
-        events.push({
-          icon: 'person_add',
-          message: `Nouvel utilisateur : ${user.firstName} ${user.lastName}`,
-          time: user.createdAt
-        });
-      });
-    }
-    if (this.stats.recentTransactions?.length) {
-      this.stats.recentTransactions.slice(0, 3).forEach(tx => {
-        events.push({
-          icon: 'receipt',
-          message: `Transaction de ${this.formatVolume(tx.amount)} Ar`,
-          time: tx.createdAt
-        });
-      });
-    }
-    this.recentEvents = events.sort((a,b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
   }
 
   private createCharts(): void {
@@ -110,27 +94,27 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       const chart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: this.stats.dailyStats.map(d => d.date),
+          labels: this.stats.dailyStats.map((d) => d.date),
           datasets: [
             {
               label: 'Transactions',
-              data: this.stats.dailyStats.map(d => d.transactions),
+              data: this.stats.dailyStats.map((d) => d.transactions),
               borderColor: '#4caf50',
               backgroundColor: 'rgba(76, 175, 80, 0.1)',
               tension: 0.4,
               yAxisID: 'y',
-              fill: true
+              fill: true,
             },
             {
               label: 'Volume (kAr)',
-              data: this.stats.dailyStats.map(d => d.volume / 1000),
+              data: this.stats.dailyStats.map((d) => d.volume / 1000),
               borderColor: '#2196f3',
               backgroundColor: 'rgba(33, 150, 243, 0.1)',
               tension: 0.4,
               yAxisID: 'y1',
-              fill: true
-            }
-          ]
+              fill: true,
+            },
+          ],
         },
         options: {
           responsive: true,
@@ -144,19 +128,32 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
                   let label = ctx.dataset.label || '';
                   if (label) label += ': ';
                   if (ctx.parsed.y !== null) {
-                    if (ctx.dataset.label === 'Volume (kAr)') label += ctx.parsed.y.toFixed(0) + ' kAr';
+                    if (ctx.dataset.label === 'Volume (kAr)')
+                      label += ctx.parsed.y.toFixed(0) + ' kAr';
                     else label += ctx.parsed.y;
                   }
                   return label;
-                }
-              }
-            }
+                },
+              },
+            },
           },
           scales: {
-            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Nombre' }, grid: { color: 'rgba(0,0,0,0.05)' } },
-            y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Volume (milliers Ar)' }, grid: { drawOnChartArea: false } }
-          }
-        }
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              title: { display: true, text: 'Nombre' },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: { display: true, text: 'Volume (milliers Ar)' },
+              grid: { drawOnChartArea: false },
+            },
+          },
+        },
       });
       this.charts.push(chart);
     }
@@ -169,7 +166,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         type: 'doughnut',
         data: {
           labels: ['Actifs', 'Inactifs'],
-          datasets: [{ data: [this.stats.activeUsers, this.stats.totalUsers - this.stats.activeUsers], backgroundColor: ['#4caf50', '#ff9800'], borderWidth: 0, hoverOffset: 4 }]
+          datasets: [
+            {
+              data: [
+                this.stats.activeUsers,
+                this.stats.totalUsers - this.stats.activeUsers,
+              ],
+              backgroundColor: ['#4caf50', '#ff9800'],
+              borderWidth: 0,
+              hoverOffset: 4,
+            },
+          ],
         },
         options: {
           responsive: true,
@@ -185,11 +192,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
                   const total = this.stats?.totalUsers || 0;
                   const percentage = ((value / total) * 100).toFixed(1);
                   return `${label}: ${value} (${percentage}%)`;
-                }
-              }
-            }
-          }
-        }
+                },
+              },
+            },
+          },
+        },
       });
       this.charts.push(chart);
     }
@@ -201,14 +208,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       const chart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: this.stats.dailyStats.map(d => d.date),
-          datasets: [{
-            label: 'Volume (Ar)',
-            data: this.stats.dailyStats.map(d => d.volume),
-            backgroundColor: 'rgba(102, 126, 234, 0.7)',
-            borderRadius: 6,
-            hoverBackgroundColor: 'rgba(102, 126, 234, 1)'
-          }]
+          labels: this.stats.dailyStats.map((d) => d.date),
+          datasets: [
+            {
+              label: 'Volume (Ar)',
+              data: this.stats.dailyStats.map((d) => d.volume),
+              backgroundColor: 'rgba(102, 126, 234, 0.7)',
+              borderRadius: 6,
+              hoverBackgroundColor: 'rgba(102, 126, 234, 1)',
+            },
+          ],
         },
         options: {
           responsive: true,
@@ -220,40 +229,72 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
                 label: (ctx: any) => {
                   const value = ctx.parsed.y;
                   if (typeof value !== 'number') return '';
-                  return `${ctx.dataset.label}: ${new Intl.NumberFormat('fr-MG').format(value)} Ar`;
-                }
-              }
-            }
+                  return `${ctx.dataset.label}: ${new Intl.NumberFormat(
+                    'fr-MG'
+                  ).format(value)} Ar`;
+                },
+              },
+            },
           },
           scales: {
             y: {
               beginAtZero: true,
               ticks: {
                 callback: (value: any) => {
-                  const num = typeof value === 'number' ? value : parseFloat(value);
+                  const num =
+                    typeof value === 'number' ? value : parseFloat(value);
                   if (isNaN(num)) return value;
                   return new Intl.NumberFormat('fr-MG', {
                     notation: 'compact',
-                    compactDisplay: 'short'
+                    compactDisplay: 'short',
                   }).format(num);
-                }
-              }
-            }
-          }
-        }
+                },
+              },
+            },
+          },
+        },
       });
       this.charts.push(chart);
     }
   }
 
-  refreshData(): void { this.loadDashboardData(); }
-  changePeriod(period: 'day' | 'week' | 'month'): void { this.selectedPeriod = period; this.loadDashboardData(); }
-  navigateTo(route: string): void { this.router.navigate([`/admin/${route}`]); }
-  logout(): void { this.authService.logout(); }
-  goBack(): void { this.router.navigate(['/admin/dashboard']); }
-  formatVolume(volume: number): string { return volume >= 1e6 ? (volume / 1e6).toFixed(1) + ' M' : volume >= 1e3 ? (volume / 1e3).toFixed(1) + ' k' : volume.toString(); }
-  formatNumber(num: number): string { return new Intl.NumberFormat('fr-MG').format(num); }
-  getInitials(first: string, last: string): string { return (first?.charAt(0) || '') + (last?.charAt(0) || ''); }
-  getStatusClass(status: string): string { return status === 'completed' ? 'status-completed' : 'status-pending'; }
-  getStatusIcon(status: string): string { return status === 'completed' ? 'check_circle' : 'pending'; }
+  refreshData(): void {
+    this.loadDashboardData();
+  }
+
+  navigateTo(route: string): void {
+    this.router.navigate([`/admin/${route}`]);
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
+
+  goBack(): void {
+    this.router.navigate(['/admin/dashboard']);
+  }
+
+  formatVolume(volume: number): string {
+    return volume >= 1e6
+      ? (volume / 1e6).toFixed(1) + ' M'
+      : volume >= 1e3
+      ? (volume / 1e3).toFixed(1) + ' k'
+      : volume.toString();
+  }
+
+  formatNumber(num: number): string {
+    return new Intl.NumberFormat('fr-MG').format(num);
+  }
+
+  getInitials(first: string, last: string): string {
+    return (first?.charAt(0) || '') + (last?.charAt(0) || '');
+  }
+
+  getStatusClass(status: string): string {
+    return status === 'completed' ? 'status-completed' : 'status-pending';
+  }
+
+  getStatusIcon(status: string): string {
+    return status === 'completed' ? 'check_circle' : 'pending';
+  }
 }
