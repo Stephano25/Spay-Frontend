@@ -197,3 +197,48 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ============================================================
+   FULL-WIDTH OVERRIDES — à coller à la fin de src/styles.css
+   ------------------------------------------------------------
+   Pourquoi : chaque page (wallet, profil, paramètres, transactions,
+   envoi d'argent, mobile money, scan...) a son propre fichier CSS
+   "encapsulé" par Angular, avec un .xxx-content { max-width: 480px }
+   pensé pour un rendu façon mobile. Sur un grand écran, ça laisse
+   tout le contenu coincé au milieu avec du vide partout autour.
+
+   Comme les styles de composants Angular sont encapsulés (donc plus
+   "prioritaires" qu'un simple style global), la façon fiable de les
+   élargir sans toucher à 15 fichiers est d'utiliser !important ici,
+   dans le fichier de styles global (non encapsulé).
+   ============================================================ */
+
+@media (min-width: 1100px) {
+  .wallet-content,
+  .friends-content,
+  .settings-content,
+  .transactions-content,
+  .profile-content,
+  .scan-content,
+  .stats-container,
+  .users-content,
+  .receive-money-container .content,
+  .send-money-container .content,
+  .mobile-money-container .content {
+    max-width: 1100px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .wallet-content,
+  .friends-content,
+  .settings-content,
+  .transactions-content,
+  .stats-container,
+  .users-content {
+    max-width: 1280px !important;
+  }
+}
+
+/* Le chat, lui, est déjà conçu en plein écran (3 colonnes) dans son
+   propre fichier chat.component.css — pas besoin d'override ici. */

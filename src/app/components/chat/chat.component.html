@@ -1,13 +1,23 @@
-<div class="chat-layout">
-  <!-- Colonne gauche : conversations -->
+<div class="chat-layout" [class.mobile-chat-open]="selectedContact">
+
+  <!-- ============== Colonne gauche : conversations ============== -->
   <div class="conversations-panel">
-    <div class="search-box">
-      <input type="text" placeholder="Rechercher..." [(ngModel)]="searchQuery">
+    <div class="panel-header">
+      <span class="panel-title">Discussions</span>
+      <button mat-icon-button (click)="toggleNewConversation()" matTooltip="Nouvelle discussion">
+        <mat-icon>edit_square</mat-icon>
+      </button>
     </div>
+
+    <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input type="text" placeholder="Rechercher une discussion..." [(ngModel)]="searchQuery">
+    </div>
+
     <div class="conversations-list">
-      <div *ngFor="let conv of filteredConversations" 
-           class="conversation-item" 
-           [class.active]="selectedContact?.userId === conv.userId" 
+      <div *ngFor="let conv of filteredConversations"
+           class="conversation-item"
+           [class.active]="selectedContact?.userId === conv.userId"
            (click)="selectConversation(conv)">
         <div class="avatar" [style.background]="getAvatarColor(conv.firstName)">
           {{ getInitials(conv.firstName, conv.lastName) }}
@@ -15,26 +25,64 @@
         </div>
         <div class="conv-info">
           <div class="conv-name">{{ conv.firstName }} {{ conv.lastName }}</div>
-          <div class="last-message">{{ conv.lastMessage?.content | slice:0:30 }}</div>
+          <div class="last-message">{{ conv.lastMessage?.content | slice:0:32 }}</div>
         </div>
         <div class="conv-meta">
           <div class="time">{{ conv.lastMessageTime | date:'HH:mm' }}</div>
           <div class="unread-badge" *ngIf="conv.unreadCount > 0">{{ conv.unreadCount }}</div>
         </div>
       </div>
+
+      <div class="empty-conversations" *ngIf="filteredConversations.length === 0">
+        <mat-icon>chat_bubble_outline</mat-icon>
+        <p>Aucune discussion</p>
+        <button class="new-chat-btn" (click)="toggleNewConversation()">Démarrer une discussion</button>
+      </div>
+    </div>
+
+    <!-- Overlay "Nouvelle discussion" : écrire à n'importe quel utilisateur -->
+    <div class="new-conversation-overlay" *ngIf="showNewConversation">
+      <div class="overlay-header">
+        <span>Nouvelle discussion</span>
+        <button mat-icon-button (click)="toggleNewConversation()"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Nom, email..." [(ngModel)]="newConversationQuery" (ngModelChange)="searchNewConversation()" autofocus>
+      </div>
+      <div class="search-results-list">
+        <div class="loading-row" *ngIf="isSearchingUsers"><mat-spinner diameter="22"></mat-spinner></div>
+        <div *ngFor="let user of newConversationResults" class="user-result" (click)="openConversationWith(user)">
+          <div class="avatar small" [style.background]="getAvatarColor(user.firstName)">
+            {{ getInitials(user.firstName, user.lastName) }}
+          </div>
+          <div class="conv-info">
+            <div class="conv-name">{{ user.firstName }} {{ user.lastName }}</div>
+            <div class="last-message">{{ user.email }}</div>
+          </div>
+          <mat-icon class="blocked-icon" *ngIf="user.isBlocked" matTooltip="Bloqué">block</mat-icon>
+        </div>
+        <p class="hint-text" *ngIf="!isSearchingUsers && newConversationQuery.length >= 2 && newConversationResults.length === 0">
+          Aucun utilisateur trouvé
+        </p>
+        <p class="hint-text" *ngIf="newConversationQuery.length < 2">
+          Tapez au moins 2 caractères pour rechercher quelqu'un, ami ou non.
+        </p>
+      </div>
     </div>
   </div>
 
-  <!-- Colonne centrale : chat -->
+  <!-- ============== Colonne centrale : conversation ============== -->
   <div class="chat-area" *ngIf="selectedContact; else noChat">
     <div class="chat-header">
-      <!-- Bouton retour -->
-      <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+      <button mat-icon-button class="mobile-back" (click)="selectedContact = null" matTooltip="Discussions">
         <mat-icon>arrow_back</mat-icon>
       </button>
 
       <div class="contact-info">
-        <div class="avatar large">{{ getInitials(selectedContact.firstName, selectedContact.lastName) }}</div>
+        <div class="avatar large" [style.background]="getAvatarColor(selectedContact.firstName)">
+          {{ getInitials(selectedContact.firstName, selectedContact.lastName) }}
+        </div>
         <div>
           <div class="contact-name">{{ selectedContact.firstName }} {{ selectedContact.lastName }}</div>
           <div class="contact-status">
@@ -46,6 +94,9 @@
       </div>
 
       <div class="chat-actions">
+        <button mat-icon-button (click)="openTransferPanel()" matTooltip="Envoyer de l'argent">
+          <mat-icon>attach_money</mat-icon>
+        </button>
         <button mat-icon-button (click)="startCall('audio')" matTooltip="Appel audio">
           <mat-icon>call</mat-icon>
         </button>
@@ -56,11 +107,7 @@
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #chatMenu="matMenu">
-          <button mat-menu-item (click)="sendMoney()">
-            <mat-icon>attach_money</mat-icon>
-            <span>Envoyer de l'argent</span>
-          </button>
-          <button mat-menu-item [routerLink]="['/profile', selectedContact.userId]">
+          <button mat-menu-item [routerLink]="['/user/profile', selectedContact.userId]">
             <mat-icon>person</mat-icon>
             <span>Voir le profil</span>
           </button>
@@ -73,12 +120,124 @@
       </div>
     </div>
 
-    <div class="messages-container" #messageContainer>
-      <div *ngFor="let msg of messages" class="message" [class.own]="msg.senderId === currentUserId">
-        <div class="message-bubble">
-          <span class="content">{{ msg.content || (msg.type === 'emoji' ? msg.emoji : '') }}</span>
-          <span class="time">{{ msg.createdAt | date:'HH:mm' }}</span>
+    <div class="messages-container" #messageContainer (click)="activeMessageId = null; activeReactionPickerId = null">
+
+      <!-- Message supprimé : placeholder façon Messenger -->
+      <ng-container *ngFor="let msg of messages">
+        <div class="message" [class.own]="isOwnMessage(msg)" *ngIf="msg.isDeleted">
+          <div class="message-bubble deleted">
+            <mat-icon>block</mat-icon>
+            <span class="content">Ce message a été supprimé</span>
+          </div>
         </div>
+
+        <!-- Bulle "argent" -->
+        <div class="message" [class.own]="isOwnMessage(msg)" *ngIf="!msg.isDeleted && msg.type === 'money'">
+          <div class="message-wrapper">
+            <div class="money-bubble" [ngClass]="msg.moneyTransfer?.status">
+              <div class="money-icon">
+                <mat-icon>{{ msg.moneyTransfer?.status === 'failed' ? 'error_outline' : 'attach_money' }}</mat-icon>
+              </div>
+              <div class="money-info">
+                <div class="money-amount">{{ formatAmount(msg.moneyTransfer?.amount || 0) }} Ar</div>
+                <div class="money-status">
+                  <span *ngIf="msg.moneyTransfer?.status === 'completed'">✅ Transfert réussi</span>
+                  <span *ngIf="msg.moneyTransfer?.status === 'failed'">❌ {{ msg.moneyTransfer?.failReason || 'Transfert échoué' }}</span>
+                  <span *ngIf="msg.moneyTransfer?.status === 'pending'">⏳ En cours...</span>
+                </div>
+              </div>
+            </div>
+            <div class="reactions-row" *ngIf="groupedReactions(msg).length">
+              <span class="reaction-chip" *ngFor="let r of groupedReactions(msg)" [class.mine]="r.mine" (click)="toggleReaction(msg, r.emoji)">
+                {{ r.emoji }} <span *ngIf="r.count > 1">{{ r.count }}</span>
+              </span>
+            </div>
+            <span class="time">{{ msg.createdAt | date:'HH:mm' }}</span>
+
+            <!-- Barre d'actions : réagir / transférer / supprimer (pas de modif possible sur un transfert) -->
+            <div class="msg-actions" [class.visible]="activeMessageId === msg.id" (click)="$event.stopPropagation()">
+              <button class="action-btn" (click)="toggleReactionPicker(msg)" matTooltip="Réagir"><mat-icon>add_reaction</mat-icon></button>
+              <button class="action-btn" (click)="openTransferPanel()" matTooltip="Transférer de l'argent"><mat-icon>send</mat-icon></button>
+              <button class="action-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)" matTooltip="Supprimer"><mat-icon>delete</mat-icon></button>
+            </div>
+            <button class="hover-trigger" (click)="toggleMessageActions(msg); $event.stopPropagation()"><mat-icon>expand_more</mat-icon></button>
+
+            <div class="reaction-picker" *ngIf="activeReactionPickerId === msg.id" (click)="$event.stopPropagation()">
+              <span *ngFor="let emoji of quickReactions" (click)="toggleReaction(msg, emoji)">{{ emoji }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bulle standard (texte / emoji / image / fichier) -->
+        <div class="message" [class.own]="isOwnMessage(msg)" *ngIf="!msg.isDeleted && msg.type !== 'money'">
+          <div class="message-wrapper">
+
+            <!-- Mode édition -->
+            <div class="edit-box" *ngIf="editingMessageId === msg.id">
+              <input #editInput type="text" [(ngModel)]="editContent" (keyup.enter)="saveEdit()" (keyup.escape)="cancelEdit()">
+              <button class="edit-action save" (click)="saveEdit()"><mat-icon>check</mat-icon></button>
+              <button class="edit-action cancel" (click)="cancelEdit()"><mat-icon>close</mat-icon></button>
+            </div>
+
+            <div class="message-bubble" *ngIf="editingMessageId !== msg.id" [ngClass]="msg.type">
+              <span class="content" *ngIf="msg.type === 'text' || msg.type === 'emoji'" [class.emoji-content]="msg.type === 'emoji'">
+                {{ msg.content || msg.emoji }}
+              </span>
+              <a class="file-content" *ngIf="msg.type === 'image'" [href]="msg.fileUrl" target="_blank">
+                <img [src]="msg.fileUrl" alt="image">
+              </a>
+              <a class="file-content file-doc" *ngIf="msg.type === 'file'" [href]="msg.fileUrl" target="_blank">
+                <mat-icon>description</mat-icon>
+                <span>{{ msg.fileName }}</span>
+              </a>
+            </div>
+
+            <div class="reactions-row" *ngIf="groupedReactions(msg).length">
+              <span class="reaction-chip" *ngFor="let r of groupedReactions(msg)" [class.mine]="r.mine" (click)="toggleReaction(msg, r.emoji)">
+                {{ r.emoji }} <span *ngIf="r.count > 1">{{ r.count }}</span>
+              </span>
+            </div>
+
+            <span class="time" *ngIf="editingMessageId !== msg.id">
+              {{ msg.createdAt | date:'HH:mm' }}
+              <em *ngIf="msg.isEdited">· modifié</em>
+            </span>
+
+            <!-- Barre d'actions : réagir / transférer / modifier / supprimer -->
+            <div class="msg-actions" [class.visible]="activeMessageId === msg.id" *ngIf="editingMessageId !== msg.id" (click)="$event.stopPropagation()">
+              <button class="action-btn" (click)="toggleReactionPicker(msg)" matTooltip="Réagir"><mat-icon>add_reaction</mat-icon></button>
+              <button class="action-btn" (click)="openTransferPanel()" matTooltip="Transférer de l'argent"><mat-icon>send</mat-icon></button>
+              <button class="action-btn" *ngIf="canEditMessage(msg)" (click)="startEdit(msg)" matTooltip="Modifier"><mat-icon>edit</mat-icon></button>
+              <button class="action-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)" matTooltip="Supprimer"><mat-icon>delete</mat-icon></button>
+            </div>
+            <button class="hover-trigger" *ngIf="editingMessageId !== msg.id" (click)="toggleMessageActions(msg); $event.stopPropagation()">
+              <mat-icon>expand_more</mat-icon>
+            </button>
+
+            <div class="reaction-picker" *ngIf="activeReactionPickerId === msg.id" (click)="$event.stopPropagation()">
+              <span *ngFor="let emoji of quickReactions" (click)="toggleReaction(msg, emoji)">{{ emoji }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Panneau de transfert d'argent -->
+    <div class="transfer-panel" *ngIf="showTransferPanel">
+      <div class="transfer-header">
+        <span>Envoyer de l'argent à {{ selectedContact.firstName }}</span>
+        <button mat-icon-button (click)="closeTransferPanel()"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="transfer-quick-amounts">
+        <button *ngFor="let amount of transferQuickAmounts" [class.active]="transferAmount === amount" (click)="transferAmount = amount">
+          {{ formatAmount(amount) }}
+        </button>
+      </div>
+      <div class="transfer-input-row">
+        <input type="number" placeholder="Montant en Ar" [(ngModel)]="transferAmount" min="100">
+        <button class="transfer-send-btn" [disabled]="!transferAmount || transferAmount <= 0" (click)="confirmTransfer()">
+          <mat-icon>send</mat-icon> Envoyer
+        </button>
       </div>
     </div>
 
@@ -93,17 +252,17 @@
         <mat-icon>mic</mat-icon>
       </button>
       <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" accept="image/*,audio/*,video/*,application/pdf">
-      <input type="text" 
-             [(ngModel)]="newMessage" 
-             (keyup.enter)="sendMessage()" 
-             (keyup)="onTyping()" 
+      <input type="text"
+             [(ngModel)]="newMessage"
+             (keyup.enter)="sendMessage()"
+             (keyup)="onTyping()"
              placeholder="Écrire un message...">
       <button mat-icon-button (click)="sendMessage()" [disabled]="!newMessage.trim() || isSending">
         <mat-icon>send</mat-icon>
       </button>
     </div>
 
-    <!-- Picker d'emojis étendu -->
+    <!-- Picker d'emojis étendu (envoi direct, différent du picker de réaction) -->
     <div class="emoji-picker" *ngIf="showEmojiPicker">
       <div class="emoji-grid">
         <span *ngFor="let emoji of emojis" class="emoji-item" (click)="sendEmoji(emoji)">{{ emoji }}</span>
@@ -113,10 +272,14 @@
   </div>
 
   <ng-template #noChat>
-    <div class="no-chat">Sélectionnez une conversation</div>
+    <div class="no-chat">
+      <mat-icon>chat_bubble_outline</mat-icon>
+      <p>Sélectionnez une discussion ou commencez-en une nouvelle</p>
+      <button class="new-chat-btn" (click)="toggleNewConversation()">Nouvelle discussion</button>
+    </div>
   </ng-template>
 
-  <!-- Colonne droite : amis en ligne -->
+  <!-- ============== Colonne droite : amis en ligne ============== -->
   <div class="online-friends-panel">
     <h3>En ligne ({{ onlineFriends.length }})</h3>
     <div class="online-list">
@@ -127,6 +290,7 @@
         </div>
         <div class="friend-name">{{ friend.friend.firstName }} {{ friend.friend.lastName }}</div>
       </div>
+      <p class="hint-text" *ngIf="onlineFriends.length === 0">Aucun ami en ligne actuellement</p>
     </div>
   </div>
 </div>

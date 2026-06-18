@@ -14,6 +14,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+interface SearchableUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  profilePicture?: string;
+  isFriend?: boolean;
+  isBlocked?: boolean;
+}
 
 @Component({
   selector: 'app-chat',
@@ -26,7 +37,8 @@ import { MatDividerModule } from '@angular/material/divider';
     MatButtonModule,
     MatMenuModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
@@ -34,6 +46,7 @@ import { MatDividerModule } from '@angular/material/divider';
 export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('messageContainer') messageContainer!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef;
+  @ViewChild('editInput') editInput!: ElementRef;
 
   conversations: Conversation[] = [];
   messages: Message[] = [];
@@ -47,6 +60,26 @@ export class ChatComponent implements OnInit, OnDestroy {
   showEmojiPicker = false;
   isSending = false;
   isVoiceSupported = 'MediaRecorder' in window || 'webkitSpeechRecognition' in window;
+
+  // --- Nouvelle discussion : on peut écrire à n'importe quel utilisateur, pas seulement les amis
+  showNewConversation = false;
+  newConversationQuery = '';
+  newConversationResults: SearchableUser[] = [];
+  isSearchingUsers = false;
+
+  // --- Barre d'actions par message (réagir / transférer / modifier / supprimer)
+  activeMessageId: string | null = null;
+  activeReactionPickerId: string | null = null;
+  quickReactions = ['👍', '❤️', '😆', '😮', '😢', '🙏'];
+
+  // --- Édition d'un message
+  editingMessageId: string | null = null;
+  editContent = '';
+
+  // --- Transfert d'argent (déclenché depuis le menu OU depuis l'action "Transférer" d'un message)
+  showTransferPanel = false;
+  transferAmount: number | null = null;
+  transferQuickAmounts = [500, 1000, 2000, 5000, 10000, 20000];
 
   private subscriptions: Subscription[] = [];
 
@@ -79,6 +112,14 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.loadOnlineFriends();
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    clearTimeout(this.typingTimeout);
+  }
+
+  // ============================================================
+  // CHARGEMENT
+  // ============================================================
   loadConversations(): void {
     this.chatService.getConversations().subscribe(convs => {
       this.conversations = convs.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
@@ -102,7 +143,14 @@ export class ChatComponent implements OnInit, OnDestroy {
         if (!data) return;
         const conv = this.conversations.find(c => c.userId === data.userId);
         if (conv) conv.isOnline = data.isOnline;
+        if (this.selectedContact?.userId === data.userId) this.selectedContact.isOnline = data.isOnline;
         this.loadOnlineFriends();
+      }),
+      this.chatService.messageEdited$.subscribe(msg => this.applyMessageUpdate(msg)),
+      this.chatService.messageReaction$.subscribe(msg => this.applyMessageUpdate(msg)),
+      this.chatService.messageDeleted$.subscribe(data => this.applyMessageDeleted(data.messageId)),
+      this.chatService.messageBlocked$.subscribe(data => {
+        if (data) this.notificationService.showWarning('Vous ne pouvez pas écrire à cet utilisateur');
       })
     );
   }
@@ -113,11 +161,24 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.scrollToBottom();
       this.chatService.markAsRead(this.selectedContact.userId).subscribe();
     }
-    const conv = this.conversations.find(c => c.userId === message.senderId);
+    let conv = this.conversations.find(c => c.userId === message.senderId);
     if (conv) {
       conv.lastMessage = { content: message.content || '', type: message.type, createdAt: message.createdAt };
       conv.lastMessageTime = message.createdAt;
-      conv.unreadCount++;
+      if (!this.selectedContact || this.selectedContact.userId !== message.senderId) conv.unreadCount++;
+    } else if (message.sender) {
+      // Nouveau message venant d'un utilisateur avec lequel il n'existait pas encore de conversation
+      conv = {
+        userId: message.senderId,
+        firstName: message.sender.firstName,
+        lastName: message.sender.lastName,
+        profilePicture: message.sender.profilePicture,
+        lastMessage: { content: message.content || '', type: message.type, createdAt: message.createdAt },
+        lastMessageTime: message.createdAt,
+        unreadCount: 1,
+        isOnline: true
+      };
+      this.conversations.unshift(conv);
     }
     this.conversations.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
   }
@@ -125,6 +186,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   selectConversation(conv: Conversation): void {
     this.selectedContact = conv;
     this.messages = [];
+    this.closeAllPanels();
     this.chatService.getMessages(conv.userId).subscribe(msgs => {
       this.messages = msgs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       this.scrollToBottom();
@@ -136,11 +198,65 @@ export class ChatComponent implements OnInit, OnDestroy {
   get filteredConversations() {
     if (!this.searchQuery) return this.conversations;
     const query = this.searchQuery.toLowerCase();
-    return this.conversations.filter(conv => 
+    return this.conversations.filter(conv =>
       `${conv.firstName} ${conv.lastName}`.toLowerCase().includes(query)
     );
   }
 
+  // ============================================================
+  // NOUVELLE DISCUSSION — discuter avec n'importe quel utilisateur
+  // ============================================================
+  toggleNewConversation(): void {
+    this.showNewConversation = !this.showNewConversation;
+    this.newConversationQuery = '';
+    this.newConversationResults = [];
+  }
+
+  searchNewConversation(): void {
+    if (!this.newConversationQuery.trim() || this.newConversationQuery.trim().length < 2) {
+      this.newConversationResults = [];
+      return;
+    }
+    this.isSearchingUsers = true;
+    this.friendService.searchUsers(this.newConversationQuery.trim()).subscribe({
+      next: (results: any[]) => {
+        this.newConversationResults = results;
+        this.isSearchingUsers = false;
+      },
+      error: () => { this.isSearchingUsers = false; }
+    });
+  }
+
+  openConversationWith(user: SearchableUser): void {
+    if (user.isBlocked) {
+      this.notificationService.showWarning('Impossible de discuter avec un utilisateur bloqué');
+      return;
+    }
+    const existing = this.conversations.find(c => c.userId === user.id);
+    if (existing) {
+      this.selectConversation(existing);
+    } else {
+      const newConv: Conversation = {
+        userId: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePicture: user.profilePicture,
+        lastMessage: { content: '', type: 'text', createdAt: new Date() },
+        lastMessageTime: new Date(),
+        unreadCount: 0,
+        isOnline: false
+      };
+      this.conversations.unshift(newConv);
+      this.selectConversation(newConv);
+    }
+    this.showNewConversation = false;
+    this.newConversationQuery = '';
+    this.newConversationResults = [];
+  }
+
+  // ============================================================
+  // ENVOI DE MESSAGE / EMOJI
+  // ============================================================
   sendMessage(): void {
     if (!this.newMessage.trim() || !this.selectedContact || this.isSending) return;
     this.isSending = true;
@@ -207,26 +323,14 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   startChat(userId: string): void {
     const existing = this.conversations.find(c => c.userId === userId);
-    if (existing) this.selectConversation(existing);
-    else {
-      this.friendService.getFriends().subscribe(friends => {
-        const friend = friends.find(f => f.friend?.id === userId)?.friend;
-        if (friend) {
-          const newConv: Conversation = {
-            userId: friend.id,
-            firstName: friend.firstName,
-            lastName: friend.lastName,
-            profilePicture: friend.profilePicture,
-            lastMessage: { content: '', type: 'text', createdAt: new Date() },
-            lastMessageTime: new Date(),
-            unreadCount: 0,
-            isOnline: true
-          };
-          this.conversations.unshift(newConv);
-          this.selectConversation(newConv);
-        }
-      });
+    if (existing) {
+      this.selectConversation(existing);
+      return;
     }
+    this.friendService.getFriends().subscribe(friends => {
+      const friend = friends.find(f => f.friend?.id === userId)?.friend;
+      if (friend) this.openConversationWith(friend);
+    });
   }
 
   toggleEmojiPicker(): void {
@@ -293,30 +397,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.notificationService.showInfo('Fonctionnalité de message vocal bientôt disponible');
   }
 
-  sendMoney(): void {
-    if (!this.selectedContact) return;
-    const amount = prompt(`Montant à envoyer à ${this.selectedContact.firstName}:`, '1000');
-    if (amount && !isNaN(Number(amount)) && Number(amount) > 0) {
-      const tempMsg: Message = {
-        id: 'temp-money-' + Date.now(),
-        senderId: this.currentUserId,
-        receiverId: this.selectedContact.userId,
-        type: 'money',
-        moneyTransfer: { amount: Number(amount), status: 'pending' },
-        isRead: false,
-        isDelivered: false,
-        createdAt: new Date()
-      };
-      this.messages.push(tempMsg);
-      this.scrollToBottom();
-      this.chatService.sendMessage({
-        receiverId: this.selectedContact.userId,
-        type: 'money',
-        moneyTransfer: { amount: Number(amount) }
-      });
-    }
-  }
-
   blockUser(): void {
     if (!this.selectedContact) return;
     this.friendService.blockUser(this.selectedContact.userId).subscribe({
@@ -328,14 +408,165 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ============================================================
+  // BARRE D'ACTIONS PAR MESSAGE : réagir / transférer / modifier / supprimer
+  // ============================================================
+  toggleMessageActions(msg: Message): void {
+    if (msg.isDeleted) return;
+    this.activeMessageId = this.activeMessageId === msg.id ? null : msg.id;
+    this.activeReactionPickerId = null;
+  }
+
+  isOwnMessage(msg: Message): boolean {
+    return msg.senderId === this.currentUserId;
+  }
+
+  canEditMessage(msg: Message): boolean {
+    if (!this.isOwnMessage(msg) || msg.isDeleted || msg.type !== 'text') return false;
+    // Modification autorisée pendant 15 minutes, comme Messenger
+    const ageMs = Date.now() - new Date(msg.createdAt).getTime();
+    return ageMs < 15 * 60 * 1000;
+  }
+
+  canDeleteMessage(msg: Message): boolean {
+    return this.isOwnMessage(msg) && !msg.isDeleted;
+  }
+
+  // --- Réagir ---
+  toggleReactionPicker(msg: Message): void {
+    this.activeReactionPickerId = this.activeReactionPickerId === msg.id ? null : msg.id;
+  }
+
+  myReaction(msg: Message): string | null {
+    return msg.reactions?.find(r => r.userId === this.currentUserId)?.emoji || null;
+  }
+
+  toggleReaction(msg: Message, emoji: string): void {
+    const mine = this.myReaction(msg);
+    if (mine === emoji) {
+      this.chatService.removeReaction(msg.id).subscribe(updated => this.applyMessageUpdate(updated));
+    } else {
+      this.chatService.reactToMessage(msg.id, emoji).subscribe(updated => this.applyMessageUpdate(updated));
+    }
+    this.activeReactionPickerId = null;
+    this.activeMessageId = null;
+  }
+
+  groupedReactions(msg: Message): { emoji: string; count: number; mine: boolean }[] {
+    if (!msg.reactions?.length) return [];
+    const map = new Map<string, { count: number; mine: boolean }>();
+    for (const r of msg.reactions) {
+      const entry = map.get(r.emoji) || { count: 0, mine: false };
+      entry.count++;
+      if (r.userId === this.currentUserId) entry.mine = true;
+      map.set(r.emoji, entry);
+    }
+    return Array.from(map.entries()).map(([emoji, v]) => ({ emoji, count: v.count, mine: v.mine }));
+  }
+
+  // --- Modifier ---
+  startEdit(msg: Message): void {
+    if (!this.canEditMessage(msg)) return;
+    this.editingMessageId = msg.id;
+    this.editContent = msg.content || '';
+    this.activeMessageId = null;
+    setTimeout(() => this.editInput?.nativeElement?.focus(), 50);
+  }
+
+  cancelEdit(): void {
+    this.editingMessageId = null;
+    this.editContent = '';
+  }
+
+  saveEdit(): void {
+    if (!this.editingMessageId || !this.editContent.trim()) return;
+    this.chatService.editMessage(this.editingMessageId, this.editContent.trim()).subscribe({
+      next: (updated) => {
+        this.applyMessageUpdate(updated);
+        this.cancelEdit();
+      },
+      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur lors de la modification')
+    });
+  }
+
+  // --- Supprimer ---
+  deleteMessage(msg: Message): void {
+    if (!this.canDeleteMessage(msg)) return;
+    if (!confirm('Supprimer ce message pour tout le monde ?')) return;
+    this.chatService.deleteMessage(msg.id).subscribe({
+      next: (updated) => this.applyMessageUpdate(updated),
+      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur lors de la suppression')
+    });
+    this.activeMessageId = null;
+  }
+
+  // --- Transférer de l'argent ---
+  openTransferPanel(): void {
+    if (!this.selectedContact) return;
+    this.showTransferPanel = true;
+    this.transferAmount = null;
+    this.activeMessageId = null;
+  }
+
+  closeTransferPanel(): void {
+    this.showTransferPanel = false;
+    this.transferAmount = null;
+  }
+
+  confirmTransfer(): void {
+    if (!this.selectedContact || !this.transferAmount || this.transferAmount <= 0) return;
+    const amount = this.transferAmount;
+
+    const tempMsg: Message = {
+      id: 'temp-money-' + Date.now(),
+      senderId: this.currentUserId,
+      receiverId: this.selectedContact.userId,
+      type: 'money',
+      moneyTransfer: { amount, status: 'pending' },
+      isRead: false,
+      isDelivered: false,
+      createdAt: new Date()
+    };
+    this.messages.push(tempMsg);
+    this.scrollToBottom();
+
+    this.chatService.sendMessage({
+      receiverId: this.selectedContact.userId,
+      type: 'money',
+      moneyTransfer: { amount }
+    });
+
+    this.closeTransferPanel();
+  }
+
+  // ============================================================
+  // Helpers de mise à jour locale (édition / suppression / réaction)
+  // ============================================================
+  private applyMessageUpdate(updated: Message): void {
+    const index = this.messages.findIndex(m => m.id === updated.id);
+    if (index !== -1) {
+      this.messages[index] = { ...this.messages[index], ...updated };
+    }
+  }
+
+  private applyMessageDeleted(messageId: string): void {
+    const index = this.messages.findIndex(m => m.id === messageId);
+    if (index !== -1) {
+      this.messages[index] = { ...this.messages[index], isDeleted: true, content: '', fileUrl: undefined };
+    }
+  }
+
+  private closeAllPanels(): void {
+    this.activeMessageId = null;
+    this.activeReactionPickerId = null;
+    this.editingMessageId = null;
+    this.showTransferPanel = false;
+    this.showEmojiPicker = false;
+  }
+
   // 👉 Bouton de retour
   goBack(): void {
     this.router.navigate(['/user']);
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-    clearTimeout(this.typingTimeout);
   }
 
   getInitials(first: string, last: string): string {
@@ -345,7 +576,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   getAvatarColor(name: string): string {
     const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a'];
     let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
+  }
+
+  formatAmount(amount: number): string {
+    return new Intl.NumberFormat('fr-MG').format(amount || 0);
   }
 }
