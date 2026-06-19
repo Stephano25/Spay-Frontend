@@ -31,6 +31,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-admin-settings',
@@ -57,7 +58,8 @@ import { MatBadgeModule } from '@angular/material/badge';
     MatRadioModule,
     MatExpansionModule,
     MatChipsModule,
-    MatBadgeModule
+    MatBadgeModule,
+    TranslatePipe,
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']

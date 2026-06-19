@@ -1,9 +1,9 @@
 <!-- src/app/components/admin/settings/settings.component.html -->
 <mat-toolbar color="primary">
-  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+  <button mat-icon-button (click)="goBack()" matTooltip="{{ 'Retour' | translate }}">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span>Paramètres d’administration</span>
+  <span>{{ 'Paramètres d\'administration' | translate }}</span>
 </mat-toolbar>
 
 <div class="settings-page">
@@ -11,7 +11,7 @@
     <!-- Loading -->
     <div class="loading-container" *ngIf="isLoading">
       <mat-spinner diameter="60"></mat-spinner>
-      <p>Chargement des paramètres...</p>
+      <p>{{ 'Chargement des paramètres...' | translate }}</p>
     </div>
 
     <ng-container *ngIf="!isLoading">
@@ -23,13 +23,13 @@
             <div class="admin-info">
               <h2>{{ admin?.firstName }} {{ admin?.lastName }}</h2>
               <p>{{ admin?.email }}</p>
-              <span class="admin-role">{{ admin?.role === 'super_admin' ? 'Super Administrateur' : 'Administrateur' }}</span>
+              <span class="admin-role">{{ admin?.role === 'super_admin' ? ('Super Administrateur' | translate) : ('Administrateur' | translate) }}</span>
             </div>
           </div>
           <div class="system-info">
-            <div class="info-item"><span class="info-label">Version</span><span class="info-value">{{ versions.app }}</span></div>
-            <div class="info-item"><span class="info-label">Uptime</span><span class="info-value">{{ systemStats.uptime }}</span></div>
-            <div class="info-item"><span class="info-label">Sessions actives</span><span class="info-value">{{ systemStats.activeSessions }}</span></div>
+            <div class="info-item"><span class="info-label">{{ 'Version' | translate }}</span><span class="info-value">{{ versions.app }}</span></div>
+            <div class="info-item"><span class="info-label">{{ 'Uptime' | translate }}</span><span class="info-value">{{ systemStats.uptime }}</span></div>
+            <div class="info-item"><span class="info-label">{{ 'Sessions actives' | translate }}</span><span class="info-value">{{ systemStats.activeSessions }}</span></div>
           </div>
         </mat-card-content>
       </mat-card>
@@ -37,61 +37,61 @@
       <!-- Onglets -->
       <mat-tab-group class="settings-tabs" (selectedIndexChange)="activeTab = $event" [selectedIndex]="activeTab">
         <!-- Onglet Général -->
-        <mat-tab label="Général">
+        <mat-tab [label]="'Général' | translate">
           <div class="tab-content">
             <form [formGroup]="generalForm" (ngSubmit)="saveGeneralSettings()">
               <mat-card class="settings-card">
                 <mat-card-header>
                   <mat-icon mat-card-avatar>settings_applications</mat-icon>
-                  <mat-card-title>Informations générales</mat-card-title>
-                  <mat-card-subtitle>Configuration de base du site</mat-card-subtitle>
+                  <mat-card-title>{{ 'Informations générales' | translate }}</mat-card-title>
+                  <mat-card-subtitle>{{ 'Configuration de base du site' | translate }}</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Nom du site</mat-label>
+                      <mat-label>{{ 'Nom du site' | translate }}</mat-label>
                       <input matInput formControlName="siteName">
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>URL du site</mat-label>
+                      <mat-label>{{ 'URL du site' | translate }}</mat-label>
                       <input matInput formControlName="siteUrl">
                     </mat-form-field>
                   </div>
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Email admin</mat-label>
+                      <mat-label>{{ 'Email admin' | translate }}</mat-label>
                       <input matInput formControlName="adminEmail" type="email">
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Email support</mat-label>
+                      <mat-label>{{ 'Email support' | translate }}</mat-label>
                       <input matInput formControlName="supportEmail" type="email">
                     </mat-form-field>
                   </div>
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Rôle par défaut</mat-label>
+                      <mat-label>{{ 'Rôle par défaut' | translate }}</mat-label>
                       <mat-select formControlName="defaultUserRole">
-                        <mat-option *ngFor="let role of userRoles" [value]="role.value">{{ role.label }}</mat-option>
+                        <mat-option *ngFor="let role of userRoles" [value]="role.value">{{ role.label | translate }}</mat-option>
                       </mat-select>
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Taille max fichier (Mo)</mat-label>
+                      <mat-label>{{ 'Taille max fichier (Mo)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="maxFileSize">
                     </mat-form-field>
                   </div>
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Timeout session (min)</mat-label>
+                      <mat-label>{{ 'Timeout session (min)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="sessionTimeout">
                     </mat-form-field>
                     <div class="toggle-group half-width">
-                      <mat-slide-toggle formControlName="maintenanceMode">Mode maintenance</mat-slide-toggle>
-                      <mat-slide-toggle formControlName="registrationEnabled">Inscriptions ouvertes</mat-slide-toggle>
+                      <mat-slide-toggle formControlName="maintenanceMode">{{ 'Mode maintenance' | translate }}</mat-slide-toggle>
+                      <mat-slide-toggle formControlName="registrationEnabled">{{ 'Inscriptions ouvertes' | translate }}</mat-slide-toggle>
                     </div>
                   </div>
                 </mat-card-content>
                 <mat-card-actions>
-                  <button mat-raised-button color="primary" type="submit">Enregistrer</button>
+                  <button mat-raised-button color="primary" type="submit">{{ 'Enregistrer' | translate }}</button>
                 </mat-card-actions>
               </mat-card>
             </form>
@@ -99,79 +99,79 @@
         </mat-tab>
 
         <!-- Onglet Apparence -->
-        <mat-tab label="Apparence">
+        <mat-tab [label]="'Apparence' | translate">
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
                 <mat-icon mat-card-avatar>palette</mat-icon>
-                <mat-card-title>Personnalisation</mat-card-title>
-                <mat-card-subtitle>Thème et apparence</mat-card-subtitle>
+                <mat-card-title>{{ 'Personnalisation' | translate }}</mat-card-title>
+                <mat-card-subtitle>{{ 'Thème et apparence' | translate }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="customizationForm">
                   <div class="form-group">
-                    <label class="form-label">Thème</label>
+                    <label class="form-label">{{ 'Thème' | translate }}</label>
                     <div class="theme-buttons">
                       <button type="button" *ngFor="let theme of themes" class="theme-btn"
                               [class.active]="customizationForm.get('theme')?.value === theme.value"
                               (click)="setTheme(theme.value)">
                         <mat-icon>{{ theme.icon }}</mat-icon>
-                        <span>{{ theme.label }}</span>
+                        <span>{{ theme.label | translate }}</span>
                       </button>
                     </div>
                   </div>
                   <div class="form-group">
-                    <label class="form-label">Langue</label>
+                    <label class="form-label">{{ 'Langue' | translate }}</label>
                     <div class="language-buttons">
                       <button type="button" *ngFor="let lang of languages" class="language-btn"
                               [class.active]="selectedLanguage === lang.value"
                               (click)="setLanguage(lang.value)">
                         <span class="flag">{{ lang.flag }}</span>
-                        <span>{{ lang.label }}</span>
+                        <span>{{ lang.label | translate }}</span>
                       </button>
                     </div>
                   </div>
                   <div class="form-row">
                     <div class="half-width">
-                      <label class="form-label">Couleur primaire</label>
+                      <label class="form-label">{{ 'Couleur primaire' | translate }}</label>
                       <input type="color" class="color-input" [value]="customizationForm.get('primaryColor')?.value"
                              (change)="updatePrimaryColor($event)">
                     </div>
                     <div class="half-width">
-                      <label class="form-label">Couleur secondaire</label>
+                      <label class="form-label">{{ 'Couleur secondaire' | translate }}</label>
                       <input type="color" class="color-input" [value]="customizationForm.get('secondaryColor')?.value"
                              (change)="updateSecondaryColor($event)">
                     </div>
                   </div>
                   <div class="form-group">
-                    <label class="form-label">CSS personnalisé</label>
+                    <label class="form-label">{{ 'CSS personnalisé' | translate }}</label>
                     <textarea class="custom-textarea" rows="4" [value]="customizationForm.get('customCSS')?.value"
                               (input)="updateCustomCSS($event)"></textarea>
                   </div>
                 </form>
               </mat-card-content>
               <mat-card-actions>
-                <button mat-raised-button color="primary" (click)="saveCustomizationSettings()">Enregistrer</button>
+                <button mat-raised-button color="primary" (click)="saveCustomizationSettings()">{{ 'Enregistrer' | translate }}</button>
               </mat-card-actions>
             </mat-card>
           </div>
         </mat-tab>
 
         <!-- Onglet Système -->
-        <mat-tab label="Système">
+        <mat-tab [label]="'Système' | translate">
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
                 <mat-icon mat-card-avatar>computer</mat-icon>
-                <mat-card-title>Informations système</mat-card-title>
-                <mat-card-subtitle>Statistiques et versions</mat-card-subtitle>
+                <mat-card-title>{{ 'Informations système' | translate }}</mat-card-title>
+                <mat-card-subtitle>{{ 'Statistiques et versions' | translate }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>
                 <div class="system-stats-grid">
-                  <div class="stat-item"><span class="stat-label">Version app</span><span class="stat-value">{{ versions.app }}</span></div>
-                  <div class="stat-item"><span class="stat-label">Angular</span><span class="stat-value">{{ versions.angular }}</span></div>
-                  <div class="stat-item"><span class="stat-label">Uptime</span><span class="stat-value">{{ systemStats.uptime }}</span></div>
-                  <div class="stat-item"><span class="stat-label">Mémoire</span><span class="stat-value">{{ systemStats.memoryUsage }}</span></div>
+                  <div class="stat-item"><span class="stat-label">{{ 'Version app' | translate }}</span><span class="stat-value">{{ versions.app }}</span></div>
+                  <div class="stat-item"><span class="stat-label">{{ 'Angular' | translate }}</span><span class="stat-value">{{ versions.angular }}</span></div>
+                  <div class="stat-item"><span class="stat-label">{{ 'Uptime' | translate }}</span><span class="stat-value">{{ systemStats.uptime }}</span></div>
+                  <div class="stat-item"><span class="stat-label">{{ 'Mémoire' | translate }}</span><span class="stat-value">{{ systemStats.memoryUsage }}</span></div>
                 </div>
               </mat-card-content>
             </mat-card>

@@ -38,7 +38,7 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
     MatButtonToggleModule,
     MatRippleModule,
     MatToolbarModule,
-    TranslatePipe, // ← Ajout du pipe de traduction
+    TranslatePipe, // ✅ Ajout du pipe de traduction
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
@@ -63,7 +63,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.loadUserData();
     this.loadDashboardData();
 
-    // Mise à jour en temps réel
     this.subscriptions.push(
       this.chatService.onlineStatus$.subscribe(() => {
         this.loadDashboardDataSilent();

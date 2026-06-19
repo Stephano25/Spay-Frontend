@@ -53,7 +53,7 @@ export class TranslationService {
     'Scanner un QR code': { fr: 'Scanner un QR code', mg: 'Scan QR code', en: 'Scan QR code' },
 
     // ============================================================
-    // ACTIONS
+    // ACTIONS (clés uniques)
     // ============================================================
     'Actualiser': { fr: 'Actualiser', mg: 'Havaozina', en: 'Refresh' },
     'Déconnexion': { fr: 'Déconnexion', mg: 'Hivoaka', en: 'Logout' },
@@ -153,7 +153,7 @@ export class TranslationService {
     },
 
     // ============================================================
-    // APPARTEMENT
+    // APPARTEMENT (Apparence, Thème, Langue, etc.)
     // ============================================================
     'Apparence': { fr: 'Apparence', mg: 'Bika', en: 'Appearance' },
     'Personnalisez l\'apparence de l\'application': { fr: 'Personnalisez l\'apparence de l\'application', mg: 'Manamboatra ny bikan\'ny fampiharana', en: 'Customize the application appearance' },
@@ -177,7 +177,7 @@ export class TranslationService {
     },
 
     // ============================================================
-    // ADMIN DASHBOARD (uniquement les nouvelles clés)
+    // ADMIN DASHBOARD
     // ============================================================
     'Tableau de bord': { fr: 'Tableau de bord', mg: 'Takelaka', en: 'Dashboard' },
     'Chargement...': { fr: 'Chargement...', mg: 'Fandrasana...', en: 'Loading...' },
@@ -198,6 +198,40 @@ export class TranslationService {
     'Actif': { fr: 'Actif', mg: 'Mavitrika', en: 'Active' },
     'Inactif': { fr: 'Inactif', mg: 'Tsy mavitrika', en: 'Inactive' },
     'transactions': { fr: 'transactions', mg: 'fifanakalozana', en: 'transactions' },
+
+    // ============================================================
+    // ADMIN SETTINGS (Paramètres d'administration)
+    // ============================================================
+    'Paramètres d\'administration': { fr: 'Paramètres d\'administration', mg: 'Fanamarihana fitantanana', en: 'Administration settings' },
+    'Chargement des paramètres...': { fr: 'Chargement des paramètres...', mg: 'Fanaparitahana ny fanamarihana...', en: 'Loading settings...' },
+    'Super Administrateur': { fr: 'Super Administrateur', mg: 'Mpitantana ambony', en: 'Super Administrator' },
+    'Administrateur': { fr: 'Administrateur', mg: 'Mpitantana', en: 'Administrator' },
+    'Version': { fr: 'Version', mg: 'Dika', en: 'Version' },
+    'Uptime': { fr: 'Uptime', mg: 'Fotoana niasana', en: 'Uptime' },
+    'Sessions actives': { fr: 'Sessions actives', mg: 'Sessions mavitrika', en: 'Active sessions' },
+    'Général': { fr: 'Général', mg: 'Ankapobeny', en: 'General' },
+    'Informations générales': { fr: 'Informations générales', mg: 'Fampahalalana ankapobeny', en: 'General information' },
+    'Configuration de base du site': { fr: 'Configuration de base du site', mg: 'Fandrindrana fototra ny tranonkala', en: 'Basic site configuration' },
+    'Nom du site': { fr: 'Nom du site', mg: 'Anaran\'ny tranonkala', en: 'Site name' },
+    'URL du site': { fr: 'URL du site', mg: 'URL ny tranonkala', en: 'Site URL' },
+    'Email admin': { fr: 'Email admin', mg: 'Mailaka mpitantana', en: 'Admin email' },
+    'Email support': { fr: 'Email support', mg: 'Mailaka fanampiana', en: 'Support email' },
+    'Rôle par défaut': { fr: 'Rôle par défaut', mg: 'Raha fitsinjarana', en: 'Default role' },
+    'Taille max fichier (Mo)': { fr: 'Taille max fichier (Mo)', mg: 'Haben\'ny rakitra farany (Mo)', en: 'Max file size (MB)' },
+    'Timeout session (min)': { fr: 'Timeout session (min)', mg: 'Fe-potoanan\'ny session (min)', en: 'Session timeout (min)' },
+    'Mode maintenance': { fr: 'Mode maintenance', mg: 'Toerana fikojakojana', en: 'Maintenance mode' },
+    'Inscriptions ouvertes': { fr: 'Inscriptions ouvertes', mg: 'Sokafana ny fisoratana anarana', en: 'Open registrations' },
+    'Enregistrer': { fr: 'Enregistrer', mg: 'Tehirizina', en: 'Save' },
+    'Personnalisation': { fr: 'Personnalisation', mg: 'Fanamarinana', en: 'Customization' },
+    'Thème et apparence': { fr: 'Thème et apparence', mg: 'Loko sy bika', en: 'Theme and appearance' },
+    'Couleur primaire': { fr: 'Couleur primaire', mg: 'Loko fototra', en: 'Primary color' },
+    'Couleur secondaire': { fr: 'Couleur secondaire', mg: 'Loko fanampiny', en: 'Secondary color' },
+    'CSS personnalisé': { fr: 'CSS personnalisé', mg: 'CSS manokana', en: 'Custom CSS' },
+    'Informations système': { fr: 'Informations système', mg: 'Fampahalalana momba ny rafitra', en: 'System information' },
+    'Statistiques et versions': { fr: 'Statistiques et versions', mg: 'Antontan\'isa sy dika', en: 'Statistics and versions' },
+    'Version app': { fr: 'Version app', mg: 'Dika fampiharana', en: 'App version' },
+    'Angular': { fr: 'Angular', mg: 'Angular', en: 'Angular' },
+    'Mémoire': { fr: 'Mémoire', mg: 'Fahatsiarovana', en: 'Memory' }
   };
 
   constructor() {
