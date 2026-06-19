@@ -11,15 +11,19 @@ export class TranslationService {
 
   // Dictionnaire complet des traductions - SANS DOUBLONS
   private translations: any = {
-    // Dashboard User
+    // ============================================================
+    // DASHBOARD USER
+    // ============================================================
     'Bienvenue sur SPaye': { fr: 'Bienvenue sur SPaye', mg: 'Tongasoa eto SPaye', en: 'Welcome to SPaye' },
     'Tableau de bord utilisateur': { fr: 'Tableau de bord utilisateur', mg: 'Takelaka fandraisan\'ny mpampiasa', en: 'User Dashboard' },
     'Vous êtes connecté en tant que :': { fr: 'Vous êtes connecté en tant que :', mg: 'Niditra ho :', en: 'You are logged in as :' },
     'Email :': { fr: 'Email :', mg: 'Mailaka :', en: 'Email :' },
     'Chargement du solde...': { fr: 'Chargement du solde...', mg: 'Fanaparitahana ny vola...', en: 'Loading balance...' },
     'Votre solde': { fr: 'Votre solde', mg: 'Ny volanao', en: 'Your balance' },
-    
-    // Menu items
+
+    // ============================================================
+    // MENU ITEMS
+    // ============================================================
     'Portefeuille': { fr: 'Portefeuille', mg: 'Poketra', en: 'Wallet' },
     'Messages': { fr: 'Messages', mg: 'Hafatra', en: 'Messages' },
     'Profil': { fr: 'Profil', mg: 'Momoko', en: 'Profile' },
@@ -27,33 +31,43 @@ export class TranslationService {
     'Mobile Money': { fr: 'Mobile Money', mg: 'Volan\'ny finday', en: 'Mobile Money' },
     'Amis': { fr: 'Amis', mg: 'Namana', en: 'Friends' },
     'Paramètres': { fr: 'Paramètres', mg: 'Fanamarihana', en: 'Settings' },
-    
-    // Stats
+
+    // ============================================================
+    // STATS
+    // ============================================================
     'Transactions': { fr: 'Transactions', mg: 'Fifanakalozana', en: 'Transactions' },
     'Plus grosse': { fr: 'Plus grosse', mg: 'Be indrindra', en: 'Largest' },
     'Dernières transactions': { fr: 'Dernières transactions', mg: 'Fifanakalozana farany', en: 'Latest transactions' },
     'Voir tout': { fr: 'Voir tout', mg: 'Jereo daholo', en: 'View all' },
     'Transfert': { fr: 'Transfert', mg: 'Famindrana', en: 'Transfer' },
-    
-    // Empty state
+
+    // ============================================================
+    // EMPTY STATE
+    // ============================================================
     'Aucune transaction': { fr: 'Aucune transaction', mg: 'Tsy misy fifanakalozana', en: 'No transactions' },
-    'Commencez à utiliser SPaye en effectuant votre première transaction': { 
-      fr: 'Commencez à utiliser SPaye en effectuant votre première transaction', 
-      mg: 'Manomboha mampiasa SPaye amin\'ny fifanakalozana voalohany', 
-      en: 'Start using SPaye by making your first transaction' 
+    'Commencez à utiliser SPaye en effectuant votre première transaction': {
+      fr: 'Commencez à utiliser SPaye en effectuant votre première transaction',
+      mg: 'Manomboha mampiasa SPaye amin\'ny fifanakalozana voalohany',
+      en: 'Start using SPaye by making your first transaction'
     },
     'Scanner un QR code': { fr: 'Scanner un QR code', mg: 'Scan QR code', en: 'Scan QR code' },
-    
-    // Actions
+
+    // ============================================================
+    // ACTIONS
+    // ============================================================
     'Actualiser': { fr: 'Actualiser', mg: 'Havaozina', en: 'Refresh' },
     'Déconnexion': { fr: 'Déconnexion', mg: 'Hivoaka', en: 'Logout' },
     'Retour': { fr: 'Retour', mg: 'Hiverina', en: 'Back' },
     'Réinitialiser': { fr: 'Réinitialiser', mg: 'Averina', en: 'Reset' },
-    
-    // Paramètres - Général
+
+    // ============================================================
+    // PARAMÈTRES - GÉNÉRAL
+    // ============================================================
     'Chargement de vos paramètres...': { fr: 'Chargement de vos paramètres...', mg: 'Fanaparitahana ny fanamarihana...', en: 'Loading settings...' },
-    
-    // Formulaire profil
+
+    // ============================================================
+    // FORMULAIRE PROFIL
+    // ============================================================
     'Informations personnelles': { fr: 'Informations personnelles', mg: 'Fampahalalana manokana', en: 'Personal information' },
     'Modifiez vos informations de base': { fr: 'Modifiez vos informations de base', mg: 'Hanova ny fampahalalanao fototra', en: 'Edit your basic information' },
     'Prénom': { fr: 'Prénom', mg: 'Anarana', en: 'First name' },
@@ -69,8 +83,10 @@ export class TranslationService {
     'Format invalide (9-10 chiffres)': { fr: 'Format invalide (9-10 chiffres)', mg: 'Endrika diso (9-10 isa)', en: 'Invalid format (9-10 digits)' },
     'Parlez-nous de vous...': { fr: 'Parlez-nous de vous...', mg: 'Lazao momba anao...', en: 'Tell us about yourself...' },
     'Enregistrer les modifications': { fr: 'Enregistrer les modifications', mg: 'Tehirizina ny fanovana', en: 'Save changes' },
-    
-    // Mot de passe
+
+    // ============================================================
+    // MOT DE PASSE
+    // ============================================================
     'Changer le mot de passe': { fr: 'Changer le mot de passe', mg: 'Hanova tenimiafina', en: 'Change password' },
     'Mettez à jour votre mot de passe': { fr: 'Mettez à jour votre mot de passe', mg: 'Havaozy ny tenimiafinao', en: 'Update your password' },
     'Mot de passe actuel': { fr: 'Mot de passe actuel', mg: 'Tenimiafina ankehitriny', en: 'Current password' },
@@ -79,8 +95,10 @@ export class TranslationService {
     'Mot de passe actuel requis': { fr: 'Mot de passe actuel requis', mg: 'Ilaina ny tenimiafina ankehitriny', en: 'Current password required' },
     'Nouveau mot de passe requis': { fr: 'Nouveau mot de passe requis', mg: 'Ilaina ny tenimiafina vaovao', en: 'New password required' },
     'Les mots de passe ne correspondent pas': { fr: 'Les mots de passe ne correspondent pas', mg: 'Tsy mitovy ny tenimiafina', en: 'Passwords do not match' },
-    
-    // Notifications
+
+    // ============================================================
+    // NOTIFICATIONS
+    // ============================================================
     'Préférences de notification': { fr: 'Préférences de notification', mg: 'Safidin\'ny fampahafantarana', en: 'Notification preferences' },
     'Gérez comment vous recevez les notifications': { fr: 'Gérez comment vous recevez les notifications', mg: 'Karohy ny fandraisanao fampahafantarana', en: 'Manage how you receive notifications' },
     'Notifications par email': { fr: 'Notifications par email', mg: 'Fampahafantarana amin\'ny mailaka', en: 'Email notifications' },
@@ -93,8 +111,10 @@ export class TranslationService {
     'Soyez notifié lors de chaque transaction': { fr: 'Soyez notifié lors de chaque transaction', mg: 'Mahazoa fampandremana isaky ny fifanakalozana', en: 'Get notified on every transaction' },
     'Offres promotionnelles': { fr: 'Offres promotionnelles', mg: 'Tolotra dokam-barotra', en: 'Promotional offers' },
     'Recevez nos offres spéciales et promotions': { fr: 'Recevez nos offres spéciales et promotions', mg: 'Mahazoa ny tolotra manokana sy dokam-barotra', en: 'Receive our special offers and promotions' },
-    
-    // Confidentialité
+
+    // ============================================================
+    // CONFIDENTIALITÉ
+    // ============================================================
     'Confidentialité': { fr: 'Confidentialité', mg: 'Fiangonan\'ny tsiambaratelo', en: 'Privacy' },
     'Contrôlez qui peut voir vos informations': { fr: 'Contrôlez qui peut voir vos informations', mg: 'Fehizo izay afaka mahita ny fampahalalanao', en: 'Control who can see your information' },
     'Visibilité du profil': { fr: 'Visibilité du profil', mg: 'Fahitana ny momoko', en: 'Profile visibility' },
@@ -104,8 +124,10 @@ export class TranslationService {
     'Afficher la dernière connexion': { fr: 'Afficher la dernière connexion', mg: 'Aseho ny fidirana farany', en: 'Show last seen' },
     'Afficher le statut en ligne': { fr: 'Afficher le statut en ligne', mg: 'Aseho ny satan\'ny aterineto', en: 'Show online status' },
     'Autoriser les demandes d\'ami': { fr: 'Autoriser les demandes d\'ami', mg: 'Avela ny fangatahana namana', en: 'Allow friend requests' },
-    
-    // Sécurité
+
+    // ============================================================
+    // SÉCURITÉ
+    // ============================================================
     'Sécurité du compte': { fr: 'Sécurité du compte', mg: 'Fiarovana ny kaonty', en: 'Account security' },
     'Renforcez la sécurité de votre compte': { fr: 'Renforcez la sécurité de votre compte', mg: 'Hanamafy ny fiarovan\'ny kaontinao', en: 'Strengthen your account security' },
     'Authentification à deux facteurs (2FA)': { fr: 'Authentification à deux facteurs (2FA)', mg: 'Fanamarinana roa lafin-javatra (2FA)', en: 'Two-factor authentication (2FA)' },
@@ -118,17 +140,21 @@ export class TranslationService {
     '1 heure': { fr: '1 heure', mg: '1 ora', en: '1 hour' },
     '2 heures': { fr: '2 heures', mg: '2 ora', en: '2 hours' },
     'Jamais': { fr: 'Jamais', mg: 'Tsy mbola', en: 'Never' },
-    
-    // Zone dangereuse
+
+    // ============================================================
+    // ZONE DANGEREUSE
+    // ============================================================
     'Zone dangereuse': { fr: 'Zone dangereuse', mg: 'Faritra mampidi-doza', en: 'Danger zone' },
     'Supprimer mon compte': { fr: 'Supprimer mon compte', mg: 'Hamafa ny kaontiko', en: 'Delete my account' },
-    'Cette action est irréversible. Toutes vos données seront supprimées.': { 
-      fr: 'Cette action est irréversible. Toutes vos données seront supprimées.', 
-      mg: 'Ity hetsika ity dia tsy azo averina. Ny angon-drakitrao rehetra dia hofafana.', 
-      en: 'This action is irreversible. All your data will be deleted.' 
+    'Cette action est irréversible. Toutes vos données seront supprimées.': {
+      fr: 'Cette action est irréversible. Toutes vos données seront supprimées.',
+      mg: 'Ity hetsika ity dia tsy azo averina. Ny angon-drakitrao rehetra dia hofafana.',
+      en: 'This action is irreversible. All your data will be deleted.'
     },
-    
-    // Apparence
+
+    // ============================================================
+    // APPARTEMENT
+    // ============================================================
     'Apparence': { fr: 'Apparence', mg: 'Bika', en: 'Appearance' },
     'Personnalisez l\'apparence de l\'application': { fr: 'Personnalisez l\'apparence de l\'application', mg: 'Manamboatra ny bikan\'ny fampiharana', en: 'Customize the application appearance' },
     'Langue': { fr: 'Langue', mg: 'Fiteny', en: 'Language' },
@@ -144,11 +170,34 @@ export class TranslationService {
     'Moyenne': { fr: 'Moyenne', mg: 'Antonony', en: 'Medium' },
     'Grande': { fr: 'Grande', mg: 'Lehibe', en: 'Large' },
     'Mode compact': { fr: 'Mode compact', mg: 'Fomba kely', en: 'Compact mode' },
-    'Afficher plus d\'informations en réduisant les espacements': { 
-      fr: 'Afficher plus d\'informations en réduisant les espacements', 
-      mg: 'Aseho fampahalalana bebe kokoa amin\'ny fampihenana ny elanelana', 
-      en: 'Show more information by reducing spacing' 
-    }
+    'Afficher plus d\'informations en réduisant les espacements': {
+      fr: 'Afficher plus d\'informations en réduisant les espacements',
+      mg: 'Aseho fampahalalana bebe kokoa amin\'ny fampihenana ny elanelana',
+      en: 'Show more information by reducing spacing'
+    },
+
+    // ============================================================
+    // ADMIN DASHBOARD (uniquement les nouvelles clés)
+    // ============================================================
+    'Tableau de bord': { fr: 'Tableau de bord', mg: 'Takelaka', en: 'Dashboard' },
+    'Chargement...': { fr: 'Chargement...', mg: 'Fandrasana...', en: 'Loading...' },
+    'Utilisateurs': { fr: 'Utilisateurs', mg: 'Mpampiasa', en: 'Users' },
+    'Actifs aujourd\'hui': { fr: 'Actifs aujourd\'hui', mg: 'Mavitrika androany', en: 'Active today' },
+    'Volume total': { fr: 'Volume total', mg: 'Volana rehetra', en: 'Total volume' },
+    'Actifs': { fr: 'Actifs', mg: 'Mavitrika', en: 'Active' },
+    'Inactifs': { fr: 'Inactifs', mg: 'Tsy mavitrika', en: 'Inactive' },
+    'actifs': { fr: 'actifs', mg: 'mavitrika', en: 'active' },
+    'Activité quotidienne': { fr: 'Activité quotidienne', mg: 'Asa isan\'andro', en: 'Daily activity' },
+    'Transactions et volume sur 7 jours': { fr: 'Transactions et volume sur 7 jours', mg: 'Fifanakalozana sy volana 7 andro', en: 'Transactions and volume over 7 days' },
+    'Revenus': { fr: 'Revenus', mg: 'Fidiram-bola', en: 'Revenue' },
+    'Gestion rapide': { fr: 'Gestion rapide', mg: 'Fitantanana haingana', en: 'Quick management' },
+    'Utilisateurs récents': { fr: 'Utilisateurs récents', mg: 'Mpampiasa farany', en: 'Recent users' },
+    'Transactions récentes': { fr: 'Transactions récentes', mg: 'Fifanakalozana farany', en: 'Recent transactions' },
+    'Top utilisateurs': { fr: 'Top utilisateurs', mg: 'Mpampiasa ambony', en: 'Top users' },
+    'Statistiques': { fr: 'Statistiques', mg: 'Antontan\'isa', en: 'Statistics' },
+    'Actif': { fr: 'Actif', mg: 'Mavitrika', en: 'Active' },
+    'Inactif': { fr: 'Inactif', mg: 'Tsy mavitrika', en: 'Inactive' },
+    'transactions': { fr: 'transactions', mg: 'fifanakalozana', en: 'transactions' },
   };
 
   constructor() {

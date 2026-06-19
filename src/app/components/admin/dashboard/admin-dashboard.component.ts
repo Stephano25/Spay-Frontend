@@ -6,7 +6,10 @@ import Chart from 'chart.js/auto';
 import { AdminService, AdminDashboardStats } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
+import { TranslationService } from '../../../services/translation.service';
 import { User } from '../../../models/user.model';
+
+// Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,6 +19,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatRippleModule } from '@angular/material/core';
 import { MatToolbarModule } from '@angular/material/toolbar';
+
+// Pipe de traduction
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -32,6 +38,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatButtonToggleModule,
     MatRippleModule,
     MatToolbarModule,
+    TranslatePipe, // ← Ajout du pipe de traduction
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
@@ -48,6 +55,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private authService: AuthService,
     private chatService: ChatService,
+    private translationService: TranslationService,
     private router: Router
   ) {}
 
@@ -55,10 +63,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.loadUserData();
     this.loadDashboardData();
 
-    // 🔥 MISE À JOUR EN TEMPS RÉEL dès qu'un utilisateur change de statut
+    // Mise à jour en temps réel
     this.subscriptions.push(
       this.chatService.onlineStatus$.subscribe(() => {
-        // Recharger les données sans afficher le spinner
         this.loadDashboardDataSilent();
       })
     );
@@ -75,7 +82,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
-  // Chargement normal avec indicateur de chargement
   private loadDashboardData(): void {
     this.isLoading = true;
     this.adminService.getDashboardStats().subscribe({
@@ -91,7 +97,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Chargement silencieux (sans spinner) pour les mises à jour en temps réel
   private loadDashboardDataSilent(): void {
     this.adminService.getDashboardStats().subscribe({
       next: (data) => {
@@ -103,7 +108,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   private updateCharts(): void {
-    // Détruit les anciens graphiques avant d'en recréer
     this.charts.forEach((chart) => chart.destroy());
     this.charts = [];
     this.createCharts();
