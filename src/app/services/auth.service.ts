@@ -1,7 +1,4 @@
-// ============================================================
-// auth.service.ts (inchangé, déjà correct)
-// ============================================================
-
+// src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -28,7 +25,6 @@ export class AuthService {
   private loadStoredUser(): void {
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
-
     if (token && savedUser) {
       try {
         const user = JSON.parse(savedUser);
@@ -44,11 +40,9 @@ export class AuthService {
       tap(response => {
         const token = response.access_token || response.token;
         if (!token) throw new Error('Token manquant dans la réponse');
-
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-
         if (response.user.role === 'admin' || response.user.role === 'super_admin') {
           this.router.navigate(['/admin/dashboard']);
           this.notificationService.showSuccess('Bienvenue administrateur !');
@@ -73,17 +67,29 @@ export class AuthService {
       tap(response => {
         const token = response.access_token || response.token;
         if (!token) throw new Error('Token manquant dans la réponse');
-
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-
         this.notificationService.showSuccess('Inscription réussie !');
         this.router.navigate(['/user']);
       }),
       catchError(error => {
         const message = error.error?.message || "Erreur lors de l'inscription";
         this.notificationService.showError(message);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Récupère le profil de l'utilisateur connecté
+   * (utilisé lors du callback Google)
+   */
+  getProfile(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/profile`).pipe(
+      tap(user => console.log('👤 Profil récupéré :', user)),
+      catchError(error => {
+        this.notificationService.showError('Erreur lors du chargement du profil');
         return throwError(() => error);
       })
     );
@@ -165,5 +171,9 @@ export class AuthService {
   isAdmin(): boolean {
     const user = this.currentUserSubject.value;
     return user?.role === 'admin' || user?.role === 'super_admin';
+  }
+
+  showInfo(message: string): void {
+    this.notificationService.showInfo(message);
   }
 }

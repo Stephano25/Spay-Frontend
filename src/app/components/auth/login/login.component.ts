@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { environment } from '../../../../environments/environment';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -65,6 +66,14 @@ export class LoginComponent {
         this.isLoading = false;
       }
     });
+  }
+
+  /**
+   * Redirige vers l'endpoint d'authentification Google du backend
+   */
+  continueWithGoogle(): void {
+    // ✅ Redirection vers le backend
+    window.location.href = `${environment.apiUrl}/auth/google`;
   }
 
   get email() { return this.loginForm.get('email'); }

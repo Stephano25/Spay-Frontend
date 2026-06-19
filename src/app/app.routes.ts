@@ -2,6 +2,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
+import { AuthCallbackComponent } from './components/auth/callback';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -17,5 +18,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard, AdminGuard],
     loadChildren: () => import('./components/admin/admin.routes').then(m => m.ADMIN_ROUTES)
   },
-  { path: '**', redirectTo: '/login' }
+  { path: '**', redirectTo: '/login' },
+  { path: 'auth/callback', component: AuthCallbackComponent }
 ];
