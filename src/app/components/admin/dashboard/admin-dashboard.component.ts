@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import Chart from 'chart.js/auto';
 import { AdminService, AdminDashboardStats } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth.service';
+import { ChatService } from '../../../services/chat.service';
 import { User } from '../../../models/user.model';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,12 +47,21 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   constructor(
     private adminService: AdminService,
     private authService: AuthService,
+    private chatService: ChatService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadUserData();
     this.loadDashboardData();
+
+    // 🔥 MISE À JOUR EN TEMPS RÉEL dès qu'un utilisateur change de statut
+    this.subscriptions.push(
+      this.chatService.onlineStatus$.subscribe(() => {
+        // Recharger les données sans afficher le spinner
+        this.loadDashboardDataSilent();
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -65,21 +75,38 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
+  // Chargement normal avec indicateur de chargement
   private loadDashboardData(): void {
     this.isLoading = true;
-    this.subscriptions.push(
-      this.adminService.getDashboardStats().subscribe({
-        next: (data) => {
-          this.stats = data;
-          setTimeout(() => this.createCharts(), 200);
-          this.isLoading = false;
-        },
-        error: (err) => {
-          console.error(err);
-          this.isLoading = false;
-        },
-      })
-    );
+    this.adminService.getDashboardStats().subscribe({
+      next: (data) => {
+        this.stats = data;
+        this.updateCharts();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  // Chargement silencieux (sans spinner) pour les mises à jour en temps réel
+  private loadDashboardDataSilent(): void {
+    this.adminService.getDashboardStats().subscribe({
+      next: (data) => {
+        this.stats = data;
+        this.updateCharts();
+      },
+      error: (err) => console.error(err),
+    });
+  }
+
+  private updateCharts(): void {
+    // Détruit les anciens graphiques avant d'en recréer
+    this.charts.forEach((chart) => chart.destroy());
+    this.charts = [];
+    this.createCharts();
   }
 
   private createCharts(): void {

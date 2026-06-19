@@ -1,4 +1,6 @@
-// src/app/services/auth.service.ts
+// ============================================================
+// auth.service.ts (inchangé, déjà correct)
+// ============================================================
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -8,9 +10,7 @@ import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 import { User, LoginResponse, RegisterData } from '../models/user.model';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth`;
   private usersApiUrl = `${environment.apiUrl}/users`;
@@ -18,7 +18,7 @@ export class AuthService {
   public currentUser = this.currentUserSubject.asObservable();
 
   constructor(
-    private http: HttpClient, 
+    private http: HttpClient,
     private router: Router,
     private notificationService: NotificationService
   ) {
@@ -28,7 +28,7 @@ export class AuthService {
   private loadStoredUser(): void {
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
-    
+
     if (token && savedUser) {
       try {
         const user = JSON.parse(savedUser);
@@ -43,15 +43,12 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         const token = response.access_token || response.token;
-        
-        if (!token) {
-          throw new Error('Token manquant dans la réponse');
-        }
-        
+        if (!token) throw new Error('Token manquant dans la réponse');
+
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-        
+
         if (response.user.role === 'admin' || response.user.role === 'super_admin') {
           this.router.navigate(['/admin/dashboard']);
           this.notificationService.showSuccess('Bienvenue administrateur !');
@@ -62,14 +59,9 @@ export class AuthService {
       }),
       catchError(error => {
         let message = 'Erreur de connexion';
-        if (error.error?.message) {
-          message = error.error.message;
-        } else if (error.status === 0) {
-          message = 'Impossible de contacter le serveur';
-        } else if (error.status === 401) {
-          message = 'Email ou mot de passe incorrect';
-        }
-        
+        if (error.error?.message) message = error.error.message;
+        else if (error.status === 0) message = 'Impossible de contacter le serveur';
+        else if (error.status === 401) message = 'Email ou mot de passe incorrect';
         this.notificationService.showError(message);
         return throwError(() => error);
       })
@@ -80,15 +72,12 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/register`, userData).pipe(
       tap(response => {
         const token = response.access_token || response.token;
-        
-        if (!token) {
-          throw new Error('Token manquant dans la réponse');
-        }
-        
+        if (!token) throw new Error('Token manquant dans la réponse');
+
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-        
+
         this.notificationService.showSuccess('Inscription réussie !');
         this.router.navigate(['/user']);
       }),
@@ -121,9 +110,7 @@ export class AuthService {
 
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }).pipe(
-      tap(() => {
-        this.notificationService.showSuccess('Mot de passe modifié avec succès');
-      }),
+      tap(() => this.notificationService.showSuccess('Mot de passe modifié avec succès')),
       catchError(error => {
         const message = error.error?.message || 'Erreur lors du changement de mot de passe';
         this.notificationService.showError(message);
@@ -136,9 +123,7 @@ export class AuthService {
     return this.http.post(`${this.usersApiUrl}/upload-profile-picture`, formData).pipe(
       tap((response: any) => {
         console.log('Photo uploadée avec succès:', response);
-        if (response.user) {
-          this.updateCurrentUser(response.user);
-        }
+        if (response.user) this.updateCurrentUser(response.user);
       }),
       catchError(error => {
         this.notificationService.showError('Erreur lors de l\'upload');
@@ -149,9 +134,7 @@ export class AuthService {
 
   deleteProfilePicture(): Observable<any> {
     return this.http.delete(`${this.usersApiUrl}/profile-picture`).pipe(
-      tap(() => {
-        console.log('Photo supprimée avec succès');
-      }),
+      tap(() => console.log('Photo supprimée avec succès')),
       catchError(error => {
         this.notificationService.showError('Erreur lors de la suppression');
         return throwError(() => error);

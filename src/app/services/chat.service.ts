@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import { Observable, BehaviorSubject, of } from 'rxjs';
+import { Observable, BehaviorSubject, of, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
@@ -73,17 +73,22 @@ export class ChatService implements OnDestroy {
   );
 
   private processedMessageIds = new Set<string>();
+  private authSubscription: Subscription;
 
   constructor(
     private http: HttpClient,
     private authService: AuthService,
     private notificationService: NotificationService
   ) {
-    const user = this.authService.getCurrentUser();
-    if (user?.id) {
-      this.connectSocket();
-      this.requestNotificationPermission();
-    }
+    // 🔥 Connexion automatique dès que l'utilisateur est authentifié
+    this.authSubscription = this.authService.currentUser.subscribe(user => {
+      if (user) {
+        this.connectSocket();
+        this.requestNotificationPermission();
+      } else {
+        this.disconnect();
+      }
+    });
   }
 
   private connectSocket(): void {
@@ -118,6 +123,17 @@ export class ChatService implements OnDestroy {
     this.socket.on('error', (err) => this.notificationService.showError(err.message));
   }
 
+  disconnect(): void {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+  }
+
+  // ============================================================
+  // Méthodes publiques
+  // ============================================================
+
   getConversations(): Observable<Conversation[]> {
     return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`).pipe(catchError(() => of([])));
   }
@@ -145,12 +161,10 @@ export class ChatService implements OnDestroy {
       .pipe(catchError(() => of({ url: '', fileName: '', fileSize: 0 })));
   }
 
-  /** Modifie un message texte (action "Modifier" de la barre d'actions). */
   editMessage(messageId: string, content: string): Observable<Message> {
     return this.http.put<Message>(`${this.apiUrl}/message/${messageId}`, { content });
   }
 
-  /** Suppression douce : le backend renvoie le message avec isDeleted=true. */
   deleteMessage(messageId: string): Observable<Message> {
     return this.http.delete<Message>(`${this.apiUrl}/message/${messageId}`);
   }
@@ -200,6 +214,7 @@ export class ChatService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.socket?.disconnect();
+    this.authSubscription?.unsubscribe();
+    this.disconnect();
   }
 }
