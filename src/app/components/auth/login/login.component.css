@@ -8,45 +8,55 @@
   align-items: center;
   justify-content: center;
   background: var(--brand-grad);
-  padding: 20px;
+  padding: 28px 20px;
   position: relative;
   overflow: hidden;
 }
 
-.login-container::before,
-.login-container::after {
+/* ── Orbes de fond ── */
+.login-container::before {
   content: '';
   position: absolute;
+  width: 600px; height: 600px;
+  top: -200px; right: -200px;
   border-radius: 50%;
+  background: rgba(255,255,255,0.06);
   pointer-events: none;
-}
-
-.login-container::before {
-  width: 600px;
-  height: 600px;
-  top: -200px;
-  right: -200px;
-  background: rgba(255, 255, 255, 0.06);
   animation: orb 18s ease-in-out infinite;
 }
 
 .login-container::after {
-  width: 400px;
-  height: 400px;
-  bottom: -150px;
-  left: -100px;
-  background: rgba(255, 255, 255, 0.04);
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  bottom: -150px; left: -100px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  pointer-events: none;
   animation: orb 24s ease-in-out infinite reverse;
 }
 
+/* Troisième orbe pour plus de profondeur */
+.login-container .orb-extra {
+  position: absolute;
+  width: 280px; height: 280px;
+  top: 40%; left: 60%;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.03);
+  pointer-events: none;
+  animation: orb 30s ease-in-out infinite;
+}
+
+/* ── Card principale ── */
 .login-card {
   width: 100%;
   max-width: 440px;
   padding: 44px 40px;
   border-radius: var(--r-xl) !important;
-  background: rgba(255, 255, 255, 0.97) !important;
+  background: rgba(255,255,255,0.97) !important;
   backdrop-filter: blur(20px);
-  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.18) !important;
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 32px 64px rgba(0,0,0,0.18) !important;
   border: none !important;
   animation: scaleIn 0.5s var(--ease-spring) both;
   position: relative;
@@ -54,30 +64,34 @@
 }
 
 body.dark-theme .login-card {
-  background: rgba(19, 19, 28, 0.97) !important;
+  background: rgba(19,19,28,0.97) !important;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.4) !important;
 }
 
-/* Logo */
+/* ── Logo ── */
 .logo {
-  width: 72px;
-  height: 72px;
+  width: 72px; height: 72px;
   border-radius: 20px;
   background: var(--brand-grad);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   margin: 0 auto 24px;
   box-shadow: var(--shadow-brand);
   animation: float 4s ease-in-out infinite;
+  transition: transform var(--trans-base), box-shadow var(--trans-base);
+}
+
+.logo:hover {
+  transform: scale(1.06);
+  box-shadow: 0 12px 32px rgba(99,102,241,0.45);
 }
 
 .logo mat-icon {
-  font-size: 36px;
-  width: 36px;
-  height: 36px;
+  font-size: 36px !important;
+  width: 36px !important; height: 36px !important;
   color: white;
 }
 
+/* ── En-tête ── */
 mat-card-header {
   flex-direction: column;
   text-align: center;
@@ -86,7 +100,7 @@ mat-card-header {
 
 mat-card-title {
   font-family: var(--font-sans) !important;
-  font-size: 26px !important;
+  font-size: 1.625rem !important;
   font-weight: 700 !important;
   color: var(--text) !important;
   letter-spacing: -0.02em;
@@ -95,25 +109,28 @@ mat-card-title {
 
 mat-card-subtitle {
   color: var(--text-3) !important;
-  font-size: 15px;
+  font-size: 0.9375rem !important;
 }
 
+/* ── Champs ── */
 .full-width {
   width: 100%;
   margin-bottom: 18px;
 }
 
+/* ── Options (mot de passe oublié) ── */
 .form-options {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 24px;
+  margin-top: -6px;
 }
 
 .forgot-password {
   color: var(--brand-1);
   text-decoration: none;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: opacity var(--trans-base);
   position: relative;
 }
@@ -121,26 +138,22 @@ mat-card-subtitle {
 .forgot-password::after {
   content: '';
   position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 0;
-  height: 1.5px;
+  bottom: -1px; left: 0;
+  width: 0; height: 1.5px;
   background: var(--brand-1);
   transition: width var(--trans-base);
 }
 
-.forgot-password:hover {
-  opacity: 0.75;
-}
-.forgot-password:hover::after {
-  width: 100%;
-}
+.forgot-password:hover { opacity: 0.75; }
+.forgot-password:hover::after { width: 100%; }
 
+/* ── Bouton principal ── */
 .login-button {
   width: 100%;
   height: 50px;
   font-size: 0.9375rem !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
+  font-family: var(--font-sans) !important;
   border-radius: var(--r-pill) !important;
   background: var(--brand-grad) !important;
   color: white !important;
@@ -148,31 +161,32 @@ mat-card-subtitle {
   position: relative;
   overflow: hidden;
   transition: transform var(--trans-base), box-shadow var(--trans-base) !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: var(--shadow-brand) !important;
+  margin-bottom: 4px;
 }
 
+/* Shimmer au hover */
 .login-button::after {
   content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255,255,255,0.22) 50%,
+    transparent 70%
+  );
   transform: translateX(-100%);
-  transition: transform 0.5s var(--ease);
+  transition: transform 0.55s var(--ease);
 }
 
-.login-button:hover::after {
-  transform: translateX(100%);
-}
+.login-button:hover::after { transform: translateX(100%); }
 .login-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-brand) !important;
+  box-shadow: 0 12px 32px rgba(99,102,241,0.4) !important;
 }
-.login-button:disabled {
-  opacity: 0.6;
-}
+.login-button:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+.login-button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ── Séparateur ── */
 .divider {
@@ -182,6 +196,7 @@ mat-card-subtitle {
   margin: 24px 0 18px;
   color: var(--text-3);
   font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 .divider::before,
@@ -192,45 +207,50 @@ mat-card-subtitle {
   background: var(--border-2);
 }
 
-/* ── Bouton Google ── */
+/* ── Bouton Google / OAuth ── */
 .google-button {
   width: 100%;
   height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
   border: 1px solid var(--border-2);
   border-radius: var(--r-pill);
   background: var(--surface);
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 0.9375rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--trans-base);
-  padding: 0 16px;
+  padding: 0 20px;
   margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
 }
 
-.google-button:hover {
+.google-button::before {
+  content: '';
+  position: absolute; inset: 0;
   background: var(--hover);
+  opacity: 0;
+  transition: opacity var(--trans-base);
+}
+
+.google-button:hover::before { opacity: 1; }
+.google-button:hover {
   border-color: var(--border);
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
 
-.google-button:active {
-  transform: scale(0.98);
-}
+.google-button:active { transform: scale(0.98); }
 
-.google-icon {
-  flex-shrink: 0;
-}
+.google-icon { flex-shrink: 0; position: relative; z-index: 1; }
+.google-button span { position: relative; z-index: 1; }
 
+/* ── Lien inscription ── */
 .register-link {
   text-align: center;
-  margin-top: 8px;
+  margin-top: 12px;
   font-size: 0.875rem;
   color: var(--text-3);
 }
@@ -238,20 +258,106 @@ mat-card-subtitle {
 .register-link a {
   color: var(--brand-1);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
   margin-left: 4px;
+  position: relative;
   transition: opacity var(--trans-base);
 }
 
-.register-link a:hover {
-  opacity: 0.75;
+.register-link a::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  width: 0; height: 1.5px;
+  background: var(--brand-1);
+  transition: width var(--trans-base);
 }
 
+.register-link a:hover { opacity: 0.8; }
+.register-link a:hover::after { width: 100%; }
+
+/* ── Message d'erreur global ── */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--danger-bg);
+  border: 0.5px solid rgba(239,68,68,0.2);
+  border-radius: var(--r-md);
+  margin-bottom: 18px;
+  animation: fadeDown 0.25s var(--ease);
+}
+
+.error-banner mat-icon {
+  color: var(--danger) !important;
+  font-size: 18px !important;
+  flex-shrink: 0;
+}
+
+.error-banner p {
+  font-size: 0.8125rem;
+  color: var(--danger);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ── Message de succès (reset mdp) ── */
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--success-bg);
+  border: 0.5px solid rgba(16,185,129,0.2);
+  border-radius: var(--r-md);
+  margin-bottom: 18px;
+  animation: fadeDown 0.25s var(--ease);
+}
+
+.success-banner mat-icon {
+  color: var(--success) !important;
+  font-size: 18px !important;
+  flex-shrink: 0;
+}
+
+.success-banner p {
+  font-size: 0.8125rem;
+  color: var(--success);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ── Responsive ── */
 @media (max-width: 480px) {
   .login-card {
-    padding: 32px 24px;
+    padding: 32px 22px;
   }
+
   mat-card-title {
-    font-size: 22px !important;
+    font-size: 1.375rem !important;
   }
+
+  .login-button,
+  .google-button {
+    height: 46px;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-card {
+    padding: 24px 16px;
+  }
+
+  .logo {
+    width: 60px; height: 60px;
+    border-radius: 16px;
+  }
+
+  .logo mat-icon {
+    font-size: 28px !important;
+    width: 28px !important; height: 28px !important;
+  }
+
+  mat-card-title { font-size: 1.25rem !important; }
 }

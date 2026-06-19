@@ -8,6 +8,10 @@ export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', loadComponent: () => import('./components/auth/login/login.component').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./components/auth/register/register.component').then(m => m.RegisterComponent) },
+  
+  // ✅ Route de callback (avant les routes protégées)
+  { path: 'auth/callback', component: AuthCallbackComponent },
+  
   {
     path: 'user',
     canActivate: [AuthGuard],
@@ -18,6 +22,5 @@ export const routes: Routes = [
     canActivate: [AuthGuard, AdminGuard],
     loadChildren: () => import('./components/admin/admin.routes').then(m => m.ADMIN_ROUTES)
   },
-  { path: '**', redirectTo: '/login' },
-  { path: 'auth/callback', component: AuthCallbackComponent }
+  { path: '**', redirectTo: '/login' }
 ];
