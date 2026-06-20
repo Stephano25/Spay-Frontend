@@ -1,29 +1,31 @@
 // src/app/models/user.model.ts
-
 export interface User {
   id: string;
-  email: string;
   firstName: string;
   lastName: string;
+  email: string;
   phoneNumber?: string;
   profilePicture?: string;
-  profilePhoto?: string;
-  balance: number;
-  qrCode: string;
-  friends: string[];
-  role: 'user' | 'admin' | 'super_admin';
-  isActive: boolean;
-  createdAt: Date;
-  lastLogin?: Date;
+  profilePhoto?: string; // alias optionnel
+  role?: 'user' | 'admin' | 'super_admin';
+  balance?: number;
+  qrCode?: string;
+  friends?: string[];
+  isActive?: boolean;
+  isOnline?: boolean;
+  lastSeen?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   bio?: string;
   birthday?: Date;
   gender?: string;
+  lastLogin?: Date;
 }
 
 export interface LoginResponse {
+  access_token: string;
+  token: string;
   user: User;
-  access_token?: string;
-  token?: string;
 }
 
 export interface RegisterData {

@@ -9,8 +9,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
-import { FriendService } from '../../services/friend.service';
-import { Friend, FriendRequest, SearchUser } from '../../models/friend.model';
+import { FriendService, Friend, FriendRequest, SearchUser } from '../../services/friend.service';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,11 +29,22 @@ import { MatChipsModule } from '@angular/material/chips';
   selector: 'app-friends',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, RouterModule,
-    MatToolbarModule, MatButtonModule, MatIconModule, MatCardModule,
-    MatFormFieldModule, MatInputModule, MatListModule, MatTabsModule,
-    MatMenuModule, MatDividerModule, MatProgressSpinnerModule,
-    MatBadgeModule, MatChipsModule
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatListModule,
+    MatTabsModule,
+    MatMenuModule,
+    MatDividerModule,
+    MatProgressSpinnerModule,
+    MatBadgeModule,
+    MatChipsModule
   ],
   templateUrl: './friends.component.html',
   styleUrls: ['./friends.component.css']
@@ -97,11 +107,10 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.friendService.getFriends().subscribe({
       next: (friends) => {
         const accepted = friends.filter(f => f.status === 'accepted');
-        const unique = accepted.filter((f, i, self) =>
-          i === self.findIndex(t => t.friend?.id === f.friend?.id)
+        const unique = accepted.filter(
+          (f, i, self) => i === self.findIndex(t => t.friend?.id === f.friend?.id)
         );
         this.friends = unique;
-        console.log('📋 Amis:', this.friends);
       },
       error: (err) => console.error(err)
     });
@@ -111,7 +120,6 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.friendService.getFriendRequests().subscribe({
       next: (requests) => {
         this.friendRequests = requests;
-        console.log('📩 Demandes:', this.friendRequests);
       },
       error: (err) => console.error(err)
     });
@@ -121,10 +129,12 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.friendService.getSuggestions().subscribe({
       next: (suggestions) => {
         this.suggestions = suggestions;
-        console.log('💡 Suggestions:', this.suggestions);
         this.isLoading = false;
       },
-      error: (err) => console.error(err)
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+      }
     });
   }
 
@@ -132,24 +142,22 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.friendService.getBlockedUsers().subscribe({
       next: (blocked) => {
         this.blockedUsers = blocked;
-        console.log('🚫 Bloqués:', this.blockedUsers);
       },
       error: (err) => console.error(err)
     });
   }
 
-  // QR Code perso
+  // === QR Code ===
   async showMyQRCode(): Promise<void> {
     try {
       const qrData = JSON.stringify({ userId: this.currentUserId, type: 'add_friend' });
       this.qrCodeImage = await QRCode.toDataURL(qrData);
       this.showQRCode = true;
-    } catch (err) {
+    } catch {
       this.notificationService.showError('Erreur génération QR code');
     }
   }
 
-  // Scanner un QR code avec la caméra
   scanQRCode(): void {
     if (this.isScanning) {
       this.stopScan();
@@ -158,33 +166,22 @@ export class FriendsComponent implements OnInit, OnDestroy {
 
     const scannerContainer = document.createElement('div');
     scannerContainer.id = 'qr-scanner-container';
-    scannerContainer.style.position = 'fixed';
-    scannerContainer.style.top = '0';
-    scannerContainer.style.left = '0';
-    scannerContainer.style.width = '100%';
-    scannerContainer.style.height = '100%';
-    scannerContainer.style.backgroundColor = 'rgba(0,0,0,0.9)';
-    scannerContainer.style.zIndex = '3000';
-    scannerContainer.style.display = 'flex';
-    scannerContainer.style.flexDirection = 'column';
-    scannerContainer.style.alignItems = 'center';
-    scannerContainer.style.justifyContent = 'center';
+    Object.assign(scannerContainer.style, {
+      position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+      backgroundColor: 'rgba(0,0,0,0.9)', zIndex: '3000',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+    });
 
     const videoContainer = document.createElement('div');
     videoContainer.id = 'qr-reader';
-    videoContainer.style.width = '100%';
-    videoContainer.style.maxWidth = '400px';
-    videoContainer.style.margin = 'auto';
+    Object.assign(videoContainer.style, { width: '100%', maxWidth: '400px', margin: 'auto' });
 
     const closeBtn = document.createElement('button');
     closeBtn.innerText = 'Fermer';
-    closeBtn.style.marginTop = '20px';
-    closeBtn.style.padding = '10px 20px';
-    closeBtn.style.backgroundColor = '#ef4444';
-    closeBtn.style.color = 'white';
-    closeBtn.style.border = 'none';
-    closeBtn.style.borderRadius = '8px';
-    closeBtn.style.cursor = 'pointer';
+    Object.assign(closeBtn.style, {
+      marginTop: '20px', padding: '10px 20px', backgroundColor: '#ef4444',
+      color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer'
+    });
     closeBtn.onclick = () => this.stopScan();
 
     scannerContainer.appendChild(videoContainer);
@@ -203,7 +200,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
       },
       () => {}
     ).catch((err) => {
-      console.error('Erreur démarrage caméra', err);
+      console.error('Erreur caméra', err);
       this.notificationService.showError('Impossible d\'accéder à la caméra');
       this.stopScan();
     });
@@ -232,25 +229,24 @@ export class FriendsComponent implements OnInit, OnDestroy {
     }
   }
 
+  // === Actions ===
   toggleFriendsList(): void { this.showFriendsList = !this.showFriendsList; }
   toggleRequestsList(): void { this.showRequestsList = !this.showRequestsList; }
   goBack(): void { this.router.navigate(['/user']); }
 
   onSearch(): void {
-    if (!this.searchQuery.trim() || this.searchQuery.length < 2) {
+    const q = this.searchQuery.trim();
+    if (!q || q.length < 2) {
       this.searchResults = [];
       return;
     }
     this.isSearching = true;
-    this.friendService.searchUsers(this.searchQuery).subscribe({
+    this.friendService.searchUsers(q).subscribe({
       next: (results) => {
         this.searchResults = results;
         this.isSearching = false;
       },
-      error: (err) => {
-        console.error(err);
-        this.isSearching = false;
-      }
+      error: () => { this.isSearching = false; }
     });
   }
 
@@ -260,14 +256,21 @@ export class FriendsComponent implements OnInit, OnDestroy {
       return;
     }
     this.friendService.sendFriendRequest(userId).subscribe({
-      next: () => this.loadAllData(),
-      error: (err) => console.error(err)
+      next: () => {
+        this.notificationService.showSuccess('Demande envoyée');
+        this.loadAllData();
+      },
+      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
     });
   }
 
   acceptRequest(requestId: string): void {
     this.friendService.acceptFriendRequest(requestId).subscribe({
-      next: () => this.loadAllData()
+      next: () => {
+        this.notificationService.showSuccess('Demande acceptée');
+        this.loadAllData();
+      },
+      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
     });
   }
 
@@ -275,14 +278,20 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.friendService.declineFriendRequest(requestId).subscribe({
       next: () => {
         this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
-      }
+        this.notificationService.showInfo('Demande refusée');
+      },
+      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
     });
   }
 
   removeFriend(friendId: string): void {
-    if (confirm('Supprimer cet ami ?')) {
+    if (confirm('Supprimer cet ami de votre liste ?')) {
       this.friendService.removeFriend(friendId).subscribe({
-        next: () => this.loadAllData()
+        next: () => {
+          this.notificationService.showSuccess('Ami supprimé');
+          this.loadAllData();
+        },
+        error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
       });
     }
   }
@@ -290,7 +299,11 @@ export class FriendsComponent implements OnInit, OnDestroy {
   blockUser(userId: string, userName: string): void {
     if (confirm(`Bloquer ${userName} ?`)) {
       this.friendService.blockUser(userId).subscribe({
-        next: () => this.loadAllData()
+        next: () => {
+          this.notificationService.showSuccess('Utilisateur bloqué');
+          this.loadAllData();
+        },
+        error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
       });
     }
   }
@@ -298,11 +311,16 @@ export class FriendsComponent implements OnInit, OnDestroy {
   unblockUser(userId: string, userName: string): void {
     if (confirm(`Débloquer ${userName} ?`)) {
       this.friendService.unblockUser(userId).subscribe({
-        next: () => this.loadAllData()
+        next: () => {
+          this.notificationService.showSuccess('Utilisateur débloqué');
+          this.loadAllData();
+        },
+        error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
       });
     }
   }
 
+  // === Navigation ===
   chatWithFriend(friendId: string): void {
     this.router.navigate(['/chat'], { queryParams: { friendId } });
   }
@@ -315,6 +333,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/profile', friendId]);
   }
 
+  // === Helpers ===
   getInitials(first?: string, last?: string): string {
     return (first?.charAt(0) || '') + (last?.charAt(0) || '');
   }

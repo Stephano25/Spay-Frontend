@@ -1,24 +1,21 @@
+<!-- src/app/components/friends/friends.component.html -->
 <div class="friends-container">
-  <!-- Header avec bouton de retour et QR code -->
+  <!-- Header -->
   <mat-toolbar color="primary" class="glass-header">
     <button mat-icon-button (click)="goBack()" class="nav-btn" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <span class="header-title">Mes Amis</span>
     <span class="spacer"></span>
-    <!-- Mon QR code -->
     <button mat-icon-button (click)="showMyQRCode()" matTooltip="Mon QR code" class="action-btn">
       <mat-icon>qr_code</mat-icon>
     </button>
-    <!-- Scanner QR code -->
     <button mat-icon-button (click)="scanQRCode()" matTooltip="Scanner un QR code" class="action-btn">
       <mat-icon>qr_code_scanner</mat-icon>
     </button>
-    <!-- Ajouter un ami -->
     <button mat-icon-button (click)="showAddFriend = !showAddFriend" matTooltip="Ajouter un ami" class="action-btn">
       <mat-icon>person_add</mat-icon>
     </button>
-    <!-- Utilisateurs bloqués -->
     <button mat-icon-button (click)="showBlockedUsers = !showBlockedUsers" matTooltip="Utilisateurs bloqués" class="action-btn">
       <mat-icon>block</mat-icon>
       @if (blockedUsers.length > 0) {
@@ -28,7 +25,7 @@
   </mat-toolbar>
 
   <div class="friends-content">
-    <!-- Bouton de retour flottant (mobile) -->
+    <!-- Fab retour mobile -->
     <button class="fab-back" (click)="goBack()" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
@@ -43,7 +40,7 @@
       </div>
     </div>
 
-    <!-- Loading spinner -->
+    <!-- Loading -->
     @if (isLoading) {
       <div class="loading-container">
         <div class="spinner"></div>
@@ -51,7 +48,7 @@
       </div>
     }
 
-    <!-- Formulaire d'ajout d'ami -->
+    <!-- Ajouter un ami -->
     @if (showAddFriend) {
       <mat-card class="glass-card add-friend-card animate-slide-up">
         <mat-card-header>
@@ -188,7 +185,7 @@
       </div>
     }
 
-    <!-- Menu des amis (dépliable) -->
+    <!-- Menu des amis -->
     <div class="friends-menu">
       <div class="menu-header" (click)="toggleFriendsList()">
         <mat-icon>people</mat-icon> <span>Mes amis ({{ friends.length }})</span>

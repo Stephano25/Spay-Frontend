@@ -1,7 +1,8 @@
+// src/app/services/chat.service.ts
 import { Injectable, OnDestroy } from '@angular/core';
-import { io, Socket } from 'socket.io-client';
-import { Observable, BehaviorSubject, of, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
+import { io, Socket } from 'socket.io-client';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
@@ -20,11 +21,22 @@ export interface Message {
   isRead: boolean;
   isDelivered: boolean;
   isEdited?: boolean;
+  editedAt?: Date;
   isDeleted?: boolean;
   createdAt: Date;
-  moneyTransfer?: { amount: number; status: string; transactionId?: string; failReason?: string };
+  moneyTransfer?: {
+    amount: number;
+    status: 'pending' | 'completed' | 'failed';
+    transactionId?: string;
+    failReason?: string;
+  };
   reactions?: { userId: string; emoji: string }[];
-  sender?: { id: string; firstName: string; lastName: string; profilePicture?: string };
+  sender?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profilePicture?: string;
+  };
 }
 
 export interface Conversation {
@@ -32,11 +44,14 @@ export interface Conversation {
   firstName: string;
   lastName: string;
   profilePicture?: string;
-  lastMessage?: { content: string; type: string; createdAt: Date };
+  lastMessage?: {    // 👈 rendu optionnel
+    content: string;
+    type: string;
+    createdAt: Date;
+  };
   lastMessageTime: Date;
   unreadCount: number;
-  isOnline: boolean;
-  lastSeen?: Date;
+  isOnline?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -80,7 +95,6 @@ export class ChatService implements OnDestroy {
     private authService: AuthService,
     private notificationService: NotificationService
   ) {
-    // 🔥 Connexion automatique dès que l'utilisateur est authentifié
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       if (user) {
         this.connectSocket();
@@ -130,10 +144,7 @@ export class ChatService implements OnDestroy {
     }
   }
 
-  // ============================================================
-  // Méthodes publiques
-  // ============================================================
-
+  // === API REST ===
   getConversations(): Observable<Conversation[]> {
     return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`).pipe(catchError(() => of([])));
   }
@@ -181,6 +192,7 @@ export class ChatService implements OnDestroy {
     if (this.socket?.connected) this.socket.emit('startCall', { receiverId, type });
   }
 
+  // === Notifications push ===
   private async requestNotificationPermission(): Promise<void> {
     if (!('Notification' in window)) return;
     if (Notification.permission === 'default') {

@@ -1,30 +1,16 @@
+// src/app/services/notification.service.ts
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class NotificationService {
   constructor(private snackBar: MatSnackBar) {}
 
-  /**
-   * Joue le son de notification depuis le fichier MP3
-   */
-  public playNotificationSound(): void {
+  playNotificationSound(): void {
     try {
       const audio = new Audio('/assets/sounds/notifications.mp3');
-      audio.play().catch(err => {
-        // Ignorer silencieusement les erreurs de lecture (autoplay bloqué)
-        console.warn('Lecture du son impossible', err);
-      });
-    } catch (e) {
-      // Ignorer
-    }
-  }
-
-  // Alias pour ne pas casser les appels existants
-  private playSound(): void {
-    this.playNotificationSound();
+      audio.play().catch(() => {});
+    } catch {}
   }
 
   showSuccess(message: string): void {

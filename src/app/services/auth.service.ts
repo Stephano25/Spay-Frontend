@@ -27,35 +27,27 @@ export class AuthService {
     const savedUser = localStorage.getItem('user');
     if (token && savedUser) {
       try {
-        const user = JSON.parse(savedUser);
+        const user = JSON.parse(savedUser) as User;
         this.currentUserSubject.next(user);
-      } catch (e) {
+      } catch {
         this.logout();
       }
     }
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         const token = response.access_token || response.token;
-        if (!token) throw new Error('Token manquant dans la réponse');
+        if (!token) throw new Error('Token manquant');
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-        if (response.user.role === 'admin' || response.user.role === 'super_admin') {
-          this.router.navigate(['/admin/dashboard']);
-          this.notificationService.showSuccess('Bienvenue administrateur !');
-        } else {
-          this.router.navigate(['/user']);
-          this.notificationService.showSuccess('Connexion réussie !');
-        }
+        this.router.navigate(['/user']);
+        this.notificationService.showSuccess('Connexion réussie !');
       }),
       catchError(error => {
-        let message = 'Erreur de connexion';
-        if (error.error?.message) message = error.error.message;
-        else if (error.status === 0) message = 'Impossible de contacter le serveur';
-        else if (error.status === 401) message = 'Email ou mot de passe incorrect';
+        const message = error.error?.message || 'Erreur de connexion';
         this.notificationService.showError(message);
         return throwError(() => error);
       })
@@ -63,10 +55,10 @@ export class AuthService {
   }
 
   register(userData: RegisterData): Observable<LoginResponse> {
-    return this.http.post<any>(`${this.apiUrl}/register`, userData).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, userData).pipe(
       tap(response => {
         const token = response.access_token || response.token;
-        if (!token) throw new Error('Token manquant dans la réponse');
+        if (!token) throw new Error('Token manquant');
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
@@ -74,22 +66,17 @@ export class AuthService {
         this.router.navigate(['/user']);
       }),
       catchError(error => {
-        const message = error.error?.message || "Erreur lors de l'inscription";
+        const message = error.error?.message || "Erreur d'inscription";
         this.notificationService.showError(message);
         return throwError(() => error);
       })
     );
   }
 
-  /**
-   * Récupère le profil de l'utilisateur connecté
-   * (utilisé lors du callback Google)
-   */
   getProfile(): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/profile`).pipe(
-      tap(user => console.log('👤 Profil récupéré :', user)),
       catchError(error => {
-        this.notificationService.showError('Erreur lors du chargement du profil');
+        this.notificationService.showError('Erreur chargement profil');
         return throwError(() => error);
       })
     );
@@ -97,13 +84,13 @@ export class AuthService {
 
   updateProfile(userData: Partial<User>): Observable<User> {
     return this.http.put<User>(`${this.usersApiUrl}/profile`, userData).pipe(
-      tap(updatedUser => {
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        this.currentUserSubject.next(updatedUser);
-        this.notificationService.showSuccess('Profil mis à jour avec succès');
+      tap(updated => {
+        localStorage.setItem('user', JSON.stringify(updated));
+        this.currentUserSubject.next(updated);
+        this.notificationService.showSuccess('Profil mis à jour');
       }),
       catchError(error => {
-        this.notificationService.showError('Erreur lors de la mise à jour du profil');
+        this.notificationService.showError('Erreur mise à jour');
         return throwError(() => error);
       })
     );
@@ -116,10 +103,9 @@ export class AuthService {
 
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }).pipe(
-      tap(() => this.notificationService.showSuccess('Mot de passe modifié avec succès')),
+      tap(() => this.notificationService.showSuccess('Mot de passe modifié')),
       catchError(error => {
-        const message = error.error?.message || 'Erreur lors du changement de mot de passe';
-        this.notificationService.showError(message);
+        this.notificationService.showError(error.error?.message || 'Erreur');
         return throwError(() => error);
       })
     );
@@ -128,11 +114,10 @@ export class AuthService {
   uploadProfilePicture(formData: FormData): Observable<any> {
     return this.http.post(`${this.usersApiUrl}/upload-profile-picture`, formData).pipe(
       tap((response: any) => {
-        console.log('Photo uploadée avec succès:', response);
         if (response.user) this.updateCurrentUser(response.user);
       }),
       catchError(error => {
-        this.notificationService.showError('Erreur lors de l\'upload');
+        this.notificationService.showError('Erreur upload');
         return throwError(() => error);
       })
     );
@@ -140,9 +125,8 @@ export class AuthService {
 
   deleteProfilePicture(): Observable<any> {
     return this.http.delete(`${this.usersApiUrl}/profile-picture`).pipe(
-      tap(() => console.log('Photo supprimée avec succès')),
       catchError(error => {
-        this.notificationService.showError('Erreur lors de la suppression');
+        this.notificationService.showError('Erreur suppression');
         return throwError(() => error);
       })
     );
@@ -152,7 +136,7 @@ export class AuthService {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     this.currentUserSubject.next(null);
-    this.notificationService.showInfo('Vous êtes déconnecté');
+    this.notificationService.showInfo('Déconnecté');
     this.router.navigate(['/login']);
   }
 
@@ -171,9 +155,5 @@ export class AuthService {
   isAdmin(): boolean {
     const user = this.currentUserSubject.value;
     return user?.role === 'admin' || user?.role === 'super_admin';
-  }
-
-  showInfo(message: string): void {
-    this.notificationService.showInfo(message);
   }
 }

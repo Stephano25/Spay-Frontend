@@ -1,6 +1,7 @@
+<!-- src/app/components/chat/chat.component.html -->
 <div class="chat-layout" [class.mobile-chat-open]="selectedContact">
 
-  <!-- ============== Colonne gauche : conversations ============== -->
+  <!-- Colonne gauche : conversations -->
   <div class="conversations-panel">
     <div class="panel-header">
       <span class="panel-title">Discussions</span>
@@ -40,7 +41,7 @@
       </div>
     </div>
 
-    <!-- Overlay "Nouvelle discussion" : écrire à n'importe quel utilisateur -->
+    <!-- Overlay nouvelle discussion -->
     <div class="new-conversation-overlay" *ngIf="showNewConversation">
       <div class="overlay-header">
         <span>Nouvelle discussion</span>
@@ -66,14 +67,15 @@
           Aucun utilisateur trouvé
         </p>
         <p class="hint-text" *ngIf="newConversationQuery.length < 2">
-          Tapez au moins 2 caractères pour rechercher quelqu'un, ami ou non.
+          Tapez au moins 2 caractères pour rechercher quelqu'un.
         </p>
       </div>
     </div>
   </div>
 
-  <!-- ============== Colonne centrale : conversation ============== -->
+  <!-- Colonne centrale : conversation -->
   <div class="chat-area" *ngIf="selectedContact; else noChat">
+    <!-- Header -->
     <div class="chat-header">
       <button mat-icon-button class="mobile-back" (click)="selectedContact = null" matTooltip="Discussions">
         <mat-icon>arrow_back</mat-icon>
@@ -120,10 +122,10 @@
       </div>
     </div>
 
+    <!-- Messages -->
     <div class="messages-container" #messageContainer (click)="activeMessageId = null; activeReactionPickerId = null">
-
-      <!-- Message supprimé : placeholder façon Messenger -->
       <ng-container *ngFor="let msg of messages">
+        <!-- Message supprimé -->
         <div class="message" [class.own]="isOwnMessage(msg)" *ngIf="msg.isDeleted">
           <div class="message-bubble deleted">
             <mat-icon>block</mat-icon>
@@ -131,7 +133,7 @@
           </div>
         </div>
 
-        <!-- Bulle "argent" -->
+        <!-- Transfert d'argent -->
         <div class="message" [class.own]="isOwnMessage(msg)" *ngIf="!msg.isDeleted && msg.type === 'money'">
           <div class="message-wrapper">
             <div class="money-bubble" [ngClass]="msg.moneyTransfer?.status">
@@ -154,10 +156,9 @@
             </div>
             <span class="time">{{ msg.createdAt | date:'HH:mm' }}</span>
 
-            <!-- Barre d'actions : réagir / transférer / supprimer (pas de modif possible sur un transfert) -->
             <div class="msg-actions" [class.visible]="activeMessageId === msg.id" (click)="$event.stopPropagation()">
               <button class="action-btn" (click)="toggleReactionPicker(msg)" matTooltip="Réagir"><mat-icon>add_reaction</mat-icon></button>
-              <button class="action-btn" (click)="openTransferPanel()" matTooltip="Transférer de l'argent"><mat-icon>send</mat-icon></button>
+              <button class="action-btn" (click)="openTransferPanel()" matTooltip="Transférer"><mat-icon>send</mat-icon></button>
               <button class="action-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)" matTooltip="Supprimer"><mat-icon>delete</mat-icon></button>
             </div>
             <button class="hover-trigger" (click)="toggleMessageActions(msg); $event.stopPropagation()"><mat-icon>expand_more</mat-icon></button>
@@ -168,11 +169,10 @@
           </div>
         </div>
 
-        <!-- Bulle standard (texte / emoji / image / fichier) -->
+        <!-- Message standard -->
         <div class="message" [class.own]="isOwnMessage(msg)" *ngIf="!msg.isDeleted && msg.type !== 'money'">
           <div class="message-wrapper">
-
-            <!-- Mode édition -->
+            <!-- Édition -->
             <div class="edit-box" *ngIf="editingMessageId === msg.id">
               <input #editInput type="text" [(ngModel)]="editContent" (keyup.enter)="saveEdit()" (keyup.escape)="cancelEdit()">
               <button class="edit-action save" (click)="saveEdit()"><mat-icon>check</mat-icon></button>
@@ -203,10 +203,9 @@
               <em *ngIf="msg.isEdited">· modifié</em>
             </span>
 
-            <!-- Barre d'actions : réagir / transférer / modifier / supprimer -->
             <div class="msg-actions" [class.visible]="activeMessageId === msg.id" *ngIf="editingMessageId !== msg.id" (click)="$event.stopPropagation()">
               <button class="action-btn" (click)="toggleReactionPicker(msg)" matTooltip="Réagir"><mat-icon>add_reaction</mat-icon></button>
-              <button class="action-btn" (click)="openTransferPanel()" matTooltip="Transférer de l'argent"><mat-icon>send</mat-icon></button>
+              <button class="action-btn" (click)="openTransferPanel()" matTooltip="Transférer"><mat-icon>send</mat-icon></button>
               <button class="action-btn" *ngIf="canEditMessage(msg)" (click)="startEdit(msg)" matTooltip="Modifier"><mat-icon>edit</mat-icon></button>
               <button class="action-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)" matTooltip="Supprimer"><mat-icon>delete</mat-icon></button>
             </div>
@@ -222,7 +221,7 @@
       </ng-container>
     </div>
 
-    <!-- Panneau de transfert d'argent -->
+    <!-- Transfert d'argent -->
     <div class="transfer-panel" *ngIf="showTransferPanel">
       <div class="transfer-header">
         <span>Envoyer de l'argent à {{ selectedContact.firstName }}</span>
@@ -241,6 +240,7 @@
       </div>
     </div>
 
+    <!-- Composer -->
     <div class="message-input-area">
       <button mat-icon-button (click)="toggleEmojiPicker()" matTooltip="Emojis">
         <mat-icon>tag_faces</mat-icon>
@@ -262,7 +262,7 @@
       </button>
     </div>
 
-    <!-- Picker d'emojis étendu (envoi direct, différent du picker de réaction) -->
+    <!-- Emoji picker -->
     <div class="emoji-picker" *ngIf="showEmojiPicker">
       <div class="emoji-grid">
         <span *ngFor="let emoji of emojis" class="emoji-item" (click)="sendEmoji(emoji)">{{ emoji }}</span>
@@ -279,7 +279,7 @@
     </div>
   </ng-template>
 
-  <!-- ============== Colonne droite : amis en ligne ============== -->
+  <!-- Colonne droite : amis en ligne -->
   <div class="online-friends-panel">
     <h3>En ligne ({{ onlineFriends.length }})</h3>
     <div class="online-list">

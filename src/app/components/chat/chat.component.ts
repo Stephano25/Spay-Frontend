@@ -1,30 +1,21 @@
+// src/app/components/chat/chat.component.ts
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
+
 import { ChatService, Message, Conversation } from '../../services/chat.service';
-import { FriendService } from '../../services/friend.service';
+import { FriendService, SearchUser } from '../../services/friend.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 
-// Angular Material
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
-interface SearchableUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  profilePicture?: string;
-  isFriend?: boolean;
-  isBlocked?: boolean;
-}
 
 @Component({
   selector: 'app-chat',
@@ -61,22 +52,18 @@ export class ChatComponent implements OnInit, OnDestroy {
   isSending = false;
   isVoiceSupported = 'MediaRecorder' in window || 'webkitSpeechRecognition' in window;
 
-  // --- Nouvelle discussion : on peut écrire à n'importe quel utilisateur, pas seulement les amis
   showNewConversation = false;
   newConversationQuery = '';
-  newConversationResults: SearchableUser[] = [];
+  newConversationResults: SearchUser[] = [];
   isSearchingUsers = false;
 
-  // --- Barre d'actions par message (réagir / transférer / modifier / supprimer)
   activeMessageId: string | null = null;
   activeReactionPickerId: string | null = null;
   quickReactions = ['👍', '❤️', '😆', '😮', '😢', '🙏'];
 
-  // --- Édition d'un message
   editingMessageId: string | null = null;
   editContent = '';
 
-  // --- Transfert d'argent (déclenché depuis le menu OU depuis l'action "Transférer" d'un message)
   showTransferPanel = false;
   transferAmount: number | null = null;
   transferQuickAmounts = [500, 1000, 2000, 5000, 10000, 20000];
@@ -84,16 +71,16 @@ export class ChatComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
 
   emojis = [
-    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰',
-    '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
-    '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠',
-    '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥',
-    '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐',
-    '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '💀', '👻', '👽',
-    '🤖', '💩', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊', '💋', '💌',
-    '💘', '💝', '💖', '💗', '💓', '💞', '💕', '💟', '❣️', '💔', '❤️', '🧡', '💛', '💚', '💙', '💜',
-    '🤎', '🖤', '🤍', '💯', '💢', '💥', '💫', '💦', '💨', '🕳️', '💣', '💬', '👁️', '🗣️', '👤', '👥',
-    '👣', '🧠', '🩸', '🩻', '💪', '🦵', '🦶', '👂', '🦻', '👃', '👀', '🧬', '🦷', '👅', '👄', '💋'
+    '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰',
+    '😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏',
+    '😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠',
+    '😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥',
+    '😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐',
+    '🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','😈','👿','👹','👺','💀','👻','👽',
+    '🤖','💩','😺','😸','😹','😻','😼','😽','🙀','😿','😾','🙈','🙉','🙊','💋','💌',
+    '💘','💝','💖','💗','💓','💞','💕','💟','❣️','💔','❤️','🧡','💛','💚','💙','💜',
+    '🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕳️','💣','💬','👁️','🗣️','👤','👥',
+    '👣','🧠','🩸','🩻','💪','🦵','🦶','👂','🦻','👃','👀','🧬','🦷','👅','👄','💋'
   ];
 
   constructor(
@@ -117,12 +104,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     clearTimeout(this.typingTimeout);
   }
 
-  // ============================================================
-  // CHARGEMENT
-  // ============================================================
+  // === CHARGEMENT ===
   loadConversations(): void {
     this.chatService.getConversations().subscribe(convs => {
-      this.conversations = convs.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
+      this.conversations = convs.sort((a, b) =>
+        new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
+      );
     });
   }
 
@@ -137,7 +124,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.chatService.newMessage$.subscribe(msg => msg && this.handleNewMessage(msg)),
       this.chatService.typing$.subscribe(data => {
-        if (data && this.selectedContact && data.userId === this.selectedContact.userId) this.isTyping = data.isTyping;
+        if (data && this.selectedContact && data.userId === this.selectedContact.userId) {
+          this.isTyping = data.isTyping;
+        }
       }),
       this.chatService.onlineStatus$.subscribe(data => {
         if (!data) return;
@@ -149,8 +138,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.chatService.messageEdited$.subscribe(msg => this.applyMessageUpdate(msg)),
       this.chatService.messageReaction$.subscribe(msg => this.applyMessageUpdate(msg)),
       this.chatService.messageDeleted$.subscribe(data => this.applyMessageDeleted(data.messageId)),
-      this.chatService.messageBlocked$.subscribe(data => {
-        if (data) this.notificationService.showWarning('Vous ne pouvez pas écrire à cet utilisateur');
+      this.chatService.messageBlocked$.subscribe(() => {
+        this.notificationService.showWarning('Vous ne pouvez pas écrire à cet utilisateur');
       })
     );
   }
@@ -167,7 +156,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       conv.lastMessageTime = message.createdAt;
       if (!this.selectedContact || this.selectedContact.userId !== message.senderId) conv.unreadCount++;
     } else if (message.sender) {
-      // Nouveau message venant d'un utilisateur avec lequel il n'existait pas encore de conversation
       conv = {
         userId: message.senderId,
         firstName: message.sender.firstName,
@@ -180,7 +168,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       };
       this.conversations.unshift(conv);
     }
-    this.conversations.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
+    this.conversations.sort((a, b) =>
+      new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
+    );
   }
 
   selectConversation(conv: Conversation): void {
@@ -188,7 +178,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.messages = [];
     this.closeAllPanels();
     this.chatService.getMessages(conv.userId).subscribe(msgs => {
-      this.messages = msgs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      this.messages = msgs.sort((a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
       this.scrollToBottom();
       this.chatService.markAsRead(conv.userId).subscribe();
       conv.unreadCount = 0;
@@ -197,15 +189,13 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   get filteredConversations() {
     if (!this.searchQuery) return this.conversations;
-    const query = this.searchQuery.toLowerCase();
+    const q = this.searchQuery.toLowerCase();
     return this.conversations.filter(conv =>
-      `${conv.firstName} ${conv.lastName}`.toLowerCase().includes(query)
+      `${conv.firstName} ${conv.lastName}`.toLowerCase().includes(q)
     );
   }
 
-  // ============================================================
-  // NOUVELLE DISCUSSION — discuter avec n'importe quel utilisateur
-  // ============================================================
+  // === NOUVELLE DISCUSSION ===
   toggleNewConversation(): void {
     this.showNewConversation = !this.showNewConversation;
     this.newConversationQuery = '';
@@ -213,12 +203,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   searchNewConversation(): void {
-    if (!this.newConversationQuery.trim() || this.newConversationQuery.trim().length < 2) {
+    const q = this.newConversationQuery.trim();
+    if (!q || q.length < 2) {
       this.newConversationResults = [];
       return;
     }
     this.isSearchingUsers = true;
-    this.friendService.searchUsers(this.newConversationQuery.trim()).subscribe({
+    this.friendService.searchUsers(q).subscribe({
       next: (results: any[]) => {
         this.newConversationResults = results;
         this.isSearchingUsers = false;
@@ -227,7 +218,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  openConversationWith(user: SearchableUser): void {
+  openConversationWith(user: SearchUser): void {
     if (user.isBlocked) {
       this.notificationService.showWarning('Impossible de discuter avec un utilisateur bloqué');
       return;
@@ -241,7 +232,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         firstName: user.firstName,
         lastName: user.lastName,
         profilePicture: user.profilePicture,
-        lastMessage: { content: '', type: 'text', createdAt: new Date() },
+        lastMessage: undefined, // pas encore de message
         lastMessageTime: new Date(),
         unreadCount: 0,
         isOnline: false
@@ -254,9 +245,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.newConversationResults = [];
   }
 
-  // ============================================================
-  // ENVOI DE MESSAGE / EMOJI
-  // ============================================================
+  // === ENVOI DE MESSAGE ===
   sendMessage(): void {
     if (!this.newMessage.trim() || !this.selectedContact || this.isSending) return;
     this.isSending = true;
@@ -350,7 +339,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
     this.isSending = true;
     this.chatService.uploadFile(file).subscribe({
-      next: (result: { url: string; fileName: string; fileSize: number }) => {
+      next: (result) => {
         const type = file.type.startsWith('image/') ? 'image' : 'file';
         const tempMsg: Message = {
           id: 'temp-file-' + Date.now(),
@@ -408,9 +397,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ============================================================
-  // BARRE D'ACTIONS PAR MESSAGE : réagir / transférer / modifier / supprimer
-  // ============================================================
+  // === ACTIONS SUR LES MESSAGES ===
   toggleMessageActions(msg: Message): void {
     if (msg.isDeleted) return;
     this.activeMessageId = this.activeMessageId === msg.id ? null : msg.id;
@@ -423,7 +410,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   canEditMessage(msg: Message): boolean {
     if (!this.isOwnMessage(msg) || msg.isDeleted || msg.type !== 'text') return false;
-    // Modification autorisée pendant 15 minutes, comme Messenger
     const ageMs = Date.now() - new Date(msg.createdAt).getTime();
     return ageMs < 15 * 60 * 1000;
   }
@@ -432,7 +418,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     return this.isOwnMessage(msg) && !msg.isDeleted;
   }
 
-  // --- Réagir ---
   toggleReactionPicker(msg: Message): void {
     this.activeReactionPickerId = this.activeReactionPickerId === msg.id ? null : msg.id;
   }
@@ -464,7 +449,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     return Array.from(map.entries()).map(([emoji, v]) => ({ emoji, count: v.count, mine: v.mine }));
   }
 
-  // --- Modifier ---
   startEdit(msg: Message): void {
     if (!this.canEditMessage(msg)) return;
     this.editingMessageId = msg.id;
@@ -485,22 +469,21 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.applyMessageUpdate(updated);
         this.cancelEdit();
       },
-      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur lors de la modification')
+      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur modification')
     });
   }
 
-  // --- Supprimer ---
   deleteMessage(msg: Message): void {
     if (!this.canDeleteMessage(msg)) return;
     if (!confirm('Supprimer ce message pour tout le monde ?')) return;
     this.chatService.deleteMessage(msg.id).subscribe({
       next: (updated) => this.applyMessageUpdate(updated),
-      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur lors de la suppression')
+      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur suppression')
     });
     this.activeMessageId = null;
   }
 
-  // --- Transférer de l'argent ---
+  // === TRANSFERT D'ARGENT ===
   openTransferPanel(): void {
     if (!this.selectedContact) return;
     this.showTransferPanel = true;
@@ -516,7 +499,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   confirmTransfer(): void {
     if (!this.selectedContact || !this.transferAmount || this.transferAmount <= 0) return;
     const amount = this.transferAmount;
-
     const tempMsg: Message = {
       id: 'temp-money-' + Date.now(),
       senderId: this.currentUserId,
@@ -529,19 +511,15 @@ export class ChatComponent implements OnInit, OnDestroy {
     };
     this.messages.push(tempMsg);
     this.scrollToBottom();
-
     this.chatService.sendMessage({
       receiverId: this.selectedContact.userId,
       type: 'money',
       moneyTransfer: { amount }
     });
-
     this.closeTransferPanel();
   }
 
-  // ============================================================
-  // Helpers de mise à jour locale (édition / suppression / réaction)
-  // ============================================================
+  // === HELPERS DE MISE À JOUR ===
   private applyMessageUpdate(updated: Message): void {
     const index = this.messages.findIndex(m => m.id === updated.id);
     if (index !== -1) {
@@ -564,7 +542,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.showEmojiPicker = false;
   }
 
-  // 👉 Bouton de retour
   goBack(): void {
     this.router.navigate(['/user']);
   }
@@ -574,7 +551,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   getAvatarColor(name: string): string {
-    const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a'];
+    const colors = ['#667eea','#764ba2','#f093fb','#4facfe','#43e97b','#fa709a'];
     let hash = 0;
     for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];

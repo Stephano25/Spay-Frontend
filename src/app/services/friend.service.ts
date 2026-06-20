@@ -4,7 +4,62 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, tap, of } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
-import { Friend, FriendRequest, SearchUser, FriendResponse, BlockStatus } from '../models/friend.model';
+
+export interface Friend {
+  id: string;
+  userId: string;
+  friendId: string;
+  status: 'pending' | 'accepted' | 'blocked' | 'deleted';
+  friend?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber?: string;
+    profilePicture?: string;
+    isOnline?: boolean;
+    lastSeen?: Date;
+  };
+}
+
+export interface FriendRequest {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  status: string;
+  sender?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profilePicture?: string;
+  };
+}
+
+export interface SearchUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phoneNumber?: string;
+  profilePicture?: string;
+  isFriend?: boolean;
+  hasPendingRequest?: boolean;
+  isBlocked?: boolean;
+}
+
+export interface FriendResponse {
+  message: string;
+  success: boolean;
+  requestId?: string;
+  conversationId?: string;
+}
+
+export interface BlockStatus {
+  isBlocked: boolean;
+  blockedBy?: string;
+  canMessage: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class FriendService {
@@ -13,15 +68,13 @@ export class FriendService {
   constructor(private http: HttpClient, private notificationService: NotificationService) {}
 
   getFriends(): Observable<Friend[]> {
-    return this.http.get<Friend[]>(`${this.apiUrl}`).pipe(
-      tap(friends => console.log('✅ Amis reçus:', friends)),
+    return this.http.get<Friend[]>(this.apiUrl).pipe(
       catchError(this.handleError<Friend[]>('getFriends', []))
     );
   }
 
   getFriendRequests(): Observable<FriendRequest[]> {
     return this.http.get<FriendRequest[]>(`${this.apiUrl}/requests`).pipe(
-      tap(requests => console.log('✅ Demandes:', requests)),
       catchError(this.handleError<FriendRequest[]>('getFriendRequests', []))
     );
   }
@@ -101,7 +154,7 @@ export class FriendService {
   private handleError<T>(operation: string, fallback?: T) {
     return (error: HttpErrorResponse): Observable<T> => {
       console.error(`❌ ${operation} échoué:`, error);
-      let message = error.error?.message || `Erreur lors de ${operation}`;
+      const message = error.error?.message || `Erreur lors de ${operation}`;
       this.notificationService.showError(message);
       return of(fallback as T);
     };
