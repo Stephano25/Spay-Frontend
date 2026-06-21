@@ -47,7 +47,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   newMessage = '';
   isTyping = false;
   typingTimeout: any;
+  
+  // 🔥 Gestion des amis
+  allFriends: Friend[] = [];
   onlineFriends: Friend[] = [];
+  
   searchQuery = '';
   showEmojiPicker = false;
   isSending = false;
@@ -97,8 +101,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id || '';
     this.loadConversations();
+    this.loadAllFriends();
     this.setupSocketListeners();
-    this.loadOnlineFriends();
   }
 
   ngOnDestroy(): void {
@@ -112,7 +116,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   /**
    * Récupère l'URL complète d'un fichier
-   * Utilise le ConfigService pour construire l'URL
    */
   getFileUrl(fileUrl?: string): string {
     return this.configService.getFileUrl(fileUrl);
@@ -124,36 +127,83 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.conversations = convs.sort((a, b) =>
           new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
         );
+        this.updateConversationsOnlineStatus();
       },
       error: (err) => console.error('Erreur chargement conversations', err)
     });
   }
 
-  loadOnlineFriends(): void {
+  /**
+   * 🔥 Charge tous les amis acceptés
+   */
+  loadAllFriends(): void {
     this.friendService.getFriends().subscribe({
       next: (friends: Friend[]) => {
-        const accepted = friends.filter(f => f.status === 'accepted');
-        this.onlineFriends = accepted.filter(f => f.friend?.isOnline);
+        this.allFriends = friends.filter(f => f.status === 'accepted');
+        this.updateOnlineFriends();
+        this.updateConversationsOnlineStatus();
+        console.log(`👥 ${this.allFriends.length} amis chargés`);
       },
-      error: (err) => console.error('Erreur chargement amis en ligne', err)
+      error: (err) => console.error('Erreur chargement amis', err)
+    });
+  }
+
+  /**
+   * 🔥 Met à jour la liste des amis en ligne
+   */
+  updateOnlineFriends(): void {
+    this.onlineFriends = this.allFriends.filter(f => f.friend?.isOnline === true);
+    console.log(`🟢 ${this.onlineFriends.length} amis en ligne`);
+  }
+
+  /**
+   * 🔥 Met à jour le statut en ligne des conversations
+   */
+  updateConversationsOnlineStatus(): void {
+    this.conversations.forEach(conv => {
+      const friend = this.allFriends.find(f => f.friend?.id === conv.userId);
+      if (friend && friend.friend) {
+        conv.isOnline = friend.friend.isOnline || false;
+      }
     });
   }
 
   setupSocketListeners(): void {
     this.subscriptions.push(
       this.chatService.newMessage$.subscribe(msg => msg && this.handleNewMessage(msg)),
+      
       this.chatService.typing$.subscribe(data => {
         if (data && this.selectedContact && data.userId === this.selectedContact.userId) {
           this.isTyping = data.isTyping;
         }
       }),
+      
+      // 🔥 Gestion du statut en ligne
       this.chatService.onlineStatus$.subscribe(data => {
         if (!data) return;
+        console.log(`🔄 Statut en ligne: ${data.userId} -> ${data.isOnline ? '🟢' : '🔴'}`);
+        
+        // Mettre à jour dans allFriends
+        const friend = this.allFriends.find(f => f.friend?.id === data.userId);
+        if (friend && friend.friend) {
+          friend.friend.isOnline = data.isOnline;
+        }
+        
+        // Mettre à jour dans onlineFriends
+        this.updateOnlineFriends();
+        
+        // Mettre à jour dans les conversations
         const conv = this.conversations.find(c => c.userId === data.userId);
-        if (conv) conv.isOnline = data.isOnline;
-        if (this.selectedContact?.userId === data.userId) this.selectedContact.isOnline = data.isOnline;
-        this.loadOnlineFriends();
+        if (conv) {
+          conv.isOnline = data.isOnline;
+        }
+        
+        // Mettre à jour le contact sélectionné
+        if (this.selectedContact?.userId === data.userId) {
+          this.selectedContact.isOnline = data.isOnline;
+        }
       }),
+      
       this.chatService.messageEdited$.subscribe(msg => this.applyMessageUpdate(msg)),
       this.chatService.messageReaction$.subscribe(msg => this.applyMessageUpdate(msg)),
       this.chatService.messageDeleted$.subscribe(data => this.applyMessageDeleted(data.messageId)),

@@ -279,20 +279,20 @@
     </div>
   </ng-template>
 
-  <!-- 🔥 Colonne droite : amis en ligne - avec vérification friend.friend -->
+  <!-- 🔥 Colonne droite : amis en ligne -->
   <div class="online-friends-panel">
     <h3>En ligne ({{ onlineFriends.length }})</h3>
     <div class="online-list">
-      <div *ngFor="let friend of onlineFriends" class="online-friend" (click)="friend.friend && startChat(friend.friend.id)">
-        <!-- Vérification que friend.friend existe -->
-        <ng-container *ngIf="friend.friend">
+      <!-- Vérification que friend.friend existe -->
+      <ng-container *ngFor="let friend of onlineFriends">
+        <div *ngIf="friend.friend" class="online-friend" (click)="startChat(friend.friend.id)">
           <div class="avatar small" [style.background]="getAvatarColor(friend.friend.firstName)">
             {{ getInitials(friend.friend.firstName, friend.friend.lastName) }}
             <span class="live-dot"></span>
           </div>
           <div class="friend-name">{{ friend.friend.firstName }} {{ friend.friend.lastName }}</div>
-        </ng-container>
-      </div>
+        </div>
+      </ng-container>
       <p class="hint-text" *ngIf="onlineFriends.length === 0">Aucun ami en ligne actuellement</p>
     </div>
   </div>
