@@ -5,6 +5,7 @@ import { Observable, catchError, tap, of } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 
+// Interfaces exportées
 export interface Friend {
   id: string;
   userId: string;

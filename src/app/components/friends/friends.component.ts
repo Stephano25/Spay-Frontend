@@ -105,33 +105,36 @@ export class FriendsComponent implements OnInit, OnDestroy {
 
   loadFriends(): void {
     this.friendService.getFriends().subscribe({
-      next: (friends) => {
-        const accepted = friends.filter(f => f.status === 'accepted');
+      next: (friends: Friend[]) => {
+        const accepted = friends.filter((f: Friend) => f.status === 'accepted');
         const unique = accepted.filter(
-          (f, i, self) => i === self.findIndex(t => t.friend?.id === f.friend?.id)
+          (f: Friend, i: number, self: Friend[]) =>
+            i === self.findIndex((t: Friend) => t.friend?.id === f.friend?.id)
         );
         this.friends = unique;
+        console.log('📋 Amis:', this.friends);
       },
-      error: (err) => console.error(err)
+      error: (err: any) => console.error(err)
     });
   }
 
   loadRequests(): void {
     this.friendService.getFriendRequests().subscribe({
-      next: (requests) => {
+      next: (requests: FriendRequest[]) => {
         this.friendRequests = requests;
+        console.log('📩 Demandes:', this.friendRequests);
       },
-      error: (err) => console.error(err)
+      error: (err: any) => console.error(err)
     });
   }
 
   loadSuggestions(): void {
     this.friendService.getSuggestions().subscribe({
-      next: (suggestions) => {
+      next: (suggestions: SearchUser[]) => {
         this.suggestions = suggestions;
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         this.isLoading = false;
       }
@@ -140,10 +143,11 @@ export class FriendsComponent implements OnInit, OnDestroy {
 
   loadBlocked(): void {
     this.friendService.getBlockedUsers().subscribe({
-      next: (blocked) => {
+      next: (blocked: Friend[]) => {
         this.blockedUsers = blocked;
+        console.log('🚫 Bloqués:', this.blockedUsers);
       },
-      error: (err) => console.error(err)
+      error: (err: any) => console.error(err)
     });
   }
 
@@ -194,12 +198,12 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.html5QrCode.start(
       { facingMode: 'environment' },
       { fps: 10, qrbox: { width: 250, height: 250 } },
-      (decodedText) => {
+      (decodedText: string) => {
         this.stopScan();
         this.processScannedQR(decodedText);
       },
       () => {}
-    ).catch((err) => {
+    ).catch((err: any) => {
       console.error('Erreur caméra', err);
       this.notificationService.showError('Impossible d\'accéder à la caméra');
       this.stopScan();
@@ -242,7 +246,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
     }
     this.isSearching = true;
     this.friendService.searchUsers(q).subscribe({
-      next: (results) => {
+      next: (results: SearchUser[]) => {
         this.searchResults = results;
         this.isSearching = false;
       },
@@ -260,7 +264,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         this.notificationService.showSuccess('Demande envoyée');
         this.loadAllData();
       },
-      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
+      error: (err: any) => this.notificationService.showError(err.error?.message || 'Erreur')
     });
   }
 
@@ -270,7 +274,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         this.notificationService.showSuccess('Demande acceptée');
         this.loadAllData();
       },
-      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
+      error: (err: any) => this.notificationService.showError(err.error?.message || 'Erreur')
     });
   }
 
@@ -280,7 +284,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
         this.notificationService.showInfo('Demande refusée');
       },
-      error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
+      error: (err: any) => this.notificationService.showError(err.error?.message || 'Erreur')
     });
   }
 
@@ -291,7 +295,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
           this.notificationService.showSuccess('Ami supprimé');
           this.loadAllData();
         },
-        error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
+        error: (err: any) => this.notificationService.showError(err.error?.message || 'Erreur')
       });
     }
   }
@@ -303,7 +307,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
           this.notificationService.showSuccess('Utilisateur bloqué');
           this.loadAllData();
         },
-        error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
+        error: (err: any) => this.notificationService.showError(err.error?.message || 'Erreur')
       });
     }
   }
@@ -315,7 +319,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
           this.notificationService.showSuccess('Utilisateur débloqué');
           this.loadAllData();
         },
-        error: (err) => this.notificationService.showError(err.error?.message || 'Erreur')
+        error: (err: any) => this.notificationService.showError(err.error?.message || 'Erreur')
       });
     }
   }

@@ -6,9 +6,10 @@ import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { ChatService, Message, Conversation } from '../../services/chat.service';
-import { FriendService, SearchUser } from '../../services/friend.service';
+import { Friend, FriendService, SearchUser } from '../../services/friend.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
+import { ConfigService } from '../../services/config.service';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,7 +47,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   newMessage = '';
   isTyping = false;
   typingTimeout: any;
-  onlineFriends: any[] = [];
+  onlineFriends: Friend[] = [];
   searchQuery = '';
   showEmojiPicker = false;
   isSending = false;
@@ -88,6 +89,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     private friendService: FriendService,
     private authService: AuthService,
     private notificationService: NotificationService,
+    private configService: ConfigService,
     private router: Router
   ) {}
 
@@ -104,19 +106,36 @@ export class ChatComponent implements OnInit, OnDestroy {
     clearTimeout(this.typingTimeout);
   }
 
-  // === CHARGEMENT ===
+  // ============================================================
+  // 🔥 CHARGEMENT
+  // ============================================================
+
+  /**
+   * Récupère l'URL complète d'un fichier
+   * Utilise le ConfigService pour construire l'URL
+   */
+  getFileUrl(fileUrl?: string): string {
+    return this.configService.getFileUrl(fileUrl);
+  }
+
   loadConversations(): void {
-    this.chatService.getConversations().subscribe(convs => {
-      this.conversations = convs.sort((a, b) =>
-        new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
-      );
+    this.chatService.getConversations().subscribe({
+      next: (convs) => {
+        this.conversations = convs.sort((a, b) =>
+          new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
+        );
+      },
+      error: (err) => console.error('Erreur chargement conversations', err)
     });
   }
 
   loadOnlineFriends(): void {
-    this.friendService.getFriends().subscribe(friends => {
-      const accepted = friends.filter(f => f.status === 'accepted');
-      this.onlineFriends = accepted.filter(f => f.friend?.isOnline);
+    this.friendService.getFriends().subscribe({
+      next: (friends: Friend[]) => {
+        const accepted = friends.filter(f => f.status === 'accepted');
+        this.onlineFriends = accepted.filter(f => f.friend?.isOnline);
+      },
+      error: (err) => console.error('Erreur chargement amis en ligne', err)
     });
   }
 
@@ -143,6 +162,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
     );
   }
+
+  // ============================================================
+  // 🔥 GESTION DES MESSAGES
+  // ============================================================
 
   handleNewMessage(message: Message): void {
     if (this.selectedContact && message.senderId === this.selectedContact.userId) {
@@ -177,13 +200,16 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.selectedContact = conv;
     this.messages = [];
     this.closeAllPanels();
-    this.chatService.getMessages(conv.userId).subscribe(msgs => {
-      this.messages = msgs.sort((a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-      this.scrollToBottom();
-      this.chatService.markAsRead(conv.userId).subscribe();
-      conv.unreadCount = 0;
+    this.chatService.getMessages(conv.userId).subscribe({
+      next: (msgs) => {
+        this.messages = msgs.sort((a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+        this.scrollToBottom();
+        this.chatService.markAsRead(conv.userId).subscribe();
+        conv.unreadCount = 0;
+      },
+      error: (err) => console.error('Erreur chargement messages', err)
     });
   }
 
@@ -195,7 +221,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     );
   }
 
-  // === NOUVELLE DISCUSSION ===
+  // ============================================================
+  // 🔥 NOUVELLE DISCUSSION
+  // ============================================================
+
   toggleNewConversation(): void {
     this.showNewConversation = !this.showNewConversation;
     this.newConversationQuery = '';
@@ -210,7 +239,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
     this.isSearchingUsers = true;
     this.friendService.searchUsers(q).subscribe({
-      next: (results: any[]) => {
+      next: (results: SearchUser[]) => {
         this.newConversationResults = results;
         this.isSearchingUsers = false;
       },
@@ -232,7 +261,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         firstName: user.firstName,
         lastName: user.lastName,
         profilePicture: user.profilePicture,
-        lastMessage: undefined, // pas encore de message
+        lastMessage: undefined,
         lastMessageTime: new Date(),
         unreadCount: 0,
         isOnline: false
@@ -245,7 +274,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.newConversationResults = [];
   }
 
-  // === ENVOI DE MESSAGE ===
+  // ============================================================
+  // 🔥 ENVOI DE MESSAGE
+  // ============================================================
+
   sendMessage(): void {
     if (!this.newMessage.trim() || !this.selectedContact || this.isSending) return;
     this.isSending = true;
@@ -316,11 +348,28 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.selectConversation(existing);
       return;
     }
-    this.friendService.getFriends().subscribe(friends => {
-      const friend = friends.find(f => f.friend?.id === userId)?.friend;
-      if (friend) this.openConversationWith(friend);
+    this.friendService.getFriends().subscribe({
+      next: (friends: Friend[]) => {
+        const friend = friends.find(f => f.friend?.id === userId)?.friend;
+        if (friend) {
+          const searchUser: SearchUser = {
+            id: friend.id,
+            firstName: friend.firstName,
+            lastName: friend.lastName,
+            email: friend.email,
+            profilePicture: friend.profilePicture,
+            isFriend: true
+          };
+          this.openConversationWith(searchUser);
+        }
+      },
+      error: (err) => console.error('Erreur chargement amis', err)
     });
   }
+
+  // ============================================================
+  // 🔥 FICHIERS / IMAGES / VOCAL
+  // ============================================================
 
   toggleEmojiPicker(): void {
     this.showEmojiPicker = !this.showEmojiPicker;
@@ -341,12 +390,13 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.chatService.uploadFile(file).subscribe({
       next: (result) => {
         const type = file.type.startsWith('image/') ? 'image' : 'file';
+        const fileUrl = this.getFileUrl(result.url);
         const tempMsg: Message = {
           id: 'temp-file-' + Date.now(),
           senderId: this.currentUserId,
           receiverId: this.selectedContact!.userId,
           type: type as 'image' | 'file',
-          fileUrl: result.url,
+          fileUrl: fileUrl,
           fileName: result.fileName,
           fileSize: result.fileSize,
           isRead: false,
@@ -358,7 +408,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.chatService.sendMessage({
           receiverId: this.selectedContact!.userId,
           type: type as 'image' | 'file',
-          fileUrl: result.url,
+          fileUrl: fileUrl,
           fileName: result.fileName,
           fileSize: result.fileSize
         });
@@ -386,6 +436,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.notificationService.showInfo('Fonctionnalité de message vocal bientôt disponible');
   }
 
+  // ============================================================
+  // 🔥 BLOCAGE
+  // ============================================================
+
   blockUser(): void {
     if (!this.selectedContact) return;
     this.friendService.blockUser(this.selectedContact.userId).subscribe({
@@ -397,7 +451,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  // === ACTIONS SUR LES MESSAGES ===
+  // ============================================================
+  // 🔥 ACTIONS SUR LES MESSAGES
+  // ============================================================
+
   toggleMessageActions(msg: Message): void {
     if (msg.isDeleted) return;
     this.activeMessageId = this.activeMessageId === msg.id ? null : msg.id;
@@ -417,6 +474,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   canDeleteMessage(msg: Message): boolean {
     return this.isOwnMessage(msg) && !msg.isDeleted;
   }
+
+  // --- Réactions ---
 
   toggleReactionPicker(msg: Message): void {
     this.activeReactionPickerId = this.activeReactionPickerId === msg.id ? null : msg.id;
@@ -449,6 +508,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     return Array.from(map.entries()).map(([emoji, v]) => ({ emoji, count: v.count, mine: v.mine }));
   }
 
+  // --- Édition ---
+
   startEdit(msg: Message): void {
     if (!this.canEditMessage(msg)) return;
     this.editingMessageId = msg.id;
@@ -473,6 +534,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  // --- Suppression ---
+
   deleteMessage(msg: Message): void {
     if (!this.canDeleteMessage(msg)) return;
     if (!confirm('Supprimer ce message pour tout le monde ?')) return;
@@ -483,7 +546,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.activeMessageId = null;
   }
 
-  // === TRANSFERT D'ARGENT ===
+  // ============================================================
+  // 🔥 TRANSFERT D'ARGENT
+  // ============================================================
+
   openTransferPanel(): void {
     if (!this.selectedContact) return;
     this.showTransferPanel = true;
@@ -519,7 +585,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.closeTransferPanel();
   }
 
-  // === HELPERS DE MISE À JOUR ===
+  // ============================================================
+  // 🔥 HELPERS DE MISE À JOUR
+  // ============================================================
+
   private applyMessageUpdate(updated: Message): void {
     const index = this.messages.findIndex(m => m.id === updated.id);
     if (index !== -1) {
@@ -541,6 +610,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.showTransferPanel = false;
     this.showEmojiPicker = false;
   }
+
+  // ============================================================
+  // 🔥 HELPERS GENERAUX
+  // ============================================================
 
   goBack(): void {
     this.router.navigate(['/user']);

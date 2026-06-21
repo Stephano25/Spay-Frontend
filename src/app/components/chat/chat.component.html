@@ -183,10 +183,10 @@
               <span class="content" *ngIf="msg.type === 'text' || msg.type === 'emoji'" [class.emoji-content]="msg.type === 'emoji'">
                 {{ msg.content || msg.emoji }}
               </span>
-              <a class="file-content" *ngIf="msg.type === 'image'" [href]="msg.fileUrl" target="_blank">
-                <img [src]="msg.fileUrl" alt="image">
+              <a class="file-content" *ngIf="msg.type === 'image'" [href]="getFileUrl(msg.fileUrl)" target="_blank">
+                <img [src]="getFileUrl(msg.fileUrl)" alt="image" (error)="msg.fileUrl = ''">
               </a>
-              <a class="file-content file-doc" *ngIf="msg.type === 'file'" [href]="msg.fileUrl" target="_blank">
+              <a class="file-content file-doc" *ngIf="msg.type === 'file'" [href]="getFileUrl(msg.fileUrl)" target="_blank">
                 <mat-icon>description</mat-icon>
                 <span>{{ msg.fileName }}</span>
               </a>
@@ -279,16 +279,19 @@
     </div>
   </ng-template>
 
-  <!-- Colonne droite : amis en ligne -->
+  <!-- 🔥 Colonne droite : amis en ligne - avec vérification friend.friend -->
   <div class="online-friends-panel">
     <h3>En ligne ({{ onlineFriends.length }})</h3>
     <div class="online-list">
-      <div *ngFor="let friend of onlineFriends" class="online-friend" (click)="startChat(friend.friend.id)">
-        <div class="avatar small" [style.background]="getAvatarColor(friend.friend.firstName)">
-          {{ getInitials(friend.friend.firstName, friend.friend.lastName) }}
-          <span class="live-dot"></span>
-        </div>
-        <div class="friend-name">{{ friend.friend.firstName }} {{ friend.friend.lastName }}</div>
+      <div *ngFor="let friend of onlineFriends" class="online-friend" (click)="friend.friend && startChat(friend.friend.id)">
+        <!-- Vérification que friend.friend existe -->
+        <ng-container *ngIf="friend.friend">
+          <div class="avatar small" [style.background]="getAvatarColor(friend.friend.firstName)">
+            {{ getInitials(friend.friend.firstName, friend.friend.lastName) }}
+            <span class="live-dot"></span>
+          </div>
+          <div class="friend-name">{{ friend.friend.firstName }} {{ friend.friend.lastName }}</div>
+        </ng-container>
       </div>
       <p class="hint-text" *ngIf="onlineFriends.length === 0">Aucun ami en ligne actuellement</p>
     </div>

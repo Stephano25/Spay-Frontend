@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate, keyframes } from '@angular/animations';
 
 import { WalletService } from '../../../../services/wallet.service';
-import { FriendService } from '../../../../services/friend.service';
+import { Friend, FriendService } from '../../../../services/friend.service';
 import { NotificationService } from '../../../../services/notification.service';
 
 // Angular Material
@@ -128,7 +128,7 @@ export class SendMoneyComponent implements OnInit {
 
   loadFriends() {
     this.friendService.getFriends().subscribe({
-      next: (friends) => {
+      next: (friends: Friend[]) => {
         this.friends = friends;
         this.filteredFriends = friends;
       },
