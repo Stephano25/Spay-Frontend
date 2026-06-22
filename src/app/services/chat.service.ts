@@ -97,44 +97,97 @@ export class ChatService implements OnDestroy {
   ) {
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       if (user) {
+        console.log('👤 Utilisateur connecté, tentative de connexion socket...');
         this.connectSocket();
         this.requestNotificationPermission();
       } else {
+        console.log('👤 Utilisateur déconnecté, fermeture socket');
         this.disconnect();
       }
     });
   }
 
   // ============================================================
-  // 🔥 CONNEXION SOCKET
+  // 🔥 CONNEXION SOCKET – Version robuste pour tous les navigateurs
   // ============================================================
 
   private connectSocket(): void {
     const token = this.authService.getToken();
-    if (!token || this.socket?.connected) {
-      console.log('🔌 Socket déjà connecté ou token manquant');
+    console.log('🔑 Token présent:', !!token);
+    
+    if (!token) {
+      console.warn('⚠️ Token manquant, impossible de se connecter au socket');
       return;
     }
 
-    console.log('🔌 Tentative de connexion socket...');
+    if (this.socket?.connected) {
+      console.log('🔌 Socket déjà connecté');
+      return;
+    }
+
+    // Fermer l'ancienne connexion si elle existe
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    console.log('🔌 Tentative de connexion socket...', this.socketUrl);
+    
+    // 🔥 Options robustes pour tous les navigateurs
     this.socket = io(this.socketUrl, {
       auth: { token },
-      transports: ['websocket'],
-      reconnection: true
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+      forceNew: true,
+      withCredentials: false,
+      extraHeaders: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
+    // 🔥 Événements de connexion
     this.socket.on('connect', () => {
-      console.log('✅ Socket connecté avec succès');
+      console.log('✅ Socket connecté avec succès, ID:', this.socket?.id);
+      // Demander la liste des utilisateurs connectés
+      this.socket?.emit('getOnlineUsers');
     });
 
-    this.socket.on('disconnect', () => {
-      console.log('❌ Socket déconnecté');
+    this.socket.on('disconnect', (reason) => {
+      console.log('❌ Socket déconnecté, raison:', reason);
+      if (reason === 'io server disconnect') {
+        // Le serveur a déconnecté, tenter de se reconnecter
+        this.socket?.connect();
+      }
     });
 
     this.socket.on('connect_error', (err) => {
       console.error('❌ Erreur de connexion socket:', err.message);
+      // 🔥 En cas d'erreur, essayer de se reconnecter avec polling uniquement
+      if (err.message.includes('websocket') && this.socket) {
+        console.log('🔄 Tentative de reconnexion avec polling uniquement...');
+        if (this.socket.io?.opts) {
+          this.socket.io.opts.transports = ['polling'];
+        }
+      }
     });
 
+    this.socket.on('reconnect', (attempt) => {
+      console.log(`🔄 Socket reconnecté après ${attempt} tentative(s)`);
+    });
+
+    this.socket.on('reconnect_attempt', (attempt) => {
+      console.log(`🔄 Tentative de reconnexion ${attempt}...`);
+      const token = this.authService.getToken();
+      if (token && this.socket) {
+        this.socket.auth = { token };
+      }
+    });
+
+    // 🔥 Événements d'application
     this.socket.on('newMessage', (msg: Message) => {
       console.log('📩 Nouveau message reçu:', msg);
       if (this.processedMessageIds.has(msg.id)) return;
@@ -154,6 +207,19 @@ export class ChatService implements OnDestroy {
     this.socket.on('userOnline', (data) => {
       console.log('📡 userOnline reçu dans le service:', data);
       this.onlineStatusSubject.next(data);
+    });
+
+    this.socket.on('onlineUsers', (users: string[]) => {
+      console.log('📊 Liste des utilisateurs connectés:', users);
+      // Notifier pour chaque utilisateur connecté
+      users.forEach(userId => {
+        if (userId !== this.authService.getCurrentUser()?.id) {
+          this.onlineStatusSubject.next({
+            userId: userId,
+            isOnline: true
+          });
+        }
+      });
     });
 
     this.socket.on('messageEdited', (msg: Message) => {
@@ -178,7 +244,7 @@ export class ChatService implements OnDestroy {
 
     this.socket.on('error', (err) => {
       console.error('❌ Erreur socket:', err);
-      this.notificationService.showError(err.message);
+      this.notificationService.showError(err.message || 'Erreur de connexion');
     });
   }
 
@@ -213,7 +279,17 @@ export class ChatService implements OnDestroy {
 
   sendMessage(message: any): void {
     if (!this.socket?.connected) {
-      console.warn('⚠️ Socket non connecté, message non envoyé');
+      console.warn('⚠️ Socket non connecté, tentative de reconnexion...');
+      this.connectSocket();
+      setTimeout(() => {
+        if (this.socket?.connected) {
+          console.log('📤 Envoi message (après reconnexion):', message);
+          this.socket.emit('sendMessage', message);
+        } else {
+          console.error('❌ Impossible d\'envoyer le message, socket non connecté');
+          this.notificationService.showError('Impossible d\'envoyer le message');
+        }
+      }, 1000);
       return;
     }
     console.log('📤 Envoi message:', message);
@@ -265,6 +341,15 @@ export class ChatService implements OnDestroy {
   startCall(receiverId: string, type: 'audio' | 'video'): void {
     if (!this.socket?.connected) return;
     this.socket.emit('startCall', { receiverId, type });
+  }
+
+  /**
+   * 🔥 Demande la liste des utilisateurs connectés
+   */
+  requestOnlineUsers(): void {
+    if (this.socket?.connected) {
+      this.socket.emit('getOnlineUsers');
+    }
   }
 
   // ============================================================

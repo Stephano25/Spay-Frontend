@@ -103,6 +103,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.loadConversations();
     this.loadAllFriends();
     this.setupSocketListeners();
+    
+    // 🔥 Demander la liste des utilisateurs connectés après un délai
+    setTimeout(() => {
+      this.chatService.requestOnlineUsers();
+    }, 2000);
   }
 
   ngOnDestroy(): void {
@@ -125,6 +130,8 @@ export class ChatComponent implements OnInit, OnDestroy {
           new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
         );
         this.updateConversationsOnlineStatus();
+        // Supprimer les doublons éventuels
+        this.removeDuplicateConversations();
       },
       error: (err) => console.error('Erreur chargement conversations', err)
     });
@@ -138,7 +145,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.updateConversationsOnlineStatus();
         console.log(`👥 ${this.allFriends.length} amis chargés`);
         console.log('📋 allFriends:', this.allFriends.map(f => ({ 
-          id: f.friend?.id, 
+          friendId: f.friendId,
           name: `${f.friend?.firstName} ${f.friend?.lastName}`,
           online: f.friend?.isOnline
         })));
@@ -147,21 +154,42 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * 🔥 Met à jour la liste des amis en ligne – Ignorer soi-même
+   */
   updateOnlineFriends(): void {
-    this.onlineFriends = this.allFriends.filter(f => f.friend?.isOnline === true);
+    this.onlineFriends = this.allFriends.filter(f => 
+      f.friend?.isOnline === true && 
+      f.friendId !== this.currentUserId
+    );
     console.log(`🟢 ${this.onlineFriends.length} amis en ligne`);
     console.log('📋 onlineFriends:', this.onlineFriends.map(f => ({ 
-      id: f.friend?.id, 
-      name: `${f.friend?.firstName} ${f.friend?.lastName}`
+      id: f.friendId, 
+      name: f.friend?.firstName,
+      online: f.friend?.isOnline
     })));
   }
 
   updateConversationsOnlineStatus(): void {
     this.conversations.forEach(conv => {
-      const friend = this.allFriends.find(f => f.friend?.id === conv.userId);
+      const friend = this.allFriends.find(f => f.friendId === conv.userId);
       if (friend && friend.friend) {
         conv.isOnline = friend.friend.isOnline || false;
       }
+    });
+  }
+
+  /**
+   * 🔥 Supprime les conversations en double
+   */
+  private removeDuplicateConversations(): void {
+    const seen = new Set<string>();
+    this.conversations = this.conversations.filter(conv => {
+      if (seen.has(conv.userId)) {
+        return false;
+      }
+      seen.add(conv.userId);
+      return true;
     });
   }
 
@@ -187,16 +215,22 @@ export class ChatComponent implements OnInit, OnDestroy {
         console.log('📡 Événement onlineStatus reçu dans component:', data);
         if (!data) return;
         
+        // Ignorer les notifications de son propre statut
+        if (data.userId === this.currentUserId) {
+          console.log('⏭️ Ignorer le statut de soi-même');
+          return;
+        }
+        
         console.log(`🔄 Statut en ligne: ${data.userId} -> ${data.isOnline ? '🟢 EN LIGNE' : '🔴 HORS LIGNE'}`);
         
-        // Mettre à jour dans allFriends
-        const friend = this.allFriends.find(f => f.friend?.id === data.userId);
+        // Rechercher l'ami en utilisant friendId
+        const friend = this.allFriends.find(f => f.friendId === data.userId);
         if (friend && friend.friend) {
           console.log(`✅ Mise à jour de l'ami ${friend.friend.firstName} ${friend.friend.lastName}: ${data.isOnline ? '🟢' : '🔴'}`);
           friend.friend.isOnline = data.isOnline;
         } else {
-          console.warn(`⚠️ Ami non trouvé dans allFriends: ${data.userId}`);
-          console.log('📋 allFriends IDs:', this.allFriends.map(f => f.friend?.id));
+          console.warn(`⚠️ Ami non trouvé dans allFriends avec friendId: ${data.userId}`);
+          console.log('📋 allFriends IDs:', this.allFriends.map(f => f.friendId));
         }
         
         // Mettre à jour dans onlineFriends
@@ -241,32 +275,45 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   handleNewMessage(message: Message): void {
     console.log('📩 handleNewMessage:', message);
+    
     if (this.selectedContact && message.senderId === this.selectedContact.userId) {
       this.messages.push(message);
       this.scrollToBottom();
       this.chatService.markAsRead(this.selectedContact.userId).subscribe();
     }
+    
     let conv = this.conversations.find(c => c.userId === message.senderId);
     if (conv) {
       conv.lastMessage = { content: message.content || '', type: message.type, createdAt: message.createdAt };
       conv.lastMessageTime = message.createdAt;
-      if (!this.selectedContact || this.selectedContact.userId !== message.senderId) conv.unreadCount++;
+      if (!this.selectedContact || this.selectedContact.userId !== message.senderId) {
+        conv.unreadCount++;
+      }
     } else if (message.sender) {
-      conv = {
-        userId: message.senderId,
-        firstName: message.sender.firstName,
-        lastName: message.sender.lastName,
-        profilePicture: message.sender.profilePicture,
-        lastMessage: { content: message.content || '', type: message.type, createdAt: message.createdAt },
-        lastMessageTime: message.createdAt,
-        unreadCount: 1,
-        isOnline: true
-      };
-      this.conversations.unshift(conv);
+      // Vérifier si la conversation existe déjà avant d'ajouter
+      const existingConv = this.conversations.find(c => c.userId === message.senderId);
+      if (!existingConv) {
+        conv = {
+          userId: message.senderId,
+          firstName: message.sender.firstName,
+          lastName: message.sender.lastName,
+          profilePicture: message.sender.profilePicture,
+          lastMessage: { content: message.content || '', type: message.type, createdAt: message.createdAt },
+          lastMessageTime: message.createdAt,
+          unreadCount: 1,
+          isOnline: false
+        };
+        this.conversations.unshift(conv);
+      }
     }
+    
+    // Trier les conversations par date
     this.conversations.sort((a, b) =>
       new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
     );
+    
+    // Supprimer les doublons éventuels
+    this.removeDuplicateConversations();
   }
 
   selectConversation(conv: Conversation): void {
@@ -423,7 +470,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
     this.friendService.getFriends().subscribe({
       next: (friends: Friend[]) => {
-        const friend = friends.find(f => f.friend?.id === userId)?.friend;
+        const friend = friends.find(f => f.friendId === userId)?.friend;
         if (friend) {
           const searchUser: SearchUser = {
             id: friend.id,

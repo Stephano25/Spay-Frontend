@@ -279,12 +279,15 @@
     </div>
   </ng-template>
 
-  <!-- 🔥 Colonne droite : amis en ligne -->
+  <!-- 🔥 Colonne droite : amis en ligne – Version corrigée -->
   <div class="online-friends-panel">
     <h3>En ligne ({{ onlineFriends.length }})</h3>
     <div class="online-list">
       <ng-container *ngFor="let friend of onlineFriends">
-        <div *ngIf="friend.friend" class="online-friend" (click)="startChat(friend.friend.id)">
+        <!-- Vérifier que l'ami n'est pas l'utilisateur courant -->
+        <div *ngIf="friend.friend && friend.friendId !== currentUserId" 
+             class="online-friend" 
+             (click)="startChat(friend.friendId)">
           <div class="avatar small" [style.background]="getAvatarColor(friend.friend.firstName)">
             {{ getInitials(friend.friend.firstName, friend.friend.lastName) }}
             <span class="live-dot"></span>
