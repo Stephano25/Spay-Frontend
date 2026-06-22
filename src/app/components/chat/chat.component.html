@@ -283,7 +283,6 @@
   <div class="online-friends-panel">
     <h3>En ligne ({{ onlineFriends.length }})</h3>
     <div class="online-list">
-      <!-- Vérification que friend.friend existe -->
       <ng-container *ngFor="let friend of onlineFriends">
         <div *ngIf="friend.friend" class="online-friend" (click)="startChat(friend.friend.id)">
           <div class="avatar small" [style.background]="getAvatarColor(friend.friend.firstName)">

@@ -44,7 +44,7 @@ export interface Conversation {
   firstName: string;
   lastName: string;
   profilePicture?: string;
-  lastMessage?: {    // 👈 rendu optionnel
+  lastMessage?: {
     content: string;
     type: string;
     createdAt: Date;
@@ -105,20 +105,38 @@ export class ChatService implements OnDestroy {
     });
   }
 
+  // ============================================================
+  // 🔥 CONNEXION SOCKET
+  // ============================================================
+
   private connectSocket(): void {
     const token = this.authService.getToken();
-    if (!token || this.socket?.connected) return;
+    if (!token || this.socket?.connected) {
+      console.log('🔌 Socket déjà connecté ou token manquant');
+      return;
+    }
 
+    console.log('🔌 Tentative de connexion socket...');
     this.socket = io(this.socketUrl, {
       auth: { token },
       transports: ['websocket'],
       reconnection: true
     });
 
-    this.socket.on('connect', () => console.log('✅ Socket connecté'));
-    this.socket.on('disconnect', () => console.log('❌ Socket déconnecté'));
+    this.socket.on('connect', () => {
+      console.log('✅ Socket connecté avec succès');
+    });
+
+    this.socket.on('disconnect', () => {
+      console.log('❌ Socket déconnecté');
+    });
+
+    this.socket.on('connect_error', (err) => {
+      console.error('❌ Erreur de connexion socket:', err.message);
+    });
 
     this.socket.on('newMessage', (msg: Message) => {
+      console.log('📩 Nouveau message reçu:', msg);
       if (this.processedMessageIds.has(msg.id)) return;
       this.processedMessageIds.add(msg.id);
       setTimeout(() => this.processedMessageIds.delete(msg.id), 10000);
@@ -128,13 +146,40 @@ export class ChatService implements OnDestroy {
       this.showPushNotification(msg);
     });
 
-    this.socket.on('userTyping', (data) => this.typingSubject.next(data));
-    this.socket.on('userOnline', (data) => this.onlineStatusSubject.next(data));
-    this.socket.on('messageEdited', (msg: Message) => this.messageEditedSubject.next(msg));
-    this.socket.on('messageDeleted', (data: { messageId: string }) => this.messageDeletedSubject.next(data));
-    this.socket.on('messageReaction', (msg: Message) => this.messageReactionSubject.next(msg));
-    this.socket.on('messageBlocked', (data) => this.messageBlockedSubject.next(data));
-    this.socket.on('error', (err) => this.notificationService.showError(err.message));
+    this.socket.on('userTyping', (data) => {
+      console.log('📝 userTyping reçu:', data);
+      this.typingSubject.next(data);
+    });
+
+    this.socket.on('userOnline', (data) => {
+      console.log('📡 userOnline reçu dans le service:', data);
+      this.onlineStatusSubject.next(data);
+    });
+
+    this.socket.on('messageEdited', (msg: Message) => {
+      console.log('✏️ messageEdited reçu:', msg);
+      this.messageEditedSubject.next(msg);
+    });
+
+    this.socket.on('messageDeleted', (data: { messageId: string }) => {
+      console.log('🗑️ messageDeleted reçu:', data);
+      this.messageDeletedSubject.next(data);
+    });
+
+    this.socket.on('messageReaction', (msg: Message) => {
+      console.log('😊 messageReaction reçu:', msg);
+      this.messageReactionSubject.next(msg);
+    });
+
+    this.socket.on('messageBlocked', (data) => {
+      console.log('🚫 messageBlocked reçu:', data);
+      this.messageBlockedSubject.next(data);
+    });
+
+    this.socket.on('error', (err) => {
+      console.error('❌ Erreur socket:', err);
+      this.notificationService.showError(err.message);
+    });
   }
 
   disconnect(): void {
@@ -144,32 +189,61 @@ export class ChatService implements OnDestroy {
     }
   }
 
-  // === API REST ===
+  // ============================================================
+  // 🔥 API REST
+  // ============================================================
+
   getConversations(): Observable<Conversation[]> {
-    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`).pipe(catchError(() => of([])));
+    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`).pipe(
+      catchError((err) => {
+        console.error('❌ Erreur getConversations:', err);
+        return of([]);
+      })
+    );
   }
 
   getMessages(userId: string): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`).pipe(catchError(() => of([])));
+    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`).pipe(
+      catchError((err) => {
+        console.error('❌ Erreur getMessages:', err);
+        return of([]);
+      })
+    );
   }
 
   sendMessage(message: any): void {
-    if (this.socket?.connected) this.socket.emit('sendMessage', message);
+    if (!this.socket?.connected) {
+      console.warn('⚠️ Socket non connecté, message non envoyé');
+      return;
+    }
+    console.log('📤 Envoi message:', message);
+    this.socket.emit('sendMessage', message);
   }
 
   sendTyping(receiverId: string, isTyping: boolean): void {
-    if (this.socket?.connected) this.socket.emit('typing', { receiverId, isTyping });
+    if (!this.socket?.connected) return;
+    this.socket.emit('typing', { receiverId, isTyping });
   }
 
   markAsRead(senderId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {}).pipe(catchError(() => of(void 0)));
+    return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {}).pipe(
+      catchError((err) => {
+        console.error('❌ Erreur markAsRead:', err);
+        return of(void 0);
+      })
+    );
   }
 
   uploadFile(file: File): Observable<{ url: string; fileName: string; fileSize: number }> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ url: string; fileName: string; fileSize: number }>(`${this.apiUrl}/upload`, formData)
-      .pipe(catchError(() => of({ url: '', fileName: '', fileSize: 0 })));
+      .pipe(
+        catchError((err) => {
+          console.error('❌ Erreur uploadFile:', err);
+          return of({ url: '', fileName: '', fileSize: 0 });
+        })
+      );
   }
 
   editMessage(messageId: string, content: string): Observable<Message> {
@@ -189,10 +263,14 @@ export class ChatService implements OnDestroy {
   }
 
   startCall(receiverId: string, type: 'audio' | 'video'): void {
-    if (this.socket?.connected) this.socket.emit('startCall', { receiverId, type });
+    if (!this.socket?.connected) return;
+    this.socket.emit('startCall', { receiverId, type });
   }
 
-  // === Notifications push ===
+  // ============================================================
+  // 🔥 NOTIFICATIONS PUSH
+  // ============================================================
+
   private async requestNotificationPermission(): Promise<void> {
     if (!('Notification' in window)) return;
     if (Notification.permission === 'default') {
@@ -223,6 +301,18 @@ export class ChatService implements OnDestroy {
     } else {
       new Notification(title, { body, icon: iconUrl, badge: iconUrl });
     }
+  }
+
+  // ============================================================
+  // 🔥 MÉTHODES UTILITAIRES
+  // ============================================================
+
+  isSocketConnected(): boolean {
+    return this.socket?.connected || false;
+  }
+
+  getSocketId(): string | null {
+    return this.socket?.id || null;
   }
 
   ngOnDestroy(): void {

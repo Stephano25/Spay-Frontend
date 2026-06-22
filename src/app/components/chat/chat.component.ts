@@ -48,7 +48,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   isTyping = false;
   typingTimeout: any;
   
-  // 🔥 Gestion des amis
+  // Gestion des amis
   allFriends: Friend[] = [];
   onlineFriends: Friend[] = [];
   
@@ -111,12 +111,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 CHARGEMENT
+  // CHARGEMENT
   // ============================================================
 
-  /**
-   * Récupère l'URL complète d'un fichier
-   */
   getFileUrl(fileUrl?: string): string {
     return this.configService.getFileUrl(fileUrl);
   }
@@ -133,9 +130,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * 🔥 Charge tous les amis acceptés
-   */
   loadAllFriends(): void {
     this.friendService.getFriends().subscribe({
       next: (friends: Friend[]) => {
@@ -143,22 +137,25 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.updateOnlineFriends();
         this.updateConversationsOnlineStatus();
         console.log(`👥 ${this.allFriends.length} amis chargés`);
+        console.log('📋 allFriends:', this.allFriends.map(f => ({ 
+          id: f.friend?.id, 
+          name: `${f.friend?.firstName} ${f.friend?.lastName}`,
+          online: f.friend?.isOnline
+        })));
       },
       error: (err) => console.error('Erreur chargement amis', err)
     });
   }
 
-  /**
-   * 🔥 Met à jour la liste des amis en ligne
-   */
   updateOnlineFriends(): void {
     this.onlineFriends = this.allFriends.filter(f => f.friend?.isOnline === true);
     console.log(`🟢 ${this.onlineFriends.length} amis en ligne`);
+    console.log('📋 onlineFriends:', this.onlineFriends.map(f => ({ 
+      id: f.friend?.id, 
+      name: `${f.friend?.firstName} ${f.friend?.lastName}`
+    })));
   }
 
-  /**
-   * 🔥 Met à jour le statut en ligne des conversations
-   */
   updateConversationsOnlineStatus(): void {
     this.conversations.forEach(conv => {
       const friend = this.allFriends.find(f => f.friend?.id === conv.userId);
@@ -168,25 +165,38 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ============================================================
+  // SOCKET LISTENERS
+  // ============================================================
+
   setupSocketListeners(): void {
     this.subscriptions.push(
-      this.chatService.newMessage$.subscribe(msg => msg && this.handleNewMessage(msg)),
+      this.chatService.newMessage$.subscribe(msg => {
+        console.log('📩 NewMessage reçu dans component:', msg);
+        msg && this.handleNewMessage(msg);
+      }),
       
       this.chatService.typing$.subscribe(data => {
+        console.log('📝 Typing reçu dans component:', data);
         if (data && this.selectedContact && data.userId === this.selectedContact.userId) {
           this.isTyping = data.isTyping;
         }
       }),
       
-      // 🔥 Gestion du statut en ligne
       this.chatService.onlineStatus$.subscribe(data => {
+        console.log('📡 Événement onlineStatus reçu dans component:', data);
         if (!data) return;
-        console.log(`🔄 Statut en ligne: ${data.userId} -> ${data.isOnline ? '🟢' : '🔴'}`);
+        
+        console.log(`🔄 Statut en ligne: ${data.userId} -> ${data.isOnline ? '🟢 EN LIGNE' : '🔴 HORS LIGNE'}`);
         
         // Mettre à jour dans allFriends
         const friend = this.allFriends.find(f => f.friend?.id === data.userId);
         if (friend && friend.friend) {
+          console.log(`✅ Mise à jour de l'ami ${friend.friend.firstName} ${friend.friend.lastName}: ${data.isOnline ? '🟢' : '🔴'}`);
           friend.friend.isOnline = data.isOnline;
+        } else {
+          console.warn(`⚠️ Ami non trouvé dans allFriends: ${data.userId}`);
+          console.log('📋 allFriends IDs:', this.allFriends.map(f => f.friend?.id));
         }
         
         // Mettre à jour dans onlineFriends
@@ -204,9 +214,21 @@ export class ChatComponent implements OnInit, OnDestroy {
         }
       }),
       
-      this.chatService.messageEdited$.subscribe(msg => this.applyMessageUpdate(msg)),
-      this.chatService.messageReaction$.subscribe(msg => this.applyMessageUpdate(msg)),
-      this.chatService.messageDeleted$.subscribe(data => this.applyMessageDeleted(data.messageId)),
+      this.chatService.messageEdited$.subscribe(msg => {
+        console.log('✏️ Message édité reçu:', msg);
+        this.applyMessageUpdate(msg);
+      }),
+      
+      this.chatService.messageReaction$.subscribe(msg => {
+        console.log('😊 Réaction reçue:', msg);
+        this.applyMessageUpdate(msg);
+      }),
+      
+      this.chatService.messageDeleted$.subscribe(data => {
+        console.log('🗑️ Message supprimé reçu:', data);
+        this.applyMessageDeleted(data.messageId);
+      }),
+      
       this.chatService.messageBlocked$.subscribe(() => {
         this.notificationService.showWarning('Vous ne pouvez pas écrire à cet utilisateur');
       })
@@ -214,10 +236,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 GESTION DES MESSAGES
+  // GESTION DES MESSAGES
   // ============================================================
 
   handleNewMessage(message: Message): void {
+    console.log('📩 handleNewMessage:', message);
     if (this.selectedContact && message.senderId === this.selectedContact.userId) {
       this.messages.push(message);
       this.scrollToBottom();
@@ -272,7 +295,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 NOUVELLE DISCUSSION
+  // NOUVELLE DISCUSSION
   // ============================================================
 
   toggleNewConversation(): void {
@@ -325,7 +348,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 ENVOI DE MESSAGE
+  // ENVOI DE MESSAGE
   // ============================================================
 
   sendMessage(): void {
@@ -418,7 +441,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 FICHIERS / IMAGES / VOCAL
+  // FICHIERS / IMAGES / VOCAL
   // ============================================================
 
   toggleEmojiPicker(): void {
@@ -487,7 +510,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 BLOCAGE
+  // BLOCAGE
   // ============================================================
 
   blockUser(): void {
@@ -502,7 +525,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 ACTIONS SUR LES MESSAGES
+  // ACTIONS SUR LES MESSAGES
   // ============================================================
 
   toggleMessageActions(msg: Message): void {
@@ -524,8 +547,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   canDeleteMessage(msg: Message): boolean {
     return this.isOwnMessage(msg) && !msg.isDeleted;
   }
-
-  // --- Réactions ---
 
   toggleReactionPicker(msg: Message): void {
     this.activeReactionPickerId = this.activeReactionPickerId === msg.id ? null : msg.id;
@@ -558,8 +579,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     return Array.from(map.entries()).map(([emoji, v]) => ({ emoji, count: v.count, mine: v.mine }));
   }
 
-  // --- Édition ---
-
   startEdit(msg: Message): void {
     if (!this.canEditMessage(msg)) return;
     this.editingMessageId = msg.id;
@@ -584,8 +603,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- Suppression ---
-
   deleteMessage(msg: Message): void {
     if (!this.canDeleteMessage(msg)) return;
     if (!confirm('Supprimer ce message pour tout le monde ?')) return;
@@ -597,7 +614,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 TRANSFERT D'ARGENT
+  // TRANSFERT D'ARGENT
   // ============================================================
 
   openTransferPanel(): void {
@@ -636,7 +653,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 HELPERS DE MISE À JOUR
+  // HELPERS DE MISE À JOUR
   // ============================================================
 
   private applyMessageUpdate(updated: Message): void {
@@ -662,7 +679,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 🔥 HELPERS GENERAUX
+  // HELPERS GENERAUX
   // ============================================================
 
   goBack(): void {
