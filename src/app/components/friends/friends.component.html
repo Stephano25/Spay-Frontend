@@ -1,183 +1,87 @@
 <!-- src/app/components/friends/friends.component.html -->
-<div class="friends-container">
-  <!-- Header -->
-  <mat-toolbar color="primary" class="glass-header">
-    <button mat-icon-button (click)="goBack()" class="nav-btn" matTooltip="Retour">
+<div class="fr-root">
+
+  <!-- ── Header ── -->
+  <header class="fr-header">
+    <button class="fr-icon-btn" (click)="goBack()" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span class="header-title">Mes Amis</span>
-    <span class="spacer"></span>
-    <button mat-icon-button (click)="showMyQRCode()" matTooltip="Mon QR code" class="action-btn">
-      <mat-icon>qr_code</mat-icon>
-    </button>
-    <button mat-icon-button (click)="scanQRCode()" matTooltip="Scanner un QR code" class="action-btn">
-      <mat-icon>qr_code_scanner</mat-icon>
-    </button>
-    <button mat-icon-button (click)="showAddFriend = !showAddFriend" matTooltip="Ajouter un ami" class="action-btn">
-      <mat-icon>person_add</mat-icon>
-    </button>
-    <button mat-icon-button (click)="showBlockedUsers = !showBlockedUsers" matTooltip="Utilisateurs bloqués" class="action-btn">
-      <mat-icon>block</mat-icon>
-      @if (blockedUsers.length > 0) {
-        <span class="badge">{{ blockedUsers.length }}</span>
-      }
-    </button>
-  </mat-toolbar>
+    <span class="fr-title">Mes Amis</span>
+    <div class="fr-header-actions">
+      <button class="fr-icon-btn" (click)="showMyQRCode()" matTooltip="Mon QR code">
+        <mat-icon>qr_code</mat-icon>
+      </button>
+      <button class="fr-icon-btn" (click)="scanQRCode()" matTooltip="Scanner un QR code" [class.active-scan]="showQRScanner">
+        <mat-icon>qr_code_scanner</mat-icon>
+      </button>
+      <button class="fr-icon-btn" (click)="showAddFriend = !showAddFriend" matTooltip="Ajouter un ami">
+        <mat-icon>person_add</mat-icon>
+      </button>
+      <button class="fr-icon-btn pos-rel" (click)="showBlockedUsers = !showBlockedUsers" matTooltip="Utilisateurs bloqués">
+        <mat-icon>block</mat-icon>
+        <span class="notif-dot" *ngIf="blockedUsers.length > 0">{{ blockedUsers.length }}</span>
+      </button>
+    </div>
+  </header>
 
-  <div class="friends-content">
-    <!-- Fab retour mobile -->
-    <button class="fab-back" (click)="goBack()" matTooltip="Retour">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
+  <div class="fr-body">
 
-    <!-- Modal QR Code -->
-    <div class="qr-modal" *ngIf="showQRCode" (click)="showQRCode = false">
-      <div class="qr-modal-content" (click)="$event.stopPropagation()">
-        <h3>Mon QR Code</h3>
-        <img [src]="qrCodeImage" alt="Mon QR Code" class="qr-code-img">
-        <p>Scannez ce code pour m'ajouter comme ami</p>
-        <button mat-raised-button color="primary" (click)="showQRCode = false">Fermer</button>
+    <!-- ── Modal QR Code ── -->
+    <div class="modal-backdrop" *ngIf="showQRCode" (click)="showQRCode = false">
+      <div class="qr-modal" (click)="$event.stopPropagation()">
+        <div class="qr-modal-header">
+          <span>Mon QR Code</span>
+          <button class="fr-icon-btn" (click)="showQRCode = false"><mat-icon>close</mat-icon></button>
+        </div>
+        <img [src]="qrCodeImage" alt="Mon QR Code" class="qr-img">
+        <p class="qr-hint">Montrez ce code à vos amis pour qu'ils vous ajoutent dans SPaye</p>
       </div>
     </div>
 
-    <!-- Loading -->
+    <!-- ── Modal Scanner QR ── -->
+    <div class="modal-backdrop" *ngIf="showQRScanner" (click)="stopQRScan()">
+      <div class="qr-modal scanner-modal" (click)="$event.stopPropagation()">
+        <div class="qr-modal-header">
+          <span>Scanner un QR Code</span>
+          <button class="fr-icon-btn" (click)="stopQRScan()"><mat-icon>close</mat-icon></button>
+        </div>
+        <div class="scanner-wrap">
+          <video id="qr-video" class="scanner-video" playsinline muted></video>
+          <div class="scan-frame">
+            <span class="corner tl"></span><span class="corner tr"></span>
+            <span class="corner bl"></span><span class="corner br"></span>
+            <div class="scan-line"></div>
+          </div>
+        </div>
+        <p class="qr-hint">Pointez la caméra vers le QR code d'un ami</p>
+      </div>
+    </div>
+
+    <!-- ── Loading ── -->
     @if (isLoading) {
-      <div class="loading-container">
+      <div class="fr-loading">
         <div class="spinner"></div>
-        <p>Chargement de vos amis...</p>
+        <p>Chargement…</p>
       </div>
     }
 
-    <!-- Ajouter un ami -->
-    @if (showAddFriend) {
-      <mat-card class="glass-card add-friend-card animate-slide-up">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon class="title-icon">person_add</mat-icon>
-            Ajouter un ami
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="search-section">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Rechercher par email ou téléphone</mat-label>
-              <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearch()"
-                     placeholder="exemple@email.com ou 0341234567">
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
-
-            @if (isSearching) {
-              <div class="search-loading"><div class="spinner-sm"></div></div>
-            }
-
-            @if (searchResults.length > 0 && !isSearching) {
-              <div class="search-results">
-                <h4>Résultats de la recherche</h4>
-                <div class="results-grid">
-                  @for (user of searchResults; track user.id) {
-                    <div class="search-card">
-                      <div class="user-avatar" [style.background]="getAvatarColor(user.firstName)">
-                        {{ getInitials(user.firstName, user.lastName) }}
-                      </div>
-                      <div class="user-info">
-                        <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
-                        <div class="user-email">{{ user.email }}</div>
-                      </div>
-                      <div class="user-action">
-                        @if (user.isBlocked) {
-                          <button mat-stroked-button disabled class="disabled-btn"><mat-icon>block</mat-icon> Bloqué</button>
-                        } @else if (user.isFriend) {
-                          <button mat-stroked-button disabled class="disabled-btn success"><mat-icon>check</mat-icon> Ami</button>
-                        } @else if (user.hasPendingRequest) {
-                          <button mat-stroked-button disabled class="disabled-btn"><mat-icon>hourglass_empty</mat-icon> Envoyée</button>
-                        } @else {
-                          <button mat-raised-button class="btn-gradient" (click)="sendFriendRequest(user.id)">
-                            <mat-icon>person_add</mat-icon> Ajouter
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-
-            @if (suggestions.length > 0 && !searchQuery) {
-              <div class="suggestions">
-                <h4>Suggestions</h4>
-                <div class="suggestions-grid">
-                  @for (user of suggestions; track user.id) {
-                    <div class="suggestion-card">
-                      <div class="user-avatar" [style.background]="getAvatarColor(user.firstName)">
-                        {{ getInitials(user.firstName, user.lastName) }}
-                      </div>
-                      <div class="user-info">
-                        <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
-                        <div class="user-email">{{ user.email }}</div>
-                      </div>
-                      <div class="user-action">
-                        @if (user.hasPendingRequest) {
-                          <button mat-stroked-button disabled class="disabled-btn"><mat-icon>hourglass_empty</mat-icon> Envoyée</button>
-                        } @else {
-                          <button mat-raised-button class="btn-gradient" (click)="sendFriendRequest(user.id)">
-                            <mat-icon>person_add</mat-icon> Ajouter
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        </mat-card-content>
-      </mat-card>
-    }
-
-    <!-- Utilisateurs bloqués -->
-    @if (showBlockedUsers) {
-      <mat-card class="glass-card blocked-card animate-slide-up">
-        <mat-card-header><mat-card-title><mat-icon class="title-icon">block</mat-icon> Utilisateurs bloqués</mat-card-title></mat-card-header>
-        <mat-card-content>
-          @if (blockedUsers.length > 0) {
-            <div class="blocked-grid">
-              @for (blocked of blockedUsers; track blocked.id) {
-                @if (blocked.friend) {
-                  <div class="blocked-card-item">
-                    <div class="user-avatar" [style.background]="getAvatarColor(blocked.friend.firstName)">
-                      {{ getInitials(blocked.friend.firstName, blocked.friend.lastName) }}
-                    </div>
-                    <div class="user-info">
-                      <div class="user-name">{{ blocked.friend.firstName }} {{ blocked.friend.lastName }}</div>
-                      <div class="user-email">{{ blocked.friend.email }}</div>
-                    </div>
-                    <button mat-stroked-button class="unblock-btn" (click)="unblockUser(blocked.friendId || blocked.userId, blocked.friend.firstName)">
-                      <mat-icon>lock_open</mat-icon> Débloquer
-                    </button>
-                  </div>
-                }
-              }
-            </div>
-          } @else {
-            <div class="empty-state small"><mat-icon>block</mat-icon><p>Aucun utilisateur bloqué</p></div>
-          }
-        </mat-card-content>
-      </mat-card>
-    }
-
-    <!-- Amis en ligne -->
+    <!-- ── Amis en ligne ── -->
     @if (onlineFriends.length > 0) {
-      <div class="online-section">
-        <div class="section-header"><span class="live-dot"></span> <span>En ligne ({{ onlineFriends.length }})</span></div>
-        <div class="online-friends-list">
-          @for (friend of onlineFriends; track friend.id) {
-            @if (friend.friend) {
-              <div class="online-friend-item" (click)="chatWithFriend(friend.friend.id)">
-                <div class="friend-avatar small" [style.background]="getAvatarColor(friend.friend.firstName)">
-                  {{ getInitials(friend.friend.firstName, friend.friend.lastName) }}
-                  <span class="online-dot active"></span>
+      <div class="online-strip">
+        <div class="online-strip-header">
+          <span class="pulse-dot"></span>
+          <span>En ligne · {{ onlineFriends.length }}</span>
+        </div>
+        <div class="online-avatars">
+          @for (f of onlineFriends; track f.id) {
+            @if (f.friend) {
+              <!-- 🔥 Correction : matTooltip sur un élément qui supporte matTooltip -->
+              <div class="online-av-item" (click)="chatWithFriend(f.friend.id)" [matTooltip]="f.friend.firstName + ' ' + f.friend.lastName">
+                <div class="av av-md" [style.background]="getAvatarColor(f.friend.firstName)">
+                  {{ getInitials(f.friend.firstName, f.friend.lastName) }}
+                  <span class="av-online-dot"></span>
                 </div>
-                <span class="friend-name">{{ friend.friend.firstName }}</span>
+                <span class="av-name">{{ f.friend.firstName }}</span>
               </div>
             }
           }
@@ -185,84 +89,200 @@
       </div>
     }
 
-    <!-- Menu des amis -->
-    <div class="friends-menu">
-      <div class="menu-header" (click)="toggleFriendsList()">
-        <mat-icon>people</mat-icon> <span>Mes amis ({{ friends.length }})</span>
-        <mat-icon class="menu-arrow">{{ showFriendsList ? 'expand_less' : 'expand_more' }}</mat-icon>
+    <!-- ── Ajouter un ami ── -->
+    @if (showAddFriend) {
+      <div class="fr-card add-card">
+        <div class="card-title"><mat-icon>person_add</mat-icon> Ajouter un ami</div>
+        <mat-form-field appearance="outline" class="full-w">
+          <mat-label>Rechercher par nom, email ou téléphone</mat-label>
+          <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" placeholder="exemple@email.com">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        @if (isSearching) {
+          <div class="center-row"><mat-spinner diameter="24"></mat-spinner></div>
+        }
+
+        @if (searchResults.length > 0 && !isSearching) {
+          <div class="results-section">
+            <p class="section-label">Résultats</p>
+            <div class="user-grid">
+              @for (user of searchResults; track user.id) {
+                <div class="user-card">
+                  <div class="av av-lg" [style.background]="getAvatarColor(user.firstName)">
+                    {{ getInitials(user.firstName, user.lastName) }}
+                  </div>
+                  <div class="user-info">
+                    <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                    <span class="user-email">{{ user.email }}</span>
+                  </div>
+                  <div class="user-action">
+                    @if (user.isBlocked) {
+                      <button class="tag-btn blocked"><mat-icon>block</mat-icon> Bloqué</button>
+                    } @else if (user.isFriend) {
+                      <button class="tag-btn friend"><mat-icon>check</mat-icon> Ami</button>
+                    } @else if (user.hasPendingRequest) {
+                      <button class="tag-btn pending"><mat-icon>hourglass_empty</mat-icon> Envoyée</button>
+                    } @else {
+                      <button class="add-btn" (click)="sendFriendRequest(user.id)">
+                        <mat-icon>person_add</mat-icon> Ajouter
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (suggestions.length > 0 && !searchQuery) {
+          <div class="results-section">
+            <p class="section-label">Suggestions</p>
+            <div class="user-grid">
+              @for (user of suggestions; track user.id) {
+                <div class="user-card">
+                  <div class="av av-lg" [style.background]="getAvatarColor(user.firstName)">
+                    {{ getInitials(user.firstName, user.lastName) }}
+                  </div>
+                  <div class="user-info">
+                    <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                    <span class="user-email">{{ user.email }}</span>
+                  </div>
+                  <div class="user-action">
+                    @if (user.hasPendingRequest) {
+                      <button class="tag-btn pending"><mat-icon>hourglass_empty</mat-icon> Envoyée</button>
+                    } @else {
+                      <button class="add-btn" (click)="sendFriendRequest(user.id)">
+                        <mat-icon>person_add</mat-icon> Ajouter
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
-      <div class="menu-content" [class.expanded]="showFriendsList">
-        @if (friends.length > 0) {
-          <div class="friends-list-menu">
-            @for (friend of friends; track friend.id) {
-              @if (friend.friend) {
-                <div class="friend-menu-item" (click)="chatWithFriend(friend.friend.id)">
-                  <div class="friend-avatar small" [style.background]="getAvatarColor(friend.friend.firstName)">
-                    {{ getInitials(friend.friend.firstName, friend.friend.lastName) }}
-                    <span class="online-dot" [class.online]="friend.friend.isOnline"></span>
+    }
+
+    <!-- ── Utilisateurs bloqués ── -->
+    @if (showBlockedUsers) {
+      <div class="fr-card">
+        <div class="card-title"><mat-icon>block</mat-icon> Utilisateurs bloqués ({{ blockedUsers.length }})</div>
+        @if (blockedUsers.length > 0) {
+          <div class="blocked-list">
+            @for (b of blockedUsers; track b.id) {
+              @if (b.friend) {
+                <div class="blocked-item">
+                  <div class="av av-md" [style.background]="getAvatarColor(b.friend.firstName)">
+                    {{ getInitials(b.friend.firstName, b.friend.lastName) }}
                   </div>
-                  <div class="friend-info">
-                    <div class="friend-name">{{ friend.friend.firstName }} {{ friend.friend.lastName }}</div>
-                    <div class="friend-status" [class.online]="friend.friend.isOnline">
-                      {{ friend.friend.isOnline ? 'En ligne' : formatLastSeen(friend.friend.lastSeen) }}
-                    </div>
+                  <div class="user-info">
+                    <span class="user-name">{{ b.friend.firstName }} {{ b.friend.lastName }}</span>
+                    <span class="user-email">{{ b.friend.email }}</span>
                   </div>
-                  <div class="friend-actions-menu">
-                    <button mat-icon-button (click)="$event.stopPropagation(); viewFriendProfile(friend.friend.id)" matTooltip="Profil"><mat-icon>person</mat-icon></button>
-                    <button mat-icon-button (click)="$event.stopPropagation(); sendMoneyToFriend(friend.friend.id, friend.friend.firstName)" matTooltip="Envoyer"><mat-icon>attach_money</mat-icon></button>
-                    <button mat-icon-button [matMenuTriggerFor]="friendActionMenu" (click)="$event.stopPropagation()" matTooltip="Plus"><mat-icon>more_vert</mat-icon></button>
-                    <mat-menu #friendActionMenu="matMenu">
-                      <button mat-menu-item (click)="removeFriend(friend.id)"><mat-icon>delete</mat-icon> Supprimer</button>
-                      <button mat-menu-item (click)="blockUser(friend.friend.id, friend.friend.firstName)"><mat-icon>block</mat-icon> Bloquer</button>
-                    </mat-menu>
-                  </div>
+                  <button class="unblock-btn" (click)="unblockUser(b.friendId || b.userId, b.friend.firstName)">
+                    <mat-icon>lock_open</mat-icon> Débloquer
+                  </button>
                 </div>
               }
             }
           </div>
         } @else {
-          <div class="empty-menu-state"><mat-icon>people_outline</mat-icon><p>Aucun ami</p><button class="btn-gradient-small" (click)="showAddFriend = true">Ajouter</button></div>
+          <div class="empty-mini"><mat-icon>block</mat-icon><p>Aucun utilisateur bloqué</p></div>
+        }
+      </div>
+    }
+
+    <!-- ── Demandes reçues ── -->
+    @if (friendRequests.length > 0) {
+      <div class="fr-section">
+        <div class="section-toggle" (click)="toggleRequestsList()">
+          <div class="section-toggle-left">
+            <mat-icon>notifications_active</mat-icon>
+            <span>Demandes reçues</span>
+            <span class="count-badge">{{ friendRequests.length }}</span>
+          </div>
+          <mat-icon class="toggle-arrow" [class.rotated]="showRequestsList">expand_more</mat-icon>
+        </div>
+        <div class="section-content" [class.open]="showRequestsList">
+          @for (req of friendRequests; track req.id) {
+            @if (req.sender) {
+              <div class="friend-row">
+                <div class="av av-md" [style.background]="getAvatarColor(req.sender.firstName)">
+                  {{ getInitials(req.sender.firstName, req.sender.lastName) }}
+                </div>
+                <div class="friend-meta">
+                  <span class="friend-name">{{ req.sender.firstName }} {{ req.sender.lastName }}</span>
+                  <span class="friend-sub">{{ req.sender.email }}</span>
+                </div>
+                <div class="row-actions">
+                  <button class="accept-btn" (click)="acceptRequest(req.id)" matTooltip="Accepter">
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button class="decline-btn" (click)="declineRequest(req.id)" matTooltip="Refuser">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Mes amis ── -->
+    <div class="fr-section">
+      <div class="section-toggle" (click)="toggleFriendsList()">
+        <div class="section-toggle-left">
+          <mat-icon>people</mat-icon>
+          <span>Mes amis</span>
+          <span class="count-badge">{{ friends.length }}</span>
+        </div>
+        <mat-icon class="toggle-arrow" [class.rotated]="showFriendsList">expand_more</mat-icon>
+      </div>
+      <div class="section-content" [class.open]="showFriendsList">
+        @if (friends.length > 0) {
+          @for (f of friends; track f.id) {
+            @if (f.friend) {
+              <div class="friend-row" (click)="chatWithFriend(f.friend.id)">
+                <div class="av av-md pos-rel" [style.background]="getAvatarColor(f.friend.firstName)">
+                  {{ getInitials(f.friend.firstName, f.friend.lastName) }}
+                  <span class="status-dot" [class.online]="f.friend.isOnline"></span>
+                </div>
+                <div class="friend-meta">
+                  <span class="friend-name">{{ f.friend.firstName }} {{ f.friend.lastName }}</span>
+                  <span class="friend-sub" [class.online-text]="f.friend.isOnline">
+                    {{ f.friend.isOnline ? '● En ligne' : formatLastSeen(f.friend.lastSeen) }}
+                  </span>
+                </div>
+                <div class="row-actions hover-actions" (click)="$event.stopPropagation()">
+                  <button class="fr-icon-btn sm" (click)="viewFriendProfile(f.friend.id)" matTooltip="Profil">
+                    <mat-icon>person</mat-icon>
+                  </button>
+                  <button class="fr-icon-btn sm" (click)="sendMoneyToFriend(f.friend.id, f.friend.firstName)" matTooltip="Envoyer de l'argent">
+                    <mat-icon>payments</mat-icon>
+                  </button>
+                  <button class="fr-icon-btn sm" [matMenuTriggerFor]="friendMenu" matTooltip="Plus">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #friendMenu="matMenu">
+                    <button mat-menu-item (click)="removeFriend(f.id)"><mat-icon>person_remove</mat-icon><span>Supprimer</span></button>
+                    <button mat-menu-item (click)="blockUser(f.friend.id, f.friend.firstName)"><mat-icon>block</mat-icon><span>Bloquer</span></button>
+                  </mat-menu>
+                </div>
+              </div>
+            }
+          }
+        } @else {
+          <div class="empty-mini">
+            <mat-icon>people_outline</mat-icon>
+            <p>Aucun ami pour l'instant</p>
+            <button class="add-btn" (click)="showAddFriend = true"><mat-icon>person_add</mat-icon> Ajouter un ami</button>
+          </div>
         }
       </div>
     </div>
 
-    <!-- Demandes d'ami -->
-    @if (friendRequests.length > 0) {
-      <div class="requests-menu">
-        <div class="menu-header" (click)="toggleRequestsList()">
-          <mat-icon>notifications</mat-icon> <span>Demandes reçues ({{ friendRequests.length }})</span>
-          <mat-icon class="menu-arrow">{{ showRequestsList ? 'expand_less' : 'expand_more' }}</mat-icon>
-        </div>
-        <div class="menu-content" [class.expanded]="showRequestsList">
-          <div class="requests-list-menu">
-            @for (request of friendRequests; track request.id) {
-              @if (request.sender) {
-                <div class="request-menu-item">
-                  <div class="friend-avatar small" [style.background]="getAvatarColor(request.sender.firstName)">
-                    {{ getInitials(request.sender.firstName, request.sender.lastName) }}
-                  </div>
-                  <div class="friend-info">
-                    <div class="friend-name">{{ request.sender.firstName }} {{ request.sender.lastName }}</div>
-                    <div class="friend-email">{{ request.sender.email }}</div>
-                  </div>
-                  <div class="request-actions-menu">
-                    <button mat-icon-button class="accept-btn" (click)="acceptRequest(request.id)" matTooltip="Accepter"><mat-icon>check</mat-icon></button>
-                    <button mat-icon-button class="decline-btn" (click)="declineRequest(request.id)" matTooltip="Refuser"><mat-icon>close</mat-icon></button>
-                  </div>
-                </div>
-              } @else {
-                <div class="request-menu-item">
-                  <div class="friend-avatar small">?</div>
-                  <div class="friend-info"><div class="friend-name">Utilisateur inconnu</div></div>
-                  <div class="request-actions-menu">
-                    <button mat-icon-button class="decline-btn" (click)="declineRequest(request.id)"><mat-icon>close</mat-icon></button>
-                  </div>
-                </div>
-              }
-            }
-          </div>
-        </div>
-      </div>
-    }
-  </div>
+  </div><!-- /fr-body -->
 </div>

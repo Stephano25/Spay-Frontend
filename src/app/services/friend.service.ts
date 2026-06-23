@@ -2,10 +2,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, tap, of } from 'rxjs';
-import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 
-// Interfaces exportées
+// ── Interfaces ──────────────────────────────────────────────
 export interface Friend {
   id: string;
   userId: string;
@@ -47,6 +46,7 @@ export interface SearchUser {
   isFriend?: boolean;
   hasPendingRequest?: boolean;
   isBlocked?: boolean;
+  blockedBy?: string;
 }
 
 export interface FriendResponse {
@@ -62,14 +62,19 @@ export interface BlockStatus {
   canMessage: boolean;
 }
 
+// ── Service ──────────────────────────────────────────────────
 @Injectable({ providedIn: 'root' })
 export class FriendService {
   private apiUrl = `${environment.apiUrl}/friends`;
 
-  constructor(private http: HttpClient, private notificationService: NotificationService) {}
+  constructor(private http: HttpClient) {}
 
   getFriends(): Observable<Friend[]> {
-    return this.http.get<Friend[]>(this.apiUrl).pipe(
+    const ts = new Date().getTime();
+    return this.http.get<Friend[]>(`${this.apiUrl}?_=${ts}`).pipe(
+      tap((data: Friend[]) => {
+        console.log(`[FriendService] ${data.length} amis reçus`);
+      }),
       catchError(this.handleError<Friend[]>('getFriends', []))
     );
   }
@@ -100,42 +105,36 @@ export class FriendService {
 
   sendFriendRequest(friendId: string): Observable<FriendResponse> {
     return this.http.post<FriendResponse>(`${this.apiUrl}/request/${friendId}`, {}).pipe(
-      tap(res => this.notificationService.showSuccess(res.message || 'Demande envoyée')),
       catchError(this.handleError<FriendResponse>('sendFriendRequest'))
     );
   }
 
   acceptFriendRequest(requestId: string): Observable<FriendResponse> {
     return this.http.post<FriendResponse>(`${this.apiUrl}/accept/${requestId}`, {}).pipe(
-      tap(res => this.notificationService.showSuccess('Demande acceptée')),
       catchError(this.handleError<FriendResponse>('acceptFriendRequest'))
     );
   }
 
   declineFriendRequest(requestId: string): Observable<FriendResponse> {
     return this.http.post<FriendResponse>(`${this.apiUrl}/decline/${requestId}`, {}).pipe(
-      tap(() => this.notificationService.showInfo('Demande refusée')),
       catchError(this.handleError<FriendResponse>('declineFriendRequest'))
     );
   }
 
   removeFriend(friendId: string): Observable<FriendResponse> {
     return this.http.delete<FriendResponse>(`${this.apiUrl}/${friendId}`).pipe(
-      tap(() => this.notificationService.showSuccess('Ami supprimé')),
       catchError(this.handleError<FriendResponse>('removeFriend'))
     );
   }
 
   blockUser(userId: string): Observable<FriendResponse> {
     return this.http.post<FriendResponse>(`${this.apiUrl}/block/${userId}`, {}).pipe(
-      tap(() => this.notificationService.showInfo('Utilisateur bloqué')),
       catchError(this.handleError<FriendResponse>('blockUser'))
     );
   }
 
   unblockUser(userId: string): Observable<FriendResponse> {
     return this.http.post<FriendResponse>(`${this.apiUrl}/unblock/${userId}`, {}).pipe(
-      tap(() => this.notificationService.showInfo('Utilisateur débloqué')),
       catchError(this.handleError<FriendResponse>('unblockUser'))
     );
   }
@@ -154,9 +153,7 @@ export class FriendService {
 
   private handleError<T>(operation: string, fallback?: T) {
     return (error: HttpErrorResponse): Observable<T> => {
-      console.error(`❌ ${operation} échoué:`, error);
-      const message = error.error?.message || `Erreur lors de ${operation}`;
-      this.notificationService.showError(message);
+      console.error(`[FriendService] ${operation} failed:`, error);
       return of(fallback as T);
     };
   }

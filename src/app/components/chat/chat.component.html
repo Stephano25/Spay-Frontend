@@ -1,301 +1,413 @@
 <!-- src/app/components/chat/chat.component.html -->
-<div class="chat-layout" [class.mobile-chat-open]="selectedContact">
+<div class="chat-root" [class.mobile-chat-open]="selectedContact" (click)="closeOverlaysOnClick()">
 
-  <!-- Colonne gauche : conversations -->
-  <div class="conversations-panel">
-    <div class="panel-header">
-      <span class="panel-title">Discussions</span>
-      <button mat-icon-button (click)="toggleNewConversation()" matTooltip="Nouvelle discussion">
+  <!-- ══════════════════════════════════════
+       PANNEAU GAUCHE – CONVERSATIONS
+  ══════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <h1 class="sidebar-brand">Messages</h1>
+      <button class="icon-btn compose-btn" (click)="toggleNewConversation(); $event.stopPropagation()" matTooltip="Nouvelle discussion">
         <mat-icon>edit_square</mat-icon>
       </button>
     </div>
 
-    <div class="search-box">
-      <mat-icon>search</mat-icon>
-      <input type="text" placeholder="Rechercher une discussion..." [(ngModel)]="searchQuery">
+    <div class="sidebar-search" (click)="$event.stopPropagation()">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" placeholder="Rechercher…" [(ngModel)]="searchQuery" class="search-input">
     </div>
 
-    <div class="conversations-list">
+    <div class="conv-list">
       <div *ngFor="let conv of filteredConversations"
-           class="conversation-item"
+           class="conv-item"
            [class.active]="selectedContact?.userId === conv.userId"
-           (click)="selectConversation(conv)">
-        <div class="avatar" [style.background]="getAvatarColor(conv.firstName)">
+           (click)="selectConversation(conv); $event.stopPropagation()">
+        <div class="av av-md" [style.background]="getAvatarColor(conv.firstName)">
           {{ getInitials(conv.firstName, conv.lastName) }}
-          <span class="online-dot" *ngIf="conv.isOnline"></span>
+          <span class="status-dot" [class.online]="conv.isOnline"></span>
         </div>
-        <div class="conv-info">
-          <div class="conv-name">{{ conv.firstName }} {{ conv.lastName }}</div>
-          <div class="last-message">{{ conv.lastMessage?.content | slice:0:32 }}</div>
-        </div>
-        <div class="conv-meta">
-          <div class="time">{{ conv.lastMessageTime | date:'HH:mm' }}</div>
-          <div class="unread-badge" *ngIf="conv.unreadCount > 0">{{ conv.unreadCount }}</div>
+        <div class="conv-body">
+          <div class="conv-header-row">
+            <span class="conv-name">{{ conv.firstName }} {{ conv.lastName }}</span>
+            <span class="conv-time">{{ conv.lastMessageTime | date:'HH:mm' }}</span>
+          </div>
+          <div class="conv-preview-row">
+            <span class="conv-preview">{{ conv.lastMessage?.content | slice:0:40 }}</span>
+            <span class="unread-pill" *ngIf="conv.unreadCount > 0">{{ conv.unreadCount }}</span>
+          </div>
         </div>
       </div>
 
-      <div class="empty-conversations" *ngIf="filteredConversations.length === 0">
+      <div class="empty-sidebar" *ngIf="filteredConversations.length === 0">
         <mat-icon>chat_bubble_outline</mat-icon>
         <p>Aucune discussion</p>
-        <button class="new-chat-btn" (click)="toggleNewConversation()">Démarrer une discussion</button>
+        <button class="pill-btn" (click)="toggleNewConversation()">Démarrer</button>
       </div>
     </div>
 
-    <!-- Overlay nouvelle discussion -->
-    <div class="new-conversation-overlay" *ngIf="showNewConversation">
-      <div class="overlay-header">
-        <span>Nouvelle discussion</span>
-        <button mat-icon-button (click)="toggleNewConversation()"><mat-icon>close</mat-icon></button>
+    <!-- Overlay nouvelle conversation -->
+    <div class="new-conv-overlay" *ngIf="showNewConversation" (click)="$event.stopPropagation()">
+      <div class="overlay-bar">
+        <span class="overlay-title">Nouvelle discussion</span>
+        <button class="icon-btn" (click)="toggleNewConversation()"><mat-icon>close</mat-icon></button>
       </div>
-      <div class="search-box">
-        <mat-icon>search</mat-icon>
-        <input type="text" placeholder="Nom, email..." [(ngModel)]="newConversationQuery" (ngModelChange)="searchNewConversation()" autofocus>
+      <div class="sidebar-search">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" placeholder="Nom, email…" [(ngModel)]="newConversationQuery"
+               (ngModelChange)="searchNewConversation()" class="search-input" autofocus>
       </div>
-      <div class="search-results-list">
-        <div class="loading-row" *ngIf="isSearchingUsers"><mat-spinner diameter="22"></mat-spinner></div>
-        <div *ngFor="let user of newConversationResults" class="user-result" (click)="openConversationWith(user)">
-          <div class="avatar small" [style.background]="getAvatarColor(user.firstName)">
+      <div class="search-res-list">
+        <div class="loading-row" *ngIf="isSearchingUsers">
+          <mat-spinner diameter="20"></mat-spinner>
+        </div>
+        <div *ngFor="let user of newConversationResults" class="user-result-item"
+             (click)="openConversationWith(user)">
+          <div class="av av-sm" [style.background]="getAvatarColor(user.firstName)">
             {{ getInitials(user.firstName, user.lastName) }}
           </div>
-          <div class="conv-info">
-            <div class="conv-name">{{ user.firstName }} {{ user.lastName }}</div>
-            <div class="last-message">{{ user.email }}</div>
+          <div class="conv-body">
+            <span class="conv-name">{{ user.firstName }} {{ user.lastName }}</span>
+            <span class="conv-preview">{{ user.email }}</span>
           </div>
-          <mat-icon class="blocked-icon" *ngIf="user.isBlocked" matTooltip="Bloqué">block</mat-icon>
+          <mat-icon class="blocked-tag" *ngIf="user.isBlocked">block</mat-icon>
         </div>
-        <p class="hint-text" *ngIf="!isSearchingUsers && newConversationQuery.length >= 2 && newConversationResults.length === 0">
-          Aucun utilisateur trouvé
+        <p class="hint" *ngIf="!isSearchingUsers && newConversationQuery.length >= 2 && newConversationResults.length === 0">
+          Aucun résultat
         </p>
-        <p class="hint-text" *ngIf="newConversationQuery.length < 2">
-          Tapez au moins 2 caractères pour rechercher quelqu'un.
-        </p>
+        <p class="hint" *ngIf="newConversationQuery.length < 2">Tapez 2 caractères minimum</p>
       </div>
     </div>
-  </div>
+  </aside>
 
-  <!-- Colonne centrale : conversation -->
-  <div class="chat-area" *ngIf="selectedContact; else noChat">
+  <!-- ══════════════════════════════════════
+       ZONE CENTRALE – CHAT
+  ══════════════════════════════════════ -->
+  <main class="chat-main" *ngIf="selectedContact; else noChat">
+
     <!-- Header -->
-    <div class="chat-header">
-      <button mat-icon-button class="mobile-back" (click)="selectedContact = null" matTooltip="Discussions">
+    <header class="chat-header">
+      <button class="icon-btn mobile-back" (click)="selectedContact = null">
         <mat-icon>arrow_back</mat-icon>
       </button>
-
-      <div class="contact-info">
-        <div class="avatar large" [style.background]="getAvatarColor(selectedContact.firstName)">
-          {{ getInitials(selectedContact.firstName, selectedContact.lastName) }}
-        </div>
-        <div>
-          <div class="contact-name">{{ selectedContact.firstName }} {{ selectedContact.lastName }}</div>
-          <div class="contact-status">
-            <span *ngIf="isTyping" class="typing">En train d'écrire...</span>
-            <span *ngIf="!isTyping && selectedContact.isOnline" class="online">En ligne</span>
-            <span *ngIf="!isTyping && !selectedContact.isOnline" class="offline">Hors ligne</span>
-          </div>
-        </div>
+      <div class="av av-md" [style.background]="getAvatarColor(selectedContact.firstName)">
+        {{ getInitials(selectedContact.firstName, selectedContact.lastName) }}
+        <span class="status-dot" [class.online]="selectedContact.isOnline"></span>
       </div>
-
-      <div class="chat-actions">
-        <button mat-icon-button (click)="openTransferPanel()" matTooltip="Envoyer de l'argent">
-          <mat-icon>attach_money</mat-icon>
+      <div class="contact-meta">
+        <span class="contact-name">{{ selectedContact.firstName }} {{ selectedContact.lastName }}</span>
+        <span class="contact-status">
+          <ng-container *ngIf="isTyping"><span class="typing-anim">En train d'écrire<span class="dots"><span>.</span><span>.</span><span>.</span></span></span></ng-container>
+          <ng-container *ngIf="!isTyping && selectedContact.isOnline"><span class="online-label">● En ligne</span></ng-container>
+          <ng-container *ngIf="!isTyping && !selectedContact.isOnline"><span class="offline-label">Hors ligne</span></ng-container>
+        </span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" (click)="openTransferPanel(); $event.stopPropagation()" matTooltip="Envoyer de l'argent">
+          <mat-icon>payments</mat-icon>
         </button>
-        <button mat-icon-button (click)="startCall('audio')" matTooltip="Appel audio">
+        <button class="icon-btn" (click)="startCall('audio'); $event.stopPropagation()" matTooltip="Appel audio">
           <mat-icon>call</mat-icon>
         </button>
-        <button mat-icon-button (click)="startCall('video')" matTooltip="Appel vidéo">
+        <button class="icon-btn" (click)="startCall('video'); $event.stopPropagation()" matTooltip="Appel vidéo">
           <mat-icon>videocam</mat-icon>
         </button>
-        <button mat-icon-button [matMenuTriggerFor]="chatMenu" matTooltip="Plus d'options">
+        <button class="icon-btn" [matMenuTriggerFor]="moreMenu" (click)="$event.stopPropagation()">
           <mat-icon>more_vert</mat-icon>
         </button>
-        <mat-menu #chatMenu="matMenu">
+        <mat-menu #moreMenu="matMenu">
           <button mat-menu-item [routerLink]="['/user/profile', selectedContact.userId]">
-            <mat-icon>person</mat-icon>
-            <span>Voir le profil</span>
+            <mat-icon>person</mat-icon><span>Voir le profil</span>
           </button>
           <mat-divider></mat-divider>
           <button mat-menu-item (click)="blockUser()">
-            <mat-icon>block</mat-icon>
-            <span>Bloquer</span>
+            <mat-icon>block</mat-icon><span>Bloquer</span>
           </button>
         </mat-menu>
       </div>
-    </div>
+    </header>
 
     <!-- Messages -->
-    <div class="messages-container" #messageContainer (click)="activeMessageId = null; activeReactionPickerId = null">
+    <div class="messages-area" #messageContainer (click)="closeOverlaysOnClick()">
       <ng-container *ngFor="let msg of messages">
+
         <!-- Message supprimé -->
-        <div class="message" [class.own]="isOwnMessage(msg)" *ngIf="msg.isDeleted">
-          <div class="message-bubble deleted">
-            <mat-icon>block</mat-icon>
-            <span class="content">Ce message a été supprimé</span>
+        <div class="msg-row" [class.own]="isOwnMessage(msg)" *ngIf="msg.isDeleted">
+          <div class="bubble deleted-bubble">
+            <mat-icon class="del-icon">do_not_disturb_on</mat-icon>
+            <span>Message supprimé</span>
           </div>
         </div>
 
         <!-- Transfert d'argent -->
-        <div class="message" [class.own]="isOwnMessage(msg)" *ngIf="!msg.isDeleted && msg.type === 'money'">
-          <div class="message-wrapper">
-            <div class="money-bubble" [ngClass]="msg.moneyTransfer?.status">
-              <div class="money-icon">
-                <mat-icon>{{ msg.moneyTransfer?.status === 'failed' ? 'error_outline' : 'attach_money' }}</mat-icon>
+        <div class="msg-row" [class.own]="isOwnMessage(msg)" *ngIf="!msg.isDeleted && msg.type === 'money'">
+          <div class="msg-wrap">
+            <div class="money-card" [ngClass]="msg.moneyTransfer?.status">
+              <div class="money-icon-wrap">
+                <mat-icon>{{ msg.moneyTransfer?.status === 'failed' ? 'error' : 'payments' }}</mat-icon>
               </div>
-              <div class="money-info">
-                <div class="money-amount">{{ formatAmount(msg.moneyTransfer?.amount || 0) }} Ar</div>
-                <div class="money-status">
-                  <span *ngIf="msg.moneyTransfer?.status === 'completed'">✅ Transfert réussi</span>
-                  <span *ngIf="msg.moneyTransfer?.status === 'failed'">❌ {{ msg.moneyTransfer?.failReason || 'Transfert échoué' }}</span>
-                  <span *ngIf="msg.moneyTransfer?.status === 'pending'">⏳ En cours...</span>
-                </div>
+              <div class="money-details">
+                <span class="money-amt">{{ formatAmount(msg.moneyTransfer?.amount || 0) }} Ar</span>
+                <span class="money-lbl" *ngIf="msg.moneyTransfer?.status === 'completed'">✅ Transfert réussi</span>
+                <span class="money-lbl failed" *ngIf="msg.moneyTransfer?.status === 'failed'">❌ {{ msg.moneyTransfer?.failReason || 'Échec' }}</span>
+                <span class="money-lbl pending" *ngIf="msg.moneyTransfer?.status === 'pending'">⏳ En cours…</span>
               </div>
             </div>
-            <div class="reactions-row" *ngIf="groupedReactions(msg).length">
-              <span class="reaction-chip" *ngFor="let r of groupedReactions(msg)" [class.mine]="r.mine" (click)="toggleReaction(msg, r.emoji)">
-                {{ r.emoji }} <span *ngIf="r.count > 1">{{ r.count }}</span>
+            <div class="reactions-bar" *ngIf="groupedReactions(msg).length">
+              <span class="react-chip" *ngFor="let r of groupedReactions(msg)" [class.mine]="r.mine"
+                    (click)="toggleReaction(msg, r.emoji); $event.stopPropagation()">
+                {{ r.emoji }}<span *ngIf="r.count > 1"> {{ r.count }}</span>
               </span>
             </div>
-            <span class="time">{{ msg.createdAt | date:'HH:mm' }}</span>
-
-            <div class="msg-actions" [class.visible]="activeMessageId === msg.id" (click)="$event.stopPropagation()">
-              <button class="action-btn" (click)="toggleReactionPicker(msg)" matTooltip="Réagir"><mat-icon>add_reaction</mat-icon></button>
-              <button class="action-btn" (click)="openTransferPanel()" matTooltip="Transférer"><mat-icon>send</mat-icon></button>
-              <button class="action-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)" matTooltip="Supprimer"><mat-icon>delete</mat-icon></button>
+            <span class="msg-time">{{ formatTime(msg.createdAt) }}</span>
+            <div class="msg-ctx" [class.show]="activeMessageId === msg.id" (click)="$event.stopPropagation()">
+              <button class="ctx-btn" (click)="toggleReactionPicker(msg)"><mat-icon>add_reaction</mat-icon></button>
+              <button class="ctx-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)"><mat-icon>delete</mat-icon></button>
             </div>
-            <button class="hover-trigger" (click)="toggleMessageActions(msg); $event.stopPropagation()"><mat-icon>expand_more</mat-icon></button>
-
-            <div class="reaction-picker" *ngIf="activeReactionPickerId === msg.id" (click)="$event.stopPropagation()">
-              <span *ngFor="let emoji of quickReactions" (click)="toggleReaction(msg, emoji)">{{ emoji }}</span>
+            <button class="ctx-trigger" (click)="toggleMessageActions(msg); $event.stopPropagation()">
+              <mat-icon>expand_more</mat-icon>
+            </button>
+            <div class="react-picker" *ngIf="activeReactionPickerId === msg.id" (click)="$event.stopPropagation()">
+              <span *ngFor="let e of quickReactions" (click)="toggleReaction(msg, e)">{{ e }}</span>
             </div>
           </div>
         </div>
 
         <!-- Message standard -->
-        <div class="message" [class.own]="isOwnMessage(msg)" *ngIf="!msg.isDeleted && msg.type !== 'money'">
-          <div class="message-wrapper">
-            <!-- Édition -->
-            <div class="edit-box" *ngIf="editingMessageId === msg.id">
-              <input #editInput type="text" [(ngModel)]="editContent" (keyup.enter)="saveEdit()" (keyup.escape)="cancelEdit()">
-              <button class="edit-action save" (click)="saveEdit()"><mat-icon>check</mat-icon></button>
-              <button class="edit-action cancel" (click)="cancelEdit()"><mat-icon>close</mat-icon></button>
+        <div class="msg-row" [class.own]="isOwnMessage(msg)"
+             *ngIf="!msg.isDeleted && msg.type !== 'money'">
+          <div class="msg-wrap">
+
+            <!-- Édition inline -->
+            <div class="edit-wrap" *ngIf="editingMessageId === msg.id" (click)="$event.stopPropagation()">
+              <input #editInput type="text" [(ngModel)]="editContent"
+                     (keyup.enter)="saveEdit()" (keyup.escape)="cancelEdit()" class="edit-input">
+              <button class="edit-ok" (click)="saveEdit()"><mat-icon>check</mat-icon></button>
+              <button class="edit-cancel" (click)="cancelEdit()"><mat-icon>close</mat-icon></button>
             </div>
 
-            <div class="message-bubble" *ngIf="editingMessageId !== msg.id" [ngClass]="msg.type">
-              <span class="content" *ngIf="msg.type === 'text' || msg.type === 'emoji'" [class.emoji-content]="msg.type === 'emoji'">
-                {{ msg.content || msg.emoji }}
+            <!-- Bulle -->
+            <div class="bubble" *ngIf="editingMessageId !== msg.id"
+                 [class.own-bubble]="isOwnMessage(msg)"
+                 [class.emoji-bubble]="msg.type === 'emoji'">
+
+              <!-- Texte -->
+              <span *ngIf="msg.type === 'text'" class="bubble-text">{{ msg.content }}</span>
+
+              <!-- Emoji -->
+              <span *ngIf="msg.type === 'emoji'" class="big-emoji">{{ msg.emoji }}</span>
+
+              <!-- Image -->
+              <div *ngIf="msg.type === 'image' || (msg.type === 'file' && getFileType(msg) === 'image')" class="media-wrap">
+                <img [src]="getFileUrl(msg.fileUrl)" alt="image" class="msg-img"
+                     (error)="msg.fileUrl = undefined" loading="lazy">
+                <a [href]="getFileUrl(msg.fileUrl)" download class="dl-overlay" matTooltip="Télécharger">
+                  <mat-icon>download</mat-icon>
+                </a>
+              </div>
+
+              <!-- Vidéo -->
+              <div *ngIf="getFileType(msg) === 'video'" class="media-wrap video-wrap">
+                <video [src]="getFileUrl(msg.fileUrl)" controls class="msg-video" preload="metadata">
+                  Votre navigateur ne supporte pas la vidéo.
+                </video>
+                <a [href]="getFileUrl(msg.fileUrl)" download class="dl-btn-sm">
+                  <mat-icon>download</mat-icon> Télécharger
+                </a>
+              </div>
+
+              <!-- Audio -->
+              <div *ngIf="getFileType(msg) === 'audio'" class="audio-wrap">
+                <mat-icon class="audio-icon">graphic_eq</mat-icon>
+                <audio [src]="getFileUrl(msg.fileUrl)" controls class="msg-audio" preload="metadata"></audio>
+              </div>
+
+              <!-- Document -->
+              <div *ngIf="msg.type === 'file' && getFileType(msg) === 'document'" class="doc-wrap">
+                <div class="doc-icon-wrap">
+                  <mat-icon>{{ getFileIcon(msg.fileName) }}</mat-icon>
+                </div>
+                <div class="doc-info">
+                  <span class="doc-name">{{ msg.fileName }}</span>
+                  <span class="doc-size">{{ formatFileSize(msg.fileSize) }}</span>
+                </div>
+                <a [href]="getFileUrl(msg.fileUrl)" download class="doc-dl-btn" matTooltip="Télécharger">
+                  <mat-icon>download</mat-icon>
+                </a>
+              </div>
+            </div>
+
+            <!-- Réactions -->
+            <div class="reactions-bar" *ngIf="groupedReactions(msg).length">
+              <span class="react-chip" *ngFor="let r of groupedReactions(msg)" [class.mine]="r.mine"
+                    (click)="toggleReaction(msg, r.emoji); $event.stopPropagation()">
+                {{ r.emoji }}<span *ngIf="r.count > 1"> {{ r.count }}</span>
               </span>
-              <a class="file-content" *ngIf="msg.type === 'image'" [href]="getFileUrl(msg.fileUrl)" target="_blank">
-                <img [src]="getFileUrl(msg.fileUrl)" alt="image" (error)="msg.fileUrl = ''">
-              </a>
-              <a class="file-content file-doc" *ngIf="msg.type === 'file'" [href]="getFileUrl(msg.fileUrl)" target="_blank">
-                <mat-icon>description</mat-icon>
-                <span>{{ msg.fileName }}</span>
-              </a>
             </div>
 
-            <div class="reactions-row" *ngIf="groupedReactions(msg).length">
-              <span class="reaction-chip" *ngFor="let r of groupedReactions(msg)" [class.mine]="r.mine" (click)="toggleReaction(msg, r.emoji)">
-                {{ r.emoji }} <span *ngIf="r.count > 1">{{ r.count }}</span>
-              </span>
-            </div>
-
-            <span class="time" *ngIf="editingMessageId !== msg.id">
-              {{ msg.createdAt | date:'HH:mm' }}
-              <em *ngIf="msg.isEdited">· modifié</em>
+            <!-- Heure -->
+            <span class="msg-time" *ngIf="editingMessageId !== msg.id">
+              {{ formatTime(msg.createdAt) }}
+              <em *ngIf="msg.isEdited"> · modifié</em>
+              <mat-icon class="read-tick" *ngIf="isOwnMessage(msg) && msg.isRead">done_all</mat-icon>
+              <mat-icon class="read-tick" *ngIf="isOwnMessage(msg) && !msg.isRead">done</mat-icon>
             </span>
 
-            <div class="msg-actions" [class.visible]="activeMessageId === msg.id" *ngIf="editingMessageId !== msg.id" (click)="$event.stopPropagation()">
-              <button class="action-btn" (click)="toggleReactionPicker(msg)" matTooltip="Réagir"><mat-icon>add_reaction</mat-icon></button>
-              <button class="action-btn" (click)="openTransferPanel()" matTooltip="Transférer"><mat-icon>send</mat-icon></button>
-              <button class="action-btn" *ngIf="canEditMessage(msg)" (click)="startEdit(msg)" matTooltip="Modifier"><mat-icon>edit</mat-icon></button>
-              <button class="action-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)" matTooltip="Supprimer"><mat-icon>delete</mat-icon></button>
+            <!-- Actions contextuelles -->
+            <div class="msg-ctx" [class.show]="activeMessageId === msg.id"
+                 *ngIf="editingMessageId !== msg.id" (click)="$event.stopPropagation()">
+              <button class="ctx-btn" (click)="toggleReactionPicker(msg)"><mat-icon>add_reaction</mat-icon></button>
+              <button class="ctx-btn" *ngIf="canEditMessage(msg)" (click)="startEdit(msg)"><mat-icon>edit</mat-icon></button>
+              <button class="ctx-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)"><mat-icon>delete</mat-icon></button>
             </div>
-            <button class="hover-trigger" *ngIf="editingMessageId !== msg.id" (click)="toggleMessageActions(msg); $event.stopPropagation()">
-              <mat-icon>expand_more</mat-icon>
+            <button class="ctx-trigger" *ngIf="editingMessageId !== msg.id"
+                    (click)="toggleMessageActions(msg); $event.stopPropagation()">
+              <mat-icon>more_horiz</mat-icon>
             </button>
 
-            <div class="reaction-picker" *ngIf="activeReactionPickerId === msg.id" (click)="$event.stopPropagation()">
-              <span *ngFor="let emoji of quickReactions" (click)="toggleReaction(msg, emoji)">{{ emoji }}</span>
+            <!-- Picker réaction -->
+            <div class="react-picker" *ngIf="activeReactionPickerId === msg.id" (click)="$event.stopPropagation()">
+              <span *ngFor="let e of quickReactions" (click)="toggleReaction(msg, e)">{{ e }}</span>
             </div>
           </div>
         </div>
       </ng-container>
     </div>
 
-    <!-- Transfert d'argent -->
-    <div class="transfer-panel" *ngIf="showTransferPanel">
-      <div class="transfer-header">
-        <span>Envoyer de l'argent à {{ selectedContact.firstName }}</span>
-        <button mat-icon-button (click)="closeTransferPanel()"><mat-icon>close</mat-icon></button>
+    <!-- Panneau transfert -->
+    <div class="transfer-panel" *ngIf="showTransferPanel" (click)="$event.stopPropagation()">
+      <div class="transfer-bar">
+        <span class="transfer-title">Envoyer à {{ selectedContact.firstName }}</span>
+        <button class="icon-btn" (click)="closeTransferPanel()"><mat-icon>close</mat-icon></button>
       </div>
-      <div class="transfer-quick-amounts">
-        <button *ngFor="let amount of transferQuickAmounts" [class.active]="transferAmount === amount" (click)="transferAmount = amount">
-          {{ formatAmount(amount) }}
-        </button>
+      <div class="quick-amounts">
+        <button *ngFor="let a of transferQuickAmounts"
+                class="amount-chip" [class.active]="transferAmount === a"
+                (click)="transferAmount = a">{{ formatAmount(a) }}</button>
       </div>
-      <div class="transfer-input-row">
-        <input type="number" placeholder="Montant en Ar" [(ngModel)]="transferAmount" min="100">
-        <button class="transfer-send-btn" [disabled]="!transferAmount || transferAmount <= 0" (click)="confirmTransfer()">
+      <div class="transfer-row">
+        <input type="number" placeholder="Montant (Ar)" [(ngModel)]="transferAmount" min="100" class="transfer-input">
+        <button class="send-money-btn" [disabled]="!transferAmount || transferAmount <= 0" (click)="confirmTransfer()">
           <mat-icon>send</mat-icon> Envoyer
         </button>
       </div>
     </div>
 
     <!-- Composer -->
-    <div class="message-input-area">
-      <button mat-icon-button (click)="toggleEmojiPicker()" matTooltip="Emojis">
-        <mat-icon>tag_faces</mat-icon>
+    <div class="composer" (click)="$event.stopPropagation()">
+      <button class="icon-btn" (click)="toggleEmojiPicker(); $event.stopPropagation()" matTooltip="Emojis">
+        <mat-icon>sentiment_satisfied_alt</mat-icon>
       </button>
-      <button mat-icon-button (click)="uploadFile()" matTooltip="Joindre un fichier">
+      <button class="icon-btn" (click)="uploadFile()" matTooltip="Joindre un fichier">
         <mat-icon>attach_file</mat-icon>
       </button>
-      <button mat-icon-button *ngIf="isVoiceSupported" (click)="startVoiceRecording()" matTooltip="Message vocal">
-        <mat-icon>mic</mat-icon>
+      <button class="icon-btn" [class.recording]="isRecording"
+              (click)="toggleVoiceRecording()" matTooltip="Message vocal">
+        <mat-icon>{{ isRecording ? 'stop' : 'mic' }}</mat-icon>
       </button>
-      <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" accept="image/*,audio/*,video/*,application/pdf">
-      <input type="text"
-             [(ngModel)]="newMessage"
-             (keyup.enter)="sendMessage()"
-             (keyup)="onTyping()"
-             placeholder="Écrire un message...">
-      <button mat-icon-button (click)="sendMessage()" [disabled]="!newMessage.trim() || isSending">
+      <input type="file" #fileInput style="display:none"
+             (change)="onFileSelected($event)"
+             accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt">
+      <input type="text" [(ngModel)]="newMessage"
+             (keydown)="onKeyDown($event)"
+             (input)="onTyping()"
+             placeholder="Écrire un message…"
+             class="composer-input">
+      <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim() || isSending">
         <mat-icon>send</mat-icon>
       </button>
     </div>
 
     <!-- Emoji picker -->
-    <div class="emoji-picker" *ngIf="showEmojiPicker">
+    <div class="emoji-panel" *ngIf="showEmojiPicker" (click)="$event.stopPropagation()">
       <div class="emoji-grid">
-        <span *ngFor="let emoji of emojis" class="emoji-item" (click)="sendEmoji(emoji)">{{ emoji }}</span>
+        <span *ngFor="let e of emojis" class="emoji-item" (click)="sendEmoji(e)">{{ e }}</span>
       </div>
-      <button class="emoji-close" (click)="showEmojiPicker = false">Fermer</button>
+      <button class="close-emoji-btn" (click)="showEmojiPicker = false">Fermer</button>
     </div>
-  </div>
+  </main>
 
+  <!-- Empty state -->
   <ng-template #noChat>
-    <div class="no-chat">
-      <mat-icon>chat_bubble_outline</mat-icon>
-      <p>Sélectionnez une discussion ou commencez-en une nouvelle</p>
-      <button class="new-chat-btn" (click)="toggleNewConversation()">Nouvelle discussion</button>
+    <div class="no-chat-state">
+      <div class="no-chat-inner">
+        <div class="no-chat-icon-wrap">
+          <mat-icon>forum</mat-icon>
+        </div>
+        <h2>Vos messages</h2>
+        <p>Sélectionnez une conversation ou démarrez-en une nouvelle</p>
+        <button class="pill-btn primary" (click)="toggleNewConversation()">
+          <mat-icon>add</mat-icon> Nouvelle discussion
+        </button>
+      </div>
     </div>
   </ng-template>
 
-  <!-- 🔥 Colonne droite : amis en ligne – Version corrigée -->
-  <div class="online-friends-panel">
-    <h3>En ligne ({{ onlineFriends.length }})</h3>
+  <!-- ══════════════════════════════════════
+       PANNEAU DROIT – AMIS EN LIGNE
+  ══════════════════════════════════════ -->
+  <aside class="online-panel">
+    <div class="online-header">
+      <span class="live-dot-pulse"></span>
+      <span class="online-title">En ligne</span>
+      <span class="online-count">{{ onlineFriends.length }}</span>
+    </div>
     <div class="online-list">
-      <ng-container *ngFor="let friend of onlineFriends">
-        <!-- Vérifier que l'ami n'est pas l'utilisateur courant -->
-        <div *ngIf="friend.friend && friend.friendId !== currentUserId" 
-             class="online-friend" 
-             (click)="startChat(friend.friendId)">
-          <div class="avatar small" [style.background]="getAvatarColor(friend.friend.firstName)">
-            {{ getInitials(friend.friend.firstName, friend.friend.lastName) }}
-            <span class="live-dot"></span>
+      <!-- 🔥 Correction : ngIf sur un élément séparé -->
+      <div *ngFor="let f of onlineFriends">
+        <div *ngIf="f.friend && f.friendId !== currentUserId" 
+             class="online-item"
+             (click)="startChat(f.friendId)">
+          <div class="av av-sm" [style.background]="getAvatarColor(f.friend.firstName)">
+            {{ getInitials(f.friend.firstName, f.friend.lastName) }}
+            <span class="status-dot online"></span>
           </div>
-          <div class="friend-name">{{ friend.friend.firstName }} {{ friend.friend.lastName }}</div>
+          <span class="online-name">{{ f.friend.firstName }}</span>
         </div>
-      </ng-container>
-      <p class="hint-text" *ngIf="onlineFriends.length === 0">Aucun ami en ligne actuellement</p>
+      </div>
+      <p class="hint-online" *ngIf="onlineFriends.length === 0">Aucun ami en ligne</p>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════
+       MODAL APPEL ENTRANT
+  ══════════════════════════════════════ -->
+  <div class="call-modal incoming" *ngIf="incomingCall" (click)="$event.stopPropagation()">
+    <div class="call-card">
+      <div class="call-avatar">
+        <mat-icon>{{ incomingCall.type === 'video' ? 'videocam' : 'call' }}</mat-icon>
+      </div>
+      <p class="call-info">Appel {{ incomingCall.type === 'video' ? 'vidéo' : 'audio' }} entrant</p>
+      <div class="call-btns">
+        <button class="call-btn accept" (click)="acceptCall()"><mat-icon>call</mat-icon></button>
+        <button class="call-btn reject" (click)="rejectCall()"><mat-icon>call_end</mat-icon></button>
+      </div>
     </div>
   </div>
+
+  <!-- MODAL APPEL ACTIF -->
+  <div class="call-modal active-call" *ngIf="activeCall" (click)="$event.stopPropagation()">
+    <div class="call-card active">
+      <div class="call-video-wrap" *ngIf="activeCall.type === 'video'">
+        <video *ngIf="remoteStream" [srcObject]="remoteStream" autoplay playsinline class="remote-video"></video>
+        <video *ngIf="localStream" [srcObject]="localStream" autoplay playsinline muted class="local-video"></video>
+      </div>
+      <div class="call-audio-visual" *ngIf="activeCall.type === 'audio'">
+        <div class="pulse-ring"></div>
+        <mat-icon class="call-audio-icon">account_circle</mat-icon>
+      </div>
+      <p class="call-status">{{ activeCall.status === 'calling' ? 'Appel en cours…' : 'En communication' }}</p>
+      <div class="call-controls">
+        <button class="ctrl-btn" [class.off]="isMuted" (click)="toggleMute()">
+          <mat-icon>{{ isMuted ? 'mic_off' : 'mic' }}</mat-icon>
+        </button>
+        <button class="ctrl-btn" *ngIf="activeCall.type === 'video'" [class.off]="isCameraOff" (click)="toggleCamera()">
+          <mat-icon>{{ isCameraOff ? 'videocam_off' : 'videocam' }}</mat-icon>
+        </button>
+        <button class="ctrl-btn end" (click)="endCall()">
+          <mat-icon>call_end</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

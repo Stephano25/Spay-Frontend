@@ -24,6 +24,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-friends',
@@ -44,7 +45,8 @@ import { MatChipsModule } from '@angular/material/chips';
     MatDividerModule,
     MatProgressSpinnerModule,
     MatBadgeModule,
-    MatChipsModule
+    MatChipsModule,
+    MatTooltipModule // 🔥 Ajout de MatTooltipModule
   ],
   templateUrl: './friends.component.html',
   styleUrls: ['./friends.component.css']
@@ -61,6 +63,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
   showAddFriend = false;
   showBlockedUsers = false;
   showQRCode = false;
+  showQRScanner = false; // 🔥 Ajout de la propriété manquante
   qrCodeImage = '';
 
   searchQuery = '';
@@ -87,7 +90,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.stopScan();
+    this.stopQRScan();
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
@@ -162,9 +165,11 @@ export class FriendsComponent implements OnInit, OnDestroy {
     }
   }
 
+  // 🔥 Correction : scanQRCode avec gestion de showQRScanner
   scanQRCode(): void {
+    this.showQRScanner = true;
     if (this.isScanning) {
-      this.stopScan();
+      this.stopQRScan();
       return;
     }
 
@@ -186,7 +191,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
       marginTop: '20px', padding: '10px 20px', backgroundColor: '#ef4444',
       color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer'
     });
-    closeBtn.onclick = () => this.stopScan();
+    closeBtn.onclick = () => this.stopQRScan();
 
     scannerContainer.appendChild(videoContainer);
     scannerContainer.appendChild(closeBtn);
@@ -199,18 +204,20 @@ export class FriendsComponent implements OnInit, OnDestroy {
       { facingMode: 'environment' },
       { fps: 10, qrbox: { width: 250, height: 250 } },
       (decodedText: string) => {
-        this.stopScan();
+        this.stopQRScan();
         this.processScannedQR(decodedText);
       },
       () => {}
     ).catch((err: any) => {
       console.error('Erreur caméra', err);
       this.notificationService.showError('Impossible d\'accéder à la caméra');
-      this.stopScan();
+      this.stopQRScan();
     });
   }
 
-  private stopScan(): void {
+  // 🔥 Correction : stopQRScan
+  stopQRScan(): void {
+    this.showQRScanner = false;
     if (this.html5QrCode && this.isScanning) {
       this.html5QrCode.stop().catch(console.error);
       this.html5QrCode = null;
