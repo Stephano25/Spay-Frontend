@@ -3,11 +3,18 @@ export interface Transaction {
   id: string;
   senderId: string;
   receiverId?: string;
-  type: 'deposit' | 'withdrawal' | 'transfer' | 'payment' | 'mobile_money';
+  type: 'deposit' | 'withdrawal' | 'transfer' | 'payment' | 'mobile_money' | 'receive' | 'send';
   amount: number;
-  status: 'pending' | 'completed' | 'failed';
+  fee?: number;
+  totalAmount?: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   description?: string;
+  reference?: string;
+  mobileMoneyOperator?: string;
+  mobileMoneyNumber?: string;
+  paymentMethod?: string;
   createdAt: Date;
+  updatedAt?: Date;
   sender?: {
     id: string;
     firstName: string;
