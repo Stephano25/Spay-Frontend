@@ -106,6 +106,10 @@ body.font-large  { font-size: 18px; }
 /* ── Base ── */
 html, body {
   height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
   font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
@@ -119,6 +123,21 @@ html, body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: var(--r-pill); }
 ::-webkit-scrollbar-thumb:hover { background: var(--brand-1); }
+
+/* ── Selection ── */
+::selection {
+  background: var(--brand-1);
+  color: white;
+}
+
+/* ── Links ── */
+a {
+  color: var(--brand-1);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--brand-2);
+}
 
 /* ── Material Overrides ── */
 .mat-mdc-card {
@@ -186,6 +205,25 @@ html, body {
   clip: rect(0,0,0,0);
 }
 
+.text-center { text-align: center; }
+.text-muted { color: var(--text-3); }
+.text-sm { font-size: 0.875rem; }
+.text-xs { font-size: 0.75rem; }
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.gap-1 { gap: 8px; }
+.gap-2 { gap: 16px; }
+.gap-3 { gap: 24px; }
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+.p-1 { padding: 8px; }
+.p-2 { padding: 16px; }
+.p-3 { padding: 24px; }
+
 /* ── Animations ── */
 @keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeUp   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -197,40 +235,11 @@ html, body {
 @keyframes spin     { to { transform: rotate(360deg); } }
 @keyframes pulse    { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 @keyframes float    { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-@keyframes orb      { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-14px,10px) scale(1.04); } 66% { transform: translate(10px,-14px) scale(0.97); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-/* ── Full-Width Overrides ── */
-@media (min-width: 1100px) {
-  .wallet-content,
-  .friends-content,
-  .settings-content,
-  .transactions-content,
-  .profile-content,
-  .scan-content,
-  .stats-container,
-  .users-content,
-  .receive-money-container .content,
-  .send-money-container .content,
-  .mobile-money-container .content {
-    max-width: 1100px !important;
-  }
-}
-
-@media (min-width: 1440px) {
-  .wallet-content,
-  .friends-content,
-  .settings-content,
-  .transactions-content,
-  .stats-container,
-  .users-content {
-    max-width: 1280px !important;
   }
 }
 
@@ -264,8 +273,9 @@ html, body {
 /* ── Content wrapper ── */
 .admin-content {
   padding: 28px 24px;
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   animation: fadeUp 0.4s var(--ease) both;
 }
 
@@ -392,6 +402,99 @@ html, body {
   height: 0.5px;
   background: var(--border);
   margin: 32px 0;
+}
+
+/* ============================================================
+   SCROLL GLOBAL — SPaye
+   ============================================================ */
+
+/* 🔥 Permettre le scroll sur tous les contenus */
+.mat-drawer-content,
+.content,
+.user-dashboard,
+.wallet-container,
+.transactions-container,
+.settings-container,
+.scan-container,
+.profile-container,
+.send-money-container,
+.receive-money-container,
+.mobile-money-container,
+.friends-container,
+.chat-root,
+.admin-content {
+  overflow-y: auto !important;
+  height: 100vh !important;
+}
+
+/* Scrollbar personnalisée - Version unifiée */
+.mat-drawer-content::-webkit-scrollbar,
+.content::-webkit-scrollbar,
+.user-dashboard::-webkit-scrollbar,
+.wallet-container::-webkit-scrollbar,
+.transactions-container::-webkit-scrollbar,
+.settings-container::-webkit-scrollbar,
+.scan-container::-webkit-scrollbar,
+.profile-container::-webkit-scrollbar,
+.send-money-container::-webkit-scrollbar,
+.receive-money-container::-webkit-scrollbar,
+.mobile-money-container::-webkit-scrollbar,
+.friends-container::-webkit-scrollbar,
+.chat-root::-webkit-scrollbar,
+.admin-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mat-drawer-content::-webkit-scrollbar-track,
+.content::-webkit-scrollbar-track,
+.user-dashboard::-webkit-scrollbar-track,
+.wallet-container::-webkit-scrollbar-track,
+.transactions-container::-webkit-scrollbar-track,
+.settings-container::-webkit-scrollbar-track,
+.scan-container::-webkit-scrollbar-track,
+.profile-container::-webkit-scrollbar-track,
+.send-money-container::-webkit-scrollbar-track,
+.receive-money-container::-webkit-scrollbar-track,
+.mobile-money-container::-webkit-scrollbar-track,
+.friends-container::-webkit-scrollbar-track,
+.chat-root::-webkit-scrollbar-track,
+.admin-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mat-drawer-content::-webkit-scrollbar-thumb,
+.content::-webkit-scrollbar-thumb,
+.user-dashboard::-webkit-scrollbar-thumb,
+.wallet-container::-webkit-scrollbar-thumb,
+.transactions-container::-webkit-scrollbar-thumb,
+.settings-container::-webkit-scrollbar-thumb,
+.scan-container::-webkit-scrollbar-thumb,
+.profile-container::-webkit-scrollbar-thumb,
+.send-money-container::-webkit-scrollbar-thumb,
+.receive-money-container::-webkit-scrollbar-thumb,
+.mobile-money-container::-webkit-scrollbar-thumb,
+.friends-container::-webkit-scrollbar-thumb,
+.chat-root::-webkit-scrollbar-thumb,
+.admin-content::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: var(--r-pill);
+}
+
+.mat-drawer-content::-webkit-scrollbar-thumb:hover,
+.content::-webkit-scrollbar-thumb:hover,
+.user-dashboard::-webkit-scrollbar-thumb:hover,
+.wallet-container::-webkit-scrollbar-thumb:hover,
+.transactions-container::-webkit-scrollbar-thumb:hover,
+.settings-container::-webkit-scrollbar-thumb:hover,
+.scan-container::-webkit-scrollbar-thumb:hover,
+.profile-container::-webkit-scrollbar-thumb:hover,
+.send-money-container::-webkit-scrollbar-thumb:hover,
+.receive-money-container::-webkit-scrollbar-thumb:hover,
+.mobile-money-container::-webkit-scrollbar-thumb:hover,
+.friends-container::-webkit-scrollbar-thumb:hover,
+.chat-root::-webkit-scrollbar-thumb:hover,
+.admin-content::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-1);
 }
 
 /* ── Responsive ── */

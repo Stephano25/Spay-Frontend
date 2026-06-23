@@ -1,3 +1,4 @@
+<!-- src/app/components/layout/sidebar/sidebar.component.html -->
 <div class="sidebar-container" [class.mobile]="isMobile">
   <!-- Bouton toggle pour mobile -->
   <button *ngIf="isMobile" class="menu-toggle" (click)="toggleSidebar()" mat-fab color="primary"
@@ -8,21 +9,23 @@
   <!-- Overlay pour mobile -->
   <div *ngIf="isMobile && isOpen" class="overlay" (click)="closeSidebar()"></div>
 
-  <mat-sidenav-container class="sidenav-container">
+  <mat-sidenav-container class="sidenav-container" style="height: 100vh; width: 100%;">
     <mat-sidenav
       #sidenav
       [mode]="isMobile ? 'over' : 'side'"
       [opened]="isMobile ? isOpen : true"
       [class.collapsed]="!isMobile && isCollapsed"
-      class="sidebar">
+      class="sidebar"
+      style="height: 100vh;">
 
       <!-- Header : logo + bouton collapse (desktop) -->
-      <div class="sidebar-header" (click)="!isMobile && toggleSidebar()">
+      <div class="sidebar-header">
         <div class="logo-container">
           <mat-icon class="logo-icon">account_balance_wallet</mat-icon>
           <span class="logo-text" *ngIf="!isCollapsed || isMobile">SPaye</span>
         </div>
-        <button *ngIf="!isMobile" mat-icon-button class="collapse-btn" [matTooltip]="isCollapsed ? 'Développer' : 'Réduire'">
+        <button *ngIf="!isMobile" mat-icon-button class="collapse-btn" (click)="toggleSidebar()" 
+                [matTooltip]="isCollapsed ? 'Développer' : 'Réduire'">
           <mat-icon>{{ isCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
         </button>
       </div>
@@ -34,7 +37,7 @@
         <div class="user-avatar">{{ getInitials() }}</div>
         <div class="user-info" *ngIf="!isCollapsed || isMobile">
           <div class="user-name">{{ currentUser.firstName }} {{ currentUser.lastName }}</div>
-          <div class="user-role">Administrateur</div>
+          <div class="user-role">{{ isAdmin() ? 'Administrateur' : 'Utilisateur' }}</div>
         </div>
       </div>
 
@@ -61,7 +64,7 @@
       </div>
     </mat-sidenav>
 
-    <mat-sidenav-content class="content">
+    <mat-sidenav-content class="content" style="min-height: 100vh; overflow-y: auto; background: var(--bg);">
       <ng-content></ng-content>
     </mat-sidenav-content>
   </mat-sidenav-container>

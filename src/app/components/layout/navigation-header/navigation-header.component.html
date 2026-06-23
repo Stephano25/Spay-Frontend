@@ -1,3 +1,4 @@
+<!-- src/app/components/layout/navigation-header/navigation-header.component.html -->
 <div class="header-container" [class.admin-header]="isAdmin">
   <div class="header-left">
     <button 
@@ -34,8 +35,8 @@
     </ng-container>
 
     <!-- Profil utilisateur -->
-    <div class="user-info-desktop">
-      <span class="user-name">{{ user?.firstName }} {{ user?.lastName }}</span>
+    <div class="user-info-desktop" *ngIf="user">
+      <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
       <div class="user-avatar-small">{{ getInitials() }}</div>
     </div>
     
@@ -45,9 +46,9 @@
     
     <mat-menu #menu="matMenu" class="user-menu">
       <div class="menu-header">
-        <div class="menu-user-info">
-          <strong>{{ user?.firstName }} {{ user?.lastName }}</strong>
-          <small>{{ user?.email }}</small>
+        <div class="menu-user-info" *ngIf="user">
+          <strong>{{ user.firstName }} {{ user.lastName }}</strong>
+          <small>{{ user.email }}</small>
           <span class="role-badge" *ngIf="isAdmin">
             {{ user?.role === 'super_admin' ? 'Super Admin' : 'Admin' }}
           </span>
@@ -55,7 +56,7 @@
       </div>
       <mat-divider></mat-divider>
       
-      <!-- Menu items pour admin - UN SEUL "Mon Profil" -->
+      <!-- Menu items pour admin -->
       <ng-container *ngIf="isAdmin">
         <button mat-menu-item routerLink="/admin/dashboard">
           <mat-icon>dashboard</mat-icon>
@@ -129,7 +130,7 @@
       
       <mat-divider></mat-divider>
       <button mat-menu-item (click)="onLogout()" class="logout-item">
-        <mat-icon color="warn">exit_to_app</mat-icon>
+        <mat-icon>exit_to_app</mat-icon>
         <span>Déconnexion</span>
       </button>
     </mat-menu>

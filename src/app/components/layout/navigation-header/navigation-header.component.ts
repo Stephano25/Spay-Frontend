@@ -1,3 +1,4 @@
+// src/app/components/layout/navigation-header/navigation-header.component.ts
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';

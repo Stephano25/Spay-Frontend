@@ -3,7 +3,6 @@
   <!-- En-tête avec informations utilisateur -->
   <mat-card class="welcome-card">
     <mat-card-header>
-      <!-- Affichage de la photo de profil ou des initiales -->
       <div mat-card-avatar class="profile-avatar-container">
         @if (profileImageUrl) {
           <img [src]="profileImageUrl" alt="Photo de profil" class="profile-avatar-img">
@@ -42,18 +41,18 @@
   </mat-card>
 
   <!-- Menu de navigation -->
-  <mat-grid-list cols="2" rowHeight="120px" gutterSize="16px" class="menu-grid">
-    @for (item of menuItems; track item.route) {
-      <mat-grid-tile>
+  <div class="menu-grid">
+    <div class="menu-grid-inner">
+      @for (item of menuItems; track item.route) {
         <mat-card class="menu-card" (click)="navigateTo(item.route)">
           <mat-card-content>
             <mat-icon>{{ item.icon }}</mat-icon>
             <span>{{ item.label | translate }}</span>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
-    }
-  </mat-grid-list>
+      }
+    </div>
+  </div>
 
   <!-- Statistiques rapides -->
   @if (stats && !isLoading) {
@@ -140,7 +139,7 @@
     </div>
   }
 
-  <!-- Bouton de déconnexion -->
+  <!-- 🔥 Bouton de déconnexion -->
   <div class="logout-container">
     <button mat-raised-button color="warn" (click)="logout()" class="logout-btn">
       <mat-icon>exit_to_app</mat-icon>

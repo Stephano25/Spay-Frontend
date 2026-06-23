@@ -1,12 +1,12 @@
 // src/app/components/layout/sidebar/sidebar.component.ts
-import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { TranslationService } from '../../../services/translation.service';
 import { ThemeService } from '../../../services/theme.service';
 import { Subscription } from 'rxjs';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,10 +24,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
-export class SidebarComponent implements OnInit, OnDestroy {
-  isCollapsed = false;      // mode réduit (desktop)
+export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('sidenav') sidenav!: MatSidenav;
+
+  isCollapsed = false;
   isMobile = false;
-  isOpen = false;           // overlay mobile
+  isOpen = false;
   currentUser: any = null;
   private themeSubscription!: Subscription;
 
@@ -40,6 +42,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { icon: 'person', label: 'Mon Profil', route: '/admin/profile' }
   ];
 
+  userMenuItems = [
+    { icon: 'dashboard', label: 'Tableau de bord', route: '/user' },
+    { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/wallet' },
+    { icon: 'swap_horiz', label: 'Transactions', route: '/transactions' },
+    { icon: 'people', label: 'Amis', route: '/friends' },
+    { icon: 'chat', label: 'Messages', route: '/chat' },
+    { icon: 'qr_code_scanner', label: 'Scanner', route: '/scan-pay' },
+    { icon: 'phone_android', label: 'Mobile Money', route: '/mobile-money' },
+    { icon: 'bar_chart', label: 'Statistiques', route: '/stats' },
+    { icon: 'person', label: 'Profil', route: '/profile' },
+    { icon: 'settings', label: 'Paramètres', route: '/user/settings' }
+  ];
+
   constructor(
     private authService: AuthService,
     private translationService: TranslationService,
@@ -48,11 +63,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.checkScreenSize();
-    this.authService.currentUser.subscribe(user => (this.currentUser = user));
+    this.authService.currentUser.subscribe(user => {
+      this.currentUser = user;
+    });
     this.themeSubscription = this.themeService.currentTheme$.subscribe(() => {
-      // rafraîchir le template si besoin
       this.adminMenuItems = [...this.adminMenuItems];
     });
+  }
+
+  ngAfterViewInit(): void {
+    // Appliquer la classe collapsed sur le mat-drawer-content
+    this.updateDrawerContentClass();
   }
 
   ngOnDestroy(): void {
@@ -62,6 +83,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @HostListener('window:resize', ['$event'])
   onResize() {
     this.checkScreenSize();
+  }
+
+  private updateDrawerContentClass(): void {
+    setTimeout(() => {
+      const drawerContent = document.querySelector('.mat-drawer-content');
+      if (drawerContent) {
+        if (this.isCollapsed) {
+          drawerContent.classList.add('sidebar-collapsed');
+        } else {
+          drawerContent.classList.remove('sidebar-collapsed');
+        }
+      }
+    }, 100);
   }
 
   checkScreenSize() {
@@ -74,6 +108,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.isOpen = false;
       this.isCollapsed = false;
     }
+    this.updateDrawerContentClass();
   }
 
   toggleSidebar() {
@@ -81,11 +116,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.isOpen = !this.isOpen;
     } else {
       this.isCollapsed = !this.isCollapsed;
+      this.updateDrawerContentClass();
     }
   }
 
   closeSidebar() {
-    if (this.isMobile) this.isOpen = false;
+    if (this.isMobile) {
+      this.isOpen = false;
+    }
   }
 
   logout() {
@@ -97,7 +135,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get menuItems() {
-    return this.adminMenuItems;
+    return this.isAdmin() ? this.adminMenuItems : this.userMenuItems;
   }
 
   translate(key: string): string {
