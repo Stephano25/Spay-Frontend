@@ -16,13 +16,15 @@ mat-toolbar {
   background: var(--surface) !important;
   border-bottom: 0.5px solid var(--border) !important;
   color: var(--text) !important;
-  position: sticky; top: 0; z-index: 100;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   box-shadow: var(--shadow-xs) !important;
   animation: fadeDown 0.4s var(--ease) both;
 }
 
-mat-toolbar button { transition: all var(--trans-base) !important; }
-mat-toolbar button:hover { background: var(--hover) !important; color: var(--brand-1) !important; }
+mat-toolbar button                { transition: all var(--trans-base) !important; }
+mat-toolbar button:hover          { background: var(--hover) !important; color: var(--brand-1) !important; }
 
 /* ── Content ── */
 .transactions-content {
@@ -31,7 +33,7 @@ mat-toolbar button:hover { background: var(--hover) !important; color: var(--bra
   padding: 0 20px;
 }
 
-/* ── Summary Cards ── */
+/* ── Summary cards ── */
 .summary-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -52,44 +54,53 @@ mat-toolbar button:hover { background: var(--hover) !important; color: var(--bra
 }
 
 .summary-card:nth-child(1) { animation-delay: 0.05s; }
-.summary-card:nth-child(2) { animation-delay: 0.1s; }
+.summary-card:nth-child(2) { animation-delay: 0.10s; }
 
+/* Top accent bar on hover */
 .summary-card::before {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
   background: var(--brand-grad);
-  transform: scaleX(0); transform-origin: left;
+  transform: scaleX(0);
+  transform-origin: left;
   transition: transform 0.3s var(--ease);
 }
 
 .summary-card:hover::before { transform: scaleX(1); }
-.summary-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg) !important; }
+.summary-card:hover          { transform: translateY(-4px); box-shadow: var(--shadow-lg) !important; }
 
 .summary-card mat-card-content {
-  display: flex; align-items: center; gap: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   padding: 20px !important;
 }
 
 .summary-icon {
-  width: 54px; height: 54px;
+  width: 54px;
+  height: 54px;
   border-radius: var(--r-md);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform var(--trans-base);
+  flex-shrink: 0;
 }
 
-.summary-card:hover .summary-icon { transform: scale(1.08); }
-.summary-icon mat-icon { font-size: 26px !important; width: 26px !important; height: 26px !important; }
+.summary-card:hover .summary-icon       { transform: scale(1.08); }
+.summary-icon mat-icon                   { font-size: 26px !important; width: 26px !important; height: 26px !important; }
 
-.summary-card.received .summary-icon { background: var(--success-bg); }
-.summary-card.received .summary-icon mat-icon { color: var(--success) !important; }
+.summary-card.received .summary-icon             { background: var(--success-bg); }
+.summary-card.received .summary-icon mat-icon    { color: var(--success) !important; }
 
-.summary-card.sent .summary-icon { background: var(--danger-bg); }
-.summary-card.sent .summary-icon mat-icon { color: var(--danger) !important; }
+.summary-card.sent .summary-icon                 { background: var(--danger-bg); }
+.summary-card.sent .summary-icon mat-icon        { color: var(--danger) !important; }
 
-.summary-details {
-  flex: 1;
-  display: flex; flex-direction: column; gap: 3px;
-}
+.summary-details  { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 
 .summary-label {
   font-size: 0.72rem;
@@ -105,6 +116,9 @@ mat-toolbar button:hover { background: var(--hover) !important; color: var(--bra
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Tabs ── */
@@ -118,26 +132,34 @@ mat-toolbar button:hover { background: var(--hover) !important; color: var(--bra
   animation: fadeUp 0.4s var(--ease) 0.12s both;
 }
 
-/* ── Loading / Error ── */
+/* ── Loading / Error states ── */
 .loading-state {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  min-height: 240px; gap: 16px;
-  color: var(--text-3); font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  gap: 16px;
+  color: var(--text-3);
+  font-size: 0.9rem;
 }
 
 .error-state {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  min-height: 240px; gap: 14px;
-  padding: 32px 20px; text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  gap: 14px;
+  padding: 32px 20px;
+  text-align: center;
 }
 
 .error-state mat-icon { font-size: 3rem !important; width: 3rem !important; height: 3rem !important; color: var(--danger); }
-.error-state p { color: var(--text-2); font-size: 0.9375rem; }
-.error-state button { border-radius: var(--r-pill) !important; }
+.error-state p        { color: var(--text-2); font-size: 0.9375rem; }
+.error-state button   { border-radius: var(--r-pill) !important; }
 
-/* ── List Card ── */
+/* ── List card ── */
 .transactions-list-card {
   border-radius: var(--r-xl) !important;
   background: var(--surface) !important;
@@ -147,7 +169,7 @@ mat-toolbar button:hover { background: var(--hover) !important; color: var(--bra
   animation: fadeUp 0.4s var(--ease) 0.16s both;
 }
 
-/* ── Transaction Item ── */
+/* ── Transaction item ── */
 .transaction-item {
   height: auto !important;
   margin-bottom: 0 !important;
@@ -156,91 +178,134 @@ mat-toolbar button:hover { background: var(--hover) !important; color: var(--bra
   animation: fadeUp 0.3s var(--ease) both;
 }
 
-.transaction-item:last-child { border-bottom: none !important; }
-.transaction-item:hover { background: var(--hover) !important; }
+.transaction-item:last-child  { border-bottom: none !important; }
+.transaction-item:hover        { background: var(--hover) !important; }
 
 .transaction-content {
-  display: flex; align-items: center; gap: 14px;
-  width: 100%; padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px;
 }
 
+/* ── Transaction icon ── */
 .transaction-icon {
-  width: 46px; height: 46px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: transform var(--trans-base); flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--trans-base);
+  flex-shrink: 0;
 }
 
-.transaction-item:hover .transaction-icon { transform: scale(1.08); }
+.transaction-item:hover .transaction-icon   { transform: scale(1.08); }
+.transaction-icon mat-icon                  { font-size: 20px !important; width: 20px !important; height: 20px !important; }
 
-.transaction-icon mat-icon { font-size: 20px !important; width: 20px !important; height: 20px !important; }
-
-.transaction-icon.sent     { background: var(--danger-bg); }
-.transaction-icon.sent mat-icon { color: var(--danger) !important; }
-.transaction-icon.received { background: var(--success-bg); }
+.transaction-icon.sent              { background: var(--danger-bg); }
+.transaction-icon.sent mat-icon     { color: var(--danger) !important; }
+.transaction-icon.received          { background: var(--success-bg); }
 .transaction-icon.received mat-icon { color: var(--success) !important; }
-.transaction-icon.mobile_money { background: var(--brand-grad-soft); }
+.transaction-icon.mobile_money      { background: var(--brand-grad-soft); }
 .transaction-icon.mobile_money mat-icon { color: var(--brand-1) !important; }
-.transaction-icon.scan_pay { background: rgba(139,92,246,0.1); }
+.transaction-icon.scan_pay          { background: rgba(139, 92, 246, 0.1); }
 .transaction-icon.scan_pay mat-icon { color: var(--brand-2) !important; }
 
+/* ── Transaction info ── */
 .transaction-info { flex: 1; min-width: 0; }
 
 .transaction-header {
-  display: flex; justify-content: space-between;
-  align-items: flex-start; margin-bottom: 5px; gap: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 5px;
+  gap: 10px;
 }
 
 .transaction-description {
-  font-weight: 600; font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.9rem;
   color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   max-width: 260px;
 }
 
 .transaction-amount {
   font-family: var(--font-mono);
-  font-weight: 700; font-size: 1rem;
+  font-weight: 700;
+  font-size: 1rem;
   transition: transform var(--trans-base);
-  white-space: nowrap; flex-shrink: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .transaction-item:hover .transaction-amount { transform: scale(1.04); }
-.transaction-amount.sent     { color: var(--danger); }
-.transaction-amount.received { color: var(--success); }
+.transaction-amount.sent                    { color: var(--danger); }
+.transaction-amount.received                { color: var(--success); }
 
+/* ── Meta row ── */
 .transaction-details {
-  display: flex; gap: 8px; align-items: center;
-  font-size: 0.7rem; flex-wrap: wrap;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.7rem;
+  flex-wrap: wrap;
 }
 
 .transaction-date {
-  color: var(--text-4); white-space: nowrap;
-  background: var(--surface-2); padding: 3px 8px; border-radius: var(--r-pill);
+  color: var(--text-4);
+  white-space: nowrap;
+  background: var(--surface-2);
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
   border: 0.5px solid var(--border);
 }
 
 .transaction-counterparty {
-  background: var(--surface-2); padding: 3px 8px; border-radius: var(--r-pill);
-  max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: var(--text-3); transition: all var(--trans-base);
+  background: var(--surface-2);
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-3);
+  transition: all var(--trans-base);
   border: 0.5px solid var(--border);
+  cursor: default;
 }
 
-.transaction-counterparty:hover { background: var(--active); color: var(--brand-1); border-color: var(--brand-1); }
+.transaction-counterparty:hover {
+  background: var(--active);
+  color: var(--brand-1);
+  border-color: var(--brand-1);
+}
 
 .transaction-status {
-  padding: 3px 9px; border-radius: var(--r-pill);
-  font-size: 0.65rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.05em;
-  background: var(--warning-bg); color: var(--warning);
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--warning-bg);
+  color: var(--warning);
 }
 
 .transaction-status.completed {
-  background: var(--success-bg); color: var(--success);
+  background: var(--success-bg);
+  color: var(--success);
 }
 
+/* ── Row actions ── */
 .transaction-actions {
-  opacity: 0.4; transition: opacity var(--trans-base); flex-shrink: 0;
+  opacity: 0.4;
+  transition: opacity var(--trans-base);
+  flex-shrink: 0;
 }
 
 .transaction-item:hover .transaction-actions { opacity: 1; }
@@ -261,21 +326,22 @@ mat-toolbar button:hover { background: var(--hover) !important; color: var(--bra
   text-align: center;
   padding: 56px 20px;
   color: var(--text-4);
-  display: flex; flex-direction: column;
-  align-items: center; gap: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
 .no-transactions mat-icon {
-  font-size: 72px !important; width: 72px !important; height: 72px !important;
-  color: var(--text-4); animation: float 3.5s ease-in-out infinite;
+  font-size: 72px !important;
+  width: 72px !important;
+  height: 72px !important;
+  color: var(--text-4);
+  animation: float 3.5s ease-in-out infinite;
 }
 
-.no-transactions h3 {
-  font-family: var(--font-sans);
-  font-size: 1.125rem; color: var(--text-2); margin: 0;
-}
-
-.no-transactions p { color: var(--text-3); font-size: 0.875rem; margin: 0 0 8px; }
+.no-transactions h3 { font-family: var(--font-sans); font-size: 1.125rem; color: var(--text-2); margin: 0; }
+.no-transactions p  { color: var(--text-3); font-size: 0.875rem; margin: 0 0 8px; }
 
 .no-transactions button {
   background: var(--brand-grad) !important;
@@ -291,14 +357,20 @@ mat-toolbar button:hover { background: var(--hover) !important; color: var(--bra
   box-shadow: var(--shadow-brand) !important;
 }
 
+/* ── Animations ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
-  .transactions-content { padding: 0 14px; }
-  .summary-cards { grid-template-columns: 1fr; }
-  .transaction-header { flex-direction: column; align-items: flex-start; gap: 3px; }
-  .transaction-description { max-width: 200px; }
-  .transaction-details { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .transaction-amount { font-size: 0.9375rem; }
-  .transaction-actions { opacity: 1; }
-  .transaction-content { padding: 12px 14px; }
+  .transactions-content           { padding: 0 14px; }
+  .summary-cards                  { grid-template-columns: 1fr; }
+  .transaction-header             { flex-direction: column; align-items: flex-start; gap: 3px; }
+  .transaction-description        { max-width: 200px; }
+  .transaction-details            { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .transaction-amount             { font-size: 0.9375rem; }
+  .transaction-actions            { opacity: 1; }
+  .transaction-content            { padding: 12px 14px; }
 }

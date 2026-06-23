@@ -1,4 +1,3 @@
-/* src/app/components/layout/sidebar/sidebar.component.css */
 /* ============================================================
    SIDEBAR — SPaye
    ============================================================ */
@@ -38,11 +37,13 @@
   z-index: 1100;
 }
 
+/* ── Overlay ── */
 .overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 999;
   animation: fadeIn 0.2s var(--ease);
 }
@@ -74,7 +75,7 @@
   width: 72px;
 }
 
-/* ── Content ── */
+/* ── Drawer content ── */
 ::ng-deep .mat-drawer-content {
   height: 100vh !important;
   overflow-y: auto !important;
@@ -84,13 +85,12 @@
   transition: margin-left 0.28s var(--ease), width 0.28s var(--ease);
 }
 
-/* Quand le sidebar est réduit */
 ::ng-deep .mat-drawer-content.sidebar-collapsed {
   margin-left: 72px !important;
   width: calc(100% - 72px) !important;
 }
 
-/* 🔥 CONTENT UNIFIÉ - Version unique et corrigée */
+/* ── Page content ── */
 .content {
   min-height: 100%;
   height: 100%;
@@ -102,18 +102,16 @@
   flex-direction: column;
 }
 
-/* Le contenu enfant peut défiler */
 .content > * {
   flex: 1;
   overflow-y: auto;
 }
 
-/* Pour que le dernier élément soit en bas si besoin */
 .content > :last-child {
   margin-top: auto;
 }
 
-/* ── Header ── */
+/* ── Sidebar header ── */
 .sidebar-header {
   display: flex;
   align-items: center;
@@ -166,7 +164,7 @@
   color: var(--brand-1) !important;
 }
 
-/* ── User Profile ── */
+/* ── User profile card ── */
 .user-profile {
   display: flex;
   align-items: center;
@@ -178,6 +176,12 @@
   border: 0.5px solid var(--border);
   overflow: hidden;
   flex-shrink: 0;
+  transition: background var(--trans-base), border-color var(--trans-base);
+}
+
+.user-profile:hover {
+  background: var(--active);
+  border-color: var(--brand-1);
 }
 
 .user-avatar {
@@ -216,7 +220,7 @@
   white-space: nowrap;
 }
 
-/* ── Navigation ── */
+/* ── Navigation list ── */
 .nav-list {
   flex: 1;
   padding: 8px !important;
@@ -255,7 +259,7 @@
   font-weight: 500 !important;
 }
 
-/* ── Logout ── */
+/* ── Logout zone ── */
 .logout-container {
   padding: 12px;
   flex-shrink: 0;
@@ -277,12 +281,8 @@
 
 /* ── Animations ── */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── Mobile ── */
@@ -291,13 +291,12 @@
     margin-left: 0 !important;
     width: 100% !important;
   }
-  
-  .sidebar {
-    width: 280px !important;
-  }
+
+  .sidebar,
   .sidebar.collapsed {
     width: 280px !important;
   }
+
   .content {
     padding: 16px;
   }

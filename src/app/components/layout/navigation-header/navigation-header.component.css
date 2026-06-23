@@ -1,4 +1,3 @@
-/* src/app/components/layout/navigation-header/navigation-header.component.css */
 /* ============================================================
    NAVIGATION HEADER — SPaye
    ============================================================ */
@@ -70,7 +69,9 @@
 }
 
 /* ── Center spacer ── */
-.header-spacer { flex: 1 1 auto; }
+.header-spacer {
+  flex: 1 1 auto;
+}
 
 /* ── Right ── */
 .header-right {
@@ -80,7 +81,7 @@
   flex-shrink: 0;
 }
 
-/* Action buttons (notif, theme...) */
+/* ── Action buttons ── */
 .action-btn {
   width: 38px !important;
   height: 38px !important;
@@ -103,15 +104,18 @@
   height: 20px !important;
 }
 
-/* Notification badge sur l'icône */
+/* ── Notification badge ── */
 .notif-badge {
   position: absolute;
-  top: 6px; right: 6px;
-  width: 8px; height: 8px;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--danger);
   border: 2px solid var(--surface);
   animation: pulse 2s infinite;
+  pointer-events: none;
 }
 
 /* ── User info pill ── */
@@ -131,15 +135,18 @@
 .user-info-desktop:hover {
   background: var(--active);
   border-color: var(--brand-1);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
 
 .user-avatar-small {
-  width: 30px; height: 30px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--brand-grad);
   color: white;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
@@ -165,7 +172,8 @@
 
 .chevron-icon {
   font-size: 16px !important;
-  width: 16px !important; height: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
   color: var(--text-4) !important;
   transition: transform var(--trans-base), color var(--trans-base);
   flex-shrink: 0;
@@ -176,9 +184,10 @@
   transform: rotate(180deg);
 }
 
-/* ── Profile menu trigger (icône seule) ── */
+/* ── Profile button (icône seule) ── */
 .profile-btn {
-  width: 38px !important; height: 38px !important;
+  width: 38px !important;
+  height: 38px !important;
   border-radius: 50% !important;
   color: var(--text-2) !important;
   background: transparent !important;
@@ -200,11 +209,14 @@
 }
 
 .menu-avatar {
-  width: 44px; height: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--brand-grad);
   color: white;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 10px;
@@ -231,6 +243,7 @@
   font-family: var(--font-mono);
 }
 
+/* ── Role badge ── */
 .role-badge {
   display: inline-flex;
   align-items: center;
@@ -251,16 +264,16 @@
 .role-badge.admin {
   background: var(--warning-bg);
   color: var(--warning);
-  border-color: rgba(245,158,11,0.2);
+  border-color: rgba(245, 158, 11, 0.2);
 }
 
 .role-badge.super-admin {
   background: var(--danger-bg);
   color: var(--danger);
-  border-color: rgba(239,68,68,0.2);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
-/* Menu section label */
+/* ── Menu section label ── */
 .menu-section-label {
   font-size: 0.65rem;
   font-weight: 700;
@@ -270,7 +283,7 @@
   padding: 8px 18px 4px;
 }
 
-/* Menu items */
+/* ── Menu items ── */
 .menu-item-icon {
   color: var(--text-3) !important;
   margin-right: 4px;
@@ -282,25 +295,33 @@
   color: var(--text-2);
 }
 
-/* Logout item */
+/* ── Logout item ── */
 .logout-item {
   color: var(--danger) !important;
   border-top: 0.5px solid var(--border);
   margin-top: 4px;
 }
 
-.logout-item .menu-item-icon { color: var(--danger) !important; }
-.logout-item .menu-item-label { color: var(--danger) !important; }
-.logout-item:hover { background: var(--danger-bg) !important; }
+.logout-item .menu-item-icon {
+  color: var(--danger) !important;
+}
 
-/* ── Balance pill (optionnel dans le header) ── */
+.logout-item .menu-item-label {
+  color: var(--danger) !important;
+}
+
+.logout-item:hover {
+  background: var(--danger-bg) !important;
+}
+
+/* ── Balance pill ── */
 .balance-pill {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 5px 14px;
   background: var(--success-bg);
-  border: 0.5px solid rgba(16,185,129,0.2);
+  border: 0.5px solid rgba(16, 185, 129, 0.2);
   border-radius: var(--r-pill);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
@@ -310,19 +331,28 @@
   transition: all var(--trans-base);
 }
 
+.balance-pill:hover {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: var(--success);
+  transform: translateY(-1px);
+}
+
 .balance-pill mat-icon {
   font-size: 16px !important;
-  width: 16px !important; height: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
   color: var(--success) !important;
 }
 
 /* ── Divider ── */
-mat-divider { border-color: var(--border) !important; }
+mat-divider {
+  border-color: var(--border) !important;
+}
 
 /* ── Animations ── */
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.9); }
+  50%       { opacity: 0.6; transform: scale(0.9); }
 }
 
 /* ── Responsive ── */
@@ -348,5 +378,5 @@ mat-divider { border-color: var(--border) !important; }
 
 @media (max-width: 480px) {
   .header-container { padding: 0 10px; gap: 6px; }
-  .header-right { gap: 2px; }
+  .header-right     { gap: 2px; }
 }
