@@ -133,7 +133,7 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
   // Formulaire
   mobileMoneyForm: FormGroup;
   
-  // Opérateurs disponibles
+  // 🔥 Opérateurs disponibles - MVola corrigé en VERT
   operators: Operator[] = [
     { 
       id: 'airtel', 
@@ -157,10 +157,11 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
       id: 'mvola', 
       name: 'MVola', 
       icon: 'phone_android', 
-      color: '#e91e63', 
+      // 🔥 CORRECTION: Couleur MVola en VERT
+      color: '#00a651', 
       code: '034',
       prefix: '034',
-      gradient: 'linear-gradient(135deg, #e91e63, #c2185b)'
+      gradient: 'linear-gradient(135deg, #00a651, #007a3d)'
     }
   ];
 
@@ -262,7 +263,6 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
       const amount = this.mobileMoneyForm.get('amount')?.value;
       const totalWithFees = this.calculateTotal();
     
-      // Afficher un message clair sur les frais
       console.log(`💰 Montant: ${amount} Ar, Frais: ${this.calculateFee()} Ar, Total: ${totalWithFees} Ar`);
     
       if (totalWithFees > this.balance) {
@@ -285,11 +285,10 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Double vérification du solde
     const totalWithFees = this.calculateTotal();
     if (totalWithFees > this.balance) {
       this.notificationService.showError('Solde insuffisant!');
-      this.currentStep = 'amount'; // Retour à l'étape montant
+      this.currentStep = 'amount';
       return;
     }
 
@@ -316,7 +315,7 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
         console.log('✅ Succès!', response);
         this.isProcessing = false;
         this.currentStep = 'success';
-        this.balance -= totalWithFees; // Mettre à jour le solde local
+        this.balance -= totalWithFees;
         
         this.notificationService.showSuccess(
           `Transfert de ${this.formatAmount(amount)} Ar vers ${operator.name} effectué!`
@@ -338,8 +337,6 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
         
         this.notificationService.showError(errorMessage);
         this.isProcessing = false;
-        
-        // Recharger le solde en cas d'erreur
         this.loadBalance();
       }
     });
@@ -353,7 +350,7 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
     this.selectedOperator = null;
     this.mobileMoneyForm.reset();
     this.isProcessing = false;
-    this.loadBalance(); // Recharger le solde
+    this.loadBalance();
   }
 
   /**
@@ -388,15 +385,13 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
     const operatorId = this.selectedOperator.id;
     const feePercentage = this.getFeeForOperator(operatorId);
     
-    // Calculer les frais selon le pourcentage
     let fee = (amount * feePercentage) / 100;
     
-    // Appliquer le frais minimum
     if (fee < this.MINIMUM_FEE) {
       fee = this.MINIMUM_FEE;
     }
     
-    return Math.ceil(fee); // Arrondir à l'Ariary supérieur
+    return Math.ceil(fee);
   }
 
   /**
