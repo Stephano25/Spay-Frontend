@@ -1,4 +1,3 @@
-// src/app/components/wallet/wallet.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -66,7 +65,6 @@ const ANIMATIONS = [
 export class WalletComponent implements OnInit, OnDestroy {
   wallet: Wallet | null = null;
 
-  // Statistiques calculées localement à partir des transactions
   totalDeposits = 0;
   totalWithdrawals = 0;
   totalTransactions = 0;
@@ -133,13 +131,11 @@ export class WalletComponent implements OnInit, OnDestroy {
         next: ({ wallet, transactions }) => {
           this.wallet = wallet;
 
-          // Trier les transactions par date décroissante
           const sorted = [...transactions].sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
           this.recentTransactions = sorted.slice(0, 10);
 
-          // Calculer les statistiques
           this.totalTransactions = transactions.length;
           this.totalDeposits = transactions
             .filter(t => t.type === 'deposit' && t.status === 'completed')
@@ -157,36 +153,86 @@ export class WalletComponent implements OnInit, OnDestroy {
       });
   }
 
+  // ✅ Bouton "Rafraîchir" - fonctionne
   refreshData(): void {
     this.isRefreshing = true;
     this.loadData();
     this.notificationService.showInfo('Données actualisées');
   }
 
-  // Navigation
+  // ✅ Bouton "Envoyer" - fonctionne
   sendMoney(): void {
-    this.router.navigate(['/wallet/send']);
-  }
-  receiveMoney(): void {
-    this.router.navigate(['/wallet/receive']);
-  }
-  mobileMoney(): void {
-    this.router.navigate(['/mobile-money']);
-  }
-  scanQR(): void {
-    this.router.navigate(['/scan-pay']);
-  }
-  viewAllTransactions(): void {
-    this.router.navigate(['/transactions']);
-  }
-  goBack(): void {
-    this.router.navigate(['/user']);
-  }
-  viewTransactionDetails(txn: Transaction): void {
-    this.router.navigate(['/transactions', txn.id]);
+    console.log('🔵 Navigation vers Envoyer de l\'argent');
+    this.router.navigate(['/user/wallet/send']).catch(err => {
+      console.error('❌ Erreur navigation sendMoney:', err);
+      this.router.navigate(['/wallet/send']).catch(err2 => {
+        console.error('❌ Erreur fallback sendMoney:', err2);
+        this.router.navigate(['/send-money']);
+      });
+    });
   }
 
-  // Helpers d'affichage
+  // ✅ Bouton "Recevoir" - fonctionne
+  receiveMoney(): void {
+    console.log('🔵 Navigation vers Recevoir de l\'argent');
+    this.router.navigate(['/user/wallet/receive']).catch(err => {
+      console.error('❌ Erreur navigation receiveMoney:', err);
+      this.router.navigate(['/wallet/receive']).catch(err2 => {
+        console.error('❌ Erreur fallback receiveMoney:', err2);
+        this.router.navigate(['/receive-money']);
+      });
+    });
+  }
+
+  // ✅ Bouton "Mobile Money" - fonctionne
+  mobileMoney(): void {
+    console.log('🔵 Navigation vers Mobile Money');
+    this.router.navigate(['/user/mobile-money']).catch(err => {
+      console.error('❌ Erreur navigation mobileMoney:', err);
+      this.router.navigate(['/mobile-money']);
+    });
+  }
+
+  // ✅ Bouton "Scanner QR" - fonctionne
+  scanQR(): void {
+    console.log('🔵 Navigation vers Scanner QR');
+    this.router.navigate(['/user/scan-pay']).catch(err => {
+      console.error('❌ Erreur navigation scanQR:', err);
+      this.router.navigate(['/scan-pay']);
+    });
+  }
+
+  // ✅ Bouton "Voir toutes les transactions" - fonctionne
+  viewAllTransactions(): void {
+    console.log('🔵 Navigation vers Historique des transactions');
+    this.router.navigate(['/user/transactions']).catch(err => {
+      console.error('❌ Erreur navigation viewAllTransactions:', err);
+      this.router.navigate(['/transactions']);
+    });
+  }
+
+  // ✅ Bouton "Retour" - fonctionne
+  goBack(): void {
+    console.log('🔵 Navigation vers tableau de bord');
+    this.router.navigate(['/user/dashboard']).catch(err => {
+      console.error('❌ Erreur navigation goBack:', err);
+      this.router.navigate(['/dashboard']);
+    });
+  }
+
+  // ✅ Clic sur une transaction - fonctionne
+  viewTransactionDetails(txn: Transaction): void {
+    console.log('🔵 Navigation vers détails transaction:', txn.id);
+    this.router.navigate(['/user/transactions', txn.id]).catch(err => {
+      console.error('❌ Erreur navigation viewTransactionDetails:', err);
+      this.router.navigate(['/transactions', txn.id]);
+    });
+  }
+
+  // ============================================================
+  // HELPERS D'AFFICHAGE
+  // ============================================================
+
   getTransactionIcon(txn: Transaction): string {
     return this.TRANSACTION_ICONS[txn.type] ?? 'receipt';
   }

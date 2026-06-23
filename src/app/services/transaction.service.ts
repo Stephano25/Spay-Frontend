@@ -36,9 +36,6 @@ export class TransactionService {
   // TRANSACTIONS
   // ============================================================
 
-  /**
-   * Récupère toutes les transactions de l'utilisateur
-   */
   getAllTransactions(): Observable<Transaction[]> {
     return this.http.get<Transaction[]>(`${this.apiUrl}/all`).pipe(
       catchError(error => {
@@ -48,9 +45,6 @@ export class TransactionService {
     );
   }
 
-  /**
-   * Récupère les transactions paginées
-   */
   getTransactions(page: number = 1, limit: number = 50): Observable<{ transactions: Transaction[], total: number }> {
     return this.http.get<{ transactions: Transaction[], total: number }>(`${this.apiUrl}`, { 
       params: { page, limit } 
@@ -63,9 +57,6 @@ export class TransactionService {
     );
   }
 
-  /**
-   * Récupère les transactions de l'utilisateur connecté
-   */
   getUserTransactions(): Observable<Transaction[]> {
     return this.http.get<Transaction[]>(`${this.apiUrl}/user`).pipe(
       catchError(error => {
@@ -79,9 +70,6 @@ export class TransactionService {
   // ENVOI D'ARGENT
   // ============================================================
 
-  /**
-   * Envoie de l'argent à un autre utilisateur
-   */
   sendMoney(data: { receiverId: string; amount: number; description?: string }): Observable<Transaction> {
     return this.http.post<Transaction>(`${this.apiUrl}/send`, data).pipe(
       tap(() => this.notificationService.showSuccess('Argent envoyé avec succès')),
@@ -96,9 +84,6 @@ export class TransactionService {
   // MOBILE MONEY
   // ============================================================
 
-  /**
-   * Transfert vers Mobile Money
-   */
   mobileMoneyTransfer(data: { operator: string; phoneNumber: string; amount: number }): Observable<Transaction> {
     const cleanData = {
       operator: data.operator,
@@ -120,9 +105,6 @@ export class TransactionService {
   // SCAN & PAY
   // ============================================================
 
-  /**
-   * Paiement par scan de QR code
-   */
   scanAndPay(data: { receiverQrCode: string; amount: number; description?: string }): Observable<Transaction> {
     return this.http.post<Transaction>(`${this.apiUrl}/scan-pay`, data).pipe(
       tap(() => this.notificationService.showSuccess('Paiement effectué avec succès')),
@@ -137,9 +119,6 @@ export class TransactionService {
   // UTILITAIRES
   // ============================================================
 
-  /**
-   * Formate un montant en Ariary
-   */
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG', {
       minimumFractionDigits: 0,
@@ -147,9 +126,6 @@ export class TransactionService {
     }).format(amount);
   }
 
-  /**
-   * Récupère le libellé du type de transaction
-   */
   getTransactionTypeLabel(type: string): string {
     const labels: Record<string, string> = {
       deposit: 'Dépôt',
@@ -163,9 +139,6 @@ export class TransactionService {
     return labels[type] || type;
   }
 
-  /**
-   * Récupère la couleur du type de transaction
-   */
   getTransactionTypeColor(type: string): string {
     const colors: Record<string, string> = {
       deposit: 'success',
@@ -179,9 +152,6 @@ export class TransactionService {
     return colors[type] || 'secondary';
   }
 
-  /**
-   * Récupère l'icône du type de transaction
-   */
   getTransactionTypeIcon(type: string): string {
     const icons: Record<string, string> = {
       deposit: 'arrow_downward',

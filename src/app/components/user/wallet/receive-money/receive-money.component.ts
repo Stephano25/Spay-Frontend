@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { trigger, transition, style, animate, keyframes } from '@angular/animations';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 import { WalletService } from '../../../../services/wallet.service';
 import { NotificationService } from '../../../../services/notification.service';
@@ -90,7 +90,7 @@ export class ReceiveMoneyComponent implements OnInit, OnDestroy {
   qrImageLoaded: boolean = false;
   qrImageError: boolean = false;
 
-  // Variables pour l'expiration (CORRIGÉ: utiliser des propriétés au lieu de méthodes)
+  // Variables pour l'expiration
   expirationTimeText: string = '';
   expirationProgress: number = 100;
   expirationColor: string = '#10b981';
@@ -114,6 +114,7 @@ export class ReceiveMoneyComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ✅ Bouton "Générer un QR code" - fonctionne
   generateQR(amount?: number) {
     this.isLoading = true;
     this.qrImageLoaded = false;
@@ -143,7 +144,6 @@ export class ReceiveMoneyComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.showAmountOptions = false;
         
-        // Démarrer l'intervalle de mise à jour de l'expiration
         this.startExpirationTimer();
         
         this.notificationService.showSuccess('QR code généré avec succès');
@@ -156,6 +156,101 @@ export class ReceiveMoneyComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ✅ Bouton "Montant personnalisé" - fonctionne
+  toggleAmountOptions() {
+    this.showAmountOptions = !this.showAmountOptions;
+    if (!this.showAmountOptions) {
+      this.customAmount = null;
+    }
+  }
+
+  // ✅ Boutons des montants prédéfinis - fonctionnent
+  selectAmount(amount: number) {
+    this.generateQR(amount);
+  }
+
+  // ✅ Bouton "Utiliser ce montant" - fonctionne
+  useCustomAmount() {
+    if (this.customAmount && this.customAmount >= 100) {
+      this.generateQR(this.customAmount);
+      this.customAmount = null;
+      this.showAmountOptions = false;
+    } else {
+      this.notificationService.showWarning('Montant minimum: 100 Ar');
+    }
+  }
+
+  // ✅ Bouton "Copier" - fonctionne
+  copyQRCode() {
+    if (!this.qrData) {
+      this.notificationService.showWarning('Aucun QR code à copier');
+      return;
+    }
+    
+    navigator.clipboard.writeText(this.qrData).then(() => {
+      this.copied = true;
+      this.notificationService.showSuccess('QR code copié dans le presse-papiers');
+      setTimeout(() => this.copied = false, 2000);
+    }).catch(() => {
+      this.notificationService.showError('Erreur lors de la copie');
+    });
+  }
+
+  // ✅ Bouton "Télécharger" - fonctionne
+  downloadQRImage() {
+    if (!this.qrData) {
+      this.notificationService.showWarning('Aucun QR code à télécharger');
+      return;
+    }
+    
+    const imageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(this.qrData)}`;
+    
+    fetch(imageUrl)
+      .then(response => response.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `spaye-qr-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        this.notificationService.showSuccess('Image QR téléchargée');
+      })
+      .catch(() => {
+        this.notificationService.showError('Erreur lors du téléchargement');
+      });
+  }
+
+  // ✅ Bouton "Partager" - fonctionne
+  shareQRCode() {
+    if (!this.qrData) {
+      this.notificationService.showWarning('Aucun QR code à partager');
+      return;
+    }
+    
+    const shareData = {
+      title: 'Mon QR Code SPaye',
+      text: `Recevoir de l'argent sur SPaye - ${this.qrData}`,
+      url: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(this.qrData)}`
+    };
+    
+    if (navigator.share) {
+      navigator.share(shareData).catch(() => {});
+    } else {
+      this.copyQRCode();
+    }
+  }
+
+  // ✅ Bouton "Retour" - fonctionne
+  goBack() {
+    this.router.navigate(['/user/wallet']).catch(() => {
+      this.router.navigate(['/wallet']);
+    });
+  }
+
+  // ✅ Timer d'expiration
   startExpirationTimer() {
     this.updateExpirationInfo();
     this.expirationInterval = setInterval(() => {
@@ -168,15 +263,13 @@ export class ReceiveMoneyComponent implements OnInit, OnDestroy {
     
     const now = new Date();
     const exp = new Date(this.qrCode.expiresAt);
-    const total = 30 * 60 * 1000; // 30 minutes
+    const total = 30 * 60 * 1000;
     const remaining = exp.getTime() - now.getTime();
     
-    // Calculer la progression
     let progress = (remaining / total) * 100;
     progress = Math.max(0, Math.min(100, progress));
     this.expirationProgress = progress;
     
-    // Calculer le texte
     const diffMins = Math.floor(remaining / 60000);
     if (remaining <= 0) {
       this.expirationTimeText = 'Expiré';
@@ -188,70 +281,12 @@ export class ReceiveMoneyComponent implements OnInit, OnDestroy {
       this.expirationTimeText = `Expire dans ${Math.floor(diffMins / 60)} heures`;
     }
     
-    // Calculer la couleur
     if (progress > 50) {
       this.expirationColor = '#10b981';
     } else if (progress > 20) {
       this.expirationColor = '#f59e0b';
     } else {
       this.expirationColor = '#ef4444';
-    }
-  }
-
-  useCustomAmount() {
-    if (this.customAmount && this.customAmount >= 100) {
-      this.generateQR(this.customAmount);
-      this.customAmount = null;
-      this.showAmountOptions = false;
-    } else {
-      this.notificationService.showWarning('Montant minimum: 100 Ar');
-    }
-  }
-
-  copyQRCode() {
-    if (!this.qrData) return;
-    
-    navigator.clipboard.writeText(this.qrData).then(() => {
-      this.copied = true;
-      this.notificationService.showSuccess('QR code copié dans le presse-papiers');
-      setTimeout(() => this.copied = false, 2000);
-    }).catch(() => {
-      this.notificationService.showError('Erreur lors de la copie');
-    });
-  }
-
-  downloadQRImage() {
-    if (!this.qrData) return;
-    
-    const imageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(this.qrData)}`;
-    
-    fetch(imageUrl)
-      .then(response => response.blob())
-      .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `spaye-qr-${Date.now()}.png`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-        this.notificationService.showSuccess('Image QR téléchargée');
-      })
-      .catch(() => {
-        this.notificationService.showError('Erreur lors du téléchargement');
-      });
-  }
-
-  shareQRCode() {
-    if (!this.qrData) return;
-    
-    if (navigator.share) {
-      navigator.share({
-        title: 'Mon QR Code SPaye',
-        text: this.qrData,
-        url: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(this.qrData)}`
-      }).catch(() => {});
-    } else {
-      this.copyQRCode();
     }
   }
 
@@ -266,9 +301,5 @@ export class ReceiveMoneyComponent implements OnInit, OnDestroy {
 
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG').format(amount);
-  }
-
-  goBack() {
-    this.router.navigate(['/wallet']);
   }
 }

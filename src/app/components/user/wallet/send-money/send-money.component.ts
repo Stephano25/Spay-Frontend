@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { trigger, transition, style, animate, keyframes } from '@angular/animations';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 import { WalletService } from '../../../../services/wallet.service';
 import { Friend, FriendService } from '../../../../services/friend.service';
@@ -90,18 +90,12 @@ export class SendMoneyComponent implements OnInit {
   showSuccess: boolean = false;
   transactionId: string = '';
   
-  // Montants rapides - DU MIN AU MAX
-  amountPresets = [
-    100, 500, 1000, 5000, 10000, 20000, 50000, 
-    100000, 200000, 500000, 1000000, 2000000, 5000000, 
-    10000000, 20000000, 50000000, 100000000
-  ];
+  amountPresets = [100, 500, 1000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
   
   searchQuery: string = '';
   
-  // Constantes
   readonly MIN_AMOUNT = 100;
-  readonly MAX_AMOUNT = 100000000; // 100 MILLIONS Ar
+  readonly MAX_AMOUNT = 100000000;
 
   constructor(
     private walletService: WalletService,
@@ -115,17 +109,25 @@ export class SendMoneyComponent implements OnInit {
     this.loadFriends();
   }
 
+  // ✅ Chargement du solde
   loadBalance() {
-    this.walletService.getWallet().subscribe({
-      next: (wallet) => {
-        this.balance = wallet.balance;
+    this.walletService.getBalance().subscribe({
+      next: (data) => {
+        this.balance = data.balance;
       },
       error: (err) => {
         console.error('Erreur chargement solde:', err);
+        this.walletService.getWallet().subscribe({
+          next: (wallet) => {
+            this.balance = wallet.balance;
+          },
+          error: () => {}
+        });
       }
     });
   }
 
+  // ✅ Chargement des amis
   loadFriends() {
     this.friendService.getFriends().subscribe({
       next: (friends: Friend[]) => {
@@ -134,32 +136,45 @@ export class SendMoneyComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erreur chargement amis:', err);
+        this.friends = [];
+        this.filteredFriends = [];
       }
     });
   }
 
+  // ✅ Filtrage des amis
   filterFriends() {
     if (!this.searchQuery.trim()) {
       this.filteredFriends = this.friends;
     } else {
       const query = this.searchQuery.toLowerCase();
-      this.filteredFriends = this.friends.filter(friend => 
-        friend.friend?.firstName?.toLowerCase().includes(query) ||
-        friend.friend?.lastName?.toLowerCase().includes(query) ||
-        friend.friend?.email?.toLowerCase().includes(query)
-      );
+      this.filteredFriends = this.friends.filter(friend => {
+        const firstName = friend.friend?.firstName?.toLowerCase() || '';
+        const lastName = friend.friend?.lastName?.toLowerCase() || '';
+        const email = friend.friend?.email?.toLowerCase() || '';
+        return firstName.includes(query) || lastName.includes(query) || email.includes(query);
+      });
     }
   }
 
+  // ✅ Sélection d'un ami
   selectFriend(friend: any) {
-    this.receiverId = friend.friend.id;
-    this.receiverName = `${friend.friend.firstName} ${friend.friend.lastName}`;
-    this.searchQuery = this.receiverName;
-    this.filteredFriends = [];
+    if (friend?.friend?.id) {
+      this.receiverId = friend.friend.id;
+      this.receiverName = `${friend.friend.firstName || ''} ${friend.friend.lastName || ''}`.trim();
+      this.searchQuery = this.receiverName;
+      this.filteredFriends = [];
+    }
   }
 
+  // ✅ Bouton "Envoyer" - fonctionne
   sendMoney() {
-    if (!this.receiverId || this.amount < this.MIN_AMOUNT) {
+    if (!this.receiverId) {
+      this.notificationService.showError('Veuillez sélectionner un destinataire');
+      return;
+    }
+    
+    if (this.amount < this.MIN_AMOUNT) {
       this.notificationService.showError(`Montant minimum: ${this.formatAmount(this.MIN_AMOUNT)} Ar`);
       return;
     }
@@ -177,6 +192,7 @@ export class SendMoneyComponent implements OnInit {
     this.step = 'confirm';
   }
 
+  // ✅ Confirmation d'envoi
   confirmSend() {
     this.isSubmitting = true;
     
@@ -192,7 +208,9 @@ export class SendMoneyComponent implements OnInit {
         this.showSuccess = true;
         
         setTimeout(() => {
-          this.router.navigate(['/wallet']);
+          this.router.navigate(['/user/wallet']).catch(() => {
+            this.router.navigate(['/wallet']);
+          });
         }, 3000);
       },
       error: (err: any) => {
@@ -204,26 +222,22 @@ export class SendMoneyComponent implements OnInit {
     });
   }
 
-  onPinInput(event: any, index: number) {
-    const input = event.target;
-    const value = input.value;
-    
-    if (value.length === 1 && index < 3) {
-      const nextInput = input.nextElementSibling;
-      if (nextInput) nextInput.focus();
-    }
-  }
-
+  // ✅ Bouton "Retour" - fonctionne
   goBack() {
     if (this.step === 'confirm') {
       this.step = 'form';
     } else if (this.step === 'success') {
-      this.router.navigate(['/wallet']);
+      this.router.navigate(['/user/wallet']).catch(() => {
+        this.router.navigate(['/wallet']);
+      });
     } else {
-      this.router.navigate(['/wallet']);
+      this.router.navigate(['/user/wallet']).catch(() => {
+        this.router.navigate(['/wallet']);
+      });
     }
   }
 
+  // ✅ Bouton "Réinitialiser" - fonctionne
   reset() {
     this.receiverId = '';
     this.receiverName = '';
@@ -232,14 +246,22 @@ export class SendMoneyComponent implements OnInit {
     this.pin = ['', '', '', ''];
     this.step = 'form';
     this.searchQuery = '';
+    this.showSuccess = false;
+    this.transactionId = '';
   }
 
+  // ✅ Boutons de montants prédéfinis
+  selectAmount(amount: number) {
+    this.amount = amount;
+  }
+
+  // ✅ Utilitaires
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG').format(amount);
   }
 
   get remainingBalance(): number {
-    return this.balance - this.amount;
+    return this.balance - (this.amount || 0);
   }
 
   isBalanceSufficient(): boolean {
@@ -255,7 +277,6 @@ export class SendMoneyComponent implements OnInit {
     return 'arrow_upward';
   }
   
-  // Formater avec suffixe (K, M)
   formatAmountWithSuffix(amount: number): string {
     if (amount >= 1000000) {
       return (amount / 1000000).toFixed(1) + ' M';
@@ -266,14 +287,12 @@ export class SendMoneyComponent implements OnInit {
     return amount.toString();
   }
   
-  // Vérifier si le montant est valide
   isAmountValid(): boolean {
     return this.amount >= this.MIN_AMOUNT && 
            this.amount <= this.MAX_AMOUNT && 
            this.amount <= this.balance;
   }
   
-  // Obtenir le message d'erreur du montant
   getAmountErrorMessage(): string {
     if (this.amount < this.MIN_AMOUNT) {
       return `Minimum: ${this.formatAmount(this.MIN_AMOUNT)} Ar`;
@@ -285,5 +304,15 @@ export class SendMoneyComponent implements OnInit {
       return 'Solde insuffisant';
     }
     return '';
+  }
+
+  onPinInput(event: any, index: number) {
+    const input = event.target;
+    const value = input.value;
+    
+    if (value.length === 1 && index < 3) {
+      const nextInput = input.nextElementSibling;
+      if (nextInput) nextInput.focus();
+    }
   }
 }

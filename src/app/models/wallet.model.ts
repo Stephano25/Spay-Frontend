@@ -1,4 +1,4 @@
-// src/app/models/wallet.model.ts - Version simplifiée
+// src/app/models/wallet.model.ts
 export interface Wallet {
   id: string;
   userId: string;
@@ -12,7 +12,25 @@ export interface Wallet {
   updatedAt: Date;
 }
 
-// Ne pas redéfinir WalletStats ici - utiliser celui du service
+export interface WalletStats {
+  balance: number;
+  totalBalance: number;
+  totalReceived: number;
+  totalSent: number;
+  totalDeposits: number;
+  totalWithdrawals: number;
+  totalTransactions: number;
+  totalFees: number;
+  pendingBalance: number;
+  currency: string;
+  dailyLimit: number;
+  monthlyLimit: number;
+  todaySpent: number;
+  monthSpent: number;
+  remainingDailyLimit: number;
+  remainingMonthlyLimit: number;
+  recentTransactions: any[];
+}
 
 export interface Transaction {
   id: string;
@@ -48,22 +66,6 @@ export interface Transaction {
   };
 }
 
-export interface WalletStats {
-  totalBalance: number;
-  totalTransactions: number;
-  totalDeposits: number;
-  totalWithdrawals: number;
-  totalTransfers: number;
-  monthlyStats: {
-    month: string;
-    deposits: number;
-    withdrawals: number;
-    transfers: number;
-    total: number;
-  }[];
-  recentTransactions: Transaction[];
-}
-
 export interface SendMoneyRequest {
   receiverId: string;
   amount: number;
@@ -88,4 +90,5 @@ export interface ScanPayRequest {
 export interface QRCodeResponse {
   qrCode: string;
   expiresAt: Date;
+  data: any;
 }
