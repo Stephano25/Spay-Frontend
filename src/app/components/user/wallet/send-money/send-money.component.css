@@ -7,6 +7,7 @@
   background: var(--bg);
   position: relative;
   overflow-x: hidden;
+  transition: background var(--trans-base);
 }
 
 /* ── Header ── */
@@ -18,33 +19,45 @@
   background: var(--surface);
   border-bottom: 0.5px solid var(--border);
   position: sticky;
-  top: 0; z-index: 100;
+  top: 0;
+  z-index: 100;
   box-shadow: var(--shadow-xs);
   animation: fadeDown 0.4s var(--ease) both;
   min-height: 64px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background var(--trans-base), border-color var(--trans-base), box-shadow var(--trans-base);
 }
 
 .header.success-header {
   background: linear-gradient(135deg, #10b981, #059669);
   border-bottom: none;
-  box-shadow: 0 4px 20px rgba(16,185,129,0.3);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+  backdrop-filter: none;
 }
 
+/* ── Back button ── */
 .back-btn {
-  width: 38px; height: 38px;
-  border-radius: 50%; border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
   background: var(--surface-2);
   color: var(--text-2);
   cursor: pointer;
   transition: all var(--trans-base);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   outline: none;
+  flex-shrink: 0;
 }
 
-.success-header .back-btn { background: rgba(255,255,255,0.2); color: white; }
-.back-btn:hover { background: var(--active); color: var(--brand-1); transform: translateX(-3px); }
-.success-header .back-btn:hover { background: rgba(255,255,255,0.3); color: white; transform: translateX(-3px); }
+.success-header .back-btn       { background: rgba(255, 255, 255, 0.2); color: white; }
+.back-btn:hover                  { background: var(--active); color: var(--brand-1); transform: translateX(-3px); }
+.success-header .back-btn:hover  { background: rgba(255, 255, 255, 0.3); color: white; transform: translateX(-3px); }
 
+/* ── Header title ── */
 .header-title { text-align: center; flex: 1; }
 
 .page-title {
@@ -59,18 +72,29 @@
   letter-spacing: -0.01em;
 }
 
-.success-title { background: none; -webkit-text-fill-color: white; color: white; }
-
-.step-indicator {
-  display: flex; align-items: center; gap: 8px;
-  margin-top: 4px; font-size: 0.72rem; color: var(--text-3);
-  justify-content: center;
+.success-title {
+  background: none;
+  -webkit-text-fill-color: white;
+  color: white;
 }
 
-.step.active { color: var(--brand-1); font-weight: 600; }
-.success-header .step, .success-header .step.active { color: rgba(255,255,255,0.85); }
-.step-separator { opacity: 0.4; }
-.header-spacer { width: 38px; }
+/* ── Step indicator ── */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  justify-content: center;
+  transition: color var(--trans-base);
+}
+
+.step.active                                { color: var(--brand-1); font-weight: 600; }
+.success-header .step,
+.success-header .step.active                { color: rgba(255, 255, 255, 0.85); }
+.step-separator                             { opacity: 0.4; }
+.header-spacer                              { width: 38px; flex-shrink: 0; }
 
 /* ── Content ── */
 .content {
@@ -86,32 +110,49 @@
   min-height: calc(100vh - 80px);
 }
 
-/* ── Balance Card ── */
+/* ── Balance card (dark by design) ── */
 .balance-card {
   background: #0f0e1a;
   border-radius: var(--r-xl);
   margin-bottom: 18px;
-  position: relative; overflow: hidden;
+  position: relative;
+  overflow: hidden;
   animation: fadeUp 0.4s var(--ease) both;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.2);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
 }
 
-body.dark-theme .balance-card { background: #0c0c18; }
+/* Light theme: slightly lighter dark card so it doesn't disappear */
+body.light-theme .balance-card { background: #1a1830; }
+body.dark-theme  .balance-card { background: #0c0c18; }
 
 .balance-card mat-card-content {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 22px !important;
-  position: relative; z-index: 2;
+  position: relative;
+  z-index: 2;
 }
 
-.balance-info { display: flex; flex-direction: column; gap: 6px; }
-.balance-label { font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.38); }
+.balance-info   { display: flex; flex-direction: column; gap: 6px; }
+.balance-label  { font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255, 255, 255, 0.38); }
 .balance-amount { font-family: var(--font-mono); font-size: 1.875rem; font-weight: 700; color: white; letter-spacing: -0.02em; }
-.balance-icon { width: 52px; height: 52px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: float 4s ease-in-out infinite; }
-.balance-icon mat-icon { font-size: 1.75rem !important; width: 1.75rem !important; height: 1.75rem !important; color: rgba(255,255,255,0.7) !important; }
-.balance-wave { position: absolute; inset: 0; background: radial-gradient(circle at 25% 50%, rgba(99,102,241,0.12) 0%, transparent 55%); pointer-events: none; }
 
-/* ── Form Card ── */
+.balance-icon {
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: float 4s ease-in-out infinite;
+}
+
+.balance-icon mat-icon { font-size: 1.75rem !important; width: 1.75rem !important; height: 1.75rem !important; color: rgba(255, 255, 255, 0.7) !important; }
+.balance-wave { position: absolute; inset: 0; background: radial-gradient(circle at 25% 50%, rgba(99, 102, 241, 0.12) 0%, transparent 55%); pointer-events: none; }
+
+/* ── Form card ── */
 .form-card {
   border-radius: var(--r-xl) !important;
   padding: 4px !important;
@@ -119,6 +160,7 @@ body.dark-theme .balance-card { background: #0c0c18; }
   background: var(--surface) !important;
   border: 0.5px solid var(--border) !important;
   box-shadow: var(--shadow-md) !important;
+  transition: background var(--trans-base), border-color var(--trans-base) !important;
 }
 
 .full-width { width: 100%; margin-bottom: 14px; }
@@ -126,25 +168,32 @@ body.dark-theme .balance-card { background: #0c0c18; }
 /* ── Friend autocomplete ── */
 .friend-option { height: auto !important; padding: 6px 10px !important; }
 
-.friend-option-content {
-  display: flex; align-items: center; gap: 12px; width: 100%;
-}
+.friend-option-content { display: flex; align-items: center; gap: 12px; width: 100%; }
 
 .friend-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: white; font-weight: 700; font-size: 13px; flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
-.friend-details { flex: 1; }
-.friend-name { font-weight: 600; font-size: 0.875rem; color: var(--text); margin-bottom: 1px; }
-.friend-email { font-size: 0.72rem; color: var(--text-3); }
+.friend-details  { flex: 1; min-width: 0; }
+.friend-name     { font-weight: 600; font-size: 0.875rem; color: var(--text); margin-bottom: 1px; }
+.friend-email    { font-size: 0.72rem; color: var(--text-3); }
 
 /* ── Selected friend chip ── */
 .selected-friend { margin: 8px 0 14px; }
 
 .friend-chip {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 6px 12px 6px 6px;
   background: var(--brand-grad);
   border-radius: var(--r-pill);
@@ -153,23 +202,35 @@ body.dark-theme .balance-card { background: #0c0c18; }
 }
 
 .friend-chip-avatar {
-  width: 28px; height: 28px;
-  background: rgba(255,255,255,0.2);
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
 }
 
 .friend-chip-name { font-size: 0.8125rem; font-weight: 500; }
 
 .friend-chip-remove {
-  width: 20px; height: 20px;
-  border: none; background: rgba(255,255,255,0.2); border-radius: 50%;
-  color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: background var(--trans-base); outline: none;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--trans-base);
+  outline: none;
 }
 
-.friend-chip-remove:hover { background: rgba(255,255,255,0.35); }
+.friend-chip-remove:hover { background: rgba(255, 255, 255, 0.35); }
 .friend-chip-remove mat-icon { font-size: 13px !important; width: 13px !important; height: 13px !important; }
 
 /* ── Quick amounts ── */
@@ -192,13 +253,17 @@ body.dark-theme .balance-card { background: #0c0c18; }
   transition: all var(--trans-base);
   font-family: var(--font-body);
   outline: none;
-  position: relative; overflow: hidden;
+  position: relative;
+  overflow: hidden;
 }
 
 .quick-amount-btn::before {
   content: '';
-  position: absolute; top: 50%; left: 50%;
-  width: 0; height: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
   border-radius: 50%;
   background: var(--brand-grad);
   transform: translate(-50%, -50%);
@@ -207,17 +272,19 @@ body.dark-theme .balance-card { background: #0c0c18; }
 }
 
 .quick-amount-btn:hover::before { width: 160px; height: 160px; }
-.quick-amount-btn:hover { border-color: var(--brand-1); color: var(--brand-1); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.quick-amount-btn:hover  { border-color: var(--brand-1); color: var(--brand-1); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
 .quick-amount-btn.active { background: var(--brand-grad); border-color: transparent; color: white; box-shadow: var(--shadow-brand); }
 
-/* ── Progress bar ── */
+/* ── Amount progress bar ── */
 .amount-progress { margin: 8px 0 16px; }
 
 .progress-bar {
-  width: 100%; height: 6px;
+  width: 100%;
+  height: 6px;
   background: var(--surface-3);
   border-radius: var(--r-pill);
   overflow: hidden;
+  transition: background var(--trans-base);
 }
 
 .progress-fill {
@@ -225,13 +292,15 @@ body.dark-theme .balance-card { background: #0c0c18; }
   background: var(--brand-grad);
   border-radius: var(--r-pill);
   transition: width 0.45s var(--ease);
-  position: relative; overflow: hidden;
+  position: relative;
+  overflow: hidden;
 }
 
 .progress-fill::after {
   content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   animation: shimmer 1.8s infinite;
 }
 
@@ -239,37 +308,58 @@ body.dark-theme .balance-card { background: #0c0c18; }
 
 /* ── Quick summary ── */
 .quick-summary { margin-top: 12px; }
-.summary-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; color: var(--text-3); font-size: 0.875rem; }
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  color: var(--text-3);
+  font-size: 0.875rem;
+  transition: color var(--trans-base);
+}
+
 .summary-highlight { color: var(--brand-1); font-weight: 600; font-size: 0.9375rem; }
 
-/* ── Submit Button ── */
+/* ── Submit button ── */
 .submit-btn {
-  width: 100%; padding: 14px; border: none;
+  width: 100%;
+  padding: 14px;
+  border: none;
   border-radius: var(--r-pill);
   background: var(--brand-grad);
-  color: white; font-weight: 600; font-size: 0.9375rem;
-  cursor: pointer; transition: all var(--trans-base);
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  position: relative; overflow: hidden;
-  font-family: var(--font-body); outline: none;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all var(--trans-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-body);
+  outline: none;
   margin-top: 6px;
 }
 
 .btn-shine {
-  position: absolute; inset: 0;
-  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%);
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
   transform: translateX(-100%);
   transition: transform 0.5s var(--ease);
 }
 
-.submit-btn:hover .btn-shine { transform: translateX(100%); }
-.submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-brand); }
-.submit-btn:disabled { opacity: 0.52; cursor: not-allowed; }
+.submit-btn:hover .btn-shine         { transform: translateX(100%); }
+.submit-btn:hover:not(:disabled)     { transform: translateY(-2px); box-shadow: var(--shadow-brand); }
+.submit-btn:disabled                 { opacity: 0.52; cursor: not-allowed; }
 
 .btn-icon { transition: transform var(--trans-base); }
 .submit-btn:hover:not(:disabled) .btn-icon { transform: translateX(4px); }
 
-/* ── Confirm Card ── */
+/* ── Confirm card ── */
 .confirm-card {
   border-radius: var(--r-xl) !important;
   padding: 10px !important;
@@ -277,29 +367,45 @@ body.dark-theme .balance-card { background: #0c0c18; }
   background: var(--surface) !important;
   border: 0.5px solid var(--border) !important;
   box-shadow: var(--shadow-xl) !important;
+  transition: background var(--trans-base), border-color var(--trans-base) !important;
 }
 
+/* ── Confirm header ── */
 .confirm-header { text-align: center; margin-bottom: 24px; }
 
 .check-icon-container { position: relative; width: 72px; height: 72px; margin: 0 auto 14px; }
-.check-icon { font-size: 4.5rem !important; width: 4.5rem !important; height: 4.5rem !important; color: var(--success) !important; position: relative; z-index: 2; animation: scaleIn 0.5s var(--ease-spring); }
+
+.check-icon {
+  font-size: 4.5rem !important;
+  width: 4.5rem !important;
+  height: 4.5rem !important;
+  color: var(--success) !important;
+  position: relative;
+  z-index: 2;
+  animation: scaleIn 0.5s var(--ease-spring);
+}
 
 .ripple {
-  position: absolute; top: 50%; left: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   background: var(--success);
   opacity: 0.15;
   animation: rippleOut 2s infinite;
 }
 
-.confirm-header h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 700; color: var(--text); margin: 0 0 6px; }
-.confirm-header p { color: var(--text-3); font-size: 0.875rem; margin: 0; }
+.confirm-header h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 700; color: var(--text); margin: 0 0 6px; transition: color var(--trans-base); }
+.confirm-header p  { color: var(--text-3); font-size: 0.875rem; margin: 0; }
 
 /* ── Detail cards ── */
 .detail-card {
-  display: flex; align-items: center; gap: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   padding: 12px 14px;
   background: var(--surface-2);
   border-radius: var(--r-md);
@@ -312,19 +418,24 @@ body.dark-theme .balance-card { background: #0c0c18; }
 .detail-card:hover { transform: translateX(4px); background: var(--surface); box-shadow: var(--shadow-sm); }
 
 .detail-icon {
-  width: 44px; height: 44px;
+  width: 44px;
+  height: 44px;
   background: var(--brand-grad);
   border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: white; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
 }
 
 .detail-icon mat-icon { font-size: 20px !important; width: 20px !important; height: 20px !important; }
-.detail-content { flex: 1; }
-.detail-label { display: block; font-size: 0.7rem; color: var(--text-4); margin-bottom: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.detail-value { display: block; font-weight: 600; color: var(--text); font-size: 0.9375rem; }
+
+.detail-content  { flex: 1; min-width: 0; }
+.detail-label    { display: block; font-size: 0.7rem; color: var(--text-4); margin-bottom: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.detail-value    { display: block; font-weight: 600; color: var(--text); font-size: 0.9375rem; transition: color var(--trans-base); }
 .detail-value.amount { color: var(--success); font-size: 1.125rem; font-family: var(--font-mono); }
-.detail-sub { display: block; font-size: 0.7rem; color: var(--text-3); margin-top: 2px; }
+.detail-sub      { display: block; font-size: 0.7rem; color: var(--text-3); margin-top: 2px; }
 
 /* ── Balance preview ── */
 .balance-preview {
@@ -333,25 +444,28 @@ body.dark-theme .balance-card { background: #0c0c18; }
   background: var(--surface-2);
   border-radius: var(--r-md);
   border: 0.5px solid var(--border);
+  transition: background var(--trans-base), border-color var(--trans-base);
 }
 
 .balance-row { display: flex; justify-content: space-between; padding: 6px 0; color: var(--text-3); font-size: 0.875rem; }
-.balance-row.total { font-weight: 600; color: var(--text); padding-top: 8px; margin-top: 4px; }
-.balance-row .amount { color: var(--danger); }
+.balance-row.total { font-weight: 600; color: var(--text); padding-top: 8px; margin-top: 4px; border-top: 0.5px solid var(--border); }
+.balance-row .amount       { color: var(--danger); }
 .balance-row .insufficient { color: var(--danger); font-weight: 700; }
 
-/* ── PIN ── */
+/* ── PIN inputs ── */
 .pin-section { margin: 20px 0; }
 .pin-section label { display: block; margin-bottom: 10px; color: var(--text-3); font-size: 0.8125rem; font-weight: 500; text-align: center; }
 
 .pin-inputs { display: flex; gap: 10px; justify-content: center; }
 
 .pin-input {
-  width: 48px; height: 56px;
+  width: 48px;
+  height: 56px;
   border: 1.5px solid var(--border-2);
   border-radius: var(--r-md);
   text-align: center;
-  font-size: 1.5rem; font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 700;
   background: var(--surface-2);
   color: var(--text);
   transition: all var(--trans-base);
@@ -359,105 +473,200 @@ body.dark-theme .balance-card { background: #0c0c18; }
   font-family: var(--font-mono);
 }
 
-.pin-input:focus { border-color: var(--brand-1); background: var(--surface); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); transform: scale(1.04); }
+.pin-input:focus { border-color: var(--brand-1); background: var(--surface); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12); transform: scale(1.04); }
 .pin-input.filled { border-color: var(--success); background: var(--success-bg); }
 
-/* ── Action buttons ── */
+/* ── Action buttons (confirm step) ── */
 mat-card-actions {
-  display: flex; gap: 12px;
+  display: flex;
+  gap: 12px;
   padding: 12px 0 0 !important;
 }
 
-.cancel-btn, .confirm-btn {
-  flex: 1; padding: 12px 16px; border: none;
+.cancel-btn,
+.confirm-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
   border-radius: var(--r-pill);
-  font-weight: 600; font-size: 0.9rem; cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
   transition: all var(--trans-base);
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  font-family: var(--font-body); outline: none;
-  position: relative; overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  outline: none;
+  position: relative;
+  overflow: hidden;
 }
 
-.cancel-btn { background: var(--surface-3); color: var(--text-2); border: 1px solid var(--border-2); }
+.cancel-btn {
+  background: var(--surface-3);
+  color: var(--text-2);
+  border: 1px solid var(--border-2);
+}
+
 .cancel-btn:hover:not(:disabled) { background: var(--surface-2); transform: translateY(-2px); }
 
 .confirm-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-.confirm-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16,185,129,0.3); }
-.confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.confirm-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); }
+.confirm-btn:disabled             { opacity: 0.5; cursor: not-allowed; }
 
-/* ── Success ── */
-.success-section { text-align: center; padding: 10px; animation: scaleIn 0.5s var(--ease-spring) both; }
+/* ── Success section ── */
+.success-section {
+  text-align: center;
+  padding: 10px;
+  animation: scaleIn 0.5s var(--ease-spring) both;
+}
+
 .success-animation { max-width: 380px; margin: 0 auto; }
-
 .success-checkmark { width: 76px; height: 76px; margin: 0 auto 24px; }
 
+/* SVG checkmark animation */
 .check-icon {
-  width: 76px; height: 76px;
+  width: 76px;
+  height: 76px;
   position: relative;
   border-radius: 50%;
   box-sizing: content-box;
   border: 3.5px solid var(--success);
 }
 
-.icon-line { height: 4px; background: var(--success); display: block; border-radius: 2px; position: absolute; z-index: 10; }
-.icon-line.line-tip { top: 44px; left: 13px; width: 23px; transform: rotate(45deg); animation: icon-line-tip 0.75s; }
+.icon-line           { height: 4px; background: var(--success); display: block; border-radius: 2px; position: absolute; z-index: 10; }
+.icon-line.line-tip  { top: 44px; left: 13px; width: 23px; transform: rotate(45deg); animation: icon-line-tip 0.75s; }
 .icon-line.line-long { top: 36px; right: 8px; width: 44px; transform: rotate(-45deg); animation: icon-line-long 0.75s; }
-.icon-circle { top: -4px; left: -4px; z-index: 10; width: 76px; height: 76px; border-radius: 50%; position: absolute; box-sizing: content-box; border: 4px solid rgba(16,185,129,0.4); }
-.icon-fix { top: 8px; width: 82px; left: 24px; z-index: 1; height: 82px; position: absolute; transform: rotate(-45deg); background: var(--surface); }
+.icon-circle         { top: -4px; left: -4px; z-index: 10; width: 76px; height: 76px; border-radius: 50%; position: absolute; box-sizing: content-box; border: 4px solid rgba(16, 185, 129, 0.4); }
+/* icon-fix uses current surface to mask icon stroke — must follow theme */
+.icon-fix            { top: 8px; width: 82px; left: 24px; z-index: 1; height: 82px; position: absolute; transform: rotate(-45deg); background: var(--surface); transition: background var(--trans-base); }
 
 @keyframes icon-line-tip {
-  0% { width: 0; left: 1px; top: 18px; }
-  54% { width: 0; left: 1px; top: 18px; }
-  70% { width: 48px; left: -8px; top: 35px; }
-  84% { width: 16px; left: 20px; top: 46px; }
+  0%   { width: 0; left: 1px; top: 18px; }
+  54%  { width: 0; left: 1px; top: 18px; }
+  70%  { width: 48px; left: -8px; top: 35px; }
+  84%  { width: 16px; left: 20px; top: 46px; }
   100% { width: 23px; left: 13px; top: 43px; }
 }
 
 @keyframes icon-line-long {
-  0% { width: 0; right: 44px; top: 52px; }
-  65% { width: 0; right: 44px; top: 52px; }
-  84% { width: 52px; right: 0; top: 33px; }
+  0%   { width: 0; right: 44px; top: 52px; }
+  65%  { width: 0; right: 44px; top: 52px; }
+  84%  { width: 52px; right: 0; top: 33px; }
   100% { width: 44px; right: 8px; top: 36px; }
 }
 
-.success-section h2 { font-family: var(--font-sans); font-size: 1.5rem; font-weight: 700; color: var(--text); margin: 0 0 10px; }
-.success-message { color: var(--text-3); font-size: 0.9375rem; margin: 0 0 20px; }
-.success-message strong { color: var(--success); font-size: 1.1rem; }
+.success-section h2      { font-family: var(--font-sans); font-size: 1.5rem; font-weight: 700; color: var(--text); margin: 0 0 10px; transition: color var(--trans-base); }
+.success-message         { color: var(--text-3); font-size: 0.9375rem; margin: 0 0 20px; }
+.success-message strong  { color: var(--success); font-size: 1.1rem; }
 
-.transaction-id { background: var(--surface-2); padding: 14px; border-radius: var(--r-md); margin: 16px 0 24px; border: 0.5px solid var(--border); }
-.transaction-id span { display: block; font-size: 0.75rem; color: var(--text-3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+/* ── Transaction ID box ── */
+.transaction-id {
+  background: var(--surface-2);
+  padding: 14px;
+  border-radius: var(--r-md);
+  margin: 16px 0 24px;
+  border: 0.5px solid var(--border);
+  transition: background var(--trans-base), border-color var(--trans-base);
+}
+
+.transaction-id span   { display: block; font-size: 0.75rem; color: var(--text-3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
 .transaction-id strong { font-family: var(--font-mono); font-size: 1rem; color: var(--brand-1); }
 
-.success-actions { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; }
-.success-actions .action-btn {
-  width: 46px; height: 46px; border: none; border-radius: 50%;
-  background: var(--brand-grad); color: white; cursor: pointer;
-  transition: all var(--trans-base);
-  display: flex; align-items: center; justify-content: center; outline: none;
+/* ── Success actions ── */
+.success-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
 }
+
+.success-actions .action-btn {
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: var(--brand-grad);
+  color: white;
+  cursor: pointer;
+  transition: all var(--trans-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
 .success-actions .action-btn:hover { transform: translateY(-3px) scale(1.08); box-shadow: var(--shadow-brand); }
 .success-actions .action-btn mat-icon { font-size: 20px !important; }
+
 .redirect-message { font-size: 0.8125rem; color: var(--text-4); animation: pulse 2s infinite; }
 
-/* ── Warning ── */
+/* ── Warning message ── */
 .warning-message {
-  display: flex; align-items: center; gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 12px 14px;
   background: var(--warning-bg);
   border-radius: var(--r-md);
   color: var(--warning);
-  border: 0.5px solid rgba(245,158,11,0.25);
-  font-size: 0.875rem; font-weight: 500;
+  border: 0.5px solid rgba(245, 158, 11, 0.25);
+  font-size: 0.875rem;
+  font-weight: 500;
   margin: 14px 0;
+  transition: background var(--trans-base);
 }
 
 .warning-message mat-icon { font-size: 20px !important; animation: pulse 2s infinite; }
 
+/* ── Animations ── */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.95); }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes rippleOut {
+  0%   { transform: translate(-50%, -50%) scale(0.8); opacity: 0.2; }
+  100% { transform: translate(-50%, -50%) scale(2);   opacity: 0; }
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
-  .header { padding: 12px 16px; }
-  .quick-amounts { grid-template-columns: repeat(2, 1fr); }
-  .pin-input { width: 42px; height: 50px; }
-  mat-card-actions { flex-direction: column; }
-  .cancel-btn, .confirm-btn { width: 100%; }
+  .header               { padding: 12px 16px; }
+  .quick-amounts        { grid-template-columns: repeat(2, 1fr); }
+  .pin-input            { width: 42px; height: 50px; }
+  mat-card-actions      { flex-direction: column; }
+  .cancel-btn,
+  .confirm-btn          { width: 100%; }
 }
