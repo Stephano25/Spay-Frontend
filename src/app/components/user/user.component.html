@@ -1,9 +1,9 @@
 <!-- ============================================================
-   USER DASHBOARD - SPaye (Version Corrigée)
+   USER DASHBOARD - SPaye
    ============================================================ -->
 
 <div class="user-dashboard">
-  <!-- En-tête avec informations utilisateur -->
+  <!-- En-tête -->
   <mat-card class="welcome-card">
     <mat-card-header>
       <div mat-card-avatar class="profile-avatar-container">
@@ -57,7 +57,7 @@
     </div>
   </div>
 
-  <!-- Statistiques rapides -->
+  <!-- Statistiques -->
   @if (stats && !isLoading) {
     <div class="stats-row">
       <div class="stat-card">
@@ -89,7 +89,7 @@
     <mat-card class="transactions-card">
       <mat-card-header>
         <mat-card-title>Dernières transactions</mat-card-title>
-        <button mat-button color="primary" (click)="navigateTo('/transactions')" class="view-all">
+        <button mat-button color="primary" (click)="navigateTo('/user/transactions')" class="view-all">
           Voir tout
           <mat-icon>arrow_forward</mat-icon>
         </button>
@@ -118,14 +118,14 @@
     </mat-card>
   }
 
-  <!-- Message si aucune transaction -->
+  <!-- Aucune transaction -->
   @if ((!stats || !stats.lastThreeTransactions || stats.lastThreeTransactions.length === 0) && !isLoading) {
     <mat-card class="empty-card">
       <mat-card-content>
         <mat-icon>receipt</mat-icon>
         <h3>Aucune transaction</h3>
         <p>Commencez à utiliser SPaye en effectuant votre première transaction</p>
-        <button mat-raised-button color="primary" (click)="navigateTo('/scan-pay')">
+        <button mat-raised-button color="primary" (click)="navigateTo('/user/scan-pay')">
           <mat-icon>qr_code_scanner</mat-icon>
           Scanner un QR code
         </button>
@@ -133,7 +133,7 @@
     </mat-card>
   }
 
-  <!-- Bouton de rafraîchissement -->
+  <!-- Rafraîchissement -->
   @if (!isLoading) {
     <div class="refresh-container">
       <button mat-icon-button (click)="refreshData()" matTooltip="Actualiser">
@@ -142,7 +142,7 @@
     </div>
   }
 
-  <!-- Bouton de déconnexion -->
+  <!-- Déconnexion -->
   <div class="logout-container">
     <button mat-raised-button color="warn" (click)="logout()" class="logout-btn">
       <mat-icon>exit_to_app</mat-icon>

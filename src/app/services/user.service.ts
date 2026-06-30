@@ -1,4 +1,6 @@
-// src/app/services/user.service.ts
+// ============================================================
+// USER SERVICE - SPaye
+// ============================================================
 
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
@@ -40,25 +42,17 @@ export class UserService {
 
   constructor() {}
 
-  /**
-   * Récupérer les paramètres de l'utilisateur
-   */
+  // ============================================================
+  // PARAMÈTRES UTILISATEUR
+  // ============================================================
+
   getUserSettings(): Observable<UserSettings> {
     const defaultSettings: UserSettings = {
-      general: {
-        autoplayVideos: true,
-        nsfwFilter: true
-      },
+      general: { autoplayVideos: true, nsfwFilter: true },
       notifications: {
-        email: true,
-        push: true,
-        sms: false,
-        friendRequests: true,
-        comments: true,
-        likes: true,
-        messages: true,
-        mentions: true,
-        groupActivities: true,
+        email: true, push: true, sms: false,
+        friendRequests: true, comments: true, likes: true,
+        messages: true, mentions: true, groupActivities: true,
         dailyDigest: 'daily'
       },
       privacy: {
@@ -69,53 +63,33 @@ export class UserService {
         allowFriendRequests: true,
         allowMessagesFromNonFriends: false
       },
-      security: {
-        twoFactorAuth: false,
-        sessionTimeout: 30,
-        loginAlerts: true
-      },
-      appearance: {
-        theme: 'light',
-        fontSize: 'medium',
-        language: 'fr',
-        compactMode: false
-      }
+      security: { twoFactorAuth: false, sessionTimeout: 30, loginAlerts: true },
+      appearance: { theme: 'light', fontSize: 'medium', language: 'fr', compactMode: false }
     };
 
     const savedSettings = localStorage.getItem('user_settings');
     if (savedSettings) {
       try {
-        const parsed = JSON.parse(savedSettings);
-        return of(parsed);
+        return of(JSON.parse(savedSettings));
       } catch (e) {
         console.error('Erreur parsing settings:', e);
       }
     }
-
     return of(defaultSettings);
   }
 
-  /**
-   * Sauvegarder les paramètres
-   */
   updateUserSettings(settings: UserSettings): Observable<any> {
     localStorage.setItem('user_settings', JSON.stringify(settings));
     return of({ success: true });
   }
 
-  /**
-   * Supprimer le compte utilisateur
-   */
   deleteAccount(password: string): Observable<any> {
-    return new Observable(observer => {
-      setTimeout(() => {
-        observer.next({ success: true });
-        observer.complete();
-      }, 500);
-    });
+    return of({ success: true });
   }
 
-  // ============ MÉTHODES POUR LES AMIS ============
+  // ============================================================
+  // AMIS
+  // ============================================================
 
   getFriendsCount(): Observable<number> {
     return of(42);
@@ -126,33 +100,23 @@ export class UserService {
   }
 
   getFriendsList(): Observable<Friend[]> {
-    const friends: Friend[] = [
+    return of([
       { id: '1', name: 'Jean Dupont', mutualFriends: 5 },
       { id: '2', name: 'Marie Martin', mutualFriends: 3 },
       { id: '3', name: 'Pierre Durand', mutualFriends: 8 }
-    ];
-    return of(friends);
+    ]);
   }
 
   getCloseFriends(): Observable<Friend[]> {
-    const closeFriends: Friend[] = [
-      { id: '1', name: 'Jean Dupont', mutualFriends: 5 }
-    ];
-    return of(closeFriends);
+    return of([{ id: '1', name: 'Jean Dupont', mutualFriends: 5 }]);
   }
 
   getAcquaintances(): Observable<Friend[]> {
-    const acquaintances: Friend[] = [
-      { id: '3', name: 'Pierre Durand', mutualFriends: 8 }
-    ];
-    return of(acquaintances);
+    return of([{ id: '3', name: 'Pierre Durand', mutualFriends: 8 }]);
   }
 
   getPendingFriendRequests(): Observable<FriendRequest[]> {
-    const requests: FriendRequest[] = [
-      { id: '4', name: 'Sophie Bernard', date: new Date() }
-    ];
-    return of(requests);
+    return of([{ id: '4', name: 'Sophie Bernard', date: new Date() }]);
   }
 
   getBlockedUsers(): Observable<BlockedUser[]> {
@@ -160,19 +124,17 @@ export class UserService {
   }
 
   getFriendSuggestions(): Observable<Friend[]> {
-    const suggestions: Friend[] = [
+    return of([
       { id: '5', name: 'Thomas Petit', mutualFriends: 2 },
       { id: '6', name: 'Julie Robert', mutualFriends: 4 }
-    ];
-    return of(suggestions);
+    ]);
   }
 
   getActiveDevices(): Observable<Device[]> {
-    const devices: Device[] = [
+    return of([
       { id: '1', name: 'Chrome sur Windows', location: 'Paris, France', lastActive: new Date() },
       { id: '2', name: 'Firefox sur Mac', location: 'Lyon, France', lastActive: new Date(Date.now() - 86400000) }
-    ];
-    return of(devices);
+    ]);
   }
 
   acceptFriendRequest(requestId: string): Observable<any> {
@@ -207,11 +169,12 @@ export class UserService {
     return of({ success: true });
   }
 
-  // ============ GESTION DU PROFIL ============
+  // ============================================================
+  // PROFIL
+  // ============================================================
 
   uploadProfilePhoto(file: File): Observable<string> {
-    const fakeUrl = URL.createObjectURL(file);
-    return of(fakeUrl);
+    return of(URL.createObjectURL(file));
   }
 
   removeProfilePhoto(): Observable<any> {
@@ -232,8 +195,7 @@ export class UserService {
 
   downloadUserData(): Observable<Blob> {
     const data = { user: {}, settings: {} };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    return of(blob);
+    return of(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
   }
 
   reportUser(userId: string, reason: string): Observable<any> {

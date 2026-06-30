@@ -12,7 +12,6 @@ let BASE_URL = 'http://localhost:3000';
 
 // 🔧 Sélection automatique pour le développement
 if (isWeb) {
-  // Si on est sur un réseau local (mobile)
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     BASE_URL = `${window.location.protocol}//${window.location.hostname}:3000`;
   } else {

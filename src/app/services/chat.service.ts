@@ -1,4 +1,7 @@
-// src/app/services/chat.service.ts
+// ============================================================
+// CHAT SERVICE - SPaye
+// ============================================================
+
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
@@ -81,6 +84,7 @@ export class ChatService implements OnDestroy {
 
   private processedMessageIds = new Set<string>();
   private authSubscription: Subscription;
+  private isConnecting = false;
 
   constructor(
     private http: HttpClient,
@@ -88,10 +92,10 @@ export class ChatService implements OnDestroy {
     private notificationService: NotificationService
   ) {
     this.authSubscription = this.authService.currentUser.subscribe(user => {
-      if (user) {
+      if (user && !this.isConnecting) {
         this.connectSocket();
         this.requestNotificationPermission();
-      } else {
+      } else if (!user) {
         this.disconnect();
       }
     });
@@ -99,8 +103,14 @@ export class ChatService implements OnDestroy {
 
   private connectSocket(): void {
     const token = this.authService.getToken();
-    if (!token) return;
-    if (this.socket?.connected) return;
+    if (!token || this.isConnecting) return;
+    
+    if (this.socket?.connected) {
+      console.log('✅ Socket déjà connecté');
+      return;
+    }
+
+    this.isConnecting = true;
 
     if (this.socket) {
       this.socket.disconnect();
@@ -111,27 +121,29 @@ export class ChatService implements OnDestroy {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
       timeout: 20000,
-      forceNew: true,
+      forceNew: false,
       withCredentials: false,
       extraHeaders: { Authorization: `Bearer ${token}` }
     });
 
     this.socket.on('connect', () => {
       console.log('✅ Socket connecté:', this.socket?.id);
+      this.isConnecting = false;
       this.socket?.emit('getOnlineUsers');
     });
 
     this.socket.on('disconnect', (reason) => {
       console.log('❌ Socket déconnecté:', reason);
-      if (reason === 'io server disconnect') this.socket?.connect();
+      this.isConnecting = false;
     });
 
     this.socket.on('connect_error', (err) => {
       console.error('❌ Erreur socket:', err.message);
+      this.isConnecting = false;
     });
 
     this.socket.on('reconnect_attempt', () => {
@@ -149,11 +161,7 @@ export class ChatService implements OnDestroy {
     });
 
     this.socket.on('userTyping', (data) => this.typingSubject.next(data));
-
-    this.socket.on('userOnline', (data) => {
-      console.log('📡 userOnline:', data);
-      this.onlineStatusSubject.next(data);
-    });
+    this.socket.on('userOnline', (data) => this.onlineStatusSubject.next(data));
 
     this.socket.on('onlineUsers', (users: string[]) => {
       const myId = this.authService.getCurrentUser()?.id;
@@ -168,24 +176,17 @@ export class ChatService implements OnDestroy {
     this.socket.on('messageDeleted', (data: { messageId: string }) => this.messageDeletedSubject.next(data));
     this.socket.on('messageReaction', (msg: Message) => this.messageReactionSubject.next(msg));
     this.socket.on('messageBlocked', (data) => this.messageBlockedSubject.next(data));
-
-    this.socket.on('incomingCall', (data: { from: string; type: 'audio' | 'video' }) => {
-      console.log('📞 Appel entrant:', data);
-      this.incomingCallSubject.next(data);
-    });
-
-    this.socket.on('callAnswered', (data: { by: string; accepted: boolean }) => {
-      console.log('📞 Appel répondu:', data);
-      this.callAnsweredSubject.next(data);
-    });
-
-    this.socket.on('error', (err) => {
-      console.error('❌ Erreur socket:', err);
-    });
+    this.socket.on('incomingCall', (data) => this.incomingCallSubject.next(data));
+    this.socket.on('callAnswered', (data) => this.callAnsweredSubject.next(data));
+    this.socket.on('error', (err) => console.error('❌ Erreur socket:', err));
   }
 
   disconnect(): void {
-    if (this.socket) { this.socket.disconnect(); this.socket = null; }
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+    this.isConnecting = false;
   }
 
   // ── REST API ──
@@ -205,7 +206,9 @@ export class ChatService implements OnDestroy {
   sendMessage(message: any): void {
     if (!this.socket?.connected) {
       this.connectSocket();
-      setTimeout(() => { if (this.socket?.connected) this.socket.emit('sendMessage', message); }, 1000);
+      setTimeout(() => {
+        if (this.socket?.connected) this.socket.emit('sendMessage', message);
+      }, 1500);
       return;
     }
     this.socket.emit('sendMessage', message);

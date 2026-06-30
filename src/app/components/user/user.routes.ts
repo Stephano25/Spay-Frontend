@@ -1,10 +1,14 @@
-// src/app/components/user/user.routes.ts
+// ============================================================
+// USER ROUTES - SPaye
+// ============================================================
+
 import { Routes } from '@angular/router';
 
 export const USER_ROUTES: Routes = [
+  // Redirection par défaut vers dashboard
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
-  // Tableau de bord
+  // Dashboard
   {
     path: 'dashboard',
     loadComponent: () => import('./user.component').then(m => m.UserComponent)
@@ -41,8 +45,6 @@ export const USER_ROUTES: Routes = [
     path: 'transactions',
     loadComponent: () => import('../transactions/transactions.component').then(m => m.TransactionsComponent)
   },
-  // La route avec paramètre 'id' a été supprimée car le composant n'existe pas
-  // Si vous voulez garder les détails d'une transaction, créez le composant correspondant
 
   // Profil
   {
@@ -66,17 +68,12 @@ export const USER_ROUTES: Routes = [
     loadComponent: () => import('../scan-pay/scan-pay.component').then(m => m.ScanPayComponent)
   },
 
-  // Scanner un ami (QR code) – composant manquant, commenté temporairement
-  //{
-  //   path: 'scan-friend',
-  //   loadComponent: () => import('../scan-friend/scan-friend.component').then(m => m.ScanFriendComponent)
-  // },
-
-  // Paramètres utilisateur
+  // Paramètres
   {
     path: 'settings',
     loadComponent: () => import('./settings/settings.component').then(m => m.UserSettingsComponent)
   },
 
+  // Redirection 404
   { path: '**', redirectTo: 'dashboard' }
 ];

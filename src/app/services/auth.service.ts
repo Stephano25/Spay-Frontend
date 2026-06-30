@@ -1,4 +1,7 @@
-// src/app/services/auth.service.ts
+// ============================================================
+// AUTH SERVICE - SPaye (Frontend)
+// ============================================================
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -29,26 +32,35 @@ export class AuthService {
       try {
         const user = JSON.parse(savedUser) as User;
         this.currentUserSubject.next(user);
+        console.log('👤 Utilisateur chargé depuis localStorage:', user.email, 'Rôle:', user.role);
       } catch {
+        console.log('❌ Erreur chargement utilisateur');
         this.logout();
       }
     }
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
+    console.log('🔐 Tentative de connexion:', email);
+    
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         const token = response.access_token || response.token;
         if (!token) throw new Error('Token manquant');
+        
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
         
-        // ✅ REDIRECTION CORRECTE SELON LE RÔLE
+        console.log('✅ Connexion réussie:', response.user.email, 'Rôle:', response.user.role);
+        
+        // ✅ Redirection selon le rôle
         const user = response.user;
         if (user.role === 'admin' || user.role === 'super_admin') {
+          console.log('🔀 Redirection vers /admin/dashboard');
           this.router.navigate(['/admin/dashboard']);
         } else {
+          console.log('🔀 Redirection vers /user/dashboard');
           this.router.navigate(['/user/dashboard']);
         }
         
@@ -56,6 +68,7 @@ export class AuthService {
       }),
       catchError(error => {
         const message = error.error?.message || 'Erreur de connexion';
+        console.error('❌ Erreur de connexion:', message);
         this.notificationService.showError(message);
         return throwError(() => error);
       })
@@ -67,11 +80,11 @@ export class AuthService {
       tap(response => {
         const token = response.access_token || response.token;
         if (!token) throw new Error('Token manquant');
+        
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
         
-        // ✅ REDIRECTION CORRECTE
         const user = response.user;
         if (user.role === 'admin' || user.role === 'super_admin') {
           this.router.navigate(['/admin/dashboard']);
@@ -161,7 +174,9 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    console.log('🔑 Token présent:', !!token);
+    return !!token;
   }
 
   getCurrentUser(): User | null {
