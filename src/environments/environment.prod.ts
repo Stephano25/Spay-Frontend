@@ -6,9 +6,9 @@ export const environment = {
   production: true,
 
   // ── URLs via Nginx Proxy ──
-  apiUrl: '/api',        // Proxy Nginx vers le backend
-  socketUrl: '',         // Proxy Nginx (Socket.IO)
-  baseUrl: '',           // Proxy Nginx
+  apiUrl: '/api',
+  socketUrl: '',
+  baseUrl: '',
 
   // ── Flags ──
   isWeb: true,

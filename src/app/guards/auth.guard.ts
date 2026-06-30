@@ -18,12 +18,10 @@ export class AuthGuard implements CanActivate {
   canActivate(): boolean | UrlTree {
     console.log('🔒 AuthGuard - Vérification de l\'authentification');
     
-    // Vérifier si l'utilisateur est authentifié
     if (this.authService.isAuthenticated()) {
       const user = this.authService.getCurrentUser();
       console.log('👤 Utilisateur connecté:', user?.email, 'Rôle:', user?.role);
       
-      // Si c'est un admin, rediriger vers /admin
       if (user?.role === 'admin' || user?.role === 'super_admin') {
         console.log('🔀 Redirection vers admin dashboard');
         return this.router.parseUrl('/admin/dashboard');

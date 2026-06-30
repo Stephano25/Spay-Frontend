@@ -7,11 +7,12 @@ const isWeb = typeof window !== 'undefined' && typeof window.document !== 'undef
 const isReactNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
 const isCapacitor = typeof (window as any)?.Capacitor !== 'undefined';
 
-// 🌐 URL de base
+// 🌐 URL de base - Par défaut localhost
 let BASE_URL = 'http://localhost:3000';
 
 // 🔧 Sélection automatique pour le développement
 if (isWeb) {
+  // Si on est sur un réseau local (mobile)
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     BASE_URL = `${window.location.protocol}//${window.location.hostname}:3000`;
   } else {

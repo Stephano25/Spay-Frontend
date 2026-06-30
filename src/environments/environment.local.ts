@@ -1,9 +1,9 @@
 // ============================================================
-// SPaye - Angular Environment (Mobile - React Native)
+// SPaye - Angular Environment (Local Network)
 // ============================================================
 
-// 🌐 IP locale de votre machine (backend)
-// ⚠️ Remplacez par l'IP de votre machine
+// 🌐 IP locale du serveur backend
+// ⚠️ Remplacez par votre IP locale
 // Pour trouver votre IP : ipconfig (Windows) ou ifconfig (Mac/Linux)
 const LOCAL_IP = '192.168.1.100'; // ← À MODIFIER AVEC VOTRE IP
 
@@ -12,17 +12,10 @@ export const environment = {
   apiUrl: `http://${LOCAL_IP}:3000/api`,
   socketUrl: `http://${LOCAL_IP}:3000`,
   baseUrl: `http://${LOCAL_IP}:3000`,
-  isWeb: false,
-  isReactNative: true,
+  isWeb: true,
+  isReactNative: false,
   isCapacitor: false,
-  version: '1.0.0-mobile',
-};
-
-// Fonction pour mettre à jour l'URL dynamiquement
-export const updateApiBaseUrl = (newBaseUrl: string): void => {
-  (environment as any).apiUrl = `${newBaseUrl}/api`;
-  (environment as any).socketUrl = newBaseUrl;
-  (environment as any).baseUrl = newBaseUrl;
+  version: '1.0.0-local',
 };
 
 export default environment;

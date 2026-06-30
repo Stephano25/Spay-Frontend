@@ -52,7 +52,7 @@
               "fileReplacements": [
                 {
                   "src": "src/environments/environment.ts",
-                  "replace": "src/environments/environment.prod.ts"
+                  "replaceWith": "src/environments/environment.prod.ts"
                 }
               ]
             },
@@ -64,11 +64,24 @@
               "sourceMap": true,
               "namedChunks": true
             },
+            "local": {
+              "fileReplacements": [
+                {
+                  "src": "src/environments/environment.ts",
+                  "replaceWith": "src/environments/environment.local.ts"
+                }
+              ],
+              "optimization": false,
+              "sourceMap": true,
+              "namedChunks": true,
+              "vendorChunk": true,
+              "buildOptimizer": false
+            },
             "mobile": {
               "fileReplacements": [
                 {
                   "src": "src/environments/environment.ts",
-                  "replace": "src/environments/environment.mobile.ts"
+                  "replaceWith": "src/environments/environment.mobile.ts"
                 }
               ],
               "optimization": true,
@@ -85,6 +98,21 @@
                   "maximumError": "5mb"
                 }
               ]
+            },
+            "docker": {
+              "fileReplacements": [
+                {
+                  "src": "src/environments/environment.ts",
+                  "replaceWith": "src/environments/environment.docker.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true
             }
           },
           "defaultConfiguration": "production"
@@ -98,11 +126,21 @@
             "development": {
               "buildTarget": "spaye-frontend:build:development"
             },
+            "local": {
+              "buildTarget": "spaye-frontend:build:local"
+            },
             "mobile": {
               "buildTarget": "spaye-frontend:build:mobile"
+            },
+            "docker": {
+              "buildTarget": "spaye-frontend:build:docker"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "host": "0.0.0.0",
+            "port": 4200
+          }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
@@ -131,6 +169,6 @@
     }
   },
   "cli": {
-    "analytics": "6297fb00-b583-43fa-9dbd-6493f2147874"
+    "analytics": false
   }
 }
