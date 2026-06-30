@@ -1,5 +1,5 @@
 // ============================================================
-// SPaye - Angular Environment (Development)
+// SPaye - Angular Environment (Détection automatique)
 // ============================================================
 
 // 🔍 Détection de l'environnement d'exécution
@@ -7,16 +7,42 @@ const isWeb = typeof window !== 'undefined' && typeof window.document !== 'undef
 const isReactNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
 const isCapacitor = typeof (window as any)?.Capacitor !== 'undefined';
 
-// 🌐 URL de base - Par défaut localhost
+// 🌐 URL de base - Détection automatique
 let BASE_URL = 'http://localhost:3000';
 
-// 🔧 Sélection automatique pour le développement
 if (isWeb) {
-  // Si on est sur un réseau local (mobile)
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    BASE_URL = `${window.location.protocol}//${window.location.hostname}:3000`;
+  // Récupérer l'IP ou le hostname depuis l'URL du navigateur
+  const hostname = window.location.hostname;
+  
+  // Vérifier si on est sur un réseau local (pas localhost)
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    // Utiliser l'IP/hostname actuel avec le port 3000
+    BASE_URL = `${window.location.protocol}//${hostname}:3000`;
   } else {
-    BASE_URL = 'http://localhost:3000';
+    // Essayer de récupérer l'IP locale via une API
+    try {
+      // Récupérer l'IP locale stockée dans localStorage
+      const savedIp = localStorage.getItem('local_ip');
+      if (savedIp) {
+        BASE_URL = `http://${savedIp}:3000`;
+        console.log(`✅ IP locale chargée depuis localStorage: ${savedIp}`);
+      }
+    } catch (e) {
+      console.warn('⚠️ Impossible de récupérer l\'IP locale');
+    }
+  }
+} else if (isReactNative) {
+  // En React Native, utiliser l'IP stockée ou une IP par défaut
+  try {
+    const savedIp = localStorage.getItem('local_ip');
+    if (savedIp) {
+      BASE_URL = `http://${savedIp}:3000`;
+    } else {
+      // IP par défaut pour React Native (à modifier)
+      BASE_URL = 'http://192.168.1.100:3000';
+    }
+  } catch (e) {
+    BASE_URL = 'http://192.168.1.100:3000';
   }
 }
 
@@ -32,7 +58,28 @@ export const environment = {
   version: '1.0.0-dev',
 };
 
-// 🛠️ Fonction utilitaire pour mettre à jour l'URL dynamiquement
+// 🛠️ Fonction pour mettre à jour l'IP locale
+export const setLocalIp = (ip: string): void => {
+  if (isWeb || isReactNative) {
+    try {
+      localStorage.setItem('local_ip', ip);
+      console.log(`✅ IP locale sauvegardée: ${ip}`);
+    } catch (e) {
+      console.warn('⚠️ Impossible de sauvegarder l\'IP');
+    }
+  }
+};
+
+// 🛠️ Fonction pour obtenir l'IP locale
+export const getLocalIp = (): string | null => {
+  try {
+    return localStorage.getItem('local_ip');
+  } catch (e) {
+    return null;
+  }
+};
+
+// 🛠️ Fonction pour mettre à jour l'URL dynamiquement
 export const updateApiBaseUrl = (newBaseUrl: string): void => {
   (environment as any).apiUrl = `${newBaseUrl}/api`;
   (environment as any).socketUrl = newBaseUrl;

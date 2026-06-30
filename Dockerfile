@@ -18,8 +18,8 @@ RUN npm ci && \
 # Copier le code source
 COPY . .
 
-# Builder l'application
-RUN npm run build -- --configuration=production
+# Builder l'application pour Docker
+RUN npm run build -- --configuration=docker
 
 # Étape 2: Production avec Nginx
 FROM nginx:alpine
