@@ -1,12 +1,12 @@
 // ============================================================
-// SPaye - Angular Environment (Production)
+// SPaye - Angular Environment (Docker)
 // ============================================================
 
 export const environment = {
   production: true,
 
-  // ── URLs via Nginx Proxy ──
-  apiUrl: '/api',        // Proxy Nginx vers le backend
+  // ── URLs via Nginx Proxy (Docker) ──
+  apiUrl: '/api',        // Proxy Nginx vers backend:3000
   socketUrl: '',         // Proxy Nginx (Socket.IO)
   baseUrl: '',           // Proxy Nginx
 
@@ -16,7 +16,7 @@ export const environment = {
   isCapacitor: false,
 
   // ── Version ──
-  version: '1.0.0',
+  version: '1.0.0-docker',
 };
 
 export default environment;

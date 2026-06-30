@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+// src/app/components/auth/login/login.component.ts
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -30,7 +31,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   hidePassword = true;
@@ -40,27 +41,30 @@ export class LoginComponent {
     private authService: AuthService,
     private router: Router
   ) {
-    if (this.authService.isAuthenticated()) {
-      const user = this.authService.getCurrentUser();
-      if (user?.role === 'admin' || user?.role === 'super_admin') {
-        this.router.navigate(['/admin']);
-      } else {
-        this.router.navigate(['/user']);
-      }
-    }
-
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
+  ngOnInit(): void {
+    // ✅ Vérifier si déjà connecté
+    if (this.authService.isAuthenticated()) {
+      const user = this.authService.getCurrentUser();
+      if (user?.role === 'admin' || user?.role === 'super_admin') {
+        this.router.navigate(['/admin/dashboard']);
+      } else {
+        this.router.navigate(['/user/dashboard']);
+      }
+    }
+  }
+
   onSubmit(): void {
     if (this.loginForm.invalid) return;
-
     this.isLoading = true;
     const { email, password } = this.loginForm.value;
-
+    
+    // ✅ Le service gère maintenant la redirection
     this.authService.login(email, password).subscribe({
       error: () => {
         this.isLoading = false;
@@ -68,11 +72,7 @@ export class LoginComponent {
     });
   }
 
-  /**
-   * Redirige vers l'endpoint d'authentification Google du backend
-   */
   continueWithGoogle(): void {
-    // ✅ Redirection vers le backend
     window.location.href = `${environment.apiUrl}/auth/google`;
   }
 

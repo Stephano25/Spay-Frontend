@@ -1,3 +1,7 @@
+// ============================================================
+// USER SETTINGS - SPaye (Version Corrigée)
+// ============================================================
+
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -9,8 +13,10 @@ import { NotificationService } from '../../../services/notification.service';
 import { UserService } from '../../../services/user.service';
 import { TranslationService } from '../../../services/translation.service';
 import { ThemeService } from '../../../services/theme.service';
-import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { User, UserSettings } from '../../../models/user.model';
+
+// ✅ Import du pipe standalone
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,45 +36,36 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-
-interface Friend {
-  id: string;
-  name: string;
-  avatar?: string;
-  mutualFriends: number;
-}
-
-interface FriendRequest {
-  id: string;
-  name: string;
-  avatar?: string;
-  date: Date;
-}
-
-interface BlockedUser {
-  id: string;
-  name: string;
-  avatar?: string;
-}
-
-interface Device {
-  id: string;
-  name: string;
-  location: string;
-  lastActive: Date;
-}
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-user-settings',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, ReactiveFormsModule, RouterModule,
-    MatToolbarModule, MatButtonModule, MatIconModule, MatCardModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule, MatSlideToggleModule,
-    MatDividerModule, MatTabsModule, MatSnackBarModule, MatProgressSpinnerModule,
-    MatRadioModule, MatSliderModule, MatTooltipModule, TranslatePipe,
-    MatDatepickerModule, MatNativeDateModule, MatMenuModule, MatDialogModule
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule,
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatSlideToggleModule,
+    MatDividerModule,
+    MatTabsModule,
+    MatSnackBarModule,
+    MatProgressSpinnerModule,
+    MatRadioModule,
+    MatSliderModule,
+    MatTooltipModule,
+    TranslatePipe,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatMenuModule,
+    MatDialogModule
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
@@ -108,13 +105,13 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   // Données sociales
   friendsCount = 0;
   postsCount = 0;
-  friendsList: Friend[] = [];
-  closeFriends: Friend[] = [];
-  acquaintances: Friend[] = [];
-  pendingFriendRequests: FriendRequest[] = [];
-  blockedUsers: BlockedUser[] = [];
-  friendSuggestions: Friend[] = [];
-  activeDevices: Device[] = [];
+  friendsList: any[] = [];
+  closeFriends: any[] = [];
+  acquaintances: any[] = [];
+  pendingFriendRequests: any[] = [];
+  blockedUsers: any[] = [];
+  friendSuggestions: any[] = [];
+  activeDevices: any[] = [];
   profilePhotoUrl: string | null = null;
 
   private subscriptions: Subscription[] = [];
@@ -154,8 +151,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private router: Router,
     private translationService: TranslationService,
-    private themeService: ThemeService,
-    private dialog: MatDialog
+    private themeService: ThemeService
   ) {
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -236,52 +232,71 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   }
 
   private loadSocialData(): void {
-    this.userService.getFriendsCount().subscribe({
-      next: (count) => this.friendsCount = count,
-      error: () => console.error('Erreur chargement nombre amis')
-    });
+    // Chargement des données sociales
+    this.subscriptions.push(
+      this.userService.getFriendsCount().subscribe({
+        next: (count) => this.friendsCount = count,
+        error: () => console.error('Erreur chargement nombre amis')
+      })
+    );
     
-    this.userService.getPostsCount().subscribe({
-      next: (count) => this.postsCount = count,
-      error: () => console.error('Erreur chargement nombre posts')
-    });
+    this.subscriptions.push(
+      this.userService.getPostsCount().subscribe({
+        next: (count) => this.postsCount = count,
+        error: () => console.error('Erreur chargement nombre posts')
+      })
+    );
     
-    this.userService.getFriendsList().subscribe({
-      next: (friends) => this.friendsList = friends,
-      error: () => console.error('Erreur chargement liste amis')
-    });
+    this.subscriptions.push(
+      this.userService.getFriendsList().subscribe({
+        next: (friends) => this.friendsList = friends,
+        error: () => console.error('Erreur chargement liste amis')
+      })
+    );
     
-    this.userService.getCloseFriends().subscribe({
-      next: (friends) => this.closeFriends = friends,
-      error: () => console.error('Erreur chargement amis proches')
-    });
+    this.subscriptions.push(
+      this.userService.getCloseFriends().subscribe({
+        next: (friends) => this.closeFriends = friends,
+        error: () => console.error('Erreur chargement amis proches')
+      })
+    );
     
-    this.userService.getAcquaintances().subscribe({
-      next: (friends) => this.acquaintances = friends,
-      error: () => console.error('Erreur chargement connaissances')
-    });
+    this.subscriptions.push(
+      this.userService.getAcquaintances().subscribe({
+        next: (friends) => this.acquaintances = friends,
+        error: () => console.error('Erreur chargement connaissances')
+      })
+    );
     
-    this.userService.getPendingFriendRequests().subscribe({
-      next: (requests) => this.pendingFriendRequests = requests,
-      error: () => console.error('Erreur chargement demandes amis')
-    });
+    this.subscriptions.push(
+      this.userService.getPendingFriendRequests().subscribe({
+        next: (requests) => this.pendingFriendRequests = requests,
+        error: () => console.error('Erreur chargement demandes amis')
+      })
+    );
     
-    this.userService.getBlockedUsers().subscribe({
-      next: (users) => this.blockedUsers = users,
-      error: () => console.error('Erreur chargement utilisateurs bloqués')
-    });
+    this.subscriptions.push(
+      this.userService.getBlockedUsers().subscribe({
+        next: (users) => this.blockedUsers = users,
+        error: () => console.error('Erreur chargement utilisateurs bloqués')
+      })
+    );
     
-    this.userService.getFriendSuggestions().subscribe({
-      next: (suggestions) => this.friendSuggestions = suggestions,
-      error: () => console.error('Erreur chargement suggestions')
-    });
+    this.subscriptions.push(
+      this.userService.getFriendSuggestions().subscribe({
+        next: (suggestions) => this.friendSuggestions = suggestions,
+        error: () => console.error('Erreur chargement suggestions')
+      })
+    );
   }
 
   private loadActiveDevices(): void {
-    this.userService.getActiveDevices().subscribe({
-      next: (devices) => this.activeDevices = devices,
-      error: () => console.error('Erreur chargement appareils')
-    });
+    this.subscriptions.push(
+      this.userService.getActiveDevices().subscribe({
+        next: (devices) => this.activeDevices = devices,
+        error: () => console.error('Erreur chargement appareils')
+      })
+    );
   }
 
   private saveSettingsToStorage(): void {
@@ -395,8 +410,8 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
 
   private applyTheme(): void {
     const theme = this.settings.appearance.theme;
-    const primaryColor = '#667eea';
-    const secondaryColor = '#764ba2';
+    const primaryColor = '#7c3aed';
+    const secondaryColor = '#4f46e5';
     this.themeService.applyTheme(theme, primaryColor, secondaryColor);
   }
 
@@ -437,7 +452,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Gestion des amis
+  // ✅ Gestion des amis
   acceptFriendRequest(requestId: string): void {
     this.userService.acceptFriendRequest(requestId).subscribe({
       next: () => {
@@ -513,7 +528,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     this.notificationService.showInfo('Recherche d\'utilisateurs - À implémenter');
   }
 
-  // Gestion des appareils
+  // ✅ Gestion des appareils
   revokeDevice(deviceId: string): void {
     if (confirm('Voulez-vous déconnecter cet appareil ?')) {
       this.userService.revokeDevice(deviceId).subscribe({
@@ -538,7 +553,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Gestion du compte
+  // ✅ Gestion du compte
   changeEmail(): void {
     const newEmail = prompt('Entrez votre nouvelle adresse email :');
     if (newEmail && newEmail.includes('@')) {
@@ -616,19 +631,15 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  reportUser(userId: string): void {
-    const reason = prompt('Motif du signalement :');
-    if (reason) {
-      this.userService.reportUser(userId, reason).subscribe({
+  // ✅ Méthode reportUser corrigée avec 2 paramètres
+  reportUser(userId: string, reason?: string): void {
+    const reportReason = reason || prompt('Motif du signalement :');
+    if (reportReason) {
+      this.userService.reportUser(userId, reportReason).subscribe({
         next: () => this.notificationService.showSuccess('Signalement envoyé'),
         error: () => this.notificationService.showError('Erreur lors du signalement')
       });
     }
-  }
-
-  getInitials(): string {
-    if (!this.user) return '';
-    return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
   }
 
   goBack(): void { 
@@ -639,16 +650,12 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     this.authService.logout(); 
   }
 
-  // Getters
-  get currentPassword() { 
-    return this.passwordForm.get('currentPassword'); 
+  getInitials(): string {
+    if (!this.user) return '';
+    return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
   }
-  
-  get newPassword() { 
-    return this.passwordForm.get('newPassword'); 
-  }
-  
-  get confirmPassword() { 
-    return this.passwordForm.get('confirmPassword'); 
+
+  formatAmount(amount: number): string {
+    return new Intl.NumberFormat('fr-MG').format(amount);
   }
 }

@@ -1,27 +1,29 @@
-// src/app/components/user/user.component.ts
+// ============================================================
+// USER COMPONENT - SPaye (Version Corrigée)
+// ============================================================
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { Subscription, forkJoin } from 'rxjs';
-
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
-import { TransactionService } from '../../services/transaction.service';
+import { UserService } from '../../services/user.service';
 import { WalletService } from '../../services/wallet.service';
-import { TranslationService } from '../../services/translation.service';
-import { environment } from '../../../environments/environment';
-import { TranslatePipe } from '../../pipes/translate.pipe';
+import { TransactionService } from '../../services/transaction.service';
+import { NotificationService } from '../../services/notification.service';
+import { ThemeService } from '../../services/theme.service';
 import { User } from '../../models/user.model';
-import { DashboardStats } from '../../models/transaction.model';
-import { Wallet } from '../../models/wallet.model';
 
+// ✅ Import du pipe standalone
+import { TranslatePipe } from '../../pipes/translate.pipe';
+
+// Angular Material
 import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatGridListModule } from '@angular/material/grid-list';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Transaction } from '../../models/transaction.model';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-user',
@@ -30,48 +32,54 @@ import { Transaction } from '../../models/transaction.model';
     CommonModule,
     RouterModule,
     MatCardModule,
-    MatIconModule,
     MatButtonModule,
-    MatGridListModule,
+    MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    TranslatePipe
+    MatDividerModule,
+    TranslatePipe,
   ],
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
 })
 export class UserComponent implements OnInit, OnDestroy {
   user: User | null = null;
-  wallet: Wallet | null = null;
   balance: number = 0;
-  stats: DashboardStats | null = null;
-  isLoading = true;
-  profileImageUrl: string | null = null;
+  isLoading: boolean = true;
+  stats: any = null;
   
+  // ✅ Rendre public pour l'utiliser dans le template
+  profileImageUrl: string | null = null;
+
   menuItems = [
-    { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/user/wallet' },
-    { icon: 'chat', label: 'Messages', route: '/user/chat' },
-    { icon: 'swap_horiz', label: 'Transactions', route: '/user/transactions' },
-    { icon: 'person', label: 'Profil', route: '/user/profile' },
-    { icon: 'qr_code_scanner', label: 'Scanner', route: '/user/scan-pay' },
-    { icon: 'phone_android', label: 'Mobile Money', route: '/user/mobile-money' },
-    { icon: 'people', label: 'Amis', route: '/user/friends' },
-    { icon: 'settings', label: 'Paramètres', route: '/user/settings' }
+    { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/wallet' },
+    { icon: 'send', label: 'Envoyer', route: '/wallet/send' },
+    { icon: 'qr_code', label: 'Recevoir', route: '/wallet/receive' },
+    { icon: 'phone_android', label: 'Mobile Money', route: '/mobile-money' },
+    { icon: 'qr_code_scanner', label: 'Scanner', route: '/scan-pay' },
+    { icon: 'people', label: 'Amis', route: '/friends' },
+    { icon: 'chat', label: 'Messages', route: '/chat' },
+    { icon: 'receipt', label: 'Transactions', route: '/transactions' },
+    { icon: 'person', label: 'Profil', route: '/profile' },
+    { icon: 'settings', label: 'Paramètres', route: '/settings' }
   ];
 
   private subscriptions: Subscription[] = [];
 
   constructor(
     private authService: AuthService,
-    private transactionService: TransactionService,
+    private userService: UserService,
     private walletService: WalletService,
-    private router: Router,
-    private translationService: TranslationService
+    private transactionService: TransactionService,
+    private notificationService: NotificationService,
+    private themeService: ThemeService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadUserData();
-    this.loadDashboardData();
+    this.loadBalance();
+    this.loadStats();
   }
 
   ngOnDestroy(): void {
@@ -80,51 +88,47 @@ export class UserComponent implements OnInit, OnDestroy {
 
   private loadUserData(): void {
     this.subscriptions.push(
-      this.authService.currentUser.subscribe((user: User | null) => {
+      this.authService.currentUser.subscribe((user) => {
         this.user = user;
-        // Utiliser profilePicture ou profilePhoto
-        const photo = user?.profilePicture || user?.profilePhoto;
-        if (photo) {
-          this.profileImageUrl = this.getFullImageUrl(photo);
+        if (user) {
+          this.profileImageUrl = user.profilePicture || null;
+        }
+        this.isLoading = false;
+      })
+    );
+  }
+
+  private loadBalance(): void {
+    this.subscriptions.push(
+      this.walletService.getBalance().subscribe({
+        next: (data) => {
+          this.balance = data.balance;
+        },
+        error: (err) => {
+          console.error('Erreur chargement solde:', err);
+          this.walletService.getWallet().subscribe({
+            next: (wallet) => {
+              this.balance = wallet.balance;
+            },
+            error: () => {}
+          });
         }
       })
     );
   }
 
-  getFullImageUrl(url: string): string {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    if (url.startsWith('/uploads')) {
-      return `${environment.baseUrl}${url}`;
-    }
-    return url;
-  }
-
-  getInitials(): string {
-    if (!this.user) return '';
-    return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
-  }
-
-  private loadDashboardData(): void {
-    this.isLoading = true;
-    
-    forkJoin({
-      wallet: this.walletService.getWallet(),
-      stats: this.transactionService.getUserDashboardStats()
-    }).subscribe({
-      next: (result) => {
-        this.wallet = result.wallet;
-        this.balance = result.wallet?.balance || 0;
-        this.stats = result.stats;
-        console.log('💰 Solde du wallet:', this.balance);
-        console.log('📊 Stats transactions:', result.stats);
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('❌ Erreur chargement données:', error);
-        this.isLoading = false;
-      }
-    });
+  private loadStats(): void {
+    this.subscriptions.push(
+      this.transactionService.getUserDashboardStats().subscribe({
+        next: (stats) => {
+          this.stats = stats;
+        },
+        error: (err) => {
+          console.error('Erreur chargement stats:', err);
+          this.stats = { totalTransactions: 0, lastThreeTransactions: [] };
+        }
+      })
+    );
   }
 
   navigateTo(route: string): void {
@@ -135,31 +139,18 @@ export class UserComponent implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
-  formatAmount(amount: number): string {
-    if (!amount && amount !== 0) return '0';
-    return new Intl.NumberFormat('fr-MG', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  }
-
   refreshData(): void {
-    this.loadDashboardData();
+    this.loadBalance();
+    this.loadStats();
+    this.notificationService.showInfo('Données actualisées');
   }
 
-  get hasStats(): boolean {
-    return this.stats !== null;
+  getInitials(): string {
+    if (!this.user) return '';
+    return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
   }
 
-  get totalTransactions(): number {
-    return this.stats?.totalTransactions || 0;
-  }
-
-  get largestTransactionAmount(): number {
-    return this.stats?.largestTransaction?.amount || 0;
-  }
-
-  get hasLargestTransaction(): boolean {
-    return !!this.stats?.largestTransaction;
+  formatAmount(amount: number): string {
+    return new Intl.NumberFormat('fr-MG').format(amount || 0);
   }
 }

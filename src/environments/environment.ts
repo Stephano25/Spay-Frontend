@@ -1,24 +1,21 @@
-// src/environments/environment.ts
-
-/**
- * 🌍 Configuration de l'environnement web
- */
+// ============================================================
+// SPaye - Angular Environment (Development)
+// ============================================================
 
 // 🔍 Détection de l'environnement d'exécution
 const isWeb = typeof window !== 'undefined' && typeof window.document !== 'undefined';
 const isReactNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
 const isCapacitor = typeof (window as any)?.Capacitor !== 'undefined';
 
-// 🌐 URL de base - Par défaut pour le développement web local
+// 🌐 URL de base
 let BASE_URL = 'http://localhost:3000';
 
-// 🔧 Sélection automatique de l'URL pour le web
+// 🔧 Sélection automatique pour le développement
 if (isWeb) {
+  // Si on est sur un réseau local (mobile)
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    // En production (serveur distant)
     BASE_URL = `${window.location.protocol}//${window.location.hostname}:3000`;
   } else {
-    // En développement local
     BASE_URL = 'http://localhost:3000';
   }
 }
@@ -32,7 +29,7 @@ export const environment = {
   isWeb,
   isReactNative,
   isCapacitor,
-  version: '1.0.0',
+  version: '1.0.0-dev',
 };
 
 // 🛠️ Fonction utilitaire pour mettre à jour l'URL dynamiquement
@@ -43,5 +40,4 @@ export const updateApiBaseUrl = (newBaseUrl: string): void => {
   console.log('✅ API URL mise à jour:', newBaseUrl);
 };
 
-// 📦 Export par défaut
 export default environment;

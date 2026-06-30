@@ -1,10 +1,9 @@
 /* ============================================================
    SPAYE — Global Design System
-   v2.0 · Professional · Animated · Themeable
+   THÈME PERSONNALISÉ - COULEURS UNIQUES (Violet/Nuit)
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 /* ── Reset ── */
 *, *::before, *::after {
@@ -15,29 +14,34 @@
 
 /* ── Design Tokens ── */
 :root {
-  /* Brand */
-  --brand-1: #6366f1;
-  --brand-2: #8b5cf6;
-  --brand-grad: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --brand-grad-soft: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%);
+  /* 🎨 Brand - COULEURS UNIQUES (violet profond → bleu nuit) */
+  --brand-1: #7c3aed;
+  --brand-2: #6d28d9;
+  --brand-3: #5b21b6;
+  --brand-4: #4f46e5;
+  --brand-5: #1e1b4b;
+  --brand-grad: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #1e1b4b 100%);
+  --brand-grad-soft: linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(79,70,229,0.10) 100%);
+  --brand-grad-hover: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #312e81 100%);
 
   /* Semantic */
   --success: #10b981;
-  --success-bg: rgba(16,185,129,0.1);
+  --success-bg: rgba(16,185,129,0.12);
   --warning: #f59e0b;
-  --warning-bg: rgba(245,158,11,0.1);
+  --warning-bg: rgba(245,158,11,0.12);
   --danger: #ef4444;
-  --danger-bg: rgba(239,68,68,0.1);
+  --danger-bg: rgba(239,68,68,0.12);
   --info: #3b82f6;
-  --info-bg: rgba(59,130,246,0.1);
+  --info-bg: rgba(59,130,246,0.12);
 
   /* Elevation */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
-  --shadow-xl: 0 16px 48px rgba(0,0,0,0.12);
-  --shadow-brand: 0 8px 24px rgba(99,102,241,0.25);
+  --shadow-xs: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+  --shadow-xl: 0 16px 56px rgba(0,0,0,0.15);
+  --shadow-brand: 0 8px 32px rgba(124,58,237,0.30);
+  --shadow-brand-hover: 0 12px 48px rgba(124,58,237,0.40);
 
   /* Geometry */
   --r-xs: 6px;
@@ -61,40 +65,41 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* ── Themes ── */
+/* ── Thème CLAIR (fond légèrement coloré, PAS BLANC PUR) ── */
 body.light-theme, body:not(.dark-theme) {
-  --bg: #f8f7ff;
-  --bg-2: #ffffff;
-  --bg-3: #f0effe;
+  --bg: #f5f0ff;
+  --bg-2: #faf8ff;
+  --bg-3: #ede6f9;
   --surface: #ffffff;
-  --surface-2: #f5f4fc;
-  --surface-3: #ece9fa;
-  --border: rgba(99,102,241,0.12);
-  --border-2: rgba(0,0,0,0.08);
-  --text: #0f0e1a;
-  --text-2: #3d3b52;
-  --text-3: #7c7a92;
-  --text-4: #a9a7bf;
-  --hover: rgba(99,102,241,0.06);
-  --active: rgba(99,102,241,0.12);
+  --surface-2: #f8f4ff;
+  --surface-3: #f0e8fa;
+  --border: rgba(124,58,237,0.15);
+  --border-2: rgba(0,0,0,0.06);
+  --text: #1a0e2e;
+  --text-2: #4a3a5e;
+  --text-3: #8a7a9e;
+  --text-4: #b5a8c4;
+  --hover: rgba(124,58,237,0.06);
+  --active: rgba(124,58,237,0.12);
   color-scheme: light;
 }
 
+/* ── Thème SOMBRE (violet profond) ── */
 body.dark-theme {
-  --bg: #09090f;
-  --bg-2: #111118;
-  --bg-3: #1a1a25;
-  --surface: #13131c;
-  --surface-2: #1c1c28;
-  --surface-3: #252535;
-  --border: rgba(99,102,241,0.18);
+  --bg: #0c0a1a;
+  --bg-2: #140f26;
+  --bg-3: #1e1738;
+  --surface: #16112a;
+  --surface-2: #201a38;
+  --surface-3: #2a2248;
+  --border: rgba(124,58,237,0.20);
   --border-2: rgba(255,255,255,0.06);
-  --text: #f0effe;
-  --text-2: #c4c2d8;
-  --text-3: #8a88a0;
-  --text-4: #555370;
-  --hover: rgba(99,102,241,0.10);
-  --active: rgba(99,102,241,0.18);
+  --text: #f0ebff;
+  --text-2: #c4b8dc;
+  --text-3: #8a7aa0;
+  --text-4: #5a4a72;
+  --hover: rgba(124,58,237,0.10);
+  --active: rgba(124,58,237,0.18);
   color-scheme: dark;
 }
 
@@ -139,26 +144,79 @@ a:hover {
   color: var(--brand-2);
 }
 
-/* ── Material Overrides ── */
+/* ============================================================
+   MATERIAL OVERRIDES
+   ============================================================ */
+
+/* ── Cards ── */
 .mat-mdc-card {
-  background-color: var(--surface) !important;
+  background: var(--surface) !important;
   color: var(--text) !important;
   border: 0.5px solid var(--border) !important;
   box-shadow: var(--shadow-sm) !important;
   border-radius: var(--r-lg) !important;
   transition: box-shadow var(--trans-base), transform var(--trans-base) !important;
-}
-.mat-mdc-card:hover {
-  box-shadow: var(--shadow-md) !important;
+  backdrop-filter: blur(8px);
+  background: rgba(255,255,255,0.85) !important;
 }
 
+body.dark-theme .mat-mdc-card {
+  background: rgba(22,17,42,0.92) !important;
+}
+
+.mat-mdc-card:hover {
+  box-shadow: var(--shadow-md) !important;
+  transform: translateY(-2px);
+}
+
+/* ── Toolbar ── */
 .mat-toolbar {
-  background: var(--surface) !important;
-  color: var(--text) !important;
-  border-bottom: 0.5px solid var(--border) !important;
+  background: var(--brand-grad) !important;
+  color: white !important;
+  border-bottom: none !important;
+  box-shadow: var(--shadow-brand) !important;
   backdrop-filter: blur(12px);
 }
 
+.mat-toolbar .mat-icon {
+  color: white !important;
+}
+.mat-toolbar button:hover {
+  background: rgba(255,255,255,0.12) !important;
+}
+
+/* ── Boutons primaires ── */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-fab.mat-primary,
+.mat-mdc-flat-button.mat-primary {
+  background: var(--brand-grad) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: var(--shadow-brand) !important;
+  transition: all var(--trans-base) !important;
+}
+
+.mat-mdc-raised-button.mat-primary:hover:not(:disabled),
+.mat-mdc-fab.mat-primary:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-brand-hover) !important;
+}
+
+/* ── Boutons secondaires ── */
+.mat-mdc-raised-button.mat-secondary,
+.mat-mdc-outlined-button {
+  border-color: var(--border) !important;
+  color: var(--text-2) !important;
+}
+
+.mat-mdc-raised-button.mat-secondary:hover,
+.mat-mdc-outlined-button:hover {
+  background: var(--hover) !important;
+  border-color: var(--brand-1) !important;
+  color: var(--brand-1) !important;
+}
+
+/* ── Formulaires ── */
 .mat-mdc-form-field .mdc-text-field--outlined .mdc-notched-outline__leading,
 .mat-mdc-form-field .mdc-text-field--outlined .mdc-notched-outline__notch,
 .mat-mdc-form-field .mdc-text-field--outlined .mdc-notched-outline__trailing {
@@ -173,30 +231,70 @@ a:hover {
 .mat-mdc-floating-label { color: var(--text-3) !important; }
 .mdc-text-field { background: var(--surface) !important; }
 
-.mat-mdc-tab-header { background: var(--surface) !important; border-bottom: 0.5px solid var(--border) !important; }
+/* ── Onglets ── */
+.mat-mdc-tab-header {
+  background: var(--surface) !important;
+  border-bottom: 0.5px solid var(--border) !important;
+}
 .mdc-tab__text-label { color: var(--text-3) !important; }
 .mdc-tab--active .mdc-tab__text-label { color: var(--brand-1) !important; }
 .mdc-tab-indicator__content--underline { border-color: var(--brand-1) !important; }
 
-.mat-mdc-dialog-container { background: var(--surface) !important; color: var(--text) !important; border-radius: var(--r-xl) !important; }
-.mat-mdc-menu-panel { background: var(--surface) !important; border: 0.5px solid var(--border) !important; border-radius: var(--r-md) !important; box-shadow: var(--shadow-xl) !important; }
+/* ── Menu ── */
+.mat-mdc-menu-panel {
+  background: var(--surface) !important;
+  border: 0.5px solid var(--border) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: var(--shadow-xl) !important;
+}
 .mat-mdc-menu-item { color: var(--text) !important; }
 .mat-mdc-menu-item:hover { background: var(--hover) !important; }
 
-.mat-drawer { background: var(--surface) !important; border-right: 0.5px solid var(--border) !important; }
-.mat-drawer-container { background: var(--bg) !important; }
-.mat-sidenav-content { background: var(--bg) !important; }
+/* ── Dialog ── */
+.mat-mdc-dialog-container {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-radius: var(--r-xl) !important;
+}
 
-.mat-mdc-slide-toggle .mdc-switch__track { background-color: var(--surface-3) !important; }
+/* ── Sidebar ── */
+.mat-drawer {
+  background: var(--surface) !important;
+  border-right: 0.5px solid var(--border) !important;
+}
+.mat-drawer-container {
+  background: var(--bg) !important;
+}
+.mat-sidenav-content {
+  background: var(--bg) !important;
+}
+
+/* ── Slide Toggle ── */
+.mat-mdc-slide-toggle .mdc-switch__track {
+  background-color: var(--surface-3) !important;
+}
 .mat-divider { border-color: var(--border) !important; }
 
-.mat-mdc-select-panel { background: var(--surface) !important; border: 0.5px solid var(--border) !important; border-radius: var(--r-md) !important; }
+/* ── Select ── */
+.mat-mdc-select-panel {
+  background: var(--surface) !important;
+  border: 0.5px solid var(--border) !important;
+  border-radius: var(--r-md) !important;
+}
 .mat-mdc-option { color: var(--text) !important; }
 .mat-mdc-option:hover { background: var(--hover) !important; }
 
-.mat-mdc-snack-bar-container { background: var(--surface-3) !important; color: var(--text) !important; border-radius: var(--r-md) !important; }
+/* ── Snackbar ── */
+.mat-mdc-snack-bar-container {
+  background: var(--surface-3) !important;
+  color: var(--text) !important;
+  border-radius: var(--r-md) !important;
+}
 
-/* ── Utilities ── */
+/* ============================================================
+   UTILITAIRES
+   ============================================================ */
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -244,171 +342,9 @@ a:hover {
 }
 
 /* ============================================================
-   ADMIN LAYOUT — SPaye
+   SCROLL GLOBAL
    ============================================================ */
 
-/* ── Toolbar (sticky) ── */
-.admin-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--brand-grad) !important;
-  color: white !important;
-  border-bottom: none !important;
-  box-shadow: var(--shadow-brand) !important;
-}
-
-.admin-toolbar .mat-icon,
-.admin-toolbar button {
-  color: white !important;
-}
-.admin-toolbar button:hover {
-  background: rgba(255,255,255,0.12) !important;
-}
-
-.spacer {
-  flex: 1 1 auto;
-}
-
-/* ── Content wrapper ── */
-.admin-content {
-  padding: 28px 24px;
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  animation: fadeUp 0.4s var(--ease) both;
-}
-
-/* ── Page header ── */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 28px;
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-sans);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  margin: 0;
-}
-.page-title mat-icon {
-  color: var(--brand-1) !important;
-  font-size: 24px !important;
-  width: 24px !important;
-  height: 24px !important;
-}
-
-.page-subtitle {
-  font-size: 0.875rem;
-  color: var(--text-3);
-  margin: 4px 0 0 36px;
-  font-weight: 400;
-}
-
-/* ── Loading ── */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 20px;
-  color: var(--text-3);
-}
-.loading-container p {
-  font-size: 0.875rem;
-  color: var(--text-3);
-}
-
-/* ── Empty / Error states ── */
-.empty-state,
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 64px 24px;
-  gap: 12px;
-}
-.empty-state mat-icon,
-.error-state mat-icon {
-  font-size: 64px !important;
-  width: 64px !important;
-  height: 64px !important;
-  color: var(--text-4);
-  animation: float 3s ease-in-out infinite;
-}
-.error-state mat-icon {
-  color: var(--danger);
-  animation: none;
-}
-.empty-state h3,
-.error-state h3 {
-  font-family: var(--font-sans);
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-2);
-  margin: 0;
-}
-.empty-state p,
-.error-state p {
-  font-size: 0.875rem;
-  color: var(--text-3);
-  margin: 0;
-  max-width: 320px;
-}
-
-/* ── Filter row ── */
-.filter-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-.filter-row mat-form-field {
-  flex: 1;
-  min-width: 200px;
-}
-
-/* ── FAB ── */
-.fab-action {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  z-index: 200;
-  box-shadow: var(--shadow-brand) !important;
-  background: var(--brand-grad) !important;
-  color: white !important;
-  transition: transform var(--trans-base), box-shadow var(--trans-base) !important;
-}
-.fab-action:hover {
-  transform: scale(1.08) translateY(-2px);
-  box-shadow: 0 12px 32px rgba(99,102,241,0.4) !important;
-}
-
-/* ── Section divider ── */
-.section-divider {
-  height: 0.5px;
-  background: var(--border);
-  margin: 32px 0;
-}
-
-/* ============================================================
-   SCROLL GLOBAL — SPaye
-   ============================================================ */
-
-/* 🔥 Permettre le scroll sur tous les contenus */
 .mat-drawer-content,
 .content,
 .user-dashboard,
@@ -427,7 +363,6 @@ a:hover {
   height: 100vh !important;
 }
 
-/* Scrollbar personnalisée - Version unifiée */
 .mat-drawer-content::-webkit-scrollbar,
 .content::-webkit-scrollbar,
 .user-dashboard::-webkit-scrollbar,
@@ -495,51 +430,4 @@ a:hover {
 .chat-root::-webkit-scrollbar-thumb:hover,
 .admin-content::-webkit-scrollbar-thumb:hover {
   background: var(--brand-1);
-}
-
-/* ── Responsive ── */
-@media (max-width: 1024px) {
-  .admin-content {
-    padding: 22px 20px;
-  }
-}
-
-@media (max-width: 768px) {
-  .admin-content {
-    padding: 16px 14px;
-  }
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .page-title {
-    font-size: 1.25rem;
-  }
-  .page-subtitle {
-    margin-left: 0;
-    font-size: 0.8125rem;
-  }
-  .filter-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .filter-row mat-form-field {
-    min-width: unset;
-    width: 100%;
-  }
-  .fab-action {
-    bottom: 20px;
-    right: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .admin-content {
-    padding: 12px 10px;
-  }
-  .page-title {
-    font-size: 1.125rem;
-  }
 }

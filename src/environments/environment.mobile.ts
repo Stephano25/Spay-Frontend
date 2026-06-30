@@ -1,13 +1,11 @@
-// src/environments/environment.mobile.ts
-
-/**
- * 📱 Configuration pour mobile (React Native / Capacitor)
- * ⚠️ Remplacez '192.168.1.100' par l'IP de votre machine
- * Pour trouver votre IP : ipconfig (Windows) ou ifconfig (Mac/Linux)
- */
+// ============================================================
+// SPaye - Angular Environment (Mobile - React Native / Capacitor)
+// ============================================================
 
 // 🌐 IP locale de votre machine (backend)
-const LOCAL_IP = '192.168.1.100'; // <-- À modifier avec votre IP
+// ⚠️ Remplacez par l'IP de votre machine
+// Pour trouver votre IP : ipconfig (Windows) ou ifconfig (Mac/Linux)
+const LOCAL_IP = '192.168.188.135'; // ← À modifier avec votre IP
 
 export const environment = {
   production: false,
@@ -17,7 +15,7 @@ export const environment = {
   isWeb: false,
   isReactNative: true,
   isCapacitor: false,
-  version: '1.0.0',
+  version: '1.0.0-mobile',
 };
 
 // Fonction pour mettre à jour l'URL dynamiquement

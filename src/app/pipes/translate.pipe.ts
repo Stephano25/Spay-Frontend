@@ -1,17 +1,23 @@
-import { Pipe, PipeTransform, OnDestroy } from '@angular/core';
-import { TranslationService } from '../services/translation.service';
+// ============================================================
+// TRANSLATE PIPE - SPaye (Standalone)
+// ============================================================
+
+import { Pipe, PipeTransform, OnDestroy, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { TranslationService } from '../services/translation.service';
 
 @Pipe({
   name: 'translate',
+  standalone: true, // ✅ Standalone: true
   pure: false
 })
 export class TranslatePipe implements PipeTransform, OnDestroy {
+  private translationService = inject(TranslationService);
   private langSubscription: Subscription;
   private lastKey: string = '';
   private lastTranslation: string = '';
 
-  constructor(private translationService: TranslationService) {
+  constructor() {
     this.langSubscription = this.translationService.language$.subscribe(() => {
       this.lastKey = '';
     });

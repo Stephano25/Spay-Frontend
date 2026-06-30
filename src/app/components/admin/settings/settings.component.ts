@@ -1,4 +1,7 @@
-// src/app/components/admin/settings/settings.component.ts
+// ============================================================
+// ADMIN SETTINGS - SPaye
+// ============================================================
+
 import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -11,6 +14,9 @@ import { AdminService } from '../../../services/admin.service';
 import { ThemeService } from '../../../services/theme.service';
 import { TranslationService } from '../../../services/translation.service';
 import { User } from '../../../models/user.model';
+
+// ✅ Import du pipe standalone
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 // Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -31,7 +37,6 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
-import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-admin-settings',
@@ -59,7 +64,7 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
     MatExpansionModule,
     MatChipsModule,
     MatBadgeModule,
-    TranslatePipe,
+    TranslatePipe, // ✅ Import du pipe standalone
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
@@ -128,8 +133,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   customizationSettings = {
     theme: 'light',
-    primaryColor: '#667eea',
-    secondaryColor: '#764ba2',
+    primaryColor: '#7c3aed',
+    secondaryColor: '#4f46e5',
     logo: null,
     favicon: null,
     customCSS: '',
@@ -358,13 +363,13 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     const secondaryColor = this.themeService.getCurrentSecondaryColor();
 
     this.customizationSettings.theme = currentTheme;
-    this.customizationSettings.primaryColor = primaryColor;
-    this.customizationSettings.secondaryColor = secondaryColor;
+    this.customizationSettings.primaryColor = primaryColor || '#7c3aed';
+    this.customizationSettings.secondaryColor = secondaryColor || '#4f46e5';
 
     this.customizationForm.patchValue({
       theme: currentTheme,
-      primaryColor: primaryColor,
-      secondaryColor: secondaryColor
+      primaryColor: this.customizationSettings.primaryColor,
+      secondaryColor: this.customizationSettings.secondaryColor
     });
   }
 
@@ -589,8 +594,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       };
       this.customizationSettings = {
         theme: 'light',
-        primaryColor: '#667eea',
-        secondaryColor: '#764ba2',
+        primaryColor: '#7c3aed',
+        secondaryColor: '#4f46e5',
         logo: null,
         favicon: null,
         customCSS: '',
@@ -598,7 +603,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       };
       this.selectedLanguage = 'fr';
       this.updateForms();
-      this.themeService.applyTheme('light', '#667eea', '#764ba2');
+      this.themeService.applyTheme('light', '#7c3aed', '#4f46e5');
       this.notificationService.showInfo('Paramètres généraux réinitialisés');
       setTimeout(() => window.location.reload(), 1500);
     }

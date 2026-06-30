@@ -43,7 +43,15 @@ export class AuthService {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-        this.router.navigate(['/user']);
+        
+        // ✅ REDIRECTION CORRECTE SELON LE RÔLE
+        const user = response.user;
+        if (user.role === 'admin' || user.role === 'super_admin') {
+          this.router.navigate(['/admin/dashboard']);
+        } else {
+          this.router.navigate(['/user/dashboard']);
+        }
+        
         this.notificationService.showSuccess('Connexion réussie !');
       }),
       catchError(error => {
@@ -62,8 +70,16 @@ export class AuthService {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
+        
+        // ✅ REDIRECTION CORRECTE
+        const user = response.user;
+        if (user.role === 'admin' || user.role === 'super_admin') {
+          this.router.navigate(['/admin/dashboard']);
+        } else {
+          this.router.navigate(['/user/dashboard']);
+        }
+        
         this.notificationService.showSuccess('Inscription réussie !');
-        this.router.navigate(['/user']);
       }),
       catchError(error => {
         const message = error.error?.message || "Erreur d'inscription";

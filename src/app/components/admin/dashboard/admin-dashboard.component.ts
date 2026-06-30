@@ -1,4 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+// ============================================================
+// ADMIN DASHBOARD - SPaye (Version Complète)
+// ============================================================
+
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -6,8 +10,10 @@ import Chart from 'chart.js/auto';
 import { AdminService, AdminDashboardStats } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
-import { TranslationService } from '../../../services/translation.service';
 import { User } from '../../../models/user.model';
+
+// ✅ Import du pipe standalone
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -16,12 +22,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatRippleModule } from '@angular/material/core';
 import { MatToolbarModule } from '@angular/material/toolbar';
-
-// Pipe de traduction
-import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -35,19 +39,19 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
     MatGridListModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatButtonToggleModule,
     MatRippleModule,
     MatToolbarModule,
-    TranslatePipe, // ✅ Ajout du pipe de traduction
+    MatMenuModule,
+    MatDividerModule,
+    TranslatePipe, // ✅ Import du pipe standalone
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
 })
-export class AdminDashboardComponent implements OnInit, OnDestroy {
+export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   user: User | null = null;
   stats: AdminDashboardStats | null = null;
   isLoading = true;
-  selectedPeriod: 'day' | 'week' | 'month' = 'week';
   private subscriptions: Subscription[] = [];
   private charts: Chart[] = [];
 
@@ -55,7 +59,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private authService: AuthService,
     private chatService: ChatService,
-    private translationService: TranslationService,
     private router: Router
   ) {}
 
@@ -70,6 +73,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => this.createCharts(), 500);
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
     this.charts.forEach((chart) => chart.destroy());
@@ -77,7 +84,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   private loadUserData(): void {
     this.subscriptions.push(
-      this.authService.currentUser.subscribe((user) => (this.user = user))
+      this.authService.currentUser.subscribe((user) => {
+        this.user = user;
+        if (user && user.role !== 'admin' && user.role !== 'super_admin') {
+          this.router.navigate(['/user']);
+        }
+      })
     );
   }
 
@@ -86,11 +98,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.adminService.getDashboardStats().subscribe({
       next: (data) => {
         this.stats = data;
-        this.updateCharts();
+        setTimeout(() => this.createCharts(), 200);
         this.isLoading = false;
       },
       error: (err) => {
-        console.error(err);
+        console.error('❌ Erreur chargement dashboard:', err);
         this.isLoading = false;
       },
     });
@@ -102,7 +114,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.stats = data;
         this.updateCharts();
       },
-      error: (err) => console.error(err),
+      error: (err) => console.error('❌ Erreur refresh:', err),
     });
   }
 
@@ -129,20 +141,25 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
             {
               label: 'Transactions',
               data: this.stats.dailyStats.map((d) => d.transactions),
-              borderColor: '#4caf50',
-              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              borderColor: '#7c3aed',
+              backgroundColor: 'rgba(124, 58, 237, 0.1)',
               tension: 0.4,
               yAxisID: 'y',
               fill: true,
+              pointBackgroundColor: '#7c3aed',
+              pointBorderColor: '#7c3aed',
             },
             {
               label: 'Volume (kAr)',
               data: this.stats.dailyStats.map((d) => d.volume / 1000),
-              borderColor: '#2196f3',
-              backgroundColor: 'rgba(33, 150, 243, 0.1)',
+              borderColor: '#4f46e5',
+              backgroundColor: 'rgba(79, 70, 229, 0.1)',
               tension: 0.4,
               yAxisID: 'y1',
               fill: true,
+              borderDash: [5, 5],
+              pointBackgroundColor: '#4f46e5',
+              pointBorderColor: '#4f46e5',
             },
           ],
         },
@@ -151,8 +168,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           plugins: {
-            legend: { position: 'top', labels: { usePointStyle: true } },
+            legend: {
+              position: 'top',
+              labels: { usePointStyle: true, padding: 20 },
+            },
             tooltip: {
+              backgroundColor: 'var(--surface)',
+              titleColor: 'var(--text)',
+              bodyColor: 'var(--text-2)',
+              borderColor: 'var(--border)',
+              borderWidth: 1,
+              cornerRadius: 8,
               callbacks: {
                 label: (ctx) => {
                   let label = ctx.dataset.label || '';
@@ -172,15 +198,29 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
               type: 'linear',
               display: true,
               position: 'left',
-              title: { display: true, text: 'Nombre' },
-              grid: { color: 'rgba(0,0,0,0.05)' },
+              title: {
+                display: true,
+                text: 'Nombre',
+                color: 'var(--text-3)',
+              },
+              grid: { color: 'var(--border)' },
+              ticks: { color: 'var(--text-3)' },
             },
             y1: {
               type: 'linear',
               display: true,
               position: 'right',
-              title: { display: true, text: 'Volume (milliers Ar)' },
+              title: {
+                display: true,
+                text: 'Volume (milliers Ar)',
+                color: 'var(--text-3)',
+              },
               grid: { drawOnChartArea: false },
+              ticks: { color: 'var(--text-3)' },
+            },
+            x: {
+              grid: { color: 'var(--border)' },
+              ticks: { color: 'var(--text-3)' },
             },
           },
         },
@@ -202,9 +242,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
                 this.stats.activeUsers,
                 this.stats.totalUsers - this.stats.activeUsers,
               ],
-              backgroundColor: ['#4caf50', '#ff9800'],
-              borderWidth: 0,
-              hoverOffset: 4,
+              backgroundColor: ['#7c3aed', '#e5e7eb'],
+              borderWidth: 2,
+              borderColor: 'var(--surface)',
+              hoverOffset: 8,
             },
           ],
         },
@@ -213,8 +254,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           maintainAspectRatio: false,
           cutout: '70%',
           plugins: {
-            legend: { position: 'bottom', labels: { usePointStyle: true } },
+            legend: {
+              position: 'bottom',
+              labels: { usePointStyle: true, padding: 16 },
+            },
             tooltip: {
+              backgroundColor: 'var(--surface)',
+              titleColor: 'var(--text)',
+              bodyColor: 'var(--text-2)',
+              borderColor: 'var(--border)',
+              borderWidth: 1,
+              cornerRadius: 8,
               callbacks: {
                 label: (ctx) => {
                   const label = ctx.label || '';
@@ -243,9 +293,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
             {
               label: 'Volume (Ar)',
               data: this.stats.dailyStats.map((d) => d.volume),
-              backgroundColor: 'rgba(102, 126, 234, 0.7)',
+              backgroundColor: 'rgba(124, 58, 237, 0.7)',
               borderRadius: 6,
-              hoverBackgroundColor: 'rgba(102, 126, 234, 1)',
+              hoverBackgroundColor: 'rgba(124, 58, 237, 1)',
+              borderSkipped: false,
             },
           ],
         },
@@ -255,6 +306,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           plugins: {
             legend: { display: false },
             tooltip: {
+              backgroundColor: 'var(--surface)',
+              titleColor: 'var(--text)',
+              bodyColor: 'var(--text-2)',
+              borderColor: 'var(--border)',
+              borderWidth: 1,
+              cornerRadius: 8,
               callbacks: {
                 label: (ctx: any) => {
                   const value = ctx.parsed.y;
@@ -269,10 +326,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           scales: {
             y: {
               beginAtZero: true,
+              grid: { color: 'var(--border)' },
               ticks: {
+                color: 'var(--text-3)',
                 callback: (value: any) => {
-                  const num =
-                    typeof value === 'number' ? value : parseFloat(value);
+                  const num = typeof value === 'number' ? value : parseFloat(value);
                   if (isNaN(num)) return value;
                   return new Intl.NumberFormat('fr-MG', {
                     notation: 'compact',
@@ -280,6 +338,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
                   }).format(num);
                 },
               },
+            },
+            x: {
+              grid: { color: 'var(--border)' },
+              ticks: { color: 'var(--text-3)' },
             },
           },
         },
@@ -305,11 +367,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   formatVolume(volume: number): string {
-    return volume >= 1e6
-      ? (volume / 1e6).toFixed(1) + ' M'
-      : volume >= 1e3
-      ? (volume / 1e3).toFixed(1) + ' k'
-      : volume.toString();
+    if (volume >= 1e6) {
+      return (volume / 1e6).toFixed(1) + ' M';
+    }
+    if (volume >= 1e3) {
+      return (volume / 1e3).toFixed(1) + ' k';
+    }
+    return volume.toString();
   }
 
   formatNumber(num: number): string {
@@ -318,13 +382,5 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   getInitials(first: string, last: string): string {
     return (first?.charAt(0) || '') + (last?.charAt(0) || '');
-  }
-
-  getStatusClass(status: string): string {
-    return status === 'completed' ? 'status-completed' : 'status-pending';
-  }
-
-  getStatusIcon(status: string): string {
-    return status === 'completed' ? 'check_circle' : 'pending';
   }
 }
