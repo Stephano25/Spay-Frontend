@@ -1,3 +1,4 @@
+<!-- frontend/src/app/components/admin/users/admin-users.component.html -->
 <mat-toolbar color="primary">
   <button mat-icon-button (click)="goBack()" matTooltip="Retour">
     <mat-icon>arrow_back</mat-icon>
@@ -59,6 +60,10 @@
               </td>
               <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="actions-cell">
+                <!-- ✅ BOUTON DÉPÔT -->
+                <button mat-icon-button color="primary" (click)="depositMoney(user)" matTooltip="Déposer de l'argent">
+                  <mat-icon>add</mat-icon>
+                </button>
                 <button mat-icon-button color="warn" (click)="deleteUser(user)" matTooltip="Supprimer">
                   <mat-icon>delete</mat-icon>
                 </button>

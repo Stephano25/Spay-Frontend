@@ -1,3 +1,4 @@
+// frontend/src/app/services/admin-data.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, throwError, tap } from 'rxjs';
@@ -100,6 +101,21 @@ export class AdminDataService {
       tap(() => this.notificationService.showSuccess('Utilisateur supprimé')),
       catchError((error) => {
         this.notificationService.showError('Erreur lors de la suppression');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ✅ AJOUTER CETTE MÉTHODE
+  depositMoney(userId: string, amount: number, description?: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/admin/users/${userId}/deposit`,
+      { amount, description },
+      { headers: this.getHeaders() }
+    ).pipe(
+      tap(() => this.notificationService.showSuccess(`Dépôt de ${amount} Ar effectué`)),
+      catchError((error) => {
+        this.notificationService.showError('Erreur lors du dépôt');
         return throwError(() => error);
       })
     );

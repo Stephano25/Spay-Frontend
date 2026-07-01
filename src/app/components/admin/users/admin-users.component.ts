@@ -1,9 +1,12 @@
+// frontend/src/app/components/admin/users/admin-users.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AdminDataService, User } from '../../../services/admin-data.service';
 import { NotificationService } from '../../../services/notification.service';
+import { MatDialog } from '@angular/material/dialog';
+import { DepositDialogComponent } from '../users/deposit-dialog.component';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -45,7 +48,8 @@ export class AdminUsersComponent implements OnInit {
   constructor(
     private adminDataService: AdminDataService,
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -63,6 +67,29 @@ export class AdminUsersComponent implements OnInit {
         console.error('Erreur chargement utilisateurs:', error);
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
         this.isLoading = false;
+      }
+    });
+  }
+
+  // ✅ DÉPÔT D'ARGENT - CORRIGÉ
+  depositMoney(user: User): void {
+    const dialogRef = this.dialog.open(DepositDialogComponent, {
+      width: '450px',
+      data: { user: user }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.adminDataService.depositMoney(user.id, result.amount, result.description).subscribe({
+          next: (response: any) => {
+            this.notificationService.showSuccess(`Dépôt de ${result.amount} Ar effectué avec succès`);
+            this.loadUsers();
+          },
+          error: (error: any) => {
+            console.error('Erreur dépôt:', error);
+            this.notificationService.showError(error?.error?.message || 'Erreur lors du dépôt');
+          }
+        });
       }
     });
   }
@@ -90,7 +117,7 @@ export class AdminUsersComponent implements OnInit {
     if (confirm(`Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`)) {
       this.adminDataService.deleteUser(user.id).subscribe({
         next: () => {
-          this.users = this.users.filter(u => u.id !== user.id);
+          this.users = this.users.filter((u) => u.id !== user.id);
           this.notificationService.showSuccess('Utilisateur supprimé');
         },
         error: (error) => {
@@ -102,10 +129,13 @@ export class AdminUsersComponent implements OnInit {
   }
 
   getRoleLabel(role: string): string {
-    switch(role) {
-      case 'admin': return 'Admin';
-      case 'super_admin': return 'Super Admin';
-      default: return 'Utilisateur';
+    switch (role) {
+      case 'admin':
+        return 'Admin';
+      case 'super_admin':
+        return 'Super Admin';
+      default:
+        return 'Utilisateur';
     }
   }
 

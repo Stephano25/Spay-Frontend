@@ -1,3 +1,4 @@
+// frontend/src/app/services/admin.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, throwError, tap } from 'rxjs';
@@ -96,6 +97,10 @@ export class AdminService {
     });
   }
 
+  // ============================================================
+  // DASHBOARD
+  // ============================================================
+
   getDashboardStats(): Observable<AdminDashboardStats> {
     return this.http.get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`, { headers: this.getHeaders() }).pipe(
       tap((data) => console.log('Stats admin reçues:', data)),
@@ -107,19 +112,14 @@ export class AdminService {
     );
   }
 
+  // ============================================================
+  // UTILISATEURS
+  // ============================================================
+
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/users`, { headers: this.getHeaders() }).pipe(
       catchError((error) => {
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  getAllTransactions(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/transactions`, { headers: this.getHeaders() }).pipe(
-      catchError((error) => {
-        this.notificationService.showError('Erreur lors du chargement des transactions');
         return throwError(() => error);
       })
     );
@@ -145,6 +145,70 @@ export class AdminService {
     );
   }
 
+  // ✅ DÉPÔT D'ARGENT POUR UN UTILISATEUR
+  depositMoney(userId: string, amount: number, description?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/users/${userId}/deposit`, { amount, description }, { headers: this.getHeaders() }).pipe(
+      tap(() => this.notificationService.showSuccess(`Dépôt de ${amount} Ar effectué`)),
+      catchError((error) => {
+        this.notificationService.showError('Erreur lors du dépôt');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ============================================================
+  // ADMINISTRATEURS
+  // ============================================================
+
+  // ✅ CRÉER UN ADMIN
+  createAdmin(adminData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admins`, adminData, { headers: this.getHeaders() }).pipe(
+      tap(() => this.notificationService.showSuccess('Administrateur créé avec succès')),
+      catchError((error) => {
+        this.notificationService.showError('Erreur lors de la création');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ✅ LISTER LES ADMINS
+  getAdmins(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/admins`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
+        this.notificationService.showError('Erreur lors du chargement des administrateurs');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ✅ SUPPRIMER UN ADMIN
+  deleteAdmin(adminId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/admins/${adminId}`, { headers: this.getHeaders() }).pipe(
+      tap(() => this.notificationService.showSuccess('Administrateur supprimé')),
+      catchError((error) => {
+        this.notificationService.showError('Erreur lors de la suppression');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ============================================================
+  // TRANSACTIONS
+  // ============================================================
+
+  getAllTransactions(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/transactions`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
+        this.notificationService.showError('Erreur lors du chargement des transactions');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ============================================================
+  // PARAMÈTRES
+  // ============================================================
+
   getSettings(): Observable<SystemSettings> {
     return this.http.get<SystemSettings>(`${this.apiUrl}/settings`, { headers: this.getHeaders() }).pipe(
       catchError((error) => {
@@ -163,6 +227,10 @@ export class AdminService {
       })
     );
   }
+
+  // ============================================================
+  // SYSTÈME
+  // ============================================================
 
   getSystemLogs(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/system/logs`, { headers: this.getHeaders() }).pipe(

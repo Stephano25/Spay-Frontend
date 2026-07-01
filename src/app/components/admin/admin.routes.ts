@@ -9,7 +9,6 @@ export const ADMIN_ROUTES: Routes = [
       import('./dashboard/admin-dashboard.component').then(
         (m) => m.AdminDashboardComponent
       ),
-    // ✅ PLUS DE canActivate ici !
   },
   {
     path: 'profile',
@@ -40,6 +39,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./settings/settings.component').then(
         (m) => m.AdminSettingsComponent
+      ),
+  },
+  {
+    path: 'admins',
+    loadComponent: () =>
+      import('./admins/admin-admins.component').then(
+        (m) => m.AdminAdminsComponent
       ),
   },
   { path: '**', redirectTo: 'dashboard' }

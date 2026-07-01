@@ -1,0 +1,81 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Gestion des Administrateurs</span>
+  <span class="spacer"></span>
+  <button mat-raised-button color="accent" (click)="openCreateAdminDialog()">
+    <mat-icon>person_add</mat-icon>
+    Créer un Admin
+  </button>
+</mat-toolbar>
+
+<div class="admins-container">
+  <mat-card class="admins-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>admin_panel_settings</mat-icon>
+        Administrateurs
+      </mat-card-title>
+      <mat-card-subtitle>Total: {{ admins.length }} administrateurs</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="loading-container" *ngIf="isLoading">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Chargement des administrateurs...</p>
+      </div>
+
+      <div *ngIf="!isLoading" class="table-container">
+        <table class="admins-table">
+          <thead>
+            <tr>
+              <th>Administrateur</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Rôle</th>
+              <th>Statut</th>
+              <th>Date d'inscription</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let admin of admins">
+              <td class="admin-cell">
+                <div class="admin-avatar">{{ getInitials(admin) }}</div>
+                <div class="admin-name">{{ admin.firstName }} {{ admin.lastName }}</div>
+              </td>
+              <td>{{ admin.email }}</td>
+              <td>{{ admin.phoneNumber || '-' }}</td>
+              <td>
+                <mat-chip [class]="'role-' + admin.role">
+                  {{ admin.role === 'super_admin' ? 'Super Admin' : 'Admin' }}
+                </mat-chip>
+              </td>
+              <td>
+                <mat-slide-toggle
+                  [checked]="admin.isActive"
+                  (change)="toggleAdminStatus(admin)"
+                  color="primary">
+                  {{ admin.isActive ? 'Actif' : 'Inactif' }}
+                </mat-slide-toggle>
+              </td>
+              <td>{{ admin.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td class="actions-cell">
+                <button mat-icon-button color="warn" (click)="deleteAdmin(admin)" matTooltip="Supprimer" [disabled]="admin.id === currentAdminId">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="admins.length === 0" class="empty-state">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <h3>Aucun administrateur</h3>
+          <p>Aucun administrateur n'est enregistré pour le moment</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -80,7 +80,7 @@
             <div class="kpi-label">Utilisateurs</div>
             <div class="kpi-trend positive">
               <mat-icon>trending_up</mat-icon>
-              <span>{{ stats?.totalUsers ? ((stats.activeUsers / stats.totalUsers) * 100).toFixed(1) : 0 }}% actifs</span>
+              <span>{{ stats?.totalUsers ? ((stats?.activeUsers || 0) / (stats?.totalUsers || 1) * 100).toFixed(1) : 0 }}% actifs</span>
             </div>
           </div>
         </mat-card-content>
@@ -137,7 +137,6 @@
 
     <!-- ============================================================
          SECTION 2: MENU DE NAVIGATION COMPLET (TOUJOURS VISIBLE)
-         ✅ C'EST ICI QUE SONT LES BOUTONS !
     ============================================================ -->
     <div class="section-header">
       <h2 class="section-title">
