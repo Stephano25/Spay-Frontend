@@ -1,6 +1,6 @@
-// src/app/services/config.service.ts
+// frontend/src/app/services/config.service.ts
 import { Injectable } from '@angular/core';
-import { environment, updateApiBaseUrl } from '../../environments/environment';
+import { environment } from '../../environments/environment';
 
 export interface AppConfig {
   apiUrl: string;
@@ -59,16 +59,14 @@ export class ConfigService {
   }
 
   /**
-   * 🔥 Récupère l'URL complète d'un fichier
+   * Récupère l'URL complète d'un fichier
    */
   getFileUrl(fileUrl?: string): string {
     if (!fileUrl) return '';
     if (fileUrl.startsWith('http')) return fileUrl;
-    // Si l'URL commence par '/uploads/', on ajoute l'URL de base
     if (fileUrl.startsWith('/uploads/')) {
       return `${this.getBaseUrl()}${fileUrl}`;
     }
-    // Sinon, on ajoute un slash si nécessaire
     const base = this.getBaseUrl().endsWith('/') ? this.getBaseUrl() : this.getBaseUrl();
     const path = fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`;
     return `${base}${path}`;
@@ -76,29 +74,5 @@ export class ConfigService {
 
   buildUrl(endpoint: string): string {
     return `${this.getApiUrl()}${endpoint}`;
-  }
-
-  updateApiUrl(newBaseUrl: string): void {
-    updateApiBaseUrl(newBaseUrl);
-    this.config.apiUrl = `${newBaseUrl}/api`;
-    this.config.socketUrl = newBaseUrl;
-    this.config.baseUrl = newBaseUrl;
-
-    if (this.isWeb()) {
-      localStorage.setItem('api_base_url', newBaseUrl);
-    }
-    console.log('🔧 API URL mise à jour:', this.config.apiUrl);
-  }
-
-  initialize(): Promise<void> {
-    return new Promise((resolve) => {
-      if (this.isWeb()) {
-        const storedUrl = localStorage.getItem('api_base_url');
-        if (storedUrl) {
-          this.updateApiUrl(storedUrl);
-        }
-      }
-      resolve();
-    });
   }
 }

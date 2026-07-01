@@ -1,9 +1,15 @@
+// ============================================================
+// REGISTER COMPONENT - SPaye
+// ============================================================
+
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { trigger, transition, style, animate } from '@angular/animations';
+
 import { AuthService } from '../../../services/auth.service';
-import { RegisterData } from '../../../models/user.model'; // CORRECTION: Importer depuis le modèle
+import { RegisterData } from '../../../models/user.model';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -30,7 +36,15 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     MatCheckboxModule
   ],
   templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css']
+  styleUrls: ['./register.component.css'],
+  animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ]
 })
 export class RegisterComponent {
   registerForm: FormGroup;
@@ -67,7 +81,6 @@ export class RegisterComponent {
 
   onSubmit(): void {
     if (this.registerForm.invalid) {
-      // Marquer tous les champs comme touchés pour afficher les erreurs
       Object.keys(this.registerForm.controls).forEach(key => {
         this.registerForm.get(key)?.markAsTouched();
       });
@@ -85,21 +98,13 @@ export class RegisterComponent {
     };
 
     this.authService.register(userData).subscribe({
-      next: (response) => {
-        console.log('Inscription réussie', response);
-        // Redirection déjà gérée dans le service
-      },
-      error: (error: any) => {
-        console.error('Erreur inscription', error);
-        this.isLoading = false;
-      },
-      complete: () => {
+      error: () => {
         this.isLoading = false;
       }
     });
   }
 
-  // Getters pour faciliter l'accès aux champs dans le template
+  // Getters
   get firstName() { return this.registerForm.get('firstName'); }
   get lastName() { return this.registerForm.get('lastName'); }
   get email() { return this.registerForm.get('email'); }

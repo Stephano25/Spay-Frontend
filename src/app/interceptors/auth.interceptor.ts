@@ -1,7 +1,4 @@
-// ============================================================
-// AUTH INTERCEPTOR - SPaye
-// ============================================================
-
+// src/app/interceptors/auth.interceptor.ts
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -17,12 +14,17 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.authService.getToken();
-    
     // ✅ Ne pas intercepter les requêtes vers l'API de Google
     if (req.url.includes('googleapis.com') || req.url.includes('google.com')) {
       return next.handle(req);
     }
+
+    // ✅ Ne pas intercepter les requêtes de santé
+    if (req.url.includes('/health')) {
+      return next.handle(req);
+    }
+
+    const token = this.authService.getToken();
     
     let authReq = req;
     if (token) {

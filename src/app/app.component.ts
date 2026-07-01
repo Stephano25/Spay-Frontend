@@ -1,21 +1,22 @@
+// frontend/src/app/app.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './services/theme.service';
 import { TranslationService } from './services/translation.service';
-import { ChatService } from './services/chat.service'; // ← import pour injection
+import { ChatService } from './services/chat.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, RouterOutlet],
-  template: '<router-outlet></router-outlet>',
+  template: `<router-outlet></router-outlet>`,
 })
 export class AppComponent implements OnInit {
   constructor(
     private themeService: ThemeService,
     private translationService: TranslationService,
-    private chatService: ChatService // ← injection qui déclenche l'abonnement
+    private chatService: ChatService
   ) {}
 
   ngOnInit(): void {

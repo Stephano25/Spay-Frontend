@@ -1,4 +1,4 @@
-// src/app/components/auth/login/login.component.ts
+// frontend/src/app/components/auth/login/login.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-login',
@@ -26,7 +27,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatCheckboxModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
@@ -60,11 +62,16 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.loginForm.invalid) return;
+    if (this.loginForm.invalid) {
+      Object.keys(this.loginForm.controls).forEach(key => {
+        this.loginForm.get(key)?.markAsTouched();
+      });
+      return;
+    }
+
     this.isLoading = true;
     const { email, password } = this.loginForm.value;
     
-    // ✅ Le service gère maintenant la redirection
     this.authService.login(email, password).subscribe({
       error: () => {
         this.isLoading = false;

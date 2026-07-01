@@ -4,12 +4,27 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  constructor(private snackBar: MatSnackBar) {}
+  private audio: HTMLAudioElement | null = null;
+
+  constructor(private snackBar: MatSnackBar) {
+    this.initAudio();
+  }
+
+  private initAudio(): void {
+    try {
+      this.audio = new Audio('/assets/sounds/notification.mp3');
+      this.audio.load();
+    } catch (e) {
+      console.warn('⚠️ Impossible de charger le son de notification');
+    }
+  }
 
   playNotificationSound(): void {
     try {
-      const audio = new Audio('/assets/sounds/notifications.mp3');
-      audio.play().catch(() => {});
+      if (this.audio) {
+        this.audio.currentTime = 0;
+        this.audio.play().catch(() => {});
+      }
     } catch {}
   }
 

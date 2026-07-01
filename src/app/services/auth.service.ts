@@ -1,7 +1,4 @@
-// ============================================================
-// AUTH SERVICE - SPaye (Frontend)
-// ============================================================
-
+// src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';

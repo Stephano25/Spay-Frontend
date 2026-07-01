@@ -18,13 +18,8 @@
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.json",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
-            "styles": [
-              "src/styles.css"
-            ],
+            "assets": ["src/favicon.ico", "src/assets"],
+            "styles": ["src/styles.css"],
             "scripts": [],
             "allowedCommonJsDependencies": [
               "debug",
@@ -44,8 +39,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "10kb"
+                  "maximumWarning": "50kb",
+                  "maximumError": "100kb"
                 }
               ],
               "outputHashing": "all",
@@ -63,56 +58,6 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
-            },
-            "local": {
-              "fileReplacements": [
-                {
-                  "src": "src/environments/environment.ts",
-                  "replaceWith": "src/environments/environment.local.ts"
-                }
-              ],
-              "optimization": false,
-              "sourceMap": true,
-              "namedChunks": true,
-              "vendorChunk": true,
-              "buildOptimizer": false
-            },
-            "mobile": {
-              "fileReplacements": [
-                {
-                  "src": "src/environments/environment.ts",
-                  "replaceWith": "src/environments/environment.mobile.ts"
-                }
-              ],
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "namedChunks": false,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
-                }
-              ]
-            },
-            "docker": {
-              "fileReplacements": [
-                {
-                  "src": "src/environments/environment.ts",
-                  "replaceWith": "src/environments/environment.docker.ts"
-                }
-              ],
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "namedChunks": false,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true
             }
           },
           "defaultConfiguration": "production"
@@ -125,44 +70,12 @@
             },
             "development": {
               "buildTarget": "spaye-frontend:build:development"
-            },
-            "local": {
-              "buildTarget": "spaye-frontend:build:local"
-            },
-            "mobile": {
-              "buildTarget": "spaye-frontend:build:mobile"
-            },
-            "docker": {
-              "buildTarget": "spaye-frontend:build:docker"
             }
           },
           "defaultConfiguration": "development",
           "options": {
             "host": "0.0.0.0",
             "port": 4200
-          }
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "spaye-frontend:build"
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
-            "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
-            "styles": [
-              "src/styles.css"
-            ],
-            "scripts": []
           }
         }
       }

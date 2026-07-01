@@ -1,19 +1,31 @@
-<div class="register-container">
-  <mat-card class="register-card">
-    <mat-card-header>
-      <div class="logo">
-        <mat-icon>app_registration</mat-icon>
-      </div>
-      <mat-card-title>Créer un compte</mat-card-title>
-      <mat-card-subtitle>Rejoignez SPaye pour commencer</mat-card-subtitle>
-    </mat-card-header>
+<!-- ============================================================
+     REGISTER PAGE - SPaye
+     ============================================================ -->
 
-    <mat-card-content>
-      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-        <!-- Informations personnelles -->
-        <div class="form-section">
-          <h3>Informations personnelles</h3>
+<div class="register-wrapper">
+  <div class="register-container">
+    <mat-card class="register-card" @fadeIn>
+      
+      <!-- En-tête -->
+      <mat-card-header>
+        <div class="logo-container">
+          <div class="logo-icon">
+            <mat-icon>app_registration</mat-icon>
+          </div>
+          <h1 class="app-title">SPaye</h1>
+          <p class="app-subtitle">Créez votre compte</p>
+        </div>
+        <mat-card-title class="welcome-title">Rejoignez SPaye</mat-card-title>
+        <mat-card-subtitle class="welcome-subtitle">
+          Commencez à effectuer vos paiements en toute simplicité
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <!-- Formulaire -->
+      <mat-card-content>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
           
+          <!-- Prénom et Nom -->
           <div class="row">
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Prénom</mat-label>
@@ -40,9 +52,10 @@
             </mat-form-field>
           </div>
 
+          <!-- Email -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" placeholder="exemple&#64;email.com">
+            <mat-label>Adresse email</mat-label>
+            <input matInput formControlName="email" type="email" placeholder="exemple@email.com">
             <mat-icon matSuffix>email</mat-icon>
             <mat-error *ngIf="email?.hasError('required') && email?.touched">
               Email requis
@@ -52,20 +65,18 @@
             </mat-error>
           </mat-form-field>
 
+          <!-- Téléphone -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Téléphone (optionnel)</mat-label>
             <input matInput formControlName="phoneNumber" placeholder="0341234567">
             <mat-icon matSuffix>phone</mat-icon>
+            <mat-hint>9 à 10 chiffres</mat-hint>
             <mat-error *ngIf="phoneNumber?.hasError('pattern') && phoneNumber?.touched">
               Format invalide (9-10 chiffres)
             </mat-error>
           </mat-form-field>
-        </div>
 
-        <!-- Sécurité -->
-        <div class="form-section">
-          <h3>Sécurité</h3>
-
+          <!-- Mot de passe -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Mot de passe</mat-label>
             <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
@@ -80,6 +91,7 @@
             </mat-error>
           </mat-form-field>
 
+          <!-- Confirmation -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Confirmer le mot de passe</mat-label>
             <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
@@ -90,29 +102,54 @@
               Les mots de passe ne correspondent pas
             </mat-error>
           </mat-form-field>
+
+          <!-- Conditions -->
+          <div class="terms">
+            <mat-checkbox formControlName="acceptTerms" color="primary">
+              J'accepte les <a href="#" class="terms-link">conditions d'utilisation</a>
+              et la <a href="#" class="terms-link">politique de confidentialité</a>
+            </mat-checkbox>
+            <mat-error *ngIf="acceptTerms?.hasError('required') && acceptTerms?.touched" class="terms-error">
+              Vous devez accepter les conditions
+            </mat-error>
+          </div>
+
+          <!-- Bouton d'inscription -->
+          <button 
+            mat-raised-button 
+            color="primary" 
+            type="submit" 
+            [disabled]="registerForm.invalid || isLoading" 
+            class="register-button">
+            <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+            <span *ngIf="!isLoading">
+              <mat-icon>person_add</mat-icon>
+              Créer mon compte
+            </span>
+          </button>
+        </form>
+
+        <!-- Lien connexion -->
+        <div class="login-link">
+          <span>Déjà inscrit ?</span>
+          <a routerLink="/login" class="login-link-btn">
+            Se connecter
+            <mat-icon>arrow_forward</mat-icon>
+          </a>
         </div>
+      </mat-card-content>
+    </mat-card>
 
-        <!-- Conditions -->
-        <div class="terms">
-          <mat-checkbox formControlName="acceptTerms">
-            J'accepte les <a href="#">conditions d'utilisation</a>
-          </mat-checkbox>
-          <mat-error *ngIf="acceptTerms?.hasError('required') && acceptTerms?.touched" class="terms-error">
-            Vous devez accepter les conditions
-          </mat-error>
-        </div>
-
-        <button mat-raised-button color="primary" type="submit" 
-                [disabled]="registerForm.invalid || isLoading" class="register-button">
-          <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
-          <span *ngIf="!isLoading">Créer mon compte</span>
-        </button>
-      </form>
-
-      <div class="login-link">
-        <span>Déjà inscrit ?</span>
-        <a routerLink="/login">Se connecter</a>
+    <!-- Footer -->
+    <div class="register-footer">
+      <p>&copy; 2024 SPaye. Tous droits réservés.</p>
+      <div class="footer-links">
+        <a href="#">Conditions</a>
+        <span class="separator">•</span>
+        <a href="#">Confidentialité</a>
+        <span class="separator">•</span>
+        <a href="#">Aide</a>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 </div>

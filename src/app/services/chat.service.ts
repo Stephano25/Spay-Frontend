@@ -1,7 +1,4 @@
-// ============================================================
-// CHAT SERVICE - SPaye
-// ============================================================
-
+// src/app/services/chat.service.ts - CORRIGÉ
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
@@ -85,6 +82,8 @@ export class ChatService implements OnDestroy {
   private processedMessageIds = new Set<string>();
   private authSubscription: Subscription;
   private isConnecting = false;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
 
   constructor(
     private http: HttpClient,
@@ -117,11 +116,13 @@ export class ChatService implements OnDestroy {
       this.socket = null;
     }
 
+    console.log(`🔌 Connexion au socket: ${this.socketUrl}`);
+
     this.socket = io(this.socketUrl, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: this.maxReconnectAttempts,
       reconnectionDelay: 2000,
       reconnectionDelayMax: 10000,
       timeout: 20000,
@@ -133,6 +134,7 @@ export class ChatService implements OnDestroy {
     this.socket.on('connect', () => {
       console.log('✅ Socket connecté:', this.socket?.id);
       this.isConnecting = false;
+      this.reconnectAttempts = 0;
       this.socket?.emit('getOnlineUsers');
     });
 
@@ -144,6 +146,12 @@ export class ChatService implements OnDestroy {
     this.socket.on('connect_error', (err) => {
       console.error('❌ Erreur socket:', err.message);
       this.isConnecting = false;
+      this.reconnectAttempts++;
+      
+      if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+        console.error('❌ Nombre maximum de tentatives de reconnexion atteint');
+        this.disconnect();
+      }
     });
 
     this.socket.on('reconnect_attempt', () => {
@@ -187,6 +195,7 @@ export class ChatService implements OnDestroy {
       this.socket = null;
     }
     this.isConnecting = false;
+    this.reconnectAttempts = 0;
   }
 
   // ── REST API ──
@@ -207,7 +216,11 @@ export class ChatService implements OnDestroy {
     if (!this.socket?.connected) {
       this.connectSocket();
       setTimeout(() => {
-        if (this.socket?.connected) this.socket.emit('sendMessage', message);
+        if (this.socket?.connected) {
+          this.socket.emit('sendMessage', message);
+        } else {
+          console.warn('⚠️ Socket non connecté, message non envoyé');
+        }
       }, 1500);
       return;
     }
@@ -220,7 +233,9 @@ export class ChatService implements OnDestroy {
   }
 
   markAsRead(senderId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {}).pipe(catchError(() => of(void 0)));
+    return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {}).pipe(
+      catchError(() => of(void 0))
+    );
   }
 
   uploadFile(file: File): Observable<{ url: string; fileName: string; fileSize: number }> {
