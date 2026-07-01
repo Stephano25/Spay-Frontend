@@ -1,3 +1,4 @@
+// frontend/src/app/components/admin/admin.routes.ts
 import { Routes } from '@angular/router';
 
 export const ADMIN_ROUTES: Routes = [
@@ -8,6 +9,7 @@ export const ADMIN_ROUTES: Routes = [
       import('./dashboard/admin-dashboard.component').then(
         (m) => m.AdminDashboardComponent
       ),
+    // ✅ PLUS DE canActivate ici !
   },
   {
     path: 'profile',
@@ -40,5 +42,5 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.AdminSettingsComponent
       ),
   },
-  { path: '**', redirectTo: 'dashboard' },
+  { path: '**', redirectTo: 'dashboard' }
 ];

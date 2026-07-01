@@ -1,14 +1,9 @@
-// ============================================================
-// AUTH GUARD - SPaye
-// ============================================================
-
+// frontend/src/app/guards/auth.guard.ts
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, UrlTree } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
   constructor(
     private authService: AuthService,
@@ -16,18 +11,19 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   canActivate(): boolean | UrlTree {
-    console.log('🔒 AuthGuard - Vérification de l\'authentification');
+    console.log('🔒 AuthGuard - Vérification');
     
-    if (this.authService.isAuthenticated()) {
-      const user = this.authService.getCurrentUser();
-      console.log('👤 Utilisateur connecté:', user?.email, 'Rôle:', user?.role);
+    const user = this.authService.getCurrentUser();
+    
+    if (user) {
+      console.log('👤 Utilisateur connecté:', user.email);
       
-      if (user?.role === 'admin' || user?.role === 'super_admin') {
-        console.log('🔀 Redirection vers admin dashboard');
+      // ✅ Si l'utilisateur est admin, rediriger vers admin
+      if (user.role === 'admin' || user.role === 'super_admin') {
+        console.log('🔀 Admin détecté, redirection vers /admin/dashboard');
         return this.router.parseUrl('/admin/dashboard');
       }
       
-      console.log('✅ Accès autorisé');
       return true;
     }
     

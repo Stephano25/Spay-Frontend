@@ -1,3 +1,4 @@
+// frontend/src/app/components/admin/admin.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -20,8 +21,33 @@ export class AdminComponent implements OnInit, OnDestroy {
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
+    console.log('🔄 AdminComponent initialisé');
+    
+    // ✅ Récupérer l'utilisateur immédiatement
+    const user = this.authService.getCurrentUser();
+    
+    if (!user) {
+      console.log('❌ Aucun utilisateur, redirection vers login');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (user.role !== 'admin' && user.role !== 'super_admin') {
+      console.log('❌ Pas admin, redirection vers user');
+      this.router.navigate(['/user/dashboard']);
+      return;
+    }
+
+    this.admin = user;
+    console.log('✅ Admin chargé:', user.email, 'Rôle:', user.role);
+
+    // ✅ S'abonner aux changements
     this.subscriptions.push(
-      this.authService.currentUser.subscribe((user) => (this.admin = user))
+      this.authService.currentUser.subscribe((user) => {
+        if (user) {
+          this.admin = user;
+        }
+      })
     );
   }
 
