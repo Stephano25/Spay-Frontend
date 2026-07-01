@@ -1,5 +1,5 @@
 <!-- ============================================================
-   ADMIN DASHBOARD - SPaye (Version Complète)
+   ADMIN DASHBOARD - SPaye (Version avec Navigation Toujours Visible)
    ============================================================ -->
 
 <mat-toolbar color="primary" class="dashboard-toolbar">
@@ -9,7 +9,7 @@
   <span class="brand-title">SPaye Admin</span>
   <span class="spacer"></span>
   
-  <!-- 🔥 Menu de navigation rapide -->
+  <!-- Menu de navigation rapide -->
   <button mat-icon-button [matMenuTriggerFor]="quickMenu" matTooltip="Navigation rapide">
     <mat-icon>apps</mat-icon>
   </button>
@@ -63,7 +63,9 @@
     <p>Chargement du tableau de bord...</p>
   </div>
 
-  <ng-container *ngIf="!isLoading && stats">
+  <!-- Contenu principal -->
+  <ng-container *ngIf="!isLoading">
+    
     <!-- ============================================================
          SECTION 1: KPI CARDS
     ============================================================ -->
@@ -74,11 +76,11 @@
             <mat-icon>people</mat-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-value">{{ formatNumber(stats.totalUsers) }}</div>
+            <div class="kpi-value">{{ formatNumber(stats?.totalUsers || 0) }}</div>
             <div class="kpi-label">Utilisateurs</div>
             <div class="kpi-trend positive">
               <mat-icon>trending_up</mat-icon>
-              <span>{{ ((stats.activeUsers / stats.totalUsers) * 100).toFixed(1) }}% actifs</span>
+              <span>{{ stats?.totalUsers ? ((stats.activeUsers / stats.totalUsers) * 100).toFixed(1) : 0 }}% actifs</span>
             </div>
           </div>
         </mat-card-content>
@@ -90,7 +92,7 @@
             <mat-icon>online_prediction</mat-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-value">{{ formatNumber(stats.activeUsers) }}</div>
+            <div class="kpi-value">{{ formatNumber(stats?.activeUsers || 0) }}</div>
             <div class="kpi-label">Actifs aujourd'hui</div>
             <div class="kpi-trend positive">
               <mat-icon>trending_up</mat-icon>
@@ -106,7 +108,7 @@
             <mat-icon>swap_horiz</mat-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-value">{{ formatNumber(stats.totalTransactions) }}</div>
+            <div class="kpi-value">{{ formatNumber(stats?.totalTransactions || 0) }}</div>
             <div class="kpi-label">Transactions</div>
             <div class="kpi-trend positive">
               <mat-icon>trending_up</mat-icon>
@@ -122,7 +124,7 @@
             <mat-icon>account_balance_wallet</mat-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-value">{{ formatVolume(stats.totalVolume) }} Ar</div>
+            <div class="kpi-value">{{ formatVolume(stats?.totalVolume || 0) }} Ar</div>
             <div class="kpi-label">Volume total</div>
             <div class="kpi-trend positive">
               <mat-icon>trending_up</mat-icon>
@@ -134,9 +136,87 @@
     </div>
 
     <!-- ============================================================
-         SECTION 2: CHARTS
+         SECTION 2: MENU DE NAVIGATION COMPLET (TOUJOURS VISIBLE)
+         ✅ C'EST ICI QUE SONT LES BOUTONS !
     ============================================================ -->
-    <div class="charts-grid">
+    <div class="section-header">
+      <h2 class="section-title">
+        <mat-icon>dashboard</mat-icon>
+        Gestion complète
+      </h2>
+      <span class="section-subtitle">Accédez rapidement à toutes les fonctionnalités d'administration</span>
+    </div>
+
+    <!-- ✅ MENU GRID - TOUJOURS VISIBLE -->
+    <mat-grid-list cols="5" rowHeight="160px" gutterSize="16px" class="menu-grid">
+      <!-- Profil Admin -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('profile')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon profile">
+              <mat-icon>person</mat-icon>
+            </div>
+            <span>Mon Profil</span>
+            <span class="menu-badge admin">Admin</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- Utilisateurs -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('users')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon users">
+              <mat-icon>people</mat-icon>
+            </div>
+            <span>Utilisateurs</span>
+            <span class="menu-badge">{{ formatNumber(stats?.totalUsers || 0) }}</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- Transactions -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('transactions')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon transactions">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <span>Transactions</span>
+            <span class="menu-badge">{{ formatNumber(stats?.totalTransactions || 0) }}</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- Statistiques -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('stats')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon stats">
+              <mat-icon>bar_chart</mat-icon>
+            </div>
+            <span>Statistiques</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- Paramètres -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('settings')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon settings">
+              <mat-icon>settings</mat-icon>
+            </div>
+            <span>Paramètres</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+    </mat-grid-list>
+
+    <!-- ============================================================
+         SECTION 3: CHARTES (si stats existe)
+    ============================================================ -->
+    <div class="charts-grid" *ngIf="stats">
       <mat-card class="chart-card main-chart">
         <mat-card-header>
           <mat-card-title>
@@ -184,92 +264,16 @@
     </div>
 
     <!-- ============================================================
-         SECTION 3: MENU DE NAVIGATION COMPLET
+         SECTION 4: DONNÉES RÉCENTES (si stats existe)
     ============================================================ -->
-    <div class="section-header">
-      <h2 class="section-title">
-        <mat-icon>dashboard</mat-icon>
-        Gestion complète
-      </h2>
-      <span class="section-subtitle">Accédez rapidement à toutes les fonctionnalités d'administration</span>
-    </div>
-
-    <mat-grid-list cols="5" rowHeight="160px" gutterSize="16px" class="menu-grid">
-      <!-- Profil Admin -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('profile')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon profile">
-              <mat-icon>person</mat-icon>
-            </div>
-            <span>Mon Profil</span>
-            <span class="menu-badge admin">Admin</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Utilisateurs -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('users')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon users">
-              <mat-icon>people</mat-icon>
-            </div>
-            <span>Utilisateurs</span>
-            <span class="menu-badge">{{ formatNumber(stats.totalUsers) }}</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Transactions -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('transactions')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon transactions">
-              <mat-icon>receipt</mat-icon>
-            </div>
-            <span>Transactions</span>
-            <span class="menu-badge">{{ formatNumber(stats.totalTransactions) }}</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Statistiques -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('stats')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon stats">
-              <mat-icon>bar_chart</mat-icon>
-            </div>
-            <span>Statistiques</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Paramètres -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('settings')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon settings">
-              <mat-icon>settings</mat-icon>
-            </div>
-            <span>Paramètres</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-    </mat-grid-list>
-
-    <!-- ============================================================
-         SECTION 4: DONNÉES RÉCENTES (3 colonnes)
-    ============================================================ -->
-    <div class="section-header">
+    <div class="section-header" *ngIf="stats">
       <h2 class="section-title">
         <mat-icon>history</mat-icon>
         Activité récente
       </h2>
     </div>
 
-    <div class="recent-grid">
+    <div class="recent-grid" *ngIf="stats">
       <!-- Utilisateurs récents -->
       <mat-card class="recent-card">
         <mat-card-header>
@@ -364,7 +368,7 @@
     </div>
 
     <!-- ============================================================
-         SECTION 5: FOOTER ACTIONS
+         SECTION 5: FOOTER ACTIONS (TOUJOURS VISIBLE)
     ============================================================ -->
     <div class="footer-actions">
       <button mat-raised-button class="footer-btn profile" (click)="navigateTo('profile')">
