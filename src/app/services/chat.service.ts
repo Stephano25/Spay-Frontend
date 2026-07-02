@@ -1,4 +1,4 @@
-// src/app/services/chat.service.ts - CORRIGÉ
+// frontend/src/app/services/chat.service.ts
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
@@ -100,6 +100,7 @@ export class ChatService implements OnDestroy {
     });
   }
 
+  // ✅ CORRECTION : Connexion Socket avec le bon namespace
   private connectSocket(): void {
     const token = this.authService.getToken();
     if (!token || this.isConnecting) return;
@@ -116,9 +117,11 @@ export class ChatService implements OnDestroy {
       this.socket = null;
     }
 
-    console.log(`🔌 Connexion au socket: ${this.socketUrl}`);
+    // ✅ Utiliser l'URL de base sans /api
+    const baseUrl = this.socketUrl.replace('/api', '');
+    console.log(`🔌 Connexion au socket: ${baseUrl}`);
 
-    this.socket = io(this.socketUrl, {
+    this.socket = io(baseUrl, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -127,8 +130,7 @@ export class ChatService implements OnDestroy {
       reconnectionDelayMax: 10000,
       timeout: 20000,
       forceNew: false,
-      withCredentials: false,
-      extraHeaders: { Authorization: `Bearer ${token}` }
+      withCredentials: false
     });
 
     this.socket.on('connect', () => {

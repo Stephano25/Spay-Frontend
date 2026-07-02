@@ -1,12 +1,15 @@
 /* frontend/src/app/components/admin/admins/admin-admins.component.css */
 /* ============================================================
-   ADMIN ADMINS — SPaye
+   ADMIN ADMINS — SPaye (Version Améliorée)
    ============================================================ */
 
+/* ── Container principal ── */
 .admins-container {
   min-height: 100vh;
   background: var(--bg);
   padding: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 /* ── Toolbar ── */
@@ -17,18 +20,19 @@ mat-toolbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: var(--shadow-xs) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
 }
 
 mat-toolbar button {
   color: var(--text-2) !important;
   border-radius: 50% !important;
-  transition: all var(--trans-base) !important;
+  transition: all 0.3s ease !important;
 }
 
 mat-toolbar button:hover {
   background: var(--hover) !important;
-  color: var(--brand-1) !important;
+  color: #7c3aed !important;
+  transform: scale(1.05);
 }
 
 mat-toolbar .spacer {
@@ -36,8 +40,15 @@ mat-toolbar .spacer {
 }
 
 mat-toolbar .mat-mdc-raised-button {
-  background: var(--brand-grad) !important;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
   color: white !important;
+  border-radius: 999px !important;
+  transition: all 0.3s ease !important;
+}
+
+mat-toolbar .mat-mdc-raised-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.35) !important;
 }
 
 /* ── Content wrapper ── */
@@ -49,36 +60,37 @@ mat-toolbar .mat-mdc-raised-button {
 
 /* ── Admins Card ── */
 .admins-card {
-  border-radius: var(--r-xl) !important;
+  border-radius: 16px !important;
   background: var(--surface) !important;
   border: 0.5px solid var(--border) !important;
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
   overflow: hidden;
-  animation: fadeUp 0.4s var(--ease) both;
+  animation: fadeUp 0.4s ease both;
 }
 
 .admins-card mat-card-header {
   padding: 22px 24px 0 !important;
   border-bottom: 0.5px solid var(--border);
   padding-bottom: 16px !important;
-  background: var(--brand-grad-soft);
+  background: rgba(124, 58, 237, 0.04);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .admins-card mat-card-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-sans) !important;
   font-size: 1.125rem !important;
   font-weight: 700 !important;
   color: var(--text) !important;
 }
 
 .admins-card mat-card-title mat-icon {
-  color: var(--brand-1) !important;
+  color: #7c3aed !important;
 }
 
 .admins-card mat-card-subtitle {
@@ -101,6 +113,7 @@ mat-toolbar .mat-mdc-raised-button {
 .table-container {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 4px 0;
 }
 
 .admins-table {
@@ -118,7 +131,6 @@ mat-toolbar .mat-mdc-raised-button {
 
 .admins-table th {
   background: var(--surface-2);
-  font-family: var(--font-sans);
   font-weight: 700;
   font-size: 0.72rem;
   text-transform: uppercase;
@@ -131,8 +143,8 @@ mat-toolbar .mat-mdc-raised-button {
 }
 
 .admins-table tbody tr {
-  transition: background var(--trans-base);
-  animation: fadeUp 0.25s var(--ease) both;
+  transition: background 0.3s ease;
+  animation: fadeUp 0.25s ease both;
 }
 
 .admins-table tbody tr:hover {
@@ -154,7 +166,7 @@ mat-toolbar .mat-mdc-raised-button {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: var(--brand-grad);
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,7 +174,12 @@ mat-toolbar .mat-mdc-raised-button {
   font-weight: 700;
   font-size: 13px;
   flex-shrink: 0;
-  box-shadow: var(--shadow-brand);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  transition: transform 0.3s ease;
+}
+
+tr:hover .admin-avatar {
+  transform: scale(1.05);
 }
 
 .admin-name {
@@ -175,25 +192,34 @@ mat-toolbar .mat-mdc-raised-button {
 .role-admin {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
+  padding: 3px 12px;
+  border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.03em;
-  background: var(--warning-bg);
-  color: var(--warning);
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
 }
 
 .role-super_admin {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
+  padding: 3px 12px;
+  border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: white;
+}
+
+/* ── Status toggle ── */
+::ng-deep .mat-mdc-slide-toggle .mdc-switch__track {
+  background-color: var(--border-2) !important;
+}
+
+::ng-deep .mat-mdc-slide-toggle.mat-mdc-slide-toggle-checked .mdc-switch__track {
+  background-color: rgba(124, 58, 237, 0.5) !important;
 }
 
 /* ── Actions cell ── */
@@ -202,13 +228,13 @@ mat-toolbar .mat-mdc-raised-button {
 }
 
 .actions-cell button {
-  transition: all var(--trans-base) !important;
+  transition: all 0.3s ease !important;
   border-radius: 50% !important;
 }
 
 .actions-cell button:hover:not(:disabled) {
-  background: var(--danger-bg) !important;
-  color: var(--danger) !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #ef4444 !important;
   transform: scale(1.1);
 }
 
@@ -236,7 +262,6 @@ mat-toolbar .mat-mdc-raised-button {
 }
 
 .empty-state h3 {
-  font-family: var(--font-sans);
   font-size: 1.1rem;
   color: var(--text-2);
   margin: 0;
@@ -246,22 +271,6 @@ mat-toolbar .mat-mdc-raised-button {
   color: var(--text-3);
   font-size: 0.875rem;
   margin: 0;
-}
-
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .admins-content {
-    padding: 16px 14px;
-  }
-
-  .admins-table th,
-  .admins-table td {
-    padding: 10px 12px;
-  }
-
-  .admin-name {
-    font-size: 0.8125rem;
-  }
 }
 
 /* ── Animations ── */
@@ -282,5 +291,72 @@ mat-toolbar .mat-mdc-raised-button {
   }
   50% {
     transform: translateY(-8px);
+  }
+}
+
+/* ── Scrollbar personnalisée ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d5d4e4;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b5b4c8;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .admins-content {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admins-content {
+    padding: 16px 14px;
+  }
+
+  .admins-table th,
+  .admins-table td {
+    padding: 10px 12px;
+    font-size: 0.8125rem;
+  }
+
+  .admin-name {
+    font-size: 0.8125rem;
+  }
+
+  .admins-card mat-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .admins-table th,
+  .admins-table td {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
+
+  .admin-cell {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 11px;
   }
 }
