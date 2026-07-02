@@ -1,7 +1,4 @@
-// ============================================================
-// ADMIN DASHBOARD - SPaye (Version Complète)
-// ============================================================
-
+// frontend/src/app/components/admin/dashboard/admin-dashboard.component.ts
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -43,7 +40,7 @@ import { MatDividerModule } from '@angular/material/divider';
     MatToolbarModule,
     MatMenuModule,
     MatDividerModule,
-    TranslatePipe, // ✅ Import du pipe standalone
+    TranslatePipe,
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],

@@ -48,5 +48,19 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.AdminAdminsComponent
       ),
   },
+  {
+    path: 'deposit',
+    loadComponent: () =>
+      import('./deposit/admin-deposit.component').then(
+        (m) => m.AdminDepositComponent
+      ),
+  },
+  {
+    path: 'withdraw',
+    loadComponent: () =>
+      import('./withdraw/admin-withdraw.component').then(
+        (m) => m.AdminWithdrawComponent
+      ),
+  },
   { path: '**', redirectTo: 'dashboard' }
 ];

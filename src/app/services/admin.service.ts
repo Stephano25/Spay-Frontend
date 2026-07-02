@@ -145,7 +145,10 @@ export class AdminService {
     );
   }
 
-  // ✅ DÉPÔT D'ARGENT POUR UN UTILISATEUR
+  // ============================================================
+  // ADMIN ACTIONS - DÉPÔT
+  // ============================================================
+
   depositMoney(userId: string, amount: number, description?: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/users/${userId}/deposit`, { amount, description }, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess(`Dépôt de ${amount} Ar effectué`)),
@@ -157,10 +160,23 @@ export class AdminService {
   }
 
   // ============================================================
+  // ADMIN ACTIONS - RETRAIT
+  // ============================================================
+
+  withdrawMoney(userId: string, amount: number, description?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/users/${userId}/withdraw`, { amount, description }, { headers: this.getHeaders() }).pipe(
+      tap(() => this.notificationService.showSuccess(`Retrait de ${amount} Ar effectué`)),
+      catchError((error) => {
+        this.notificationService.showError('Erreur lors du retrait');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ============================================================
   // ADMINISTRATEURS
   // ============================================================
 
-  // ✅ CRÉER UN ADMIN
   createAdmin(adminData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/admins`, adminData, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Administrateur créé avec succès')),
@@ -171,7 +187,6 @@ export class AdminService {
     );
   }
 
-  // ✅ LISTER LES ADMINS
   getAdmins(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/admins`, { headers: this.getHeaders() }).pipe(
       catchError((error) => {
@@ -181,7 +196,6 @@ export class AdminService {
     );
   }
 
-  // ✅ SUPPRIMER UN ADMIN
   deleteAdmin(adminId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/admins/${adminId}`, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Administrateur supprimé')),

@@ -1,5 +1,5 @@
 <!-- ============================================================
-   ADMIN DASHBOARD - SPaye (Version avec Navigation Toujours Visible)
+   ADMIN DASHBOARD - SPaye (Version avec Navigation)
    ============================================================ -->
 
 <mat-toolbar color="primary" class="dashboard-toolbar">
@@ -38,6 +38,18 @@
     <button mat-menu-item (click)="navigateTo('settings')">
       <mat-icon>settings</mat-icon>
       <span>Paramètres</span>
+    </button>
+    <button mat-menu-item (click)="navigateTo('admins')">
+      <mat-icon>admin_panel_settings</mat-icon>
+      <span>Administrateurs</span>
+    </button>
+    <button mat-menu-item (click)="navigateTo('deposit')">
+      <mat-icon>add</mat-icon>
+      <span>Dépôt</span>
+    </button>
+    <button mat-menu-item (click)="navigateTo('withdraw')">
+      <mat-icon>remove</mat-icon>
+      <span>Retrait</span>
     </button>
     <mat-divider></mat-divider>
     <button mat-menu-item (click)="logout()" class="logout-item">
@@ -136,7 +148,7 @@
     </div>
 
     <!-- ============================================================
-         SECTION 2: MENU DE NAVIGATION COMPLET (TOUJOURS VISIBLE)
+         SECTION 2: MENU DE NAVIGATION COMPLET (7 BOUTONS)
     ============================================================ -->
     <div class="section-header">
       <h2 class="section-title">
@@ -146,8 +158,8 @@
       <span class="section-subtitle">Accédez rapidement à toutes les fonctionnalités d'administration</span>
     </div>
 
-    <!-- ✅ MENU GRID - TOUJOURS VISIBLE -->
-    <mat-grid-list cols="5" rowHeight="160px" gutterSize="16px" class="menu-grid">
+    <!-- ✅ MENU GRID - 7 BOUTONS -->
+    <mat-grid-list cols="7" rowHeight="160px" gutterSize="16px" class="menu-grid">
       <!-- Profil Admin -->
       <mat-grid-tile>
         <mat-card class="menu-card" (click)="navigateTo('profile')" matRipple>
@@ -207,6 +219,32 @@
               <mat-icon>settings</mat-icon>
             </div>
             <span>Paramètres</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- Dépôt -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('deposit')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon deposit">
+              <mat-icon>add</mat-icon>
+            </div>
+            <span>Dépôt</span>
+            <span class="menu-badge admin">Admin</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- Retrait -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('withdraw')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon withdraw">
+              <mat-icon>remove</mat-icon>
+            </div>
+            <span>Retrait</span>
+            <span class="menu-badge admin">Admin</span>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -366,25 +404,5 @@
       </mat-card>
     </div>
 
-    <!-- ============================================================
-         SECTION 5: FOOTER ACTIONS (TOUJOURS VISIBLE)
-    ============================================================ -->
-    <div class="footer-actions">
-      <button mat-raised-button class="footer-btn profile" (click)="navigateTo('profile')">
-        <mat-icon>person</mat-icon> Mon Profil
-      </button>
-      <button mat-raised-button class="footer-btn users" (click)="navigateTo('users')">
-        <mat-icon>people</mat-icon> Utilisateurs
-      </button>
-      <button mat-raised-button class="footer-btn transactions" (click)="navigateTo('transactions')">
-        <mat-icon>receipt</mat-icon> Transactions
-      </button>
-      <button mat-raised-button class="footer-btn stats" (click)="navigateTo('stats')">
-        <mat-icon>bar_chart</mat-icon> Statistiques
-      </button>
-      <button mat-raised-button class="footer-btn settings" (click)="navigateTo('settings')">
-        <mat-icon>settings</mat-icon> Paramètres
-      </button>
-    </div>
   </ng-container>
 </div>

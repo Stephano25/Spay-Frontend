@@ -1,0 +1,139 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Retrait d'argent</span>
+  <span class="spacer"></span>
+  <span class="toolbar-badge">Administrateur</span>
+</mat-toolbar>
+
+<div class="withdraw-container">
+  <div class="withdraw-content">
+    <div class="loading-container" *ngIf="isLoading">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Chargement des utilisateurs...</p>
+    </div>
+
+    <mat-card class="withdraw-card" *ngIf="!isLoading">
+      <mat-card-header>
+        <div class="header-icon">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+        <mat-card-title>Effectuer un retrait</mat-card-title>
+        <mat-card-subtitle>Débitez le compte d'un utilisateur</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="result-alert" *ngIf="withdrawResult" [class.success]="withdrawResult.success" [class.error]="!withdrawResult.success">
+          <mat-icon>{{ withdrawResult.success ? 'check_circle' : 'error' }}</mat-icon>
+          <span>{{ withdrawResult.message }}</span>
+          <span class="new-balance" *ngIf="withdrawResult.success && withdrawResult.newBalance !== undefined">
+            Nouveau solde : {{ formatAmount(withdrawResult.newBalance) }} Ar
+          </span>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label">
+            <mat-icon>person</mat-icon>
+            <span>Utilisateur</span>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Rechercher un utilisateur</mat-label>
+            <mat-select [(ngModel)]="selectedUserId" placeholder="Sélectionnez un utilisateur">
+              <mat-option *ngFor="let user of users" [value]="user.id">
+                <div class="user-option">
+                  <div class="user-avatar-sm">{{ getUserInitials(user) }}</div>
+                  <div class="user-option-info">
+                    <span class="user-option-name">{{ user.firstName }} {{ user.lastName }}</span>
+                    <span class="user-option-email">{{ user.email }}</span>
+                  </div>
+                  <span class="user-option-balance">{{ formatAmount(user.balance) }} Ar</span>
+                </div>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="selected-user" *ngIf="getSelectedUser()">
+            <div class="selected-user-card">
+              <div class="selected-user-avatar">{{ getUserInitials(getSelectedUser()) }}</div>
+              <div class="selected-user-info">
+                <div class="selected-user-name">{{ getSelectedUser().firstName }} {{ getSelectedUser().lastName }}</div>
+                <div class="selected-user-email">{{ getSelectedUser().email }}</div>
+                <div class="selected-user-balance">
+                  <span class="balance-label">Solde actuel</span>
+                  <span class="balance-value">{{ formatAmount(getSelectedUser().balance) }} Ar</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label">
+            <mat-icon>attach_money</mat-icon>
+            <span>Montant</span>
+          </div>
+
+          <div class="quick-amounts">
+            <span class="quick-label">Montants rapides</span>
+            <div class="amount-chips">
+              <button *ngFor="let amount of quickAmounts" class="amount-chip" [class.active]="amount === amount" (click)="selectQuickAmount(amount)">
+                {{ formatAmount(amount) }}
+              </button>
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Montant (Ar)</mat-label>
+            <input matInput type="number" [(ngModel)]="amount" min="100" placeholder="1000">
+            <mat-icon matSuffix>attach_money</mat-icon>
+            <mat-hint>Minimum 100 Ar</mat-hint>
+            <mat-error *ngIf="amount && amount < 100">Le montant minimum est de 100 Ar</mat-error>
+          </mat-form-field>
+
+          <div class="deposit-preview" *ngIf="amount && amount >= 100 && getSelectedUser()">
+            <div class="preview-row"><span>Utilisateur</span><span>{{ getSelectedUser().firstName }} {{ getSelectedUser().lastName }}</span></div>
+            <div class="preview-row"><span>Montant à retirer</span><span class="preview-amount" style="color:#ef4444;">- {{ formatAmount(amount) }} Ar</span></div>
+            <div class="preview-row total"><span>Nouveau solde</span><span class="preview-new-balance">{{ formatAmount((getSelectedUser().balance || 0) - amount) }} Ar</span></div>
+            <div class="preview-row" *ngIf="(getSelectedUser().balance || 0) - amount < 0" style="color:#ef4444;font-weight:700;">⚠️ Solde insuffisant</div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label">
+            <mat-icon>notes</mat-icon>
+            <span>Description (optionnelle)</span>
+          </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <input matInput [(ngModel)]="description" placeholder="Ex: Retrait, paiement..." maxlength="200">
+            <mat-hint align="end">{{ description?.length || 0 }}/200</mat-hint>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-stroked-button class="cancel-btn" (click)="goBack()" [disabled]="isSubmitting">
+          <mat-icon>close</mat-icon> Annuler
+        </button>
+        <button mat-raised-button class="withdraw-btn" [disabled]="!selectedUserId || !amount || amount < 100 || (getSelectedUser()?.balance || 0) < amount || isSubmitting" (click)="onSubmit()">
+          <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+          <span *ngIf="!isSubmitting">
+            <mat-icon>remove</mat-icon> Retirer {{ amount ? formatAmount(amount) : '' }} Ar
+          </span>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card class="info-card" *ngIf="!isLoading">
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item"><div class="info-icon"><mat-icon>info</mat-icon></div><div><h4>Retrait instantané</h4><p>Le montant est débité immédiatement du compte de l'utilisateur</p></div></div>
+          <div class="info-item"><div class="info-icon"><mat-icon>receipt</mat-icon></div><div><h4>Historique</h4><p>Une transaction est créée et visible dans l'historique</p></div></div>
+          <div class="info-item"><div class="info-icon"><mat-icon>security</mat-icon></div><div><h4>Sécurité</h4><p>Toutes les opérations sont traçables et sécurisées</p></div></div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

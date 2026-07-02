@@ -841,4 +841,61 @@
 
 .stats-container::-webkit-scrollbar-thumb:hover {
   background: #b5b4c8;
+}/* Dans admin-dashboard.component.css */
+.footer-btn.deposit {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #10b981 !important;
+}
+
+.footer-btn.deposit:hover {
+  background: #10b981 !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
+}
+
+.menu-icon.deposit {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+/* Ajouter à la fin du fichier admin-dashboard.component.css */
+
+/* ── Menu Icons ── */
+.menu-icon.deposit {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.menu-icon.withdraw {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.menu-icon.deposit mat-icon,
+.menu-icon.withdraw mat-icon {
+  color: inherit !important;
+}
+
+.menu-card:hover .menu-icon.deposit mat-icon,
+.menu-card:hover .menu-icon.withdraw mat-icon {
+  color: white !important;
+}
+
+/* ── Responsive pour 7 colonnes ── */
+@media (max-width: 1200px) {
+  .menu-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .menu-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
