@@ -1,37 +1,50 @@
 // frontend/src/app/guards/admin.guard.ts
 import { Injectable } from '@angular/core';
-import { CanActivate, Router, UrlTree } from '@angular/router';
+import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { NotificationService } from '../services/notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class AdminGuard implements CanActivate {
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {}
 
-  canActivate(): boolean | UrlTree {
-    console.log('🛡️ AdminGuard - Vérification');
-    
-    // ✅ Récupérer l'utilisateur
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     const user = this.authService.getCurrentUser();
-    
-    // ✅ Si pas d'utilisateur ou pas authentifié, rediriger vers login
+    console.log('🛡️ AdminGuard - Vérification');
+    console.log('👤 Utilisateur:', user?.email, 'Rôle:', user?.role);
+
     if (!user) {
-      console.log('❌ Utilisateur non trouvé');
-      return this.router.parseUrl('/login');
+      this.notificationService.showError('Veuillez vous connecter');
+      this.router.navigate(['/login']);
+      return false;
     }
-    
-    // ✅ Vérifier le rôle
+
+    // Vérifier si l'utilisateur est admin ou super_admin
     const isAdmin = user.role === 'admin' || user.role === 'super_admin';
-    console.log('👤 Utilisateur:', user.email, 'Rôle:', user.role, 'Est Admin:', isAdmin);
     
-    if (isAdmin) {
-      console.log('✅ Accès admin autorisé');
-      return true;
+    if (!isAdmin) {
+      this.notificationService.showError('Accès réservé aux administrateurs');
+      this.router.navigate(['/user/dashboard']);
+      return false;
     }
+
+    // Vérifier les routes spécifiques pour super_admin
+    const adminRoutes = ['admins', 'admins/create'];
+    const currentRoute = route.routeConfig?.path || '';
     
-    console.log('❌ Accès admin refusé');
-    return this.router.parseUrl('/user/dashboard');
+    if (adminRoutes.some(r => currentRoute.includes(r))) {
+      if (user.role !== 'super_admin') {
+        this.notificationService.showError('Accès réservé aux Super Administrateurs');
+        this.router.navigate(['/admin/dashboard']);
+        return false;
+      }
+    }
+
+    console.log('✅ Accès admin autorisé');
+    return true;
   }
 }

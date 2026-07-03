@@ -48,6 +48,7 @@ export const ADMIN_ROUTES: Routes = [
       ),
     canActivate: [AdminGuard],
   },
+  // ⚠️ Route ADMINISTRATEURS - UNIQUEMENT SUPER_ADMIN
   {
     path: 'admins',
     loadComponent: () =>
@@ -64,6 +65,7 @@ export const ADMIN_ROUTES: Routes = [
       ),
     canActivate: [AdminGuard],
   },
+  // ✅ DÉPÔT et RETRAIT - ACCESSIBLES À TOUS LES ADMINS
   {
     path: 'deposit',
     loadComponent: () =>

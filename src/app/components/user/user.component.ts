@@ -1,7 +1,4 @@
-// ============================================================
-// USER COMPONENT - SPaye
-// ============================================================
-
+// frontend/src/app/components/user/user.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -19,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatGridListModule } from '@angular/material/grid-list'; // ✅ Ajout de MatGridListModule
 
 @Component({
   selector: 'app-user',
@@ -32,6 +30,7 @@ import { MatDividerModule } from '@angular/material/divider';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatDividerModule,
+    MatGridListModule, // ✅ Ajout dans les imports
     TranslatePipe,
   ],
   templateUrl: './user.component.html',
@@ -150,5 +149,17 @@ export class UserComponent implements OnInit, OnDestroy {
 
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG').format(amount || 0);
+  }
+
+  openDepositScanner(): void {
+    this.router.navigate(['/user/scan-pay'], { 
+      queryParams: { type: 'deposit' } 
+    });
+  }
+
+  openWithdrawScanner(): void {
+    this.router.navigate(['/user/scan-pay'], { 
+      queryParams: { type: 'withdraw' } 
+    });
   }
 }

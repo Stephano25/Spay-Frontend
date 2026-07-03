@@ -1,11 +1,10 @@
-// ============================================================
-// USER SERVICE - SPaye
-// ============================================================
-
+// frontend/src/app/services/user.service.ts
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { UserSettings } from '../models/user.model';
+import { AuthService } from './auth.service';
 
 export interface Friend {
   id: string;
@@ -40,7 +39,18 @@ export interface Device {
 export class UserService {
   private apiUrl = `${environment.apiUrl}/users`;
 
-  constructor() {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
+
+  private getHeaders(): HttpHeaders {
+    const token = this.authService.getToken();
+    return new HttpHeaders({
+      Authorization: `Bearer ${token || ''}`,
+      'Content-Type': 'application/json',
+    });
+  }
 
   // ============================================================
   // PARAMÈTRES UTILISATEUR
@@ -80,11 +90,15 @@ export class UserService {
 
   updateUserSettings(settings: UserSettings): Observable<any> {
     localStorage.setItem('user_settings', JSON.stringify(settings));
-    return of({ success: true });
+    return this.http.patch(`${this.apiUrl}/settings`, settings, { headers: this.getHeaders() }).pipe(
+      // catchError pour ne pas bloquer si le backend n'est pas disponible
+      // on retourne un succès local
+    );
+    // return of({ success: true });
   }
 
   deleteAccount(password: string): Observable<any> {
-    return of({ success: true });
+    return this.http.post(`${this.apiUrl}/delete`, { password }, { headers: this.getHeaders() });
   }
 
   // ============================================================
@@ -92,113 +106,111 @@ export class UserService {
   // ============================================================
 
   getFriendsCount(): Observable<number> {
-    return of(42);
+    return this.http.get<number>(`${this.apiUrl}/friends/count`, { headers: this.getHeaders() });
   }
 
   getPostsCount(): Observable<number> {
-    return of(128);
+    return this.http.get<number>(`${this.apiUrl}/posts/count`, { headers: this.getHeaders() });
   }
 
   getFriendsList(): Observable<Friend[]> {
-    return of([
-      { id: '1', name: 'Jean Dupont', mutualFriends: 5 },
-      { id: '2', name: 'Marie Martin', mutualFriends: 3 },
-      { id: '3', name: 'Pierre Durand', mutualFriends: 8 }
-    ]);
+    return this.http.get<Friend[]>(`${this.apiUrl}/friends`, { headers: this.getHeaders() });
   }
 
   getCloseFriends(): Observable<Friend[]> {
-    return of([{ id: '1', name: 'Jean Dupont', mutualFriends: 5 }]);
+    return this.http.get<Friend[]>(`${this.apiUrl}/friends/close`, { headers: this.getHeaders() });
   }
 
   getAcquaintances(): Observable<Friend[]> {
-    return of([{ id: '3', name: 'Pierre Durand', mutualFriends: 8 }]);
+    return this.http.get<Friend[]>(`${this.apiUrl}/friends/acquaintances`, { headers: this.getHeaders() });
   }
 
   getPendingFriendRequests(): Observable<FriendRequest[]> {
-    return of([{ id: '4', name: 'Sophie Bernard', date: new Date() }]);
+    return this.http.get<FriendRequest[]>(`${this.apiUrl}/friends/requests`, { headers: this.getHeaders() });
   }
 
   getBlockedUsers(): Observable<BlockedUser[]> {
-    return of([]);
+    return this.http.get<BlockedUser[]>(`${this.apiUrl}/friends/blocked`, { headers: this.getHeaders() });
   }
 
   getFriendSuggestions(): Observable<Friend[]> {
-    return of([
-      { id: '5', name: 'Thomas Petit', mutualFriends: 2 },
-      { id: '6', name: 'Julie Robert', mutualFriends: 4 }
-    ]);
+    return this.http.get<Friend[]>(`${this.apiUrl}/friends/suggestions`, { headers: this.getHeaders() });
   }
 
   getActiveDevices(): Observable<Device[]> {
-    return of([
-      { id: '1', name: 'Chrome sur Windows', location: 'Paris, France', lastActive: new Date() },
-      { id: '2', name: 'Firefox sur Mac', location: 'Lyon, France', lastActive: new Date(Date.now() - 86400000) }
-    ]);
+    return this.http.get<Device[]>(`${this.apiUrl}/devices`, { headers: this.getHeaders() });
   }
 
   acceptFriendRequest(requestId: string): Observable<any> {
-    return of({ success: true });
+    return this.http.post(`${this.apiUrl}/friends/accept/${requestId}`, {}, { headers: this.getHeaders() });
   }
 
   rejectFriendRequest(requestId: string): Observable<any> {
-    return of({ success: true });
+    return this.http.post(`${this.apiUrl}/friends/reject/${requestId}`, {}, { headers: this.getHeaders() });
   }
 
   sendFriendRequest(userId: string): Observable<any> {
-    return of({ success: true });
+    return this.http.post(`${this.apiUrl}/friends/request/${userId}`, {}, { headers: this.getHeaders() });
   }
 
   unfriend(friendId: string): Observable<any> {
-    return of({ success: true });
+    return this.http.delete(`${this.apiUrl}/friends/${friendId}`, { headers: this.getHeaders() });
   }
 
   blockUser(userId: string): Observable<any> {
-    return of({ success: true });
+    return this.http.post(`${this.apiUrl}/friends/block/${userId}`, {}, { headers: this.getHeaders() });
   }
 
   unblockUser(userId: string): Observable<any> {
-    return of({ success: true });
+    return this.http.post(`${this.apiUrl}/friends/unblock/${userId}`, {}, { headers: this.getHeaders() });
   }
 
   revokeDevice(deviceId: string): Observable<any> {
-    return of({ success: true });
+    return this.http.delete(`${this.apiUrl}/devices/${deviceId}`, { headers: this.getHeaders() });
   }
 
   logoutAllDevices(): Observable<any> {
-    return of({ success: true });
+    return this.http.post(`${this.apiUrl}/devices/logout-all`, {}, { headers: this.getHeaders() });
   }
 
   // ============================================================
   // PROFIL
   // ============================================================
 
-  uploadProfilePhoto(file: File): Observable<string> {
-    return of(URL.createObjectURL(file));
+  uploadProfilePhoto(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+    return this.http.post(`${this.apiUrl}/upload-profile-picture`, formData, {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${this.authService.getToken()}`
+      })
+    });
   }
 
   removeProfilePhoto(): Observable<any> {
-    return of({ success: true });
+    return this.http.delete(`${this.apiUrl}/profile-picture`, { headers: this.getHeaders() });
   }
 
   changeEmail(newEmail: string): Observable<any> {
-    return of({ success: true });
+    return this.http.patch(`${this.apiUrl}/email`, { email: newEmail }, { headers: this.getHeaders() });
   }
 
   changePhoneNumber(newPhone: string): Observable<any> {
-    return of({ success: true });
+    return this.http.patch(`${this.apiUrl}/phone`, { phoneNumber: newPhone }, { headers: this.getHeaders() });
   }
 
   deactivateAccount(password: string): Observable<any> {
-    return of({ success: true });
+    return this.http.post(`${this.apiUrl}/deactivate`, { password }, { headers: this.getHeaders() });
   }
 
   downloadUserData(): Observable<Blob> {
-    const data = { user: {}, settings: {} };
-    return of(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    return this.http.get(`${this.apiUrl}/export-data`, { 
+      headers: this.getHeaders(),
+      responseType: 'blob' 
+    });
   }
 
   reportUser(userId: string, reason: string): Observable<any> {
-    return of({ success: true });
+    return this.http.post(`${this.apiUrl}/report/${userId}`, { reason }, { headers: this.getHeaders() });
   }
 }

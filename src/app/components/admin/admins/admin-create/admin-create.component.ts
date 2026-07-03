@@ -49,11 +49,28 @@ export class AdminCreateComponent implements OnInit {
   hidePassword = true;
   hideConfirmPassword = true;
   isSuperAdmin = false;
+  qrCodeGenerated = false;
+  qrCodeImage: string | null = null;
+  isGeneratingQR = false;
 
-  // ✅ Liste des rôles avec icônes
+  // ✅ Liste des rôles avec icônes et descriptions
   roles = [
-    { value: 'admin', label: 'Administrateur', icon: 'admin_panel_settings' },
-    { value: 'super_admin', label: 'Super Administrateur', icon: 'supervisor_account' },
+    { 
+      value: 'admin', 
+      label: 'Administrateur', 
+      icon: 'admin_panel_settings',
+      color: '#f59e0b',
+      bgColor: 'rgba(245, 158, 11, 0.12)',
+      description: 'Accès limité : dépôt et retrait'
+    },
+    { 
+      value: 'super_admin', 
+      label: 'Super Administrateur', 
+      icon: 'supervisor_account',
+      color: '#7c3aed',
+      bgColor: 'rgba(124, 58, 237, 0.12)',
+      description: 'Accès complet à toutes les fonctionnalités'
+    },
   ];
 
   constructor(
@@ -104,6 +121,64 @@ export class AdminCreateComponent implements OnInit {
 
   get f() { return this.adminForm.controls; }
 
+  // ============================================================
+  // MÉTHODES POUR LES RÔLES
+  // ============================================================
+
+  getRoleLabel(roleValue: string): string {
+    const role = this.roles.find(r => r.value === roleValue);
+    return role?.label || roleValue || 'Non défini';
+  }
+
+  getRoleIcon(roleValue: string): string {
+    const role = this.roles.find(r => r.value === roleValue);
+    return role?.icon || 'admin_panel_settings';
+  }
+
+  getRoleStyle(roleValue: string): { color: string; backgroundColor: string } {
+    const role = this.roles.find(r => r.value === roleValue);
+    return {
+      color: role?.color || '#7c3aed',
+      backgroundColor: role?.bgColor || 'rgba(124, 58, 237, 0.12)'
+    };
+  }
+
+  getRoleDescription(roleValue: string): string {
+    const role = this.roles.find(r => r.value === roleValue);
+    return role?.description || '';
+  }
+
+  // ============================================================
+  // QR CODE
+  // ============================================================
+
+  generateQRCode(): void {
+    if (!this.adminForm.valid) {
+      this.notificationService.showError('Veuillez remplir tous les champs requis avant de générer le QR Code');
+      return;
+    }
+
+    this.isGeneratingQR = true;
+
+    this.adminService.generateQRCode('deposit').subscribe({
+      next: (response) => {
+        this.qrCodeImage = response.qrCodeImage;
+        this.qrCodeGenerated = true;
+        this.isGeneratingQR = false;
+        this.notificationService.showSuccess('QR Code généré avec succès');
+      },
+      error: (error) => {
+        console.error('Erreur génération QR:', error);
+        this.isGeneratingQR = false;
+        this.notificationService.showError('Erreur lors de la génération du QR Code');
+      },
+    });
+  }
+
+  // ============================================================
+  // SOUMISSION
+  // ============================================================
+
   onSubmit(): void {
     if (this.adminForm.invalid) {
       this.adminForm.markAllAsTouched();
@@ -114,8 +189,16 @@ export class AdminCreateComponent implements OnInit {
       return;
     }
 
+    if (!this.qrCodeGenerated) {
+      this.notificationService.showWarning('Veuillez générer le QR Code avant de créer l\'administrateur');
+      return;
+    }
+
     this.isSubmitting = true;
-    const formData = { ...this.adminForm.value };
+    const formData = { 
+      ...this.adminForm.value,
+      qrCode: this.qrCodeImage 
+    };
     delete formData.confirmPassword;
 
     this.adminService.createAdmin(formData).subscribe({
@@ -131,6 +214,10 @@ export class AdminCreateComponent implements OnInit {
       },
     });
   }
+
+  // ============================================================
+  // FORCE DU MOT DE PASSE
+  // ============================================================
 
   getPasswordStrength(password: string): { label: string; color: string; width: number } {
     if (!password) return { label: 'Très faible', color: '#ef4444', width: 10 };
@@ -149,6 +236,10 @@ export class AdminCreateComponent implements OnInit {
     if (score < 100) return { label: 'Fort', color: '#10b981', width: score };
     return { label: 'Très fort', color: '#10b981', width: score };
   }
+
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
 
   goBack(): void {
     this.router.navigate(['/admin/admins']);

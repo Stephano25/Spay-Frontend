@@ -62,7 +62,9 @@ export class QRGeneratorComponent {
         this.qrResponse = response;
         this.isGenerating = false;
         this.qrGenerated.emit(response);
-        this.notificationService.showSuccess('QR Code généré avec succès');
+        this.notificationService.showSuccess(
+          `QR Code de ${response.action === 'deposit' ? 'dépôt' : 'retrait'} généré avec succès`
+        );
       },
       error: (error) => {
         console.error('❌ Erreur génération QR:', error);

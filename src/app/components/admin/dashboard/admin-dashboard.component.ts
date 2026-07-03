@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import Chart from 'chart.js/auto';
-import { AdminService, AdminDashboardStats, QRScanResult } from '../../../services/admin.service';
+import { AdminService, AdminDashboardStats, QRScanResult, QRCodeResponse } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -13,6 +13,7 @@ import { User } from '../../../models/user.model';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { QRScannerComponent } from '../qr-scanner/qr-scanner.component';
 import { QRTransactionFormComponent } from '../qr-transaction-form/qr-transaction-form.component';
+import { QRGeneratorComponent } from '../qr-generator/qr-generator.component';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -44,6 +45,7 @@ import { MatDividerModule } from '@angular/material/divider';
     TranslatePipe,
     QRScannerComponent,
     QRTransactionFormComponent,
+    QRGeneratorComponent, // ✅ Ajout du QRGeneratorComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
@@ -62,6 +64,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   showQRScanner: boolean = false;
   qrScanResult: QRScanResult | null = null;
   showTransactionForm: boolean = false;
+
+  // QR Generator properties
+  showQRGenerator: boolean = false;
+  qrGeneratorType: 'deposit' | 'withdraw' = 'deposit';
 
   adminMenuItems = [
     { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
@@ -102,7 +108,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   ngAfterViewInit(): void {
-    // Attendre que le DOM soit prêt
     setTimeout(() => {
       this.chartInitialized = true;
       this.createCharts();
@@ -110,16 +115,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   ngOnDestroy(): void {
-    // Nettoyer les timeouts
     if (this.chartCreationTimeout) {
       clearTimeout(this.chartCreationTimeout);
       this.chartCreationTimeout = null;
     }
     
-    // Nettoyer les subscriptions
     this.subscriptions.forEach((sub) => sub.unsubscribe());
-    
-    // Détruire tous les graphiques
     this.destroyAllCharts();
   }
 
@@ -145,7 +146,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       next: (data) => {
         this.stats = data;
         this.isLoading = false;
-        // Recréer les graphiques après le chargement des données
         setTimeout(() => this.createCharts(), 300);
       },
       error: (err) => {
@@ -168,7 +168,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           myAdminVolume: 0,
           userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
         };
-        // Même en erreur, essayer de créer les graphiques avec des données vides
         setTimeout(() => this.createCharts(), 500);
       },
     });
@@ -189,7 +188,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       try {
         chart.destroy();
       } catch (e) {
-        // Ignorer les erreurs de destruction
+        // Ignorer
       }
     });
     this.charts = [];
@@ -197,11 +196,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
 
   private updateCharts(): void {
     if (!this.chartInitialized) return;
-    
-    // Détruire les anciens graphiques
     this.destroyAllCharts();
-    
-    // Créer les nouveaux graphiques avec un léger délai
     if (this.chartCreationTimeout) {
       clearTimeout(this.chartCreationTimeout);
     }
@@ -212,10 +207,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   private createCharts(): void {
-    // S'assurer que les graphiques précédents sont détruits
     this.destroyAllCharts();
-    
-    // Créer les graphiques avec un délai pour permettre au DOM de se mettre à jour
     setTimeout(() => {
       this.createActivityChart();
       this.createUsersChart();
@@ -230,7 +222,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       return;
     }
 
-    // Vérifier si un graphique existe déjà sur ce canvas
     const existingChart = Chart.getChart(canvas);
     if (existingChart) {
       try {
@@ -359,7 +350,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     const canvas = document.getElementById('usersChart') as HTMLCanvasElement;
     if (!canvas) return;
 
-    // Vérifier si un graphique existe déjà sur ce canvas
     const existingChart = Chart.getChart(canvas);
     if (existingChart) {
       try {
@@ -420,7 +410,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     const canvas = document.getElementById('revenueChart') as HTMLCanvasElement;
     if (!canvas) return;
 
-    // Vérifier si un graphique existe déjà sur ce canvas
     const existingChart = Chart.getChart(canvas);
     if (existingChart) {
       try {
@@ -480,7 +469,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   // ============================================================
-  // QR CODE METHODS
+  // QR CODE METHODS - SCANNER
   // ============================================================
   
   openQRScanner(type: 'deposit' | 'withdraw'): void {
@@ -520,6 +509,25 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     if (result.success) {
       this.refreshData();
     }
+  }
+
+  // ============================================================
+  // QR CODE - GÉNÉRATION POUR DÉPÔT ET RETRAIT
+  // ============================================================
+
+  openQRGenerator(type: 'deposit' | 'withdraw'): void {
+    this.qrGeneratorType = type;
+    this.showQRGenerator = true;
+  }
+
+  closeQRGenerator(): void {
+    this.showQRGenerator = false;
+  }
+
+  onQRGenerated(response: QRCodeResponse): void {
+    this.notificationService.showSuccess(
+      `QR Code de ${response.action === 'deposit' ? 'dépôt' : 'retrait'} généré avec succès`
+    );
   }
 
   refreshData(): void {

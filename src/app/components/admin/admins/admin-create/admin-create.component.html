@@ -18,10 +18,12 @@
         <div class="header-icon">
           <mat-icon>admin_panel_settings</mat-icon>
         </div>
-        <mat-card-title>Nouvel administrateur</mat-card-title>
-        <mat-card-subtitle>
-          Remplissez tous les champs pour créer un compte administrateur
-        </mat-card-subtitle>
+        <div class="header-text">
+          <mat-card-title>Nouvel administrateur</mat-card-title>
+          <mat-card-subtitle>
+            Remplissez tous les champs pour créer un compte administrateur
+          </mat-card-subtitle>
+        </div>
       </mat-card-header>
 
       <mat-card-content class="card-content-scroll">
@@ -154,7 +156,7 @@
           <mat-divider></mat-divider>
 
           <!-- ============================================================ -->
-          <!-- SECTION 4 : RÔLE ET STATUT -->
+          <!-- SECTION 4 : RÔLE ET STATUT (avec sélecteur visible) -->
           <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
@@ -163,14 +165,22 @@
             </div>
 
             <div class="form-row">
-              <!-- Rôle -->
+              <!-- Rôle - Select avec options claires -->
               <mat-form-field appearance="outline" class="form-field">
                 <mat-label>Rôle *</mat-label>
                 <mat-select formControlName="role">
                   <mat-option *ngFor="let role of roles" [value]="role.value">
                     <div class="role-option">
-                      <mat-icon>{{ role.icon }}</mat-icon>
-                      <span>{{ role.label }}</span>
+                      <mat-icon [style.color]="role.color">{{ role.icon }}</mat-icon>
+                      <div class="role-option-content">
+                        <span class="role-option-label">{{ role.label }}</span>
+                        <span class="role-option-desc">{{ role.description }}</span>
+                      </div>
+                      <span class="role-badge-small" 
+                            [style.background]="role.bgColor"
+                            [style.color]="role.color">
+                        {{ role.value === 'super_admin' ? 'Complet' : 'Limit' }}
+                      </span>
                     </div>
                   </mat-option>
                 </mat-select>
@@ -194,19 +204,109 @@
               </mat-form-field>
             </div>
 
+            <!-- Rôle sélectionné - affiché en chip -->
+            <div class="selected-role-display" *ngIf="adminForm.value.role">
+              <div class="role-chip" 
+                   [style.background]="getRoleStyle(adminForm.value.role).backgroundColor"
+                   [style.color]="getRoleStyle(adminForm.value.role).color">
+                <mat-icon>{{ getRoleIcon(adminForm.value.role) }}</mat-icon>
+                <span>{{ getRoleLabel(adminForm.value.role) }}</span>
+                <span class="role-chip-desc">{{ getRoleDescription(adminForm.value.role) }}</span>
+              </div>
+            </div>
+
             <!-- Statut -->
             <div class="status-toggle">
-              <mat-slide-toggle formControlName="isActive" color="primary">
-                <span class="toggle-label">Compte actif</span>
-              </mat-slide-toggle>
-              <span class="toggle-hint">Désactiver pour bloquer l'accès immédiatement</span>
+              <div class="status-info">
+                <mat-slide-toggle formControlName="isActive" color="primary">
+                  <span class="toggle-label">Compte actif</span>
+                </mat-slide-toggle>
+                <span class="toggle-hint">Désactiver pour bloquer l'accès immédiatement</span>
+              </div>
+              <div class="status-indicator" 
+                   [class.active]="adminForm.value.isActive"
+                   [class.inactive]="!adminForm.value.isActive">
+                <span class="status-dot"></span>
+                {{ adminForm.value.isActive ? 'Actif' : 'Inactif' }}
+              </div>
             </div>
           </div>
 
           <mat-divider></mat-divider>
 
           <!-- ============================================================ -->
-          <!-- SECTION 5 : RÉSUMÉ -->
+          <!-- SECTION 5 : QR CODE -->
+          <!-- ============================================================ -->
+          <div class="form-section">
+            <div class="section-header">
+              <mat-icon>qr_code</mat-icon>
+              <span>QR Code</span>
+              <span class="section-badge">Obligatoire</span>
+            </div>
+
+            <div class="qr-code-container">
+              <div class="qr-code-info">
+                <p class="qr-hint">
+                  <mat-icon>info</mat-icon>
+                  Générez le QR Code de l'administrateur pour faciliter son identification
+                </p>
+              </div>
+
+              <div class="qr-code-actions">
+                <button 
+                  mat-raised-button 
+                  color="primary"
+                  type="button"
+                  (click)="generateQRCode()"
+                  [disabled]="adminForm.invalid || isGeneratingQR || qrCodeGenerated"
+                  class="generate-qr-btn">
+                  <mat-spinner diameter="20" *ngIf="isGeneratingQR"></mat-spinner>
+                  <span *ngIf="!isGeneratingQR">
+                    <mat-icon>qr_code</mat-icon>
+                    Générer le QR Code
+                  </span>
+                </button>
+
+                <div class="qr-status" *ngIf="qrCodeGenerated">
+                  <mat-icon class="success-icon">check_circle</mat-icon>
+                  <span class="success-text">QR Code généré avec succès</span>
+                </div>
+              </div>
+
+              <!-- Affichage du QR Code -->
+              <div class="qr-display" *ngIf="qrCodeImage">
+                <div class="qr-image-wrapper">
+                  <img [src]="qrCodeImage" alt="QR Code" class="qr-image">
+                  <div class="qr-overlay">
+                    <span class="qr-label">QR Admin</span>
+                  </div>
+                </div>
+                <div class="qr-details">
+                  <div class="qr-detail-item">
+                    <span class="qr-detail-label">Nom</span>
+                    <span class="qr-detail-value">{{ adminForm.value.firstName }} {{ adminForm.value.lastName }}</span>
+                  </div>
+                  <div class="qr-detail-item">
+                    <span class="qr-detail-label">Email</span>
+                    <span class="qr-detail-value">{{ adminForm.value.email }}</span>
+                  </div>
+                  <div class="qr-detail-item">
+                    <span class="qr-detail-label">Rôle</span>
+                    <span class="qr-detail-value role-badge-small" 
+                          [style.background]="getRoleStyle(adminForm.value.role).backgroundColor"
+                          [style.color]="getRoleStyle(adminForm.value.role).color">
+                      {{ getRoleLabel(adminForm.value.role) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- ============================================================ -->
+          <!-- SECTION 6 : RÉSUMÉ -->
           <!-- ============================================================ -->
           <div class="summary-section" *ngIf="adminForm.valid">
             <div class="summary-header">
@@ -235,7 +335,7 @@
                 <span class="summary-value role-badge" 
                       [class.admin]="adminForm.value.role === 'admin'" 
                       [class.super-admin]="adminForm.value.role === 'super_admin'">
-                  {{ adminForm.value.role === 'admin' ? 'Administrateur' : 'Super Admin' }}
+                  {{ getRoleLabel(adminForm.value.role) }}
                 </span>
               </div>
               <div class="summary-item">
@@ -245,6 +345,10 @@
                       [class.inactive]="!adminForm.value.isActive">
                   {{ adminForm.value.isActive ? 'Actif' : 'Inactif' }}
                 </span>
+              </div>
+              <div class="summary-item" *ngIf="qrCodeGenerated">
+                <span class="summary-label">QR Code</span>
+                <span class="summary-value status-badge active">✓ Généré</span>
               </div>
             </div>
           </div>
@@ -257,11 +361,12 @@
               <mat-icon>close</mat-icon>
               Annuler
             </button>
-            <button mat-raised-button 
-                    color="primary" 
-                    type="submit" 
-                    [disabled]="adminForm.invalid || isSubmitting"
-                    class="submit-btn">
+            <button 
+              mat-raised-button 
+              color="primary" 
+              type="submit" 
+              [disabled]="adminForm.invalid || isSubmitting || !qrCodeGenerated"
+              class="submit-btn">
               <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
               <span *ngIf="!isSubmitting">
                 <mat-icon>person_add</mat-icon>

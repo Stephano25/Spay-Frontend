@@ -1,10 +1,15 @@
+<!-- frontend/src/app/components/scan-pay/scan-pay.component.html -->
 <div class="scan-container">
   <!-- Header personnalisé -->
   <div class="scan-header">
     <button class="back-btn" (click)="goBack()" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h1 class="header-title">Scanner & Payer</h1>
+    <h1 class="header-title">
+      {{ scanType === 'deposit' ? 'Dépôt par QR Code' : 
+         scanType === 'withdraw' ? 'Retrait par QR Code' : 
+         'Scanner & Payer' }}
+    </h1>
   </div>
 
   <div class="scan-content">
@@ -23,26 +28,34 @@
             </button>
           </div>
 
-          <!-- Message d'erreur caméra (autre erreur) -->
+          <!-- Message d'erreur caméra -->
           <div class="camera-error" *ngIf="cameraError && !cameraPermissionDenied" @shake>
             <mat-icon>videocam_off</mat-icon>
             <h3>Caméra non disponible</h3>
             <p>Utilisez le bouton ci-dessous pour simuler un scan</p>
           </div>
 
-          <!-- Vidéo caméra (réelle) -->
+          <!-- Vidéo caméra -->
           <div class="camera-preview" *ngIf="hasCamera && !cameraError && !cameraPermissionDenied" @scaleIn>
             <video #videoElement class="video-preview" autoplay playsinline></video>
             <div class="scan-overlay">
               <div class="scan-frame"></div>
-              <p>Placez le QR code dans le cadre</p>
+              <p>
+                {{ scanType === 'deposit' ? 'Scannez le QR Code de dépôt' : 
+                   scanType === 'withdraw' ? 'Scannez le QR Code de retrait' : 
+                   'Placez le QR code dans le cadre' }}
+              </p>
             </div>
           </div>
 
-          <!-- Placeholder (simulation) -->
+          <!-- Placeholder -->
           <div class="scanner-placeholder" *ngIf="!hasCamera || cameraError || cameraPermissionDenied" @pulse>
             <mat-icon>qr_code_scanner</mat-icon>
-            <p>Scan de QR code</p>
+            <p>
+              {{ scanType === 'deposit' ? 'Scan de QR Code de dépôt' : 
+                 scanType === 'withdraw' ? 'Scan de QR Code de retrait' : 
+                 'Scan de QR code' }}
+            </p>
             <p class="hint">Placez le code dans le cadre</p>
           </div>
           
@@ -57,15 +70,26 @@
           </div>
         </div>
 
-        <!-- Formulaire de paiement -->
+        <!-- Formulaire de paiement/dépôt/retrait -->
         <div *ngIf="!isScanning && showPaymentForm" class="payment-mode" @slideInRight>
           <div class="user-info" *ngIf="scannedData" @slideInLeft>
             <div class="user-avatar">
-              <mat-icon>qr_code</mat-icon>
+              <mat-icon>
+                {{ scanType === 'deposit' ? 'add' : 
+                   scanType === 'withdraw' ? 'remove' : 
+                   'qr_code' }}
+              </mat-icon>
             </div>
             <div class="user-details">
-              <div class="user-name">Paiement par QR code</div>
+              <div class="user-name">
+                {{ scanType === 'deposit' ? 'Dépôt par QR Code' : 
+                   scanType === 'withdraw' ? 'Retrait par QR Code' : 
+                   'Paiement par QR code' }}
+              </div>
               <div class="user-phone">{{ scannedData.qrCode }}</div>
+              <div *ngIf="scannedData.adminName" class="user-phone" style="color: var(--brand-1);">
+                Admin: {{ scannedData.adminName }}
+              </div>
             </div>
           </div>
 
@@ -87,7 +111,7 @@
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Description (optionnelle)</mat-label>
               <textarea matInput formControlName="description" rows="2" 
-                        placeholder="Ex: Paiement repas, cadeau..."></textarea>
+                        placeholder="Ex: {{ scanType === 'deposit' ? 'Dépôt' : scanType === 'withdraw' ? 'Retrait' : 'Paiement repas' }}..."></textarea>
             </mat-form-field>
 
             <div class="quick-amounts">
@@ -112,7 +136,10 @@
               <button class="action-btn pay" type="submit" [disabled]="!paymentForm.valid || isProcessing">
                 <mat-spinner diameter="20" *ngIf="isProcessing"></mat-spinner>
                 <span *ngIf="!isProcessing">
-                  Payer {{ paymentForm.get('amount')?.value | number }} Ar
+                  {{ scanType === 'deposit' ? 'Déposer' : 
+                     scanType === 'withdraw' ? 'Retirer' : 
+                     'Payer' }} 
+                  {{ paymentForm.get('amount')?.value | number }} Ar
                 </span>
               </button>
             </div>
@@ -124,18 +151,34 @@
     <!-- Instructions -->
     <mat-card class="info-card" *ngIf="isScanning" @slideInUp>
       <mat-card-content>
-        <h3>Comment ça marche ?</h3>
+        <h3>
+          {{ scanType === 'deposit' ? 'Comment déposer ?' : 
+             scanType === 'withdraw' ? 'Comment retirer ?' : 
+             'Comment ça marche ?' }}
+        </h3>
         <div class="info-step">
           <mat-icon>qr_code_scanner</mat-icon>
-          <span>1. Scannez le QR code de votre ami</span>
+          <span>
+            {{ scanType === 'deposit' ? '1. Scannez le QR code de dépôt fourni par l\'administrateur' : 
+               scanType === 'withdraw' ? '1. Scannez le QR code de retrait fourni par l\'administrateur' : 
+               '1. Scannez le QR code de votre ami' }}
+          </span>
         </div>
         <div class="info-step">
           <mat-icon>attach_money</mat-icon>
-          <span>2. Entrez le montant à payer</span>
+          <span>
+            {{ scanType === 'deposit' ? '2. Entrez le montant à déposer' : 
+               scanType === 'withdraw' ? '2. Entrez le montant à retirer' : 
+               '2. Entrez le montant à payer' }}
+          </span>
         </div>
         <div class="info-step">
           <mat-icon>check_circle</mat-icon>
-          <span>3. Confirmez le paiement</span>
+          <span>
+            {{ scanType === 'deposit' ? '3. Confirmez le dépôt' : 
+               scanType === 'withdraw' ? '3. Confirmez le retrait' : 
+               '3. Confirmez le paiement' }}
+          </span>
         </div>
       </mat-card-content>
     </mat-card>

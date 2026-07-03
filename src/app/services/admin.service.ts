@@ -249,7 +249,7 @@ export class AdminService {
   }
 
   // ============================================================
-  // QR CODE - Génération et Scan
+  // QR CODE - Génération et Scan (Méthodes uniques)
   // ============================================================
   generateQRCode(type: 'deposit' | 'withdraw', amount?: number): Observable<QRCodeResponse> {
     return this.http
