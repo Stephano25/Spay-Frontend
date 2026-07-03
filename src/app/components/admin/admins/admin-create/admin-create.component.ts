@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
-// ✅ Correction des chemins d'importation
 import { AdminService } from '../../../../services/admin.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { AuthService } from '../../../../services/auth.service';
@@ -51,9 +50,10 @@ export class AdminCreateComponent implements OnInit {
   hideConfirmPassword = true;
   isSuperAdmin = false;
 
+  // ✅ Liste des rôles avec icônes
   roles = [
-    { value: 'admin', label: 'Administrateur' },
-    { value: 'super_admin', label: 'Super Administrateur' },
+    { value: 'admin', label: 'Administrateur', icon: 'admin_panel_settings' },
+    { value: 'super_admin', label: 'Super Administrateur', icon: 'supervisor_account' },
   ];
 
   constructor(

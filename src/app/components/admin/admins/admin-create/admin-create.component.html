@@ -24,9 +24,12 @@
         </mat-card-subtitle>
       </mat-card-header>
 
-      <mat-card-content>
+      <mat-card-content class="card-content-scroll">
         <form [formGroup]="adminForm" (ngSubmit)="onSubmit()" class="admin-form">
-          <!-- Section Informations personnelles -->
+
+          <!-- ============================================================ -->
+          <!-- SECTION 1 : INFORMATIONS PERSONNELLES -->
+          <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>person</mat-icon>
@@ -35,24 +38,22 @@
 
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Prénom</mat-label>
+                <mat-label>Prénom *</mat-label>
                 <input matInput formControlName="firstName" placeholder="Jean">
                 <mat-icon matSuffix>person</mat-icon>
                 <mat-error *ngIf="f['firstName'].invalid && f['firstName'].touched">
                   <span *ngIf="f['firstName'].errors?.['required']">Le prénom est requis</span>
                   <span *ngIf="f['firstName'].errors?.['minlength']">Minimum 2 caractères</span>
-                  <span *ngIf="f['firstName'].errors?.['maxlength']">Maximum 50 caractères</span>
                 </mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Nom</mat-label>
+                <mat-label>Nom *</mat-label>
                 <input matInput formControlName="lastName" placeholder="Dupont">
                 <mat-icon matSuffix>person</mat-icon>
                 <mat-error *ngIf="f['lastName'].invalid && f['lastName'].touched">
                   <span *ngIf="f['lastName'].errors?.['required']">Le nom est requis</span>
                   <span *ngIf="f['lastName'].errors?.['minlength']">Minimum 2 caractères</span>
-                  <span *ngIf="f['lastName'].errors?.['maxlength']">Maximum 50 caractères</span>
                 </mat-error>
               </mat-form-field>
             </div>
@@ -60,7 +61,9 @@
 
           <mat-divider></mat-divider>
 
-          <!-- Section Contact -->
+          <!-- ============================================================ -->
+          <!-- SECTION 2 : CONTACT -->
+          <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>contact_mail</mat-icon>
@@ -69,7 +72,7 @@
 
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Email</mat-label>
+                <mat-label>Email *</mat-label>
                 <input matInput formControlName="email" placeholder="admin@email.com" type="email">
                 <mat-icon matSuffix>email</mat-icon>
                 <mat-error *ngIf="f['email'].invalid && f['email'].touched">
@@ -92,7 +95,9 @@
 
           <mat-divider></mat-divider>
 
-          <!-- Section Sécurité -->
+          <!-- ============================================================ -->
+          <!-- SECTION 3 : SÉCURITÉ -->
+          <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>security</mat-icon>
@@ -101,7 +106,7 @@
 
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Mot de passe</mat-label>
+                <mat-label>Mot de passe *</mat-label>
                 <input matInput 
                        [type]="hidePassword ? 'password' : 'text'" 
                        formControlName="password" 
@@ -117,7 +122,7 @@
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Confirmer le mot de passe</mat-label>
+                <mat-label>Confirmer le mot de passe *</mat-label>
                 <input matInput 
                        [type]="hideConfirmPassword ? 'password' : 'text'" 
                        formControlName="confirmPassword" 
@@ -133,7 +138,7 @@
 
             <!-- Force du mot de passe -->
             <div class="password-strength" *ngIf="f['password'].value">
-              <span class="strength-label">Force du mot de passe :</span>
+              <span class="strength-label">Force :</span>
               <div class="strength-bar">
                 <div class="strength-fill" 
                      [style.width.%]="getPasswordStrength(f['password'].value).width"
@@ -148,7 +153,9 @@
 
           <mat-divider></mat-divider>
 
-          <!-- Section Rôle et Statut -->
+          <!-- ============================================================ -->
+          <!-- SECTION 4 : RÔLE ET STATUT -->
+          <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>settings</mat-icon>
@@ -156,18 +163,26 @@
             </div>
 
             <div class="form-row">
+              <!-- Rôle -->
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Rôle</mat-label>
+                <mat-label>Rôle *</mat-label>
                 <mat-select formControlName="role">
                   <mat-option *ngFor="let role of roles" [value]="role.value">
-                    {{ role.label }}
+                    <div class="role-option">
+                      <mat-icon>{{ role.icon }}</mat-icon>
+                      <span>{{ role.label }}</span>
+                    </div>
                   </mat-option>
                 </mat-select>
                 <mat-hint>Sélectionnez le rôle de l'administrateur</mat-hint>
+                <mat-error *ngIf="f['role'].invalid && f['role'].touched">
+                  Le rôle est requis
+                </mat-error>
               </mat-form-field>
 
+              <!-- Référence -->
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Référence</mat-label>
+                <mat-label>Référence *</mat-label>
                 <input matInput formControlName="reference" placeholder="ADMIN-001">
                 <mat-icon matSuffix>badge</mat-icon>
                 <mat-hint>Identifiant unique (3-20 caractères)</mat-hint>
@@ -179,6 +194,7 @@
               </mat-form-field>
             </div>
 
+            <!-- Statut -->
             <div class="status-toggle">
               <mat-slide-toggle formControlName="isActive" color="primary">
                 <span class="toggle-label">Compte actif</span>
@@ -189,7 +205,9 @@
 
           <mat-divider></mat-divider>
 
-          <!-- Résumé -->
+          <!-- ============================================================ -->
+          <!-- SECTION 5 : RÉSUMÉ -->
+          <!-- ============================================================ -->
           <div class="summary-section" *ngIf="adminForm.valid">
             <div class="summary-header">
               <mat-icon>summarize</mat-icon>
@@ -231,7 +249,9 @@
             </div>
           </div>
 
-          <!-- Boutons d'action -->
+          <!-- ============================================================ -->
+          <!-- BOUTONS D'ACTION -->
+          <!-- ============================================================ -->
           <div class="form-actions">
             <button mat-stroked-button type="button" (click)="cancel()" [disabled]="isSubmitting" class="cancel-btn">
               <mat-icon>close</mat-icon>
@@ -249,6 +269,7 @@
               </span>
             </button>
           </div>
+
         </form>
       </mat-card-content>
     </mat-card>
