@@ -1,3 +1,4 @@
+// frontend/src/app/components/admin/admins/admin-admins.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -54,6 +55,7 @@ export class AdminAdminsComponent implements OnInit {
     this.currentAdminId = user?.id || '';
     this.isSuperAdmin = user?.role === 'super_admin';
     
+    // Vérifier que seul super_admin peut accéder
     if (!this.isSuperAdmin) {
       this.notificationService.showError('Accès réservé aux Super Administrateurs');
       this.router.navigate(['/admin/dashboard']);
@@ -78,10 +80,13 @@ export class AdminAdminsComponent implements OnInit {
     });
   }
 
-  // ✅ Bouton "Créer un Admin" - OUVRE UN DIALOGUE
+  // Bouton "Créer un Admin" - uniquement super_admin
   openCreateAdminDialog(): void {
-    // TODO: Implémenter le dialogue de création d'admin
-    // Pour l'instant, on utilise un prompt simple
+    if (!this.isSuperAdmin) {
+      this.notificationService.showError('Seul un Super Admin peut créer des administrateurs');
+      return;
+    }
+
     const email = prompt('Email du nouvel administrateur:');
     if (!email) return;
     

@@ -1,4 +1,3 @@
-// src/app/models/user.model.ts
 // frontend/src/app/models/user.model.ts
 export interface User {
   id: string;
@@ -13,6 +12,7 @@ export interface User {
   lastLogin?: Date;
   profilePicture?: string;
   qrCode?: string;
+  bio?: string;
 }
 
 export interface LoginResponse {

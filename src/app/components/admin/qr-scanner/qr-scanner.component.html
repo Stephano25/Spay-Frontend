@@ -1,0 +1,55 @@
+<!-- frontend/src/app/components/admin/qr-scanner/qr-scanner.component.html -->
+<div class="qr-scanner-overlay">
+  <mat-card class="qr-scanner-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>qr_code_scanner</mat-icon>
+        Scanner un QR Code
+      </mat-card-title>
+      <button mat-icon-button (click)="close()" matTooltip="Fermer">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="scanner-instructions">
+        <p>Scannez le QR Code ou entrez le code manuellement</p>
+      </div>
+
+      <div class="scanner-input">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Code QR ou données</mat-label>
+          <input matInput [(ngModel)]="qrInput" placeholder="Collez le code QR ici..." (keyup.enter)="scan()">
+          <mat-icon matSuffix>qr_code</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="scanner-actions">
+        <button mat-stroked-button (click)="close()">
+          <mat-icon>close</mat-icon>
+          Annuler
+        </button>
+        <button mat-raised-button color="primary" (click)="scan()" [disabled]="!qrInput || isScanning">
+          <mat-spinner diameter="20" *ngIf="isScanning"></mat-spinner>
+          <span *ngIf="!isScanning">
+            <mat-icon>qr_code_scanner</mat-icon>
+            Scanner
+          </span>
+        </button>
+      </div>
+
+      <div class="or-divider">
+        <span>ou</span>
+      </div>
+
+      <div class="file-upload">
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" #fileInput style="display:none">
+        <button mat-stroked-button (click)="fileInput.click()">
+          <mat-icon>image</mat-icon>
+          Importer une image QR Code
+        </button>
+        <span class="file-hint">PNG, JPG, WEBP</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

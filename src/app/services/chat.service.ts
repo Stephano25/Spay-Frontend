@@ -250,6 +250,14 @@ export class ChatService implements OnDestroy {
     );
   }
 
+  connect(token: string): void {
+    if (this.socket?.connected) {
+      console.log('✅ Socket déjà connecté');
+      return;
+    }
+    this.connectSocket();
+  }
+
   uploadFile(file: File): Observable<{ url: string; fileName: string; fileSize: number }> {
     const formData = new FormData();
     formData.append('file', file);

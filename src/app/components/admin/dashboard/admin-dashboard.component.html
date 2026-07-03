@@ -1,7 +1,4 @@
-<!-- ============================================================
-   ADMIN DASHBOARD - SPaye (Version avec séparation des rôles)
-   ============================================================ -->
-
+<!-- frontend/src/app/components/admin/dashboard/admin-dashboard.component.html -->
 <mat-toolbar color="primary" class="dashboard-toolbar">
   <button mat-icon-button (click)="goBack()" matTooltip="Retour">
     <mat-icon>arrow_back</mat-icon>
@@ -38,7 +35,6 @@
       <mat-icon>settings</mat-icon>
       <span>Paramètres</span>
     </button>
-    <!-- ✅ Super Admin uniquement -->
     <button *ngIf="isSuperAdmin" mat-menu-item (click)="navigateTo('admins')">
       <mat-icon>admin_panel_settings</mat-icon>
       <span>Administrateurs</span>
@@ -67,15 +63,11 @@
   </div>
 
   <ng-container *ngIf="!isLoading">
-    <!-- ============================================================
-         SECTION 1: KPI CARDS
-    ============================================================ -->
+    <!-- KPI CARDS -->
     <div class="kpi-grid">
       <mat-card class="kpi-card" (click)="navigateTo('users')" matRipple>
         <mat-card-content>
-          <div class="kpi-icon users">
-            <mat-icon>people</mat-icon>
-          </div>
+          <div class="kpi-icon users"><mat-icon>people</mat-icon></div>
           <div class="kpi-info">
             <div class="kpi-value">{{ formatNumber(stats?.totalUsers || 0) }}</div>
             <div class="kpi-label">Utilisateurs</div>
@@ -89,9 +81,7 @@
 
       <mat-card class="kpi-card" (click)="navigateTo('users')" matRipple>
         <mat-card-content>
-          <div class="kpi-icon active">
-            <mat-icon>online_prediction</mat-icon>
-          </div>
+          <div class="kpi-icon active"><mat-icon>online_prediction</mat-icon></div>
           <div class="kpi-info">
             <div class="kpi-value">{{ formatNumber(stats?.activeUsers || 0) }}</div>
             <div class="kpi-label">Actifs aujourd'hui</div>
@@ -105,9 +95,7 @@
 
       <mat-card class="kpi-card" (click)="navigateTo('transactions')" matRipple>
         <mat-card-content>
-          <div class="kpi-icon transactions">
-            <mat-icon>swap_horiz</mat-icon>
-          </div>
+          <div class="kpi-icon transactions"><mat-icon>swap_horiz</mat-icon></div>
           <div class="kpi-info">
             <div class="kpi-value">{{ formatNumber(stats?.totalTransactions || 0) }}</div>
             <div class="kpi-label">Transactions</div>
@@ -121,9 +109,7 @@
 
       <mat-card class="kpi-card" (click)="navigateTo('stats')" matRipple>
         <mat-card-content>
-          <div class="kpi-icon volume">
-            <mat-icon>account_balance_wallet</mat-icon>
-          </div>
+          <div class="kpi-icon volume"><mat-icon>account_balance_wallet</mat-icon></div>
           <div class="kpi-info">
             <div class="kpi-value">{{ formatVolume(stats?.totalVolume || 0) }} Ar</div>
             <div class="kpi-label">Volume total</div>
@@ -136,11 +122,9 @@
       </mat-card>
     </div>
 
-    <!-- ============================================================
-         SECTION 1.5: STATS ADMIN (selon le rôle)
-    ============================================================ -->
+    <!-- STATS ADMIN (selon le rôle) -->
     <div class="admin-stats-grid" *ngIf="stats">
-      <!-- Admin simple - ses propres transactions -->
+      <!-- Admin simple -->
       <div *ngIf="!isSuperAdmin" class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
@@ -148,7 +132,7 @@
               <mat-icon>receipt</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats?.myAdminTransactions || 0) }}</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.myAdminTransactions || 0) }}</div>
               <div class="kpi-label">Mes transactions admin</div>
             </div>
           </mat-card-content>
@@ -159,14 +143,14 @@
               <mat-icon>account_balance_wallet</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats?.myAdminVolume || 0) }} Ar</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats!.myAdminVolume || 0) }} Ar</div>
               <div class="kpi-label">Volume traité</div>
             </div>
           </mat-card-content>
         </mat-card>
       </div>
 
-      <!-- Super Admin - stats globales -->
+      <!-- Super Admin -->
       <div *ngIf="isSuperAdmin" class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
@@ -174,7 +158,7 @@
               <mat-icon>admin_panel_settings</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats?.totalAdmins || 0) }}</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.totalAdmins || 0) }}</div>
               <div class="kpi-label">Admins</div>
             </div>
           </mat-card-content>
@@ -185,7 +169,7 @@
               <mat-icon>supervisor_account</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats?.totalSuperAdmins || 0) }}</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.totalSuperAdmins || 0) }}</div>
               <div class="kpi-label">Super Admins</div>
             </div>
           </mat-card-content>
@@ -196,7 +180,7 @@
               <mat-icon>receipt</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats?.adminTransactions || 0) }}</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.adminTransactions || 0) }}</div>
               <div class="kpi-label">Transactions admin</div>
             </div>
           </mat-card-content>
@@ -207,7 +191,7 @@
               <mat-icon>account_balance_wallet</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats?.adminVolume || 0) }} Ar</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats!.adminVolume || 0) }} Ar</div>
               <div class="kpi-label">Volume admin</div>
             </div>
           </mat-card-content>
@@ -215,272 +199,114 @@
       </div>
     </div>
 
-    <!-- ============================================================
-         SECTION 2: MENU DE NAVIGATION
-    ============================================================ -->
+    <!-- MENU DE NAVIGATION -->
     <div class="section-header">
-      <h2 class="section-title">
-        <mat-icon>dashboard</mat-icon>
-        Gestion
-      </h2>
+      <h2 class="section-title"><mat-icon>dashboard</mat-icon> Gestion</h2>
       <span class="section-subtitle">Accédez rapidement à vos fonctionnalités</span>
     </div>
 
     <mat-grid-list cols="4" rowHeight="140px" gutterSize="16px" class="menu-grid">
-      <!-- Profil Admin -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('profile')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon profile">
-              <mat-icon>person</mat-icon>
-            </div>
-            <span>Mon Profil</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Utilisateurs -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('users')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon users">
-              <mat-icon>people</mat-icon>
-            </div>
-            <span>Utilisateurs</span>
-            <span class="menu-badge">{{ formatNumber(stats?.totalUsers || 0) }}</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Transactions -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('transactions')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon transactions">
-              <mat-icon>receipt</mat-icon>
-            </div>
-            <span>Transactions</span>
-            <span class="menu-badge">{{ formatNumber(stats?.totalTransactions || 0) }}</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Statistiques -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('stats')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon stats">
-              <mat-icon>bar_chart</mat-icon>
-            </div>
-            <span>Statistiques</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Paramètres -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('settings')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon settings">
-              <mat-icon>settings</mat-icon>
-            </div>
-            <span>Paramètres</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Admins (Super Admin uniquement) -->
-      <mat-grid-tile *ngIf="isSuperAdmin">
-        <mat-card class="menu-card" (click)="navigateTo('admins')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon admins">
-              <mat-icon>admin_panel_settings</mat-icon>
-            </div>
-            <span>Administrateurs</span>
-            <span class="menu-badge admin">{{ formatNumber(stats?.totalAdmins || 0) }}</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Dépôt (tous les admins) -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('deposit')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon deposit">
-              <mat-icon>add</mat-icon>
-            </div>
-            <span>Dépôt</span>
-            <span class="menu-badge admin">Admin</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-
-      <!-- Retrait (tous les admins) -->
-      <mat-grid-tile>
-        <mat-card class="menu-card" (click)="navigateTo('withdraw')" matRipple>
-          <mat-card-content>
-            <div class="menu-icon withdraw">
-              <mat-icon>remove</mat-icon>
-            </div>
-            <span>Retrait</span>
-            <span class="menu-badge admin">Admin</span>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
+      <mat-grid-tile><mat-card class="menu-card" (click)="navigateTo('profile')" matRipple><mat-card-content><div class="menu-icon profile"><mat-icon>person</mat-icon></div><span>Mon Profil</span></mat-card-content></mat-card></mat-grid-tile>
+      <mat-grid-tile><mat-card class="menu-card" (click)="navigateTo('users')" matRipple><mat-card-content><div class="menu-icon users"><mat-icon>people</mat-icon></div><span>Utilisateurs</span><span class="menu-badge">{{ formatNumber(stats?.totalUsers || 0) }}</span></mat-card-content></mat-card></mat-grid-tile>
+      <mat-grid-tile><mat-card class="menu-card" (click)="navigateTo('transactions')" matRipple><mat-card-content><div class="menu-icon transactions"><mat-icon>receipt</mat-icon></div><span>Transactions</span><span class="menu-badge">{{ formatNumber(stats?.totalTransactions || 0) }}</span></mat-card-content></mat-card></mat-grid-tile>
+      <mat-grid-tile><mat-card class="menu-card" (click)="navigateTo('stats')" matRipple><mat-card-content><div class="menu-icon stats"><mat-icon>bar_chart</mat-icon></div><span>Statistiques</span></mat-card-content></mat-card></mat-grid-tile>
+      <mat-grid-tile><mat-card class="menu-card" (click)="navigateTo('settings')" matRipple><mat-card-content><div class="menu-icon settings"><mat-icon>settings</mat-icon></div><span>Paramètres</span></mat-card-content></mat-card></mat-grid-tile>
+      <mat-grid-tile *ngIf="isSuperAdmin"><mat-card class="menu-card" (click)="navigateTo('admins')" matRipple><mat-card-content><div class="menu-icon admins"><mat-icon>admin_panel_settings</mat-icon></div><span>Administrateurs</span><span class="menu-badge admin">{{ formatNumber(stats!.totalAdmins || 0) }}</span></mat-card-content></mat-card></mat-grid-tile>
+      <!-- QR Dépôt et Retrait -->
+      <mat-grid-tile><mat-card class="menu-card" (click)="openQRScanner('deposit')" matRipple><mat-card-content><div class="menu-icon deposit"><mat-icon>qr_code</mat-icon></div><span>Dépôt QR</span><span class="menu-badge admin">QR</span></mat-card-content></mat-card></mat-grid-tile>
+      <mat-grid-tile><mat-card class="menu-card" (click)="openQRScanner('withdraw')" matRipple><mat-card-content><div class="menu-icon withdraw"><mat-icon>qr_code</mat-icon></div><span>Retrait QR</span><span class="menu-badge admin">QR</span></mat-card-content></mat-card></mat-grid-tile>
     </mat-grid-list>
 
-    <!-- ============================================================
-         SECTION 3: CHARTES
-    ============================================================ -->
+    <!-- CHARTES -->
     <div class="charts-grid" *ngIf="stats">
       <mat-card class="chart-card main-chart">
         <mat-card-header>
-          <mat-card-title>
-            <mat-icon>timeline</mat-icon>
-            Activité quotidienne
-          </mat-card-title>
+          <mat-card-title><mat-icon>timeline</mat-icon> Activité quotidienne</mat-card-title>
           <mat-card-subtitle>Transactions et volume sur 7 jours</mat-card-subtitle>
         </mat-card-header>
-        <mat-card-content>
-          <div class="chart-container">
-            <canvas id="activityChart"></canvas>
-          </div>
-        </mat-card-content>
+        <mat-card-content><div class="chart-container"><canvas id="activityChart"></canvas></div></mat-card-content>
       </mat-card>
-
       <div class="charts-small-grid">
         <mat-card class="chart-card small">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>pie_chart</mat-icon>
-              Utilisateurs
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="chart-container small">
-              <canvas id="usersChart"></canvas>
-            </div>
-          </mat-card-content>
+          <mat-card-header><mat-card-title><mat-icon>pie_chart</mat-icon> Utilisateurs</mat-card-title></mat-card-header>
+          <mat-card-content><div class="chart-container small"><canvas id="usersChart"></canvas></div></mat-card-content>
         </mat-card>
-
         <mat-card class="chart-card small">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>bar_chart</mat-icon>
-              Revenus
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="chart-container small">
-              <canvas id="revenueChart"></canvas>
-            </div>
-          </mat-card-content>
+          <mat-card-header><mat-card-title><mat-icon>bar_chart</mat-icon> Revenus</mat-card-title></mat-card-header>
+          <mat-card-content><div class="chart-container small"><canvas id="revenueChart"></canvas></div></mat-card-content>
         </mat-card>
       </div>
     </div>
 
-    <!-- ============================================================
-         SECTION 4: DONNÉES RÉCENTES
-    ============================================================ -->
+    <!-- DONNÉES RÉCENTES -->
     <div class="section-header" *ngIf="stats">
-      <h2 class="section-title">
-        <mat-icon>history</mat-icon>
-        Activité récente
-      </h2>
+      <h2 class="section-title"><mat-icon>history</mat-icon> Activité récente</h2>
     </div>
 
     <div class="recent-grid" *ngIf="stats">
-      <!-- Utilisateurs récents -->
       <mat-card class="recent-card">
         <mat-card-header>
-          <mat-card-title>
-            <mat-icon>person_add</mat-icon>
-            Utilisateurs récents
-          </mat-card-title>
-          <button mat-button color="primary" class="view-all" (click)="navigateTo('users')">
-            Voir tout
-            <mat-icon>arrow_forward</mat-icon>
-          </button>
+          <mat-card-title><mat-icon>person_add</mat-icon> Utilisateurs récents</mat-card-title>
+          <button mat-button color="primary" class="view-all" (click)="navigateTo('users')">Voir tout <mat-icon>arrow_forward</mat-icon></button>
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
             <div *ngFor="let user of stats.recentUsers.slice(0,5)" class="recent-item">
-              <div class="recent-avatar" [style.background]="user.isActive ? '#10b981' : '#f59e0b'">
-                {{ getInitials(user.firstName, user.lastName) }}
-              </div>
-              <div class="recent-info">
-                <div class="recent-name">{{ user.firstName }} {{ user.lastName }}</div>
-                <div class="recent-email">{{ user.email }}</div>
-              </div>
-              <div class="recent-status" [class.active]="user.isActive">
-                {{ user.isActive ? 'Actif' : 'Inactif' }}
-              </div>
+              <div class="recent-avatar" [style.background]="user.isActive ? '#10b981' : '#f59e0b'">{{ getInitials(user.firstName, user.lastName) }}</div>
+              <div class="recent-info"><div class="recent-name">{{ user.firstName }} {{ user.lastName }}</div><div class="recent-email">{{ user.email }}</div></div>
+              <div class="recent-status" [class.active]="user.isActive">{{ user.isActive ? 'Actif' : 'Inactif' }}</div>
               <div class="recent-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
 
-      <!-- Transactions récentes -->
       <mat-card class="recent-card">
         <mat-card-header>
-          <mat-card-title>
-            <mat-icon>receipt</mat-icon>
-            Transactions récentes
-          </mat-card-title>
-          <button mat-button color="primary" class="view-all" (click)="navigateTo('transactions')">
-            Voir tout
-            <mat-icon>arrow_forward</mat-icon>
-          </button>
+          <mat-card-title><mat-icon>receipt</mat-icon> Transactions récentes</mat-card-title>
+          <button mat-button color="primary" class="view-all" (click)="navigateTo('transactions')">Voir tout <mat-icon>arrow_forward</mat-icon></button>
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
             <div *ngFor="let t of stats.recentTransactions.slice(0,5)" class="recent-item">
-              <div class="transaction-icon" [class.completed]="t.status === 'completed'">
-                <mat-icon>{{ t.status === 'completed' ? 'check_circle' : 'pending' }}</mat-icon>
-              </div>
-              <div class="recent-info">
-                <div class="recent-name">{{ t.type }} - {{ formatVolume(t.amount) }} Ar</div>
-                <div class="recent-email">ID: {{ t.id | slice:0:8 }}</div>
-              </div>
-              <div class="recent-status" [class.completed]="t.status === 'completed'">
-                {{ t.status }}
-              </div>
+              <div class="transaction-icon" [class.completed]="t.status === 'completed'"><mat-icon>{{ t.status === 'completed' ? 'check_circle' : 'pending' }}</mat-icon></div>
+              <div class="recent-info"><div class="recent-name">{{ t.type }} - {{ formatVolume(t.amount) }} Ar</div><div class="recent-email">ID: {{ t.id | slice:0:8 }}</div></div>
+              <div class="recent-status" [class.completed]="t.status === 'completed'">{{ t.status }}</div>
               <div class="recent-date">{{ t.createdAt | date:'HH:mm' }}</div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
 
-      <!-- Top utilisateurs -->
       <mat-card class="recent-card">
         <mat-card-header>
-          <mat-card-title>
-            <mat-icon>star</mat-icon>
-            Top utilisateurs
-          </mat-card-title>
-          <button mat-button color="primary" class="view-all" (click)="navigateTo('stats')">
-            Voir tout
-            <mat-icon>arrow_forward</mat-icon>
-          </button>
+          <mat-card-title><mat-icon>star</mat-icon> Top utilisateurs</mat-card-title>
+          <button mat-button color="primary" class="view-all" (click)="navigateTo('stats')">Voir tout <mat-icon>arrow_forward</mat-icon></button>
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
             <div *ngFor="let u of stats.topUsers; let i=index" class="recent-item">
-              <div class="rank-badge" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">
-                {{ i+1 }}
-              </div>
-              <div class="recent-info">
-                <div class="recent-name">{{ u.name }}</div>
-                <div class="recent-email">
-                  {{ u.transactionCount }} transactions · {{ formatVolume(u.totalVolume) }} Ar
-                </div>
-              </div>
+              <div class="rank-badge" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">{{ i+1 }}</div>
+              <div class="recent-info"><div class="recent-name">{{ u.name }}</div><div class="recent-email">{{ u.transactionCount }} transactions · {{ formatVolume(u.totalVolume) }} Ar</div></div>
               <div class="recent-volume">{{ formatVolume(u.totalVolume) }} Ar</div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
     </div>
+
+    <!-- QR Scanner et Transaction Form -->
+    <app-qr-scanner
+      *ngIf="showQRScanner"
+      (scanResult)="onQRScanResult($event)"
+      (closeScanner)="closeQRScanner()">
+    </app-qr-scanner>
+
+    <app-qr-transaction-form
+      *ngIf="showTransactionForm && qrScanResult"
+      [scanResult]="qrScanResult"
+      (transactionCompleted)="onTransactionCompleted($event)"
+      (cancelled)="closeTransactionForm()">
+    </app-qr-transaction-form>
   </ng-container>
 </div>

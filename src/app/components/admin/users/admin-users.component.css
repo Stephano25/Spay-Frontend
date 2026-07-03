@@ -1,14 +1,11 @@
-/* ============================================================
-   ADMIN USERS — SPaye
-   ============================================================ */
-
+/* frontend/src/app/components/admin/users/admin-users.component.css */
 .users-container {
   min-height: 100vh;
   background: var(--bg);
   padding: 0;
+  overflow-y: auto;
 }
 
-/* ── Toolbar ── */
 mat-toolbar {
   background: var(--surface) !important;
   border-bottom: 0.5px solid var(--border) !important;
@@ -16,67 +13,56 @@ mat-toolbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: var(--shadow-xs) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
 }
 
-mat-toolbar button {
-  color: var(--text-2) !important;
-  border-radius: 50% !important;
-  transition: all var(--trans-base) !important;
+mat-toolbar .spacer {
+  flex: 1 1 auto;
 }
 
-mat-toolbar button:hover {
-  background: var(--hover) !important;
-  color: var(--brand-1) !important;
+.toolbar-badge {
+  background: var(--brand-grad);
+  color: white;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
-/* ── Content wrapper ── */
-.users-content {
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 28px 24px;
-}
-
-/* ── Users Card ── */
 .users-card {
-  border-radius: var(--r-xl) !important;
+  margin: 20px;
+  border-radius: 16px !important;
   background: var(--surface) !important;
   border: 0.5px solid var(--border) !important;
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
   overflow: hidden;
-  animation: fadeUp 0.4s var(--ease) both;
+  animation: fadeUp 0.4s ease both;
 }
 
 .users-card mat-card-header {
-  padding: 22px 24px 0 !important;
+  padding: 20px 24px 0 !important;
   border-bottom: 0.5px solid var(--border);
   padding-bottom: 16px !important;
-  background: var(--brand-grad-soft);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .users-card mat-card-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-sans) !important;
   font-size: 1.125rem !important;
   font-weight: 700 !important;
   color: var(--text) !important;
 }
 
 .users-card mat-card-title mat-icon {
-  color: var(--brand-1) !important;
+  color: #7c3aed !important;
 }
 
-.users-card mat-card-subtitle {
-  color: var(--text-3) !important;
-  font-size: 0.8125rem !important;
-}
-
-/* ── Loading ── */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -87,9 +73,10 @@ mat-toolbar button:hover {
   color: var(--text-3);
 }
 
-/* ── Table wrapper ── */
 .table-container {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0;
 }
 
 .users-table {
@@ -100,14 +87,13 @@ mat-toolbar button:hover {
 
 .users-table th,
 .users-table td {
-  padding: 13px 18px;
+  padding: 12px 16px;
   text-align: left;
   border-bottom: 0.5px solid var(--border);
 }
 
 .users-table th {
   background: var(--surface-2);
-  font-family: var(--font-sans);
   font-weight: 700;
   font-size: 0.72rem;
   text-transform: uppercase;
@@ -120,18 +106,14 @@ mat-toolbar button:hover {
 }
 
 .users-table tbody tr {
-  transition: background var(--trans-base);
-  animation: fadeUp 0.25s var(--ease) both;
+  transition: background 0.3s ease;
+  animation: fadeUp 0.25s ease both;
 }
 
 .users-table tbody tr:hover {
   background: var(--hover);
 }
-.users-table tbody tr:last-child td {
-  border-bottom: none;
-}
 
-/* ── User Cell ── */
 .user-cell {
   display: flex;
   align-items: center;
@@ -139,8 +121,8 @@ mat-toolbar button:hover {
 }
 
 .user-avatar {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--brand-grad);
   display: flex;
@@ -148,9 +130,9 @@ mat-toolbar button:hover {
   justify-content: center;
   color: white;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   flex-shrink: 0;
-  box-shadow: var(--shadow-brand);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
 }
 
 .user-name {
@@ -159,61 +141,68 @@ mat-toolbar button:hover {
   font-size: 0.875rem;
 }
 
-/* ── Balance ── */
-td.balance {
+.balance {
+  font-weight: 600;
+  color: var(--brand-1);
   font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--success);
 }
 
-/* ── Role chips ── */
-.role-admin,
-.role-super_admin,
 .role-user {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  padding: 2px 10px;
+  border-radius: 999px;
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  font-weight: 600;
 }
 
 .role-admin {
-  background: var(--warning-bg);
-  color: var(--warning);
-}
-.role-super_admin {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-.role-user {
-  background: var(--info-bg);
-  color: var(--info);
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
 }
 
-/* ── Actions cell ── */
+.role-super_admin {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: white;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
 .actions-cell {
   white-space: nowrap;
+  display: flex;
+  gap: 4px;
+  align-items: center;
 }
 
 .actions-cell button {
-  transition: all var(--trans-base) !important;
+  transition: all 0.3s ease !important;
   border-radius: 50% !important;
 }
 
-.actions-cell button:hover {
-  background: var(--danger-bg) !important;
-  color: var(--danger) !important;
+.actions-cell button:hover:not(:disabled) {
   transform: scale(1.1);
 }
 
-.actions-cell button[color='primary']:hover {
-  background: var(--success-bg) !important;
-  color: var(--success) !important;
+.actions-cell button[color="primary"]:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.1) !important;
 }
 
-/* ── Empty state ── */
+.actions-cell button[color="warn"]:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.actions-cell button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .empty-state {
   text-align: center;
   padding: 56px 24px;
@@ -232,7 +221,6 @@ td.balance {
 }
 
 .empty-state h3 {
-  font-family: var(--font-sans);
   font-size: 1.1rem;
   color: var(--text-2);
   margin: 0;
@@ -244,18 +232,76 @@ td.balance {
   margin: 0;
 }
 
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .users-content {
-    padding: 16px 14px;
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (max-width: 1024px) {
+  .users-card {
+    margin: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .users-card {
+    margin: 12px;
+  }
+  
   .users-table th,
   .users-table td {
     padding: 10px 12px;
-  }
-
-  .user-name {
     font-size: 0.8125rem;
+  }
+  
+  .actions-cell {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+  
+  .actions-cell button {
+    width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+  }
+  
+  .actions-cell button mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .users-table th,
+  .users-table td {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
+  
+  .user-cell {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
   }
 }

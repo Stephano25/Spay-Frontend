@@ -4,6 +4,8 @@
     <mat-icon>arrow_back</mat-icon>
   </button>
   <span>Gestion des utilisateurs</span>
+  <span class="spacer"></span>
+  <span class="toolbar-badge">Total: {{ users.length }}</span>
 </mat-toolbar>
 
 <div class="users-container">
@@ -11,7 +13,7 @@
     <mat-card-header>
       <mat-card-title>
         <mat-icon>people</mat-icon>
-        Gestion des utilisateurs
+        Utilisateurs
       </mat-card-title>
       <mat-card-subtitle>Total: {{ users.length }} utilisateurs</mat-card-subtitle>
     </mat-card-header>
@@ -32,7 +34,7 @@
               <th>Solde</th>
               <th>Rôle</th>
               <th>Statut</th>
-              <th>Date d'inscription</th>
+              <th>Date</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -60,24 +62,41 @@
               </td>
               <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="actions-cell">
-                <!-- ✅ BOUTON DÉPÔT -->
+                <!-- DÉPÔT QR -->
+                <button
+                  mat-icon-button
+                  color="primary"
+                  (click)="openQRScanner('deposit', user)"
+                  matTooltip="Dépôt par QR Code">
+                  <mat-icon>qr_code_scanner</mat-icon>
+                </button>
+                <!-- RETRAIT QR -->
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="openQRScanner('withdraw', user)"
+                  matTooltip="Retrait par QR Code"
+                  [disabled]="user.balance < 100">
+                  <mat-icon>qr_code_scanner</mat-icon>
+                </button>
+                <!-- DÉPÔT CLASSIQUE -->
                 <button
                   mat-icon-button
                   color="primary"
                   (click)="depositMoney(user)"
-                  matTooltip="Déposer de l'argent">
+                  matTooltip="Déposer">
                   <mat-icon>add</mat-icon>
                 </button>
-                <!-- ✅ BOUTON RETRAIT -->
+                <!-- RETRAIT CLASSIQUE -->
                 <button
                   mat-icon-button
                   color="warn"
                   (click)="withdrawMoney(user)"
-                  matTooltip="Retirer de l'argent"
+                  matTooltip="Retirer"
                   [disabled]="user.balance < 100">
                   <mat-icon>remove</mat-icon>
                 </button>
-                <!-- ✅ BOUTON SUPPRIMER -->
+                <!-- SUPPRESSION -->
                 <button
                   mat-icon-button
                   color="warn"
@@ -99,3 +118,18 @@
     </mat-card-content>
   </mat-card>
 </div>
+
+<!-- QR Scanner Modal -->
+<app-qr-scanner
+  *ngIf="showQRScanner"
+  (scanResult)="onQRScanResult($event)"
+  (closeScanner)="closeQRScanner()">
+</app-qr-scanner>
+
+<!-- QR Transaction Form Modal -->
+<app-qr-transaction-form
+  *ngIf="showTransactionForm && qrScanResult"
+  [scanResult]="qrScanResult"
+  (transactionCompleted)="onTransactionCompleted($event)"
+  (cancelled)="closeTransactionForm()">
+</app-qr-transaction-form>

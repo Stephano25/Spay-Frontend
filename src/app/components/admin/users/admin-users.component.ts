@@ -1,11 +1,17 @@
+// frontend/src/app/components/admin/users/admin-users.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AdminService } from '../../../services/admin.service';
+import { AdminService, QRScanResult } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
+import { AuthService } from '../../../services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DepositDialogComponent } from './deposit-dialog.component';
+
+// QR Components
+import { QRScannerComponent } from '../qr-scanner/qr-scanner.component';
+import { QRTransactionFormComponent } from '../qr-transaction-form/qr-transaction-form.component';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -19,7 +25,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
-// ✅ Importer l'interface User depuis le modèle
 import { User } from '../../../models/user.model';
 
 @Component({
@@ -39,6 +44,8 @@ import { User } from '../../../models/user.model';
     MatTooltipModule,
     MatDialogModule,
     MatToolbarModule,
+    QRScannerComponent,
+    QRTransactionFormComponent,
   ],
   templateUrl: './admin-users.component.html',
   styleUrls: ['./admin-users.component.css'],
@@ -46,10 +53,18 @@ import { User } from '../../../models/user.model';
 export class AdminUsersComponent implements OnInit {
   users: User[] = [];
   isLoading = true;
+  
+  // QR Code properties
+  showQRScanner: boolean = false;
+  qrScanResult: QRScanResult | null = null;
+  showTransactionForm: boolean = false;
+  currentQRType: 'deposit' | 'withdraw' = 'deposit';
+  selectedUserForQR: User | null = null;
 
   constructor(
     private adminService: AdminService,
     private notificationService: NotificationService,
+    private authService: AuthService,
     private router: Router,
     private dialog: MatDialog,
   ) {}
@@ -62,7 +77,6 @@ export class AdminUsersComponent implements OnInit {
     this.isLoading = true;
     this.adminService.getAllUsers().subscribe({
       next: (users: User[]) => {
-        // ✅ Typage explicite pour résoudre le conflit
         this.users = users;
         this.isLoading = false;
         console.log('✅ Utilisateurs chargés:', this.users.length);
@@ -75,7 +89,58 @@ export class AdminUsersComponent implements OnInit {
     });
   }
 
-  // ✅ DÉPÔT D'ARGENT - AVEC DIALOGUE
+  // ============================================================
+  // QR CODE METHODS
+  // ============================================================
+
+  openQRScanner(type: 'deposit' | 'withdraw', user: User): void {
+    this.currentQRType = type;
+    this.selectedUserForQR = user;
+    this.showQRScanner = true;
+    this.qrScanResult = null;
+    this.showTransactionForm = false;
+  }
+
+  onQRScanResult(qrData: string): void {
+    this.showQRScanner = false;
+    
+    this.adminService.scanQRCode(qrData).subscribe({
+      next: (result) => {
+        this.qrScanResult = result;
+        this.showTransactionForm = true;
+        this.notificationService.showSuccess('QR Code scanné avec succès');
+      },
+      error: (error) => {
+        console.error('❌ Erreur scan QR:', error);
+        this.notificationService.showError(error?.error?.message || 'QR Code invalide');
+      },
+    });
+  }
+
+  closeQRScanner(): void {
+    this.showQRScanner = false;
+    this.selectedUserForQR = null;
+  }
+
+  closeTransactionForm(): void {
+    this.showTransactionForm = false;
+    this.qrScanResult = null;
+    this.selectedUserForQR = null;
+  }
+
+  onTransactionCompleted(result: { success: boolean; message: string; data?: any }): void {
+    this.showTransactionForm = false;
+    this.qrScanResult = null;
+    this.selectedUserForQR = null;
+    if (result.success) {
+      this.loadUsers();
+    }
+  }
+
+  // ============================================================
+  // DÉPÔT AVEC DIALOGUE
+  // ============================================================
+
   depositMoney(user: User): void {
     const dialogRef = this.dialog.open(DepositDialogComponent, {
       width: '480px',
@@ -104,7 +169,10 @@ export class AdminUsersComponent implements OnInit {
     });
   }
 
-  // ✅ RETRAIT D'ARGENT - AVEC DIALOGUE
+  // ============================================================
+  // RETRAIT AVEC DIALOGUE
+  // ============================================================
+
   withdrawMoney(user: User): void {
     if (user.balance < 100) {
       this.notificationService.showError('Solde insuffisant pour un retrait');
@@ -154,11 +222,9 @@ export class AdminUsersComponent implements OnInit {
       });
   }
 
-  getUserInitials(user: User): string {
-    const firstName = user.firstName || '';
-    const lastName = user.lastName || '';
-    return (firstName.charAt(0) || '') + (lastName.charAt(0) || '');
-  }
+  // ============================================================
+  // GESTION DES UTILISATEURS
+  // ============================================================
 
   toggleUserStatus(user: User): void {
     this.adminService.updateUserStatus(user.id, !user.isActive).subscribe({
@@ -178,7 +244,7 @@ export class AdminUsersComponent implements OnInit {
   deleteUser(user: User): void {
     if (
       confirm(
-        `Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`,
+        `Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ? Cette action est irréversible.`,
       )
     ) {
       this.adminService.deleteUser(user.id).subscribe({
@@ -192,6 +258,16 @@ export class AdminUsersComponent implements OnInit {
         },
       });
     }
+  }
+
+  // ============================================================
+  // UTILITAIRES
+  // ============================================================
+
+  getUserInitials(user: User): string {
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    return (firstName.charAt(0) || '') + (lastName.charAt(0) || '');
   }
 
   getRoleLabel(role: string): string {

@@ -1,0 +1,145 @@
+/* frontend/src/app/components/admin/qr-scanner/qr-scanner.component.css */
+.qr-scanner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.qr-scanner-card {
+  max-width: 480px;
+  width: 100%;
+  margin: 20px;
+  border-radius: 16px;
+  animation: slideUp 0.3s ease;
+}
+
+.qr-scanner-card mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px 8px;
+}
+
+.qr-scanner-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.qr-scanner-card mat-card-title mat-icon {
+  color: var(--brand-1);
+}
+
+.scanner-instructions {
+  text-align: center;
+  color: var(--text-2);
+  font-size: 0.875rem;
+  margin-bottom: 20px;
+}
+
+.scanner-input {
+  margin-bottom: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.scanner-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.scanner-actions button {
+  min-width: 100px;
+}
+
+.scanner-actions button mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.or-divider {
+  text-align: center;
+  color: var(--text-3);
+  font-size: 0.75rem;
+  margin: 16px 0;
+  position: relative;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: calc(50% - 30px);
+  height: 1px;
+  background: var(--border);
+}
+
+.or-divider::before {
+  left: 0;
+}
+
+.or-divider::after {
+  right: 0;
+}
+
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-upload button {
+  width: 100%;
+}
+
+.file-hint {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .qr-scanner-card {
+    margin: 12px;
+    border-radius: 12px;
+  }
+
+  .scanner-actions {
+    flex-direction: column-reverse;
+  }
+
+  .scanner-actions button {
+    width: 100%;
+  }
+}

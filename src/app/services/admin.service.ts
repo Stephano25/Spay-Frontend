@@ -1,3 +1,4 @@
+// frontend/src/app/services/admin.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, throwError, tap, of } from 'rxjs';
@@ -31,6 +32,29 @@ export interface AdminDashboardStats {
     transactionCount: number;
     totalVolume: number;
   }[];
+  totalAdmins?: number;
+  totalSuperAdmins?: number;
+  adminTransactions?: number;
+  adminVolume?: number;
+  myAdminTransactions?: number;
+  myAdminVolume?: number;
+  userRole?: string;
+}
+
+export interface QRCodeResponse {
+  qrCode: string;
+  qrCodeImage: string;
+  expiresAt: string;
+  action: 'deposit' | 'withdraw';
+  amount: number | null;
+}
+
+export interface QRScanResult {
+  valid: boolean;
+  action: 'deposit' | 'withdraw';
+  adminId: string;
+  adminName: string;
+  amount: number | null;
 }
 
 export interface SystemSettings {
@@ -97,27 +121,19 @@ export class AdminService {
   }
 
   // ============================================================
-  // DASHBOARD - AVEC GESTION D'ERREUR
+  // DASHBOARD
   // ============================================================
   getDashboardStats(): Observable<AdminDashboardStats> {
-    console.log('📊 Appel API dashboard stats');
     return this.http
       .get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`, { headers: this.getHeaders() })
       .pipe(
-        tap((data) => {
-          console.log('📊 Stats admin reçues:', data);
-          // ✅ VÉRIFIER QUE LES DONNÉES SONT VALIDES
-          if (!data || typeof data.totalUsers !== 'number') {
-            console.warn('⚠️ Données stats invalides, utilisation des valeurs par défaut');
-          }
-        }),
+        tap((data) => console.log('📊 Stats admin reçues:', data)),
         catchError((error) => {
           console.error('❌ Erreur getDashboardStats:', error);
           if (error.status === 401) {
             this.authService.logout();
           }
           this.notificationService.showError('Erreur chargement des statistiques');
-          // ✅ RETOURNER DES VALEURS PAR DÉFAUT
           return of({
             totalUsers: 0,
             activeUsers: 0,
@@ -127,6 +143,13 @@ export class AdminService {
             recentTransactions: [],
             dailyStats: [],
             topUsers: [],
+            totalAdmins: 0,
+            totalSuperAdmins: 0,
+            adminTransactions: 0,
+            adminVolume: 0,
+            myAdminTransactions: 0,
+            myAdminVolume: 0,
+            userRole: 'admin',
           });
         }),
       );
@@ -146,6 +169,16 @@ export class AdminService {
     );
   }
 
+  getUserById(userId: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/users/${userId}`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
+        console.error('❌ Erreur chargement utilisateur:', error);
+        this.notificationService.showError('Erreur lors du chargement de l\'utilisateur');
+        return throwError(() => error);
+      }),
+    );
+  }
+
   updateUserStatus(userId: string, isActive: boolean): Observable<any> {
     return this.http
       .patch(`${this.apiUrl}/users/${userId}/status`, { isActive }, { headers: this.getHeaders() })
@@ -154,6 +187,19 @@ export class AdminService {
         catchError((error) => {
           console.error('❌ Erreur mise à jour statut:', error);
           this.notificationService.showError('Erreur lors de la mise à jour');
+          return throwError(() => error);
+        }),
+      );
+  }
+
+  updateUserRole(userId: string, role: string): Observable<any> {
+    return this.http
+      .patch(`${this.apiUrl}/users/${userId}/role`, { role }, { headers: this.getHeaders() })
+      .pipe(
+        tap(() => this.notificationService.showSuccess(`Rôle utilisateur mis à jour`)),
+        catchError((error) => {
+          console.error('❌ Erreur mise à jour rôle:', error);
+          this.notificationService.showError('Erreur lors de la mise à jour du rôle');
           return throwError(() => error);
         }),
       );
@@ -171,46 +217,73 @@ export class AdminService {
   }
 
   // ============================================================
-  // ADMIN ACTIONS - DÉPÔT
+  // ADMIN ACTIONS - DÉPÔT (avec QR Code)
   // ============================================================
-  depositMoney(userId: string, amount: number, description?: string): Observable<any> {
+  depositMoney(userId: string, amount: number, description?: string, qrCode?: string): Observable<any> {
     return this.http
-      .post(`${this.apiUrl}/users/${userId}/deposit`, { amount, description }, { headers: this.getHeaders() })
+      .post(`${this.apiUrl}/users/${userId}/deposit`, { amount, description, qrCode }, { headers: this.getHeaders() })
       .pipe(
         tap(() => this.notificationService.showSuccess(`Dépôt de ${amount} Ar effectué`)),
         catchError((error) => {
           console.error('❌ Erreur dépôt:', error);
-          this.notificationService.showError('Erreur lors du dépôt');
+          this.notificationService.showError(error.error?.message || 'Erreur lors du dépôt');
           return throwError(() => error);
         }),
       );
   }
 
   // ============================================================
-  // ADMIN ACTIONS - RETRAIT
+  // ADMIN ACTIONS - RETRAIT (avec QR Code)
   // ============================================================
-  withdrawMoney(userId: string, amount: number, description?: string): Observable<any> {
+  withdrawMoney(userId: string, amount: number, description?: string, qrCode?: string): Observable<any> {
     return this.http
-      .post(`${this.apiUrl}/users/${userId}/withdraw`, { amount, description }, { headers: this.getHeaders() })
+      .post(`${this.apiUrl}/users/${userId}/withdraw`, { amount, description, qrCode }, { headers: this.getHeaders() })
       .pipe(
         tap(() => this.notificationService.showSuccess(`Retrait de ${amount} Ar effectué`)),
         catchError((error) => {
           console.error('❌ Erreur retrait:', error);
-          this.notificationService.showError('Erreur lors du retrait');
+          this.notificationService.showError(error.error?.message || 'Erreur lors du retrait');
           return throwError(() => error);
         }),
       );
   }
 
   // ============================================================
-  // ADMINISTRATEURS
+  // QR CODE - Génération et Scan
+  // ============================================================
+  generateQRCode(type: 'deposit' | 'withdraw', amount?: number): Observable<QRCodeResponse> {
+    return this.http
+      .post<QRCodeResponse>(`${this.apiUrl}/generate-qr`, { type, amount }, { headers: this.getHeaders() })
+      .pipe(
+        catchError((error) => {
+          console.error('❌ Erreur génération QR Code:', error);
+          this.notificationService.showError('Erreur lors de la génération du QR Code');
+          return throwError(() => error);
+        }),
+      );
+  }
+
+  scanQRCode(qrData: string): Observable<QRScanResult> {
+    return this.http
+      .post<QRScanResult>(`${this.apiUrl}/scan-qr`, { qrData }, { headers: this.getHeaders() })
+      .pipe(
+        catchError((error) => {
+          console.error('❌ Erreur scan QR Code:', error);
+          this.notificationService.showError(error.error?.message || 'QR Code invalide');
+          return throwError(() => error);
+        }),
+      );
+  }
+
+  // ============================================================
+  // ADMINISTRATEURS (UNIQUEMENT SUPER_ADMIN)
   // ============================================================
   createAdmin(adminData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/admins`, adminData, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Administrateur créé avec succès')),
       catchError((error) => {
         console.error('❌ Erreur création admin:', error);
-        this.notificationService.showError('Erreur lors de la création');
+        this.notificationService.showError(error.error?.message || 'Erreur lors de la création');
         return throwError(() => error);
       }),
     );
@@ -248,6 +321,16 @@ export class AdminService {
         console.error('❌ Erreur chargement transactions:', error);
         this.notificationService.showError('Erreur lors du chargement des transactions');
         return of([]);
+      }),
+    );
+  }
+
+  getTransactionById(transactionId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/transactions/${transactionId}`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
+        console.error('❌ Erreur chargement transaction:', error);
+        this.notificationService.showError('Erreur lors du chargement de la transaction');
+        return throwError(() => error);
       }),
     );
   }
@@ -295,6 +378,19 @@ export class AdminService {
       catchError((error) => {
         console.error('❌ Erreur stats système:', error);
         return of({ uptime: '0s', memoryUsage: '0 MB' });
+      }),
+    );
+  }
+
+  // ============================================================
+  // PROFIL ADMIN
+  // ============================================================
+  getAdminProfile(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/profile`, { headers: this.getHeaders() }).pipe(
+      catchError((error) => {
+        console.error('❌ Erreur chargement profil:', error);
+        this.notificationService.showError('Erreur lors du chargement du profil');
+        return throwError(() => error);
       }),
     );
   }

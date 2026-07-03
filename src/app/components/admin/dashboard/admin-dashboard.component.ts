@@ -1,14 +1,18 @@
+// frontend/src/app/components/admin/dashboard/admin-dashboard.component.ts
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import Chart from 'chart.js/auto';
-import { AdminService, AdminDashboardStats } from '../../../services/admin.service';
+import { AdminService, AdminDashboardStats, QRScanResult } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
+import { NotificationService } from '../../../services/notification.service';
 import { User } from '../../../models/user.model';
 
 import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { QRScannerComponent } from '../qr-scanner/qr-scanner.component';
+import { QRTransactionFormComponent } from '../qr-transaction-form/qr-transaction-form.component';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,6 +42,8 @@ import { MatDividerModule } from '@angular/material/divider';
     MatMenuModule,
     MatDividerModule,
     TranslatePipe,
+    QRScannerComponent,
+    QRTransactionFormComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
@@ -50,8 +56,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   private subscriptions: Subscription[] = [];
   private charts: Chart[] = [];
   private chartInitialized = false;
+  private chartCreationTimeout: any = null;
 
-  // Menu items selon le rôle
+  // QR Code properties
+  showQRScanner: boolean = false;
+  qrScanResult: QRScanResult | null = null;
+  showTransactionForm: boolean = false;
+
   adminMenuItems = [
     { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
     { icon: 'people', label: 'Utilisateurs', route: '/admin/users' },
@@ -75,6 +86,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     private adminService: AdminService,
     private authService: AuthService,
     private chatService: ChatService,
+    private notificationService: NotificationService,
     private router: Router,
   ) {}
 
@@ -90,15 +102,25 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   ngAfterViewInit(): void {
+    // Attendre que le DOM soit prêt
     setTimeout(() => {
       this.chartInitialized = true;
       this.createCharts();
-    }, 800);
+    }, 500);
   }
 
   ngOnDestroy(): void {
+    // Nettoyer les timeouts
+    if (this.chartCreationTimeout) {
+      clearTimeout(this.chartCreationTimeout);
+      this.chartCreationTimeout = null;
+    }
+    
+    // Nettoyer les subscriptions
     this.subscriptions.forEach((sub) => sub.unsubscribe());
-    this.charts.forEach((chart) => chart.destroy());
+    
+    // Détruire tous les graphiques
+    this.destroyAllCharts();
   }
 
   get menuItems() {
@@ -119,12 +141,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
 
   private loadDashboardData(): void {
     this.isLoading = true;
-    console.log('📊 Chargement des données du dashboard...');
     this.adminService.getDashboardStats().subscribe({
       next: (data) => {
-        console.log('✅ Données dashboard reçues:', data);
         this.stats = data;
         this.isLoading = false;
+        // Recréer les graphiques après le chargement des données
         setTimeout(() => this.createCharts(), 300);
       },
       error: (err) => {
@@ -137,7 +158,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           totalVolume: 0,
           recentUsers: [],
           recentTransactions: [],
-          dailyStats: [],
+          dailyStats: this.generateDefaultDailyStats(),
           topUsers: [],
           totalAdmins: 0,
           totalSuperAdmins: 0,
@@ -145,7 +166,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           adminVolume: 0,
           myAdminTransactions: 0,
           myAdminVolume: 0,
+          userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
         };
+        // Même en erreur, essayer de créer les graphiques avec des données vides
+        setTimeout(() => this.createCharts(), 500);
       },
     });
   }
@@ -153,7 +177,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   private loadDashboardDataSilent(): void {
     this.adminService.getDashboardStats().subscribe({
       next: (data) => {
-        console.log('🔄 Refresh silencieux des données');
         this.stats = data;
         this.updateCharts();
       },
@@ -161,8 +184,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     });
   }
 
-  private updateCharts(): void {
-    if (!this.chartInitialized) return;
+  private destroyAllCharts(): void {
     this.charts.forEach((chart) => {
       try {
         chart.destroy();
@@ -171,10 +193,29 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       }
     });
     this.charts = [];
-    this.createCharts();
+  }
+
+  private updateCharts(): void {
+    if (!this.chartInitialized) return;
+    
+    // Détruire les anciens graphiques
+    this.destroyAllCharts();
+    
+    // Créer les nouveaux graphiques avec un léger délai
+    if (this.chartCreationTimeout) {
+      clearTimeout(this.chartCreationTimeout);
+    }
+    this.chartCreationTimeout = setTimeout(() => {
+      this.createCharts();
+      this.chartCreationTimeout = null;
+    }, 200);
   }
 
   private createCharts(): void {
+    // S'assurer que les graphiques précédents sont détruits
+    this.destroyAllCharts();
+    
+    // Créer les graphiques avec un délai pour permettre au DOM de se mettre à jour
     setTimeout(() => {
       this.createActivityChart();
       this.createUsersChart();
@@ -183,10 +224,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   private createActivityChart(): void {
-    const ctx = document.getElementById('activityChart') as HTMLCanvasElement;
-    if (!ctx) {
+    const canvas = document.getElementById('activityChart') as HTMLCanvasElement;
+    if (!canvas) {
       console.warn('⚠️ activityChart non trouvé');
       return;
+    }
+
+    // Vérifier si un graphique existe déjà sur ce canvas
+    const existingChart = Chart.getChart(canvas);
+    if (existingChart) {
+      try {
+        existingChart.destroy();
+      } catch (e) {
+        // Ignorer
+      }
     }
 
     if (!this.stats?.dailyStats || this.stats.dailyStats.length === 0) {
@@ -205,18 +256,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         adminVolume: 0,
         myAdminTransactions: 0,
         myAdminVolume: 0,
+        userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
       };
     }
 
     try {
-      const chart = new Chart(ctx, {
+      const stats = this.stats;
+      const chart = new Chart(canvas, {
         type: 'line',
         data: {
-          labels: this.stats.dailyStats.map((d) => d.date),
+          labels: stats.dailyStats.map((d) => d.date),
           datasets: [
             {
               label: 'Transactions',
-              data: this.stats.dailyStats.map((d) => d.transactions || 0),
+              data: stats.dailyStats.map((d) => d.transactions || 0),
               borderColor: '#7c3aed',
               backgroundColor: 'rgba(124, 58, 237, 0.1)',
               tension: 0.4,
@@ -227,7 +280,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
             },
             {
               label: 'Volume (kAr)',
-              data: this.stats.dailyStats.map((d) => (d.volume || 0) / 1000),
+              data: stats.dailyStats.map((d) => (d.volume || 0) / 1000),
               borderColor: '#4f46e5',
               backgroundColor: 'rgba(79, 70, 229, 0.1)',
               tension: 0.4,
@@ -282,7 +335,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         },
       });
       this.charts.push(chart);
-      console.log('✅ Graphique activité créé');
     } catch (error) {
       console.error('❌ Erreur création graphique activité:', error);
     }
@@ -304,14 +356,24 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   private createUsersChart(): void {
-    const ctx = document.getElementById('usersChart') as HTMLCanvasElement;
-    if (!ctx) return;
+    const canvas = document.getElementById('usersChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    // Vérifier si un graphique existe déjà sur ce canvas
+    const existingChart = Chart.getChart(canvas);
+    if (existingChart) {
+      try {
+        existingChart.destroy();
+      } catch (e) {
+        // Ignorer
+      }
+    }
 
     try {
       const total = this.stats?.totalUsers || 0;
       const active = this.stats?.activeUsers || 0;
 
-      const chart = new Chart(ctx, {
+      const chart = new Chart(canvas, {
         type: 'doughnut',
         data: {
           labels: ['Actifs', 'Inactifs'],
@@ -349,25 +411,35 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         },
       });
       this.charts.push(chart);
-      console.log('✅ Graphique utilisateurs créé');
     } catch (error) {
       console.error('❌ Erreur création graphique utilisateurs:', error);
     }
   }
 
   private createRevenueChart(): void {
-    const ctx = document.getElementById('revenueChart') as HTMLCanvasElement;
-    if (!ctx) return;
+    const canvas = document.getElementById('revenueChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    // Vérifier si un graphique existe déjà sur ce canvas
+    const existingChart = Chart.getChart(canvas);
+    if (existingChart) {
+      try {
+        existingChart.destroy();
+      } catch (e) {
+        // Ignorer
+      }
+    }
 
     try {
-      const chart = new Chart(ctx, {
+      const stats = this.stats;
+      const chart = new Chart(canvas, {
         type: 'bar',
         data: {
-          labels: this.stats?.dailyStats?.map((d) => d.date) || [],
+          labels: stats?.dailyStats?.map((d) => d.date) || [],
           datasets: [
             {
               label: 'Volume (Ar)',
-              data: this.stats?.dailyStats?.map((d) => d.volume || 0) || [],
+              data: stats?.dailyStats?.map((d) => d.volume || 0) || [],
               backgroundColor: 'rgba(124, 58, 237, 0.7)',
               borderRadius: 6,
               hoverBackgroundColor: 'rgba(124, 58, 237, 1)',
@@ -402,9 +474,51 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         },
       });
       this.charts.push(chart);
-      console.log('✅ Graphique revenus créé');
     } catch (error) {
       console.error('❌ Erreur création graphique revenus:', error);
+    }
+  }
+
+  // ============================================================
+  // QR CODE METHODS
+  // ============================================================
+  
+  openQRScanner(type: 'deposit' | 'withdraw'): void {
+    this.showQRScanner = true;
+    this.qrScanResult = null;
+    this.showTransactionForm = false;
+  }
+
+  onQRScanResult(qrData: string): void {
+    this.showQRScanner = false;
+    
+    this.adminService.scanQRCode(qrData).subscribe({
+      next: (result) => {
+        this.qrScanResult = result;
+        this.showTransactionForm = true;
+        this.notificationService.showSuccess('QR Code scanné avec succès');
+      },
+      error: (error) => {
+        console.error('❌ Erreur scan QR:', error);
+        this.notificationService.showError(error?.error?.message || 'QR Code invalide');
+      },
+    });
+  }
+
+  closeQRScanner(): void {
+    this.showQRScanner = false;
+  }
+
+  closeTransactionForm(): void {
+    this.showTransactionForm = false;
+    this.qrScanResult = null;
+  }
+
+  onTransactionCompleted(result: { success: boolean; message: string; data?: any }): void {
+    this.showTransactionForm = false;
+    this.qrScanResult = null;
+    if (result.success) {
+      this.refreshData();
     }
   }
 

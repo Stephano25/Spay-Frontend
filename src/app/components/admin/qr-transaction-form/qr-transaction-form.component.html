@@ -1,0 +1,123 @@
+<!-- frontend/src/app/components/admin/qr-transaction-form/qr-transaction-form.component.html -->
+<div class="form-overlay" *ngIf="scanResult">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <div class="header-icon" [class.deposit]="scanResult.action === 'deposit'" [class.withdraw]="scanResult.action === 'withdraw'">
+        <mat-icon>{{ scanResult.action === 'deposit' ? 'add' : 'remove' }}</mat-icon>
+      </div>
+      <mat-card-title>
+        {{ scanResult.action === 'deposit' ? 'Dépôt' : 'Retrait' }}
+      </mat-card-title>
+      <button mat-icon-button (click)="cancel()" matTooltip="Fermer">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="admin-info">
+        <div class="admin-badge">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>{{ scanResult.adminName || 'Administrateur' }}</span>
+        </div>
+        <div class="action-badge" [class.deposit]="scanResult.action === 'deposit'" [class.withdraw]="scanResult.action === 'withdraw'">
+          {{ scanResult.action === 'deposit' ? 'Dépôt' : 'Retrait' }}
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="form-section">
+        <div class="section-label">
+          <mat-icon>person</mat-icon>
+          <span>Utilisateur</span>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Rechercher un utilisateur</mat-label>
+          <mat-select [(ngModel)]="selectedUserId" placeholder="Sélectionnez un utilisateur">
+            <mat-option *ngFor="let user of users" [value]="user.id">
+              <div class="user-option">
+                <div class="user-avatar-sm">{{ getUserInitials(user) }}</div>
+                <div class="user-option-info">
+                  <span class="user-option-name">{{ user.firstName }} {{ user.lastName }}</span>
+                  <span class="user-option-email">{{ user.email }}</span>
+                </div>
+                <span class="user-option-balance">{{ formatAmount(user.balance) }} Ar</span>
+              </div>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">
+          <mat-icon>attach_money</mat-icon>
+          <span>Montant</span>
+        </div>
+
+        <div class="amount-display" *ngIf="scanResult.amount">
+          <div class="amount-value">{{ formatAmount(scanResult.amount) }} Ar</div>
+          <div class="amount-label">Montant du QR Code</div>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width" *ngIf="!scanResult.amount">
+          <mat-label>Montant (Ar)</mat-label>
+          <input matInput type="number" [(ngModel)]="amount" min="100" placeholder="1000">
+          <mat-icon matSuffix>attach_money</mat-icon>
+          <mat-hint>Minimum 100 Ar</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width" *ngIf="scanResult.amount">
+          <mat-label>Montant (Ar)</mat-label>
+          <input matInput type="number" [(ngModel)]="amount" [value]="scanResult.amount" disabled>
+          <mat-icon matSuffix>lock</mat-icon>
+          <mat-hint>Montant fixé par le QR Code</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">
+          <mat-icon>notes</mat-icon>
+          <span>Description (optionnelle)</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <input matInput [(ngModel)]="description" placeholder="Ex: Dépôt via QR Code" maxlength="200">
+          <mat-hint align="end">{{ description ? description.length : 0 }}/200</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <div class="preview" *ngIf="selectedUserId && amount && amount >= 100">
+        <div class="preview-row">
+          <span>Opération</span>
+          <span [class.deposit]="scanResult.action === 'deposit'" [class.withdraw]="scanResult.action === 'withdraw'">
+            {{ scanResult.action === 'deposit' ? '+' : '-' }}
+            {{ formatAmount(amount) }} Ar
+          </span>
+        </div>
+        <div class="preview-row total">
+          <span>Status</span>
+          <span class="preview-status">Prêt à valider</span>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-stroked-button (click)="cancel()" [disabled]="isSubmitting">
+        <mat-icon>close</mat-icon>
+        Annuler
+      </button>
+      <button
+        mat-raised-button
+        [color]="scanResult.action === 'deposit' ? 'primary' : 'warn'"
+        [disabled]="!selectedUserId || !amount || amount < 100 || isSubmitting || isBalanceInsufficient()"
+        (click)="submit()">
+        <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+        <span *ngIf="!isSubmitting">
+          <mat-icon>{{ scanResult.action === 'deposit' ? 'add' : 'remove' }}</mat-icon>
+          Valider le {{ scanResult.action === 'deposit' ? 'dépôt' : 'retrait' }}
+        </span>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
