@@ -1,3 +1,4 @@
+// frontend/src/app/components/admin/admin.routes.ts
 import { Routes } from '@angular/router';
 import { AdminGuard } from '../../guards/admin.guard';
 
@@ -52,6 +53,14 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./admins/admin-admins.component').then(
         (m) => m.AdminAdminsComponent,
+      ),
+    canActivate: [AdminGuard],
+  },
+  {
+    path: 'admins/create',
+    loadComponent: () =>
+      import('./admins/admin-create/admin-create.component').then(
+        (m) => m.AdminCreateComponent,
       ),
     canActivate: [AdminGuard],
   },

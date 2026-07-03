@@ -1,0 +1,256 @@
+<!-- frontend/src/app/components/admin/admins/admin-create/admin-create.component.html -->
+<mat-toolbar color="primary" class="create-toolbar">
+  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span class="toolbar-title">
+    <mat-icon>person_add</mat-icon>
+    Créer un administrateur
+  </span>
+  <span class="spacer"></span>
+  <span class="toolbar-badge">Super Admin</span>
+</mat-toolbar>
+
+<div class="create-container">
+  <div class="create-content">
+    <mat-card class="create-card">
+      <mat-card-header>
+        <div class="header-icon">
+          <mat-icon>admin_panel_settings</mat-icon>
+        </div>
+        <mat-card-title>Nouvel administrateur</mat-card-title>
+        <mat-card-subtitle>
+          Remplissez tous les champs pour créer un compte administrateur
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="adminForm" (ngSubmit)="onSubmit()" class="admin-form">
+          <!-- Section Informations personnelles -->
+          <div class="form-section">
+            <div class="section-header">
+              <mat-icon>person</mat-icon>
+              <span>Informations personnelles</span>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Prénom</mat-label>
+                <input matInput formControlName="firstName" placeholder="Jean">
+                <mat-icon matSuffix>person</mat-icon>
+                <mat-error *ngIf="f['firstName'].invalid && f['firstName'].touched">
+                  <span *ngIf="f['firstName'].errors?.['required']">Le prénom est requis</span>
+                  <span *ngIf="f['firstName'].errors?.['minlength']">Minimum 2 caractères</span>
+                  <span *ngIf="f['firstName'].errors?.['maxlength']">Maximum 50 caractères</span>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Nom</mat-label>
+                <input matInput formControlName="lastName" placeholder="Dupont">
+                <mat-icon matSuffix>person</mat-icon>
+                <mat-error *ngIf="f['lastName'].invalid && f['lastName'].touched">
+                  <span *ngIf="f['lastName'].errors?.['required']">Le nom est requis</span>
+                  <span *ngIf="f['lastName'].errors?.['minlength']">Minimum 2 caractères</span>
+                  <span *ngIf="f['lastName'].errors?.['maxlength']">Maximum 50 caractères</span>
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Section Contact -->
+          <div class="form-section">
+            <div class="section-header">
+              <mat-icon>contact_mail</mat-icon>
+              <span>Contact</span>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" placeholder="admin@email.com" type="email">
+                <mat-icon matSuffix>email</mat-icon>
+                <mat-error *ngIf="f['email'].invalid && f['email'].touched">
+                  <span *ngIf="f['email'].errors?.['required']">L'email est requis</span>
+                  <span *ngIf="f['email'].errors?.['email']">Email invalide</span>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Téléphone</mat-label>
+                <input matInput formControlName="phoneNumber" placeholder="0341234567">
+                <mat-icon matSuffix>phone</mat-icon>
+                <mat-hint>9-10 chiffres</mat-hint>
+                <mat-error *ngIf="f['phoneNumber'].invalid && f['phoneNumber'].touched">
+                  Numéro invalide (9-10 chiffres)
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Section Sécurité -->
+          <div class="form-section">
+            <div class="section-header">
+              <mat-icon>security</mat-icon>
+              <span>Sécurité</span>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Mot de passe</mat-label>
+                <input matInput 
+                       [type]="hidePassword ? 'password' : 'text'" 
+                       formControlName="password" 
+                       placeholder="••••••••">
+                <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+                  <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-hint>Minimum 8 caractères</mat-hint>
+                <mat-error *ngIf="f['password'].invalid && f['password'].touched">
+                  <span *ngIf="f['password'].errors?.['required']">Le mot de passe est requis</span>
+                  <span *ngIf="f['password'].errors?.['minlength']">Minimum 8 caractères</span>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Confirmer le mot de passe</mat-label>
+                <input matInput 
+                       [type]="hideConfirmPassword ? 'password' : 'text'" 
+                       formControlName="confirmPassword" 
+                       placeholder="••••••••">
+                <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
+                  <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-error *ngIf="adminForm.errors?.['passwordMismatch'] && f['confirmPassword'].touched">
+                  Les mots de passe ne correspondent pas
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <!-- Force du mot de passe -->
+            <div class="password-strength" *ngIf="f['password'].value">
+              <span class="strength-label">Force du mot de passe :</span>
+              <div class="strength-bar">
+                <div class="strength-fill" 
+                     [style.width.%]="getPasswordStrength(f['password'].value).width"
+                     [style.background]="getPasswordStrength(f['password'].value).color">
+                </div>
+              </div>
+              <span class="strength-text" [style.color]="getPasswordStrength(f['password'].value).color">
+                {{ getPasswordStrength(f['password'].value).label }}
+              </span>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Section Rôle et Statut -->
+          <div class="form-section">
+            <div class="section-header">
+              <mat-icon>settings</mat-icon>
+              <span>Rôle et statut</span>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Rôle</mat-label>
+                <mat-select formControlName="role">
+                  <mat-option *ngFor="let role of roles" [value]="role.value">
+                    {{ role.label }}
+                  </mat-option>
+                </mat-select>
+                <mat-hint>Sélectionnez le rôle de l'administrateur</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Référence</mat-label>
+                <input matInput formControlName="reference" placeholder="ADMIN-001">
+                <mat-icon matSuffix>badge</mat-icon>
+                <mat-hint>Identifiant unique (3-20 caractères)</mat-hint>
+                <mat-error *ngIf="f['reference'].invalid && f['reference'].touched">
+                  <span *ngIf="f['reference'].errors?.['required']">La référence est requise</span>
+                  <span *ngIf="f['reference'].errors?.['minlength']">Minimum 3 caractères</span>
+                  <span *ngIf="f['reference'].errors?.['maxlength']">Maximum 20 caractères</span>
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="status-toggle">
+              <mat-slide-toggle formControlName="isActive" color="primary">
+                <span class="toggle-label">Compte actif</span>
+              </mat-slide-toggle>
+              <span class="toggle-hint">Désactiver pour bloquer l'accès immédiatement</span>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Résumé -->
+          <div class="summary-section" *ngIf="adminForm.valid">
+            <div class="summary-header">
+              <mat-icon>summarize</mat-icon>
+              <span>Résumé des informations</span>
+            </div>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="summary-label">Nom complet</span>
+                <span class="summary-value">{{ adminForm.value.firstName }} {{ adminForm.value.lastName }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Email</span>
+                <span class="summary-value">{{ adminForm.value.email }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Téléphone</span>
+                <span class="summary-value">{{ adminForm.value.phoneNumber || 'Non renseigné' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Référence</span>
+                <span class="summary-value">{{ adminForm.value.reference }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Rôle</span>
+                <span class="summary-value role-badge" 
+                      [class.admin]="adminForm.value.role === 'admin'" 
+                      [class.super-admin]="adminForm.value.role === 'super_admin'">
+                  {{ adminForm.value.role === 'admin' ? 'Administrateur' : 'Super Admin' }}
+                </span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Statut</span>
+                <span class="summary-value status-badge" 
+                      [class.active]="adminForm.value.isActive" 
+                      [class.inactive]="!adminForm.value.isActive">
+                  {{ adminForm.value.isActive ? 'Actif' : 'Inactif' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Boutons d'action -->
+          <div class="form-actions">
+            <button mat-stroked-button type="button" (click)="cancel()" [disabled]="isSubmitting" class="cancel-btn">
+              <mat-icon>close</mat-icon>
+              Annuler
+            </button>
+            <button mat-raised-button 
+                    color="primary" 
+                    type="submit" 
+                    [disabled]="adminForm.invalid || isSubmitting"
+                    class="submit-btn">
+              <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+              <span *ngIf="!isSubmitting">
+                <mat-icon>person_add</mat-icon>
+                Créer l'administrateur
+              </span>
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -1,10 +1,11 @@
+<!-- frontend/src/app/components/admin/admins/admin-admins.component.html -->
 <mat-toolbar color="primary">
   <button mat-icon-button (click)="goBack()" matTooltip="Retour">
     <mat-icon>arrow_back</mat-icon>
   </button>
   <span>Gestion des Administrateurs</span>
   <span class="spacer"></span>
-  <button mat-raised-button color="accent" (click)="openCreateAdminDialog()">
+  <button mat-raised-button color="accent" routerLink="/admin/admins/create">
     <mat-icon>person_add</mat-icon>
     Créer un Admin
   </button>
@@ -79,6 +80,10 @@
           <mat-icon>admin_panel_settings</mat-icon>
           <h3>Aucun administrateur</h3>
           <p>Aucun administrateur n'est enregistré pour le moment</p>
+          <button mat-raised-button color="primary" routerLink="/admin/admins/create">
+            <mat-icon>person_add</mat-icon>
+            Créer le premier administrateur
+          </button>
         </div>
       </div>
     </mat-card-content>
