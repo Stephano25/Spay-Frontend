@@ -28,10 +28,16 @@
 
       <mat-card-content>
         <!-- Résultat -->
-        <div class="result-alert" *ngIf="depositResult" [class.success]="depositResult.success" [class.error]="!depositResult.success">
+        <div
+          class="result-alert"
+          *ngIf="depositResult"
+          [class.success]="depositResult.success"
+          [class.error]="!depositResult.success">
           <mat-icon>{{ depositResult.success ? 'check_circle' : 'error' }}</mat-icon>
           <span>{{ depositResult.message }}</span>
-          <span class="new-balance" *ngIf="depositResult.success && depositResult.newBalance !== undefined">
+          <span
+            class="new-balance"
+            *ngIf="depositResult.success && depositResult.newBalance !== undefined">
             Nouveau solde : {{ formatAmount(depositResult.newBalance) }} Ar
           </span>
         </div>
@@ -63,9 +69,7 @@
           <!-- Utilisateur sélectionné -->
           <div class="selected-user" *ngIf="getSelectedUser()">
             <div class="selected-user-card">
-              <div class="selected-user-avatar">
-                {{ getUserInitials(getSelectedUser()) }}
-              </div>
+              <div class="selected-user-avatar">{{ getUserInitials(getSelectedUser()) }}</div>
               <div class="selected-user-info">
                 <div class="selected-user-name">{{ getSelectedUser().firstName }} {{ getSelectedUser().lastName }}</div>
                 <div class="selected-user-email">{{ getSelectedUser().email }}</div>
@@ -100,18 +104,10 @@
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Montant (Ar)</mat-label>
-            <input
-              matInput
-              type="number"
-              [(ngModel)]="amount"
-              min="100"
-              placeholder="1000"
-              (keyup)="onAmountChange()">
+            <input matInput type="number" [(ngModel)]="amount" min="100" placeholder="1000" (keyup)="onAmountChange()">
             <mat-icon matSuffix>attach_money</mat-icon>
             <mat-hint>Minimum 100 Ar</mat-hint>
-            <mat-error *ngIf="amount && amount < 100">
-              Le montant minimum est de 100 Ar
-            </mat-error>
+            <mat-error *ngIf="amount && amount < 100">Le montant minimum est de 100 Ar</mat-error>
           </mat-form-field>
 
           <!-- Aperçu du dépôt -->
@@ -140,11 +136,7 @@
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Description</mat-label>
-            <input
-              matInput
-              [(ngModel)]="description"
-              placeholder="Ex: Bonus, récompense, paiement..."
-              maxlength="200">
+            <input matInput [(ngModel)]="description" placeholder="Ex: Bonus, récompense, paiement..." maxlength="200">
             <mat-hint align="end">{{ description?.length || 0 }}/200</mat-hint>
           </mat-form-field>
         </div>

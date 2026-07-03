@@ -1,4 +1,3 @@
-// frontend/src/app/components/admin/deposit/admin-deposit.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,7 +5,6 @@ import { Router, RouterModule } from '@angular/router';
 import { AdminService } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
 
-// Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,10 +30,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatSelectModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatToolbarModule
+    MatToolbarModule,
   ],
   templateUrl: './admin-deposit.component.html',
-  styleUrls: ['./admin-deposit.component.css']
+  styleUrls: ['./admin-deposit.component.css'],
 })
 export class AdminDepositComponent implements OnInit {
   users: any[] = [];
@@ -45,20 +43,18 @@ export class AdminDepositComponent implements OnInit {
   isLoading = false;
   isSubmitting = false;
 
-  // Résultat du dépôt
   depositResult: {
     success: boolean;
     message: string;
     newBalance?: number;
   } | null = null;
 
-  // Montants rapides
   quickAmounts = [1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
 
   constructor(
     private adminService: AdminService,
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -76,7 +72,7 @@ export class AdminDepositComponent implements OnInit {
         console.error('Erreur chargement utilisateurs:', error);
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
         this.isLoading = false;
-      }
+      },
     });
   }
 
@@ -95,52 +91,58 @@ export class AdminDepositComponent implements OnInit {
       return;
     }
 
-    const user = this.users.find(u => u.id === this.selectedUserId);
+    const user = this.users.find((u) => u.id === this.selectedUserId);
     if (!user) {
       this.notificationService.showError('Utilisateur non trouvé');
       return;
     }
 
-    if (!confirm(`Confirmer le dépôt de ${this.formatAmount(this.amount)} Ar sur le compte de ${user.firstName} ${user.lastName} ?`)) {
+    if (
+      !confirm(
+        `Confirmer le dépôt de ${this.formatAmount(this.amount)} Ar sur le compte de ${user.firstName} ${user.lastName} ?`,
+      )
+    ) {
       return;
     }
 
     this.isSubmitting = true;
     this.depositResult = null;
 
-    this.adminService.depositMoney(
-      this.selectedUserId,
-      this.amount,
-      this.description || `Dépôt administrateur`
-    ).subscribe({
-      next: (response) => {
-        this.isSubmitting = false;
-        this.depositResult = {
-          success: true,
-          message: `Dépôt de ${this.formatAmount(this.amount)} Ar effectué avec succès`,
-          newBalance: response.newBalance
-        };
-        this.notificationService.showSuccess(this.depositResult.message);
-        this.selectedUserId = '';
-        this.amount = 0;
-        this.description = '';
-        this.loadUsers();
-        setTimeout(() => this.depositResult = null, 5000);
-      },
-      error: (error) => {
-        this.isSubmitting = false;
-        this.depositResult = {
-          success: false,
-          message: error?.error?.message || 'Erreur lors du dépôt'
-        };
-        this.notificationService.showError(this.depositResult.message);
-        setTimeout(() => this.depositResult = null, 5000);
-      }
-    });
+    this.adminService
+      .depositMoney(
+        this.selectedUserId,
+        this.amount,
+        this.description || `Dépôt administrateur`,
+      )
+      .subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          this.depositResult = {
+            success: true,
+            message: `Dépôt de ${this.formatAmount(this.amount)} Ar effectué avec succès`,
+            newBalance: response.newBalance,
+          };
+          this.notificationService.showSuccess(this.depositResult.message);
+          this.selectedUserId = '';
+          this.amount = 0;
+          this.description = '';
+          this.loadUsers();
+          setTimeout(() => (this.depositResult = null), 5000);
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          this.depositResult = {
+            success: false,
+            message: error?.error?.message || 'Erreur lors du dépôt',
+          };
+          this.notificationService.showError(this.depositResult.message);
+          setTimeout(() => (this.depositResult = null), 5000);
+        },
+      });
   }
 
   getSelectedUser(): any {
-    return this.users.find(u => u.id === this.selectedUserId);
+    return this.users.find((u) => u.id === this.selectedUserId);
   }
 
   formatAmount(amount: number): string {

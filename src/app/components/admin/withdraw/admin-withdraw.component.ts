@@ -1,4 +1,3 @@
-// frontend/src/app/components/admin/withdraw/admin-withdraw.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,7 +5,6 @@ import { Router, RouterModule } from '@angular/router';
 import { AdminService } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
 
-// Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,10 +30,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatSelectModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatToolbarModule
+    MatToolbarModule,
   ],
   templateUrl: './admin-withdraw.component.html',
-  styleUrls: ['./admin-withdraw.component.css']
+  styleUrls: ['./admin-withdraw.component.css'],
 })
 export class AdminWithdrawComponent implements OnInit {
   users: any[] = [];
@@ -56,7 +54,7 @@ export class AdminWithdrawComponent implements OnInit {
   constructor(
     private adminService: AdminService,
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -74,7 +72,7 @@ export class AdminWithdrawComponent implements OnInit {
         console.error('Erreur chargement utilisateurs:', error);
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
         this.isLoading = false;
-      }
+      },
     });
   }
 
@@ -93,57 +91,65 @@ export class AdminWithdrawComponent implements OnInit {
       return;
     }
 
-    const user = this.users.find(u => u.id === this.selectedUserId);
+    const user = this.users.find((u) => u.id === this.selectedUserId);
     if (!user) {
       this.notificationService.showError('Utilisateur non trouvé');
       return;
     }
 
     if (user.balance < this.amount) {
-      this.notificationService.showError(`Solde insuffisant. Solde actuel: ${this.formatAmount(user.balance)} Ar`);
+      this.notificationService.showError(
+        `Solde insuffisant. Solde actuel: ${this.formatAmount(user.balance)} Ar`,
+      );
       return;
     }
 
-    if (!confirm(`Confirmer le retrait de ${this.formatAmount(this.amount)} Ar du compte de ${user.firstName} ${user.lastName} ?`)) {
+    if (
+      !confirm(
+        `Confirmer le retrait de ${this.formatAmount(this.amount)} Ar du compte de ${user.firstName} ${user.lastName} ?`,
+      )
+    ) {
       return;
     }
 
     this.isSubmitting = true;
     this.withdrawResult = null;
 
-    this.adminService.withdrawMoney(
-      this.selectedUserId,
-      this.amount,
-      this.description || `Retrait administrateur`
-    ).subscribe({
-      next: (response) => {
-        this.isSubmitting = false;
-        this.withdrawResult = {
-          success: true,
-          message: `Retrait de ${this.formatAmount(this.amount)} Ar effectué avec succès`,
-          newBalance: response.newBalance
-        };
-        this.notificationService.showSuccess(this.withdrawResult.message);
-        this.selectedUserId = '';
-        this.amount = 0;
-        this.description = '';
-        this.loadUsers();
-        setTimeout(() => this.withdrawResult = null, 5000);
-      },
-      error: (error) => {
-        this.isSubmitting = false;
-        this.withdrawResult = {
-          success: false,
-          message: error?.error?.message || 'Erreur lors du retrait'
-        };
-        this.notificationService.showError(this.withdrawResult.message);
-        setTimeout(() => this.withdrawResult = null, 5000);
-      }
-    });
+    this.adminService
+      .withdrawMoney(
+        this.selectedUserId,
+        this.amount,
+        this.description || `Retrait administrateur`,
+      )
+      .subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          this.withdrawResult = {
+            success: true,
+            message: `Retrait de ${this.formatAmount(this.amount)} Ar effectué avec succès`,
+            newBalance: response.newBalance,
+          };
+          this.notificationService.showSuccess(this.withdrawResult.message);
+          this.selectedUserId = '';
+          this.amount = 0;
+          this.description = '';
+          this.loadUsers();
+          setTimeout(() => (this.withdrawResult = null), 5000);
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          this.withdrawResult = {
+            success: false,
+            message: error?.error?.message || 'Erreur lors du retrait',
+          };
+          this.notificationService.showError(this.withdrawResult.message);
+          setTimeout(() => (this.withdrawResult = null), 5000);
+        },
+      });
   }
 
   getSelectedUser(): any {
-    return this.users.find(u => u.id === this.selectedUserId);
+    return this.users.find((u) => u.id === this.selectedUserId);
   }
 
   formatAmount(amount: number): string {

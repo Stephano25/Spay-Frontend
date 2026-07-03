@@ -1,4 +1,3 @@
-// frontend/src/app/components/admin/dashboard/admin-dashboard.component.ts
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -9,10 +8,8 @@ import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
 import { User } from '../../../models/user.model';
 
-// ✅ Import du pipe standalone
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 
-// Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -56,7 +53,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     private adminService: AdminService,
     private authService: AuthService,
     private chatService: ChatService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -66,7 +63,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     this.subscriptions.push(
       this.chatService.onlineStatus$.subscribe(() => {
         this.loadDashboardDataSilent();
-      })
+      }),
     );
   }
 
@@ -86,7 +83,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         if (user && user.role !== 'admin' && user.role !== 'super_admin') {
           this.router.navigate(['/user']);
         }
-      })
+      }),
     );
   }
 
@@ -314,7 +311,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
                   const value = ctx.parsed.y;
                   if (typeof value !== 'number') return '';
                   return `${ctx.dataset.label}: ${new Intl.NumberFormat(
-                    'fr-MG'
+                    'fr-MG',
                   ).format(value)} Ar`;
                 },
               },

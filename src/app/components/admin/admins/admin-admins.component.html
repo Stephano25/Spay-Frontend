@@ -62,7 +62,12 @@
               </td>
               <td>{{ admin.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="actions-cell">
-                <button mat-icon-button color="warn" (click)="deleteAdmin(admin)" matTooltip="Supprimer" [disabled]="admin.id === currentAdminId">
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="deleteAdmin(admin)"
+                  matTooltip="Supprimer"
+                  [disabled]="admin.id === currentAdminId">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>

@@ -9,6 +9,28 @@
   background: var(--bg);
   padding: 0 24px 40px;
   animation: fadeIn 0.4s var(--ease);
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  height: calc(100vh - 64px);
+}
+
+/* ── Scrollbar personnalisée ── */
+.admin-dashboard::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-dashboard::-webkit-scrollbar-track {
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+
+.admin-dashboard::-webkit-scrollbar-thumb {
+  background: #d5d4e4;
+  border-radius: 999px;
+}
+
+.admin-dashboard::-webkit-scrollbar-thumb:hover {
+  background: #b5b4c8;
 }
 
 /* ── Toolbar ── */
@@ -421,6 +443,33 @@
   text-transform: uppercase;
 }
 
+/* ── Menu Icons pour Dépôt et Retrait ── */
+.menu-icon.deposit {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.menu-icon.deposit mat-icon {
+  color: #10b981 !important;
+}
+
+.menu-card:hover .menu-icon.deposit mat-icon {
+  color: white !important;
+}
+
+.menu-icon.withdraw {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.menu-icon.withdraw mat-icon {
+  color: #ef4444 !important;
+}
+
+.menu-card:hover .menu-icon.withdraw mat-icon {
+  color: white !important;
+}
+
 /* ── Recent Grid ── */
 .recent-grid {
   display: grid;
@@ -702,6 +751,18 @@
   box-shadow: var(--shadow-brand) !important;
 }
 
+.footer-btn.deposit {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #10b981 !important;
+}
+
+.footer-btn.deposit:hover {
+  background: #10b981 !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
+}
+
 /* ── Animations ── */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -728,6 +789,9 @@
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .menu-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -737,43 +801,46 @@
   .recent-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .menu-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
 }
 
 @media (max-width: 768px) {
   .admin-dashboard {
     padding: 0 14px 32px;
   }
-  
+
   .dashboard-toolbar {
     padding: 0 14px !important;
   }
-  
+
   .kpi-grid {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-  
+
   .recent-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .kpi-card mat-card-content {
     padding: 16px !important;
   }
-  
+
   .kpi-value {
     font-size: 1.5rem;
   }
-  
+
   .menu-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
-  
+
   .footer-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .footer-btn {
     width: 100%;
     justify-content: center;
@@ -784,118 +851,8 @@
   .menu-grid {
     grid-template-columns: 1fr !important;
   }
-  
+
   .dashboard-toolbar .brand-title {
     font-size: 0.9375rem;
-  }
-}
-
-/* Ajouter à la fin du fichier admin-dashboard.component.css */
-
-/* ── Scrollbar personnalisée ── */
-.admin-dashboard::-webkit-scrollbar {
-  width: 6px;
-}
-
-.admin-dashboard::-webkit-scrollbar-track {
-  background: var(--surface-2);
-  border-radius: 999px;
-}
-
-.admin-dashboard::-webkit-scrollbar-thumb {
-  background: #d5d4e4;
-  border-radius: 999px;
-}
-
-.admin-dashboard::-webkit-scrollbar-thumb:hover {
-  background: #b5b4c8;
-}
-
-/* ── Smooth scrolling pour tout le dashboard ── */
-.admin-dashboard {
-  scroll-behavior: smooth;
-  overflow-y: auto;
-  height: calc(100vh - 64px);
-}
-
-/* ── Pour les cartes de statistiques ── */
-.stats-container {
-  scroll-behavior: smooth;
-  overflow-y: auto;
-  height: calc(100vh - 64px);
-}
-
-.stats-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.stats-container::-webkit-scrollbar-track {
-  background: var(--surface-2);
-  border-radius: 999px;
-}
-
-.stats-container::-webkit-scrollbar-thumb {
-  background: #d5d4e4;
-  border-radius: 999px;
-}
-
-.stats-container::-webkit-scrollbar-thumb:hover {
-  background: #b5b4c8;
-}/* Dans admin-dashboard.component.css */
-.footer-btn.deposit {
-  background: rgba(16, 185, 129, 0.12) !important;
-  color: #10b981 !important;
-}
-
-.footer-btn.deposit:hover {
-  background: #10b981 !important;
-  color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
-}
-
-.menu-icon.deposit {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-}
-/* Ajouter à la fin du fichier admin-dashboard.component.css */
-
-/* ── Menu Icons ── */
-.menu-icon.deposit {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-}
-
-.menu-icon.withdraw {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
-}
-
-.menu-icon.deposit mat-icon,
-.menu-icon.withdraw mat-icon {
-  color: inherit !important;
-}
-
-.menu-card:hover .menu-icon.deposit mat-icon,
-.menu-card:hover .menu-icon.withdraw mat-icon {
-  color: white !important;
-}
-
-/* ── Responsive pour 7 colonnes ── */
-@media (max-width: 1200px) {
-  .menu-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .menu-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .menu-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
   }
 }

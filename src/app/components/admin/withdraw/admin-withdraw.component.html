@@ -24,10 +24,16 @@
       </mat-card-header>
 
       <mat-card-content>
-        <div class="result-alert" *ngIf="withdrawResult" [class.success]="withdrawResult.success" [class.error]="!withdrawResult.success">
+        <div
+          class="result-alert"
+          *ngIf="withdrawResult"
+          [class.success]="withdrawResult.success"
+          [class.error]="!withdrawResult.success">
           <mat-icon>{{ withdrawResult.success ? 'check_circle' : 'error' }}</mat-icon>
           <span>{{ withdrawResult.message }}</span>
-          <span class="new-balance" *ngIf="withdrawResult.success && withdrawResult.newBalance !== undefined">
+          <span
+            class="new-balance"
+            *ngIf="withdrawResult.success && withdrawResult.newBalance !== undefined">
             Nouveau solde : {{ formatAmount(withdrawResult.newBalance) }} Ar
           </span>
         </div>
@@ -78,7 +84,11 @@
           <div class="quick-amounts">
             <span class="quick-label">Montants rapides</span>
             <div class="amount-chips">
-              <button *ngFor="let amount of quickAmounts" class="amount-chip" [class.active]="amount === amount" (click)="selectQuickAmount(amount)">
+              <button
+                *ngFor="let amount of quickAmounts"
+                class="amount-chip"
+                [class.active]="amount === amount"
+                (click)="selectQuickAmount(amount)">
                 {{ formatAmount(amount) }}
               </button>
             </div>
@@ -93,10 +103,21 @@
           </mat-form-field>
 
           <div class="deposit-preview" *ngIf="amount && amount >= 100 && getSelectedUser()">
-            <div class="preview-row"><span>Utilisateur</span><span>{{ getSelectedUser().firstName }} {{ getSelectedUser().lastName }}</span></div>
-            <div class="preview-row"><span>Montant à retirer</span><span class="preview-amount" style="color:#ef4444;">- {{ formatAmount(amount) }} Ar</span></div>
-            <div class="preview-row total"><span>Nouveau solde</span><span class="preview-new-balance">{{ formatAmount((getSelectedUser().balance || 0) - amount) }} Ar</span></div>
-            <div class="preview-row" *ngIf="(getSelectedUser().balance || 0) - amount < 0" style="color:#ef4444;font-weight:700;">⚠️ Solde insuffisant</div>
+            <div class="preview-row">
+              <span>Utilisateur</span>
+              <span>{{ getSelectedUser().firstName }} {{ getSelectedUser().lastName }}</span>
+            </div>
+            <div class="preview-row">
+              <span>Montant à retirer</span>
+              <span class="preview-amount" style="color:#ef4444;">- {{ formatAmount(amount) }} Ar</span>
+            </div>
+            <div class="preview-row total">
+              <span>Nouveau solde</span>
+              <span class="preview-new-balance">{{ formatAmount((getSelectedUser().balance || 0) - amount) }} Ar</span>
+            </div>
+            <div class="preview-row" *ngIf="(getSelectedUser().balance || 0) - amount < 0" style="color:#ef4444;font-weight:700;">
+              ⚠️ Solde insuffisant
+            </div>
           </div>
         </div>
 
@@ -117,7 +138,13 @@
         <button mat-stroked-button class="cancel-btn" (click)="goBack()" [disabled]="isSubmitting">
           <mat-icon>close</mat-icon> Annuler
         </button>
-        <button mat-raised-button class="withdraw-btn" [disabled]="!selectedUserId || !amount || amount < 100 || (getSelectedUser()?.balance || 0) < amount || isSubmitting" (click)="onSubmit()">
+        <button
+          mat-raised-button
+          class="withdraw-btn"
+          [disabled]="
+            !selectedUserId || !amount || amount < 100 || (getSelectedUser()?.balance || 0) < amount || isSubmitting
+          "
+          (click)="onSubmit()">
           <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
           <span *ngIf="!isSubmitting">
             <mat-icon>remove</mat-icon> Retirer {{ amount ? formatAmount(amount) : '' }} Ar
@@ -129,9 +156,27 @@
     <mat-card class="info-card" *ngIf="!isLoading">
       <mat-card-content>
         <div class="info-grid">
-          <div class="info-item"><div class="info-icon"><mat-icon>info</mat-icon></div><div><h4>Retrait instantané</h4><p>Le montant est débité immédiatement du compte de l'utilisateur</p></div></div>
-          <div class="info-item"><div class="info-icon"><mat-icon>receipt</mat-icon></div><div><h4>Historique</h4><p>Une transaction est créée et visible dans l'historique</p></div></div>
-          <div class="info-item"><div class="info-icon"><mat-icon>security</mat-icon></div><div><h4>Sécurité</h4><p>Toutes les opérations sont traçables et sécurisées</p></div></div>
+          <div class="info-item">
+            <div class="info-icon"><mat-icon>info</mat-icon></div>
+            <div>
+              <h4>Retrait instantané</h4>
+              <p>Le montant est débité immédiatement du compte de l'utilisateur</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon"><mat-icon>receipt</mat-icon></div>
+            <div>
+              <h4>Historique</h4>
+              <p>Une transaction est créée et visible dans l'historique</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon"><mat-icon>security</mat-icon></div>
+            <div>
+              <h4>Sécurité</h4>
+              <p>Toutes les opérations sont traçables et sécurisées</p>
+            </div>
+          </div>
         </div>
       </mat-card-content>
     </mat-card>

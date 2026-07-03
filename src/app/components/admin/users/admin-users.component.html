@@ -61,10 +61,28 @@
               <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="actions-cell">
                 <!-- ✅ BOUTON DÉPÔT -->
-                <button mat-icon-button color="primary" (click)="depositMoney(user)" matTooltip="Déposer de l'argent">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  (click)="depositMoney(user)"
+                  matTooltip="Déposer de l'argent">
                   <mat-icon>add</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" (click)="deleteUser(user)" matTooltip="Supprimer">
+                <!-- ✅ BOUTON RETRAIT -->
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="withdrawMoney(user)"
+                  matTooltip="Retirer de l'argent"
+                  [disabled]="user.balance < 100">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <!-- ✅ BOUTON SUPPRIMER -->
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="deleteUser(user)"
+                  matTooltip="Supprimer">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>

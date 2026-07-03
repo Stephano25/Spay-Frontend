@@ -1,4 +1,3 @@
-// frontend/src/app/components/admin/admins/admin-admins.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -16,7 +15,6 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-admin-admins',
@@ -33,10 +31,10 @@ import { MatDialog } from '@angular/material/dialog';
     MatChipsModule,
     MatTooltipModule,
     MatDialogModule,
-    MatToolbarModule
+    MatToolbarModule,
   ],
   templateUrl: './admin-admins.component.html',
-  styleUrls: ['./admin-admins.component.css']
+  styleUrls: ['./admin-admins.component.css'],
 })
 export class AdminAdminsComponent implements OnInit {
   admins: any[] = [];
@@ -48,7 +46,6 @@ export class AdminAdminsComponent implements OnInit {
     private authService: AuthService,
     private notificationService: NotificationService,
     private router: Router,
-    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -68,13 +65,8 @@ export class AdminAdminsComponent implements OnInit {
         console.error('Erreur chargement admins:', error);
         this.notificationService.showError('Erreur lors du chargement');
         this.isLoading = false;
-      }
+      },
     });
-  }
-
-  openCreateAdminDialog(): void {
-    // TODO: Implémenter le dialogue de création d'admin
-    this.notificationService.showInfo('Fonctionnalité à venir');
   }
 
   toggleAdminStatus(admin: any): void {
@@ -85,7 +77,7 @@ export class AdminAdminsComponent implements OnInit {
       },
       error: (error) => {
         this.notificationService.showError('Erreur lors de la mise à jour');
-      }
+      },
     });
   }
 
@@ -98,12 +90,12 @@ export class AdminAdminsComponent implements OnInit {
     if (confirm(`Voulez-vous vraiment supprimer ${admin.firstName} ${admin.lastName} ?`)) {
       this.adminService.deleteAdmin(admin.id).subscribe({
         next: () => {
-          this.admins = this.admins.filter(a => a.id !== admin.id);
+          this.admins = this.admins.filter((a) => a.id !== admin.id);
           this.notificationService.showSuccess('Admin supprimé');
         },
         error: (error) => {
           this.notificationService.showError('Erreur lors de la suppression');
-        }
+        },
       });
     }
   }

@@ -1,12 +1,11 @@
-// frontend/src/app/components/admin/users/admin-users.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AdminDataService, User } from '../../../services/admin-data.service';
+import { AdminService } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
 import { MatDialog } from '@angular/material/dialog';
-import { DepositDialogComponent } from '../users/deposit-dialog.component';
+import { DepositDialogComponent } from './deposit-dialog.component';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -19,6 +18,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatToolbarModule } from '@angular/material/toolbar';
+
+// ✅ Importer l'interface User depuis le modèle
+import { User } from '../../../models/user.model';
 
 @Component({
   selector: 'app-admin-users',
@@ -36,20 +38,20 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatChipsModule,
     MatTooltipModule,
     MatDialogModule,
-    MatToolbarModule
+    MatToolbarModule,
   ],
   templateUrl: './admin-users.component.html',
-  styleUrls: ['./admin-users.component.css']
+  styleUrls: ['./admin-users.component.css'],
 })
 export class AdminUsersComponent implements OnInit {
   users: User[] = [];
   isLoading = true;
 
   constructor(
-    private adminDataService: AdminDataService,
+    private adminService: AdminService,
     private notificationService: NotificationService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -58,40 +60,98 @@ export class AdminUsersComponent implements OnInit {
 
   loadUsers(): void {
     this.isLoading = true;
-    this.adminDataService.getUsers().subscribe({
-      next: (users) => {
+    this.adminService.getAllUsers().subscribe({
+      next: (users: User[]) => {
+        // ✅ Typage explicite pour résoudre le conflit
         this.users = users;
         this.isLoading = false;
+        console.log('✅ Utilisateurs chargés:', this.users.length);
       },
       error: (error) => {
-        console.error('Erreur chargement utilisateurs:', error);
+        console.error('❌ Erreur chargement utilisateurs:', error);
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
         this.isLoading = false;
-      }
+      },
     });
   }
 
-  // ✅ DÉPÔT D'ARGENT - CORRIGÉ
+  // ✅ DÉPÔT D'ARGENT - AVEC DIALOGUE
   depositMoney(user: User): void {
     const dialogRef = this.dialog.open(DepositDialogComponent, {
-      width: '450px',
-      data: { user: user }
+      width: '480px',
+      data: { user: user },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.adminDataService.depositMoney(user.id, result.amount, result.description).subscribe({
-          next: (response: any) => {
-            this.notificationService.showSuccess(`Dépôt de ${result.amount} Ar effectué avec succès`);
-            this.loadUsers();
-          },
-          error: (error: any) => {
-            console.error('Erreur dépôt:', error);
-            this.notificationService.showError(error?.error?.message || 'Erreur lors du dépôt');
-          }
-        });
+        this.adminService
+          .depositMoney(user.id, result.amount, result.description)
+          .subscribe({
+            next: (response: any) => {
+              this.notificationService.showSuccess(
+                `Dépôt de ${this.formatAmount(result.amount)} Ar effectué avec succès`,
+              );
+              this.loadUsers();
+            },
+            error: (error: any) => {
+              console.error('❌ Erreur dépôt:', error);
+              this.notificationService.showError(
+                error?.error?.message || 'Erreur lors du dépôt',
+              );
+            },
+          });
       }
     });
+  }
+
+  // ✅ RETRAIT D'ARGENT - AVEC DIALOGUE
+  withdrawMoney(user: User): void {
+    if (user.balance < 100) {
+      this.notificationService.showError('Solde insuffisant pour un retrait');
+      return;
+    }
+
+    const amount = prompt(
+      `Entrez le montant à retirer pour ${user.firstName} ${user.lastName} (max: ${this.formatAmount(user.balance)} Ar)`,
+    );
+
+    if (!amount) return;
+
+    const withdrawAmount = parseInt(amount, 10);
+    if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+      this.notificationService.showError('Montant invalide');
+      return;
+    }
+
+    if (withdrawAmount > user.balance) {
+      this.notificationService.showError('Solde insuffisant');
+      return;
+    }
+
+    if (
+      !confirm(
+        `Confirmer le retrait de ${this.formatAmount(withdrawAmount)} Ar du compte de ${user.firstName} ${user.lastName} ?`,
+      )
+    ) {
+      return;
+    }
+
+    this.adminService
+      .withdrawMoney(user.id, withdrawAmount, `Retrait administrateur`)
+      .subscribe({
+        next: (response: any) => {
+          this.notificationService.showSuccess(
+            `Retrait de ${this.formatAmount(withdrawAmount)} Ar effectué avec succès`,
+          );
+          this.loadUsers();
+        },
+        error: (error: any) => {
+          console.error('❌ Erreur retrait:', error);
+          this.notificationService.showError(
+            error?.error?.message || 'Erreur lors du retrait',
+          );
+        },
+      });
   }
 
   getUserInitials(user: User): string {
@@ -101,29 +161,35 @@ export class AdminUsersComponent implements OnInit {
   }
 
   toggleUserStatus(user: User): void {
-    this.adminDataService.updateUserStatus(user.id, !user.isActive).subscribe({
+    this.adminService.updateUserStatus(user.id, !user.isActive).subscribe({
       next: () => {
         user.isActive = !user.isActive;
-        this.notificationService.showSuccess(`Utilisateur ${user.isActive ? 'activé' : 'désactivé'}`);
+        this.notificationService.showSuccess(
+          `Utilisateur ${user.isActive ? 'activé' : 'désactivé'}`,
+        );
       },
       error: (error) => {
-        console.error('Erreur mise à jour statut:', error);
+        console.error('❌ Erreur mise à jour statut:', error);
         this.notificationService.showError('Erreur lors de la mise à jour');
-      }
+      },
     });
   }
 
   deleteUser(user: User): void {
-    if (confirm(`Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`)) {
-      this.adminDataService.deleteUser(user.id).subscribe({
+    if (
+      confirm(
+        `Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`,
+      )
+    ) {
+      this.adminService.deleteUser(user.id).subscribe({
         next: () => {
           this.users = this.users.filter((u) => u.id !== user.id);
           this.notificationService.showSuccess('Utilisateur supprimé');
         },
         error: (error) => {
-          console.error('Erreur suppression:', error);
+          console.error('❌ Erreur suppression:', error);
           this.notificationService.showError('Erreur lors de la suppression');
-        }
+        },
       });
     }
   }

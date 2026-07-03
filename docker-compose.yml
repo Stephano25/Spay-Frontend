@@ -10,7 +10,6 @@ services:
     networks:
       - spaye-network
 
-# ✅ Utiliser un réseau externe (déjà créé manuellement)
 networks:
   spaye-network:
     external: true

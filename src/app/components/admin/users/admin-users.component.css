@@ -67,7 +67,9 @@ mat-toolbar button:hover {
   color: var(--text) !important;
 }
 
-.users-card mat-card-title mat-icon { color: var(--brand-1) !important; }
+.users-card mat-card-title mat-icon {
+  color: var(--brand-1) !important;
+}
 
 .users-card mat-card-subtitle {
   color: var(--text-3) !important;
@@ -86,7 +88,9 @@ mat-toolbar button:hover {
 }
 
 /* ── Table wrapper ── */
-.table-container { overflow-x: auto; }
+.table-container {
+  overflow-x: auto;
+}
 
 .users-table {
   width: 100%;
@@ -120,8 +124,12 @@ mat-toolbar button:hover {
   animation: fadeUp 0.25s var(--ease) both;
 }
 
-.users-table tbody tr:hover { background: var(--hover); }
-.users-table tbody tr:last-child td { border-bottom: none; }
+.users-table tbody tr:hover {
+  background: var(--hover);
+}
+.users-table tbody tr:last-child td {
+  border-bottom: none;
+}
 
 /* ── User Cell ── */
 .user-cell {
@@ -171,12 +179,23 @@ td.balance {
   letter-spacing: 0.03em;
 }
 
-.role-admin     { background: var(--warning-bg); color: var(--warning); }
-.role-super_admin { background: var(--danger-bg); color: var(--danger); }
-.role-user      { background: var(--info-bg);    color: var(--info); }
+.role-admin {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.role-super_admin {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.role-user {
+  background: var(--info-bg);
+  color: var(--info);
+}
 
 /* ── Actions cell ── */
-.actions-cell { white-space: nowrap; }
+.actions-cell {
+  white-space: nowrap;
+}
 
 .actions-cell button {
   transition: all var(--trans-base) !important;
@@ -187,6 +206,11 @@ td.balance {
   background: var(--danger-bg) !important;
   color: var(--danger) !important;
   transform: scale(1.1);
+}
+
+.actions-cell button[color='primary']:hover {
+  background: var(--success-bg) !important;
+  color: var(--success) !important;
 }
 
 /* ── Empty state ── */
@@ -214,14 +238,24 @@ td.balance {
   margin: 0;
 }
 
-.empty-state p { color: var(--text-3); font-size: 0.875rem; margin: 0; }
+.empty-state p {
+  color: var(--text-3);
+  font-size: 0.875rem;
+  margin: 0;
+}
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .users-content { padding: 16px 14px; }
+  .users-content {
+    padding: 16px 14px;
+  }
 
   .users-table th,
-  .users-table td { padding: 10px 12px; }
+  .users-table td {
+    padding: 10px 12px;
+  }
 
-  .user-name { font-size: 0.8125rem; }
+  .user-name {
+    font-size: 0.8125rem;
+  }
 }
