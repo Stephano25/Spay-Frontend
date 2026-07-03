@@ -1,6 +1,5 @@
-// frontend/src/app/services/chat.service.ts
 import { Injectable, OnDestroy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { AuthService } from './auth.service';
@@ -68,7 +67,7 @@ export class ChatService implements OnDestroy {
 
   public newMessage$ = this.newMessageSubject.asObservable().pipe(
     filter((m): m is Message => m !== null),
-    distinctUntilChanged((a, b) => a.id === b.id)
+    distinctUntilChanged((a, b) => a.id === b.id),
   );
   public typing$ = this.typingSubject.asObservable();
   public onlineStatus$ = this.onlineStatusSubject.asObservable();
@@ -88,23 +87,34 @@ export class ChatService implements OnDestroy {
   constructor(
     private http: HttpClient,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
   ) {
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       if (user && !this.isConnecting) {
-        this.connectSocket();
-        this.requestNotificationPermission();
+        // ✅ Attendre que le token soit disponible
+        setTimeout(() => this.connectSocket(), 500);
       } else if (!user) {
         this.disconnect();
       }
     });
   }
 
-  // ✅ CORRECTION : Connexion Socket avec le bon namespace
+  private getHeaders(): HttpHeaders {
+    const token = this.authService.getToken();
+    return new HttpHeaders({
+      Authorization: `Bearer ${token || ''}`,
+      'Content-Type': 'application/json',
+    });
+  }
+
+  // ✅ CORRECTION : Connexion Socket avec la bonne URL
   private connectSocket(): void {
     const token = this.authService.getToken();
-    if (!token || this.isConnecting) return;
-    
+    if (!token || this.isConnecting) {
+      console.log('⚠️ Pas de token ou déjà en connexion');
+      return;
+    }
+
     if (this.socket?.connected) {
       console.log('✅ Socket déjà connecté');
       return;
@@ -129,8 +139,8 @@ export class ChatService implements OnDestroy {
       reconnectionDelay: 2000,
       reconnectionDelayMax: 10000,
       timeout: 20000,
-      forceNew: false,
-      withCredentials: false
+      forceNew: true,
+      withCredentials: false,
     });
 
     this.socket.on('connect', () => {
@@ -149,7 +159,7 @@ export class ChatService implements OnDestroy {
       console.error('❌ Erreur socket:', err.message);
       this.isConnecting = false;
       this.reconnectAttempts++;
-      
+
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
         console.error('❌ Nombre maximum de tentatives de reconnexion atteint');
         this.disconnect();
@@ -200,17 +210,17 @@ export class ChatService implements OnDestroy {
     this.reconnectAttempts = 0;
   }
 
-  // ── REST API ──
+  // ── REST API avec headers ──
 
   getConversations(): Observable<Conversation[]> {
-    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`).pipe(
-      catchError(() => of([]))
+    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`, { headers: this.getHeaders() }).pipe(
+      catchError(() => of([])),
     );
   }
 
   getMessages(userId: string): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`).pipe(
-      catchError(() => of([]))
+    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`, { headers: this.getHeaders() }).pipe(
+      catchError(() => of([])),
     );
   }
 
@@ -235,33 +245,37 @@ export class ChatService implements OnDestroy {
   }
 
   markAsRead(senderId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {}).pipe(
-      catchError(() => of(void 0))
+    return this.http.post<void>(`${this.apiUrl}/read/${senderId}`, {}, { headers: this.getHeaders() }).pipe(
+      catchError(() => of(void 0)),
     );
   }
 
   uploadFile(file: File): Observable<{ url: string; fileName: string; fileSize: number }> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<{ url: string; fileName: string; fileSize: number }>(`${this.apiUrl}/upload`, formData).pipe(
-      catchError(() => of({ url: '', fileName: '', fileSize: 0 }))
+    return this.http.post<{ url: string; fileName: string; fileSize: number }>(
+      `${this.apiUrl}/upload`,
+      formData,
+      { headers: new HttpHeaders({ Authorization: `Bearer ${this.authService.getToken()}` }) },
+    ).pipe(
+      catchError(() => of({ url: '', fileName: '', fileSize: 0 })),
     );
   }
 
   editMessage(messageId: string, content: string): Observable<Message> {
-    return this.http.put<Message>(`${this.apiUrl}/message/${messageId}`, { content });
+    return this.http.put<Message>(`${this.apiUrl}/message/${messageId}`, { content }, { headers: this.getHeaders() });
   }
 
   deleteMessage(messageId: string): Observable<Message> {
-    return this.http.delete<Message>(`${this.apiUrl}/message/${messageId}`);
+    return this.http.delete<Message>(`${this.apiUrl}/message/${messageId}`, { headers: this.getHeaders() });
   }
 
   reactToMessage(messageId: string, emoji: string): Observable<Message> {
-    return this.http.post<Message>(`${this.apiUrl}/message/${messageId}/react`, { emoji });
+    return this.http.post<Message>(`${this.apiUrl}/message/${messageId}/react`, { emoji }, { headers: this.getHeaders() });
   }
 
   removeReaction(messageId: string): Observable<Message> {
-    return this.http.delete<Message>(`${this.apiUrl}/message/${messageId}/react`);
+    return this.http.delete<Message>(`${this.apiUrl}/message/${messageId}/react`, { headers: this.getHeaders() });
   }
 
   startCall(receiverId: string, type: 'audio' | 'video'): void {
@@ -278,7 +292,9 @@ export class ChatService implements OnDestroy {
     if (this.socket?.connected) this.socket.emit('getOnlineUsers');
   }
 
-  isSocketConnected(): boolean { return this.socket?.connected || false; }
+  isSocketConnected(): boolean {
+    return this.socket?.connected || false;
+  }
 
   private async requestNotificationPermission(): Promise<void> {
     if (!('Notification' in window)) return;

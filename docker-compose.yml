@@ -10,6 +10,7 @@ services:
     networks:
       - spaye-network
 
+# ✅ Définir le réseau ici si vous voulez qu'il soit créé automatiquement
 networks:
   spaye-network:
     external: true

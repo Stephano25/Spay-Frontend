@@ -1,6 +1,5 @@
-// src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { NotificationService } from './notification.service';
@@ -17,7 +16,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
   ) {
     this.loadStoredUser();
   }
@@ -37,21 +36,29 @@ export class AuthService {
     }
   }
 
+  // ✅ AJOUTER CETTE MÉTHODE POUR LES HEADERS
+  private getHeaders(): HttpHeaders {
+    const token = this.getToken();
+    return new HttpHeaders({
+      Authorization: `Bearer ${token || ''}`,
+      'Content-Type': 'application/json',
+    });
+  }
+
   login(email: string, password: string): Observable<LoginResponse> {
     console.log('🔐 Tentative de connexion:', email);
-    
+
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         const token = response.access_token || response.token;
         if (!token) throw new Error('Token manquant');
-        
+
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-        
+
         console.log('✅ Connexion réussie:', response.user.email, 'Rôle:', response.user.role);
-        
-        // ✅ Redirection selon le rôle
+
         const user = response.user;
         if (user.role === 'admin' || user.role === 'super_admin') {
           console.log('🔀 Redirection vers /admin/dashboard');
@@ -60,7 +67,7 @@ export class AuthService {
           console.log('🔀 Redirection vers /user/dashboard');
           this.router.navigate(['/user/dashboard']);
         }
-        
+
         this.notificationService.showSuccess('Connexion réussie !');
       }),
       catchError(error => {
@@ -68,7 +75,7 @@ export class AuthService {
         console.error('❌ Erreur de connexion:', message);
         this.notificationService.showError(message);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -77,39 +84,41 @@ export class AuthService {
       tap(response => {
         const token = response.access_token || response.token;
         if (!token) throw new Error('Token manquant');
-        
+
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
-        
+
         const user = response.user;
         if (user.role === 'admin' || user.role === 'super_admin') {
           this.router.navigate(['/admin/dashboard']);
         } else {
           this.router.navigate(['/user/dashboard']);
         }
-        
+
         this.notificationService.showSuccess('Inscription réussie !');
       }),
       catchError(error => {
         const message = error.error?.message || "Erreur d'inscription";
         this.notificationService.showError(message);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
+  // ✅ CORRECTION - Utiliser getHeaders()
   getProfile(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/profile`).pipe(
+    return this.http.get<User>(`${this.apiUrl}/profile`, { headers: this.getHeaders() }).pipe(
       catchError(error => {
         this.notificationService.showError('Erreur chargement profil');
         return throwError(() => error);
-      })
+      }),
     );
   }
 
+  // ✅ CORRECTION - Utiliser getHeaders()
   updateProfile(userData: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${this.usersApiUrl}/profile`, userData).pipe(
+    return this.http.put<User>(`${this.usersApiUrl}/profile`, userData, { headers: this.getHeaders() }).pipe(
       tap(updated => {
         localStorage.setItem('user', JSON.stringify(updated));
         this.currentUserSubject.next(updated);
@@ -118,7 +127,7 @@ export class AuthService {
       catchError(error => {
         this.notificationService.showError('Erreur mise à jour');
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -128,33 +137,37 @@ export class AuthService {
   }
 
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }).pipe(
+    return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Mot de passe modifié')),
       catchError(error => {
         this.notificationService.showError(error.error?.message || 'Erreur');
         return throwError(() => error);
-      })
+      }),
     );
   }
 
   uploadProfilePicture(formData: FormData): Observable<any> {
-    return this.http.post(`${this.usersApiUrl}/upload-profile-picture`, formData).pipe(
+    return this.http.post(`${this.usersApiUrl}/upload-profile-picture`, formData, {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${this.getToken()}`,
+      }),
+    }).pipe(
       tap((response: any) => {
         if (response.user) this.updateCurrentUser(response.user);
       }),
       catchError(error => {
         this.notificationService.showError('Erreur upload');
         return throwError(() => error);
-      })
+      }),
     );
   }
 
   deleteProfilePicture(): Observable<any> {
-    return this.http.delete(`${this.usersApiUrl}/profile-picture`).pipe(
+    return this.http.delete(`${this.usersApiUrl}/profile-picture`, { headers: this.getHeaders() }).pipe(
       catchError(error => {
         this.notificationService.showError('Erreur suppression');
         return throwError(() => error);
-      })
+      }),
     );
   }
 

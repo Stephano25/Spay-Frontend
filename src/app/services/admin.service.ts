@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, throwError, tap } from 'rxjs';
+import { Observable, catchError, throwError, tap, of } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
@@ -91,23 +91,43 @@ export class AdminService {
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     return new HttpHeaders({
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token || ''}`,
       'Content-Type': 'application/json',
     });
   }
 
   // ============================================================
-  // DASHBOARD
+  // DASHBOARD - AVEC GESTION D'ERREUR
   // ============================================================
   getDashboardStats(): Observable<AdminDashboardStats> {
+    console.log('📊 Appel API dashboard stats');
     return this.http
       .get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`, { headers: this.getHeaders() })
       .pipe(
-        tap((data) => console.log('Stats admin reçues:', data)),
+        tap((data) => {
+          console.log('📊 Stats admin reçues:', data);
+          // ✅ VÉRIFIER QUE LES DONNÉES SONT VALIDES
+          if (!data || typeof data.totalUsers !== 'number') {
+            console.warn('⚠️ Données stats invalides, utilisation des valeurs par défaut');
+          }
+        }),
         catchError((error) => {
-          if (error.status === 401) this.authService.logout();
-          this.notificationService.showError('Erreur chargement stats');
-          return throwError(() => error);
+          console.error('❌ Erreur getDashboardStats:', error);
+          if (error.status === 401) {
+            this.authService.logout();
+          }
+          this.notificationService.showError('Erreur chargement des statistiques');
+          // ✅ RETOURNER DES VALEURS PAR DÉFAUT
+          return of({
+            totalUsers: 0,
+            activeUsers: 0,
+            totalTransactions: 0,
+            totalVolume: 0,
+            recentUsers: [],
+            recentTransactions: [],
+            dailyStats: [],
+            topUsers: [],
+          });
         }),
       );
   }
@@ -117,9 +137,11 @@ export class AdminService {
   // ============================================================
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/users`, { headers: this.getHeaders() }).pipe(
+      tap((users) => console.log(`👥 ${users?.length || 0} utilisateurs chargés`)),
       catchError((error) => {
+        console.error('❌ Erreur chargement utilisateurs:', error);
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
-        return throwError(() => error);
+        return of([]);
       }),
     );
   }
@@ -130,6 +152,7 @@ export class AdminService {
       .pipe(
         tap(() => this.notificationService.showSuccess(`Utilisateur ${isActive ? 'activé' : 'désactivé'}`)),
         catchError((error) => {
+          console.error('❌ Erreur mise à jour statut:', error);
           this.notificationService.showError('Erreur lors de la mise à jour');
           return throwError(() => error);
         }),
@@ -140,6 +163,7 @@ export class AdminService {
     return this.http.delete(`${this.apiUrl}/users/${userId}`, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Utilisateur supprimé')),
       catchError((error) => {
+        console.error('❌ Erreur suppression:', error);
         this.notificationService.showError('Erreur lors de la suppression');
         return throwError(() => error);
       }),
@@ -155,6 +179,7 @@ export class AdminService {
       .pipe(
         tap(() => this.notificationService.showSuccess(`Dépôt de ${amount} Ar effectué`)),
         catchError((error) => {
+          console.error('❌ Erreur dépôt:', error);
           this.notificationService.showError('Erreur lors du dépôt');
           return throwError(() => error);
         }),
@@ -170,6 +195,7 @@ export class AdminService {
       .pipe(
         tap(() => this.notificationService.showSuccess(`Retrait de ${amount} Ar effectué`)),
         catchError((error) => {
+          console.error('❌ Erreur retrait:', error);
           this.notificationService.showError('Erreur lors du retrait');
           return throwError(() => error);
         }),
@@ -183,6 +209,7 @@ export class AdminService {
     return this.http.post(`${this.apiUrl}/admins`, adminData, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Administrateur créé avec succès')),
       catchError((error) => {
+        console.error('❌ Erreur création admin:', error);
         this.notificationService.showError('Erreur lors de la création');
         return throwError(() => error);
       }),
@@ -191,9 +218,11 @@ export class AdminService {
 
   getAdmins(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/admins`, { headers: this.getHeaders() }).pipe(
+      tap((admins) => console.log(`👥 ${admins?.length || 0} administrateurs chargés`)),
       catchError((error) => {
+        console.error('❌ Erreur chargement admins:', error);
         this.notificationService.showError('Erreur lors du chargement des administrateurs');
-        return throwError(() => error);
+        return of([]);
       }),
     );
   }
@@ -202,6 +231,7 @@ export class AdminService {
     return this.http.delete(`${this.apiUrl}/admins/${adminId}`, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Administrateur supprimé')),
       catchError((error) => {
+        console.error('❌ Erreur suppression admin:', error);
         this.notificationService.showError('Erreur lors de la suppression');
         return throwError(() => error);
       }),
@@ -213,9 +243,11 @@ export class AdminService {
   // ============================================================
   getAllTransactions(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/transactions`, { headers: this.getHeaders() }).pipe(
+      tap((txs) => console.log(`📋 ${txs?.length || 0} transactions chargées`)),
       catchError((error) => {
+        console.error('❌ Erreur chargement transactions:', error);
         this.notificationService.showError('Erreur lors du chargement des transactions');
-        return throwError(() => error);
+        return of([]);
       }),
     );
   }
@@ -226,6 +258,7 @@ export class AdminService {
   getSettings(): Observable<SystemSettings> {
     return this.http.get<SystemSettings>(`${this.apiUrl}/settings`, { headers: this.getHeaders() }).pipe(
       catchError((error) => {
+        console.error('❌ Erreur chargement settings:', error);
         this.notificationService.showError('Erreur lors du chargement des paramètres');
         return throwError(() => error);
       }),
@@ -238,6 +271,7 @@ export class AdminService {
       .pipe(
         tap(() => this.notificationService.showSuccess('Paramètres sauvegardés')),
         catchError((error) => {
+          console.error('❌ Erreur sauvegarde settings:', error);
           this.notificationService.showError('Erreur lors de la sauvegarde');
           return throwError(() => error);
         }),
@@ -250,8 +284,8 @@ export class AdminService {
   getSystemLogs(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/system/logs`, { headers: this.getHeaders() }).pipe(
       catchError((error) => {
-        console.error('Erreur logs:', error);
-        return throwError(() => error);
+        console.error('❌ Erreur logs:', error);
+        return of([]);
       }),
     );
   }
@@ -259,8 +293,8 @@ export class AdminService {
   getSystemStats(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/system/stats`, { headers: this.getHeaders() }).pipe(
       catchError((error) => {
-        console.error('Erreur stats système:', error);
-        return throwError(() => error);
+        console.error('❌ Erreur stats système:', error);
+        return of({ uptime: '0s', memoryUsage: '0 MB' });
       }),
     );
   }
@@ -269,10 +303,9 @@ export class AdminService {
     return this.http
       .patch(`${this.apiUrl}/profile`, profileData, { headers: this.getHeaders() })
       .pipe(
-        tap((response: any) => {
-          this.notificationService.showSuccess('Profil administrateur mis à jour');
-        }),
+        tap(() => this.notificationService.showSuccess('Profil administrateur mis à jour')),
         catchError((error) => {
+          console.error('❌ Erreur mise à jour profil:', error);
           this.notificationService.showError('Erreur lors de la mise à jour du profil');
           return throwError(() => error);
         }),

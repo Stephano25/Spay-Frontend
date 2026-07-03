@@ -40,6 +40,7 @@ export class AdminAdminsComponent implements OnInit {
   admins: any[] = [];
   isLoading = true;
   currentAdminId: string = '';
+  isSuperAdmin = false;
 
   constructor(
     private adminService: AdminService,
@@ -51,6 +52,14 @@ export class AdminAdminsComponent implements OnInit {
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.currentAdminId = user?.id || '';
+    this.isSuperAdmin = user?.role === 'super_admin';
+    
+    if (!this.isSuperAdmin) {
+      this.notificationService.showError('Accès réservé aux Super Administrateurs');
+      this.router.navigate(['/admin/dashboard']);
+      return;
+    }
+    
     this.loadAdmins();
   }
 
@@ -66,6 +75,44 @@ export class AdminAdminsComponent implements OnInit {
         this.notificationService.showError('Erreur lors du chargement');
         this.isLoading = false;
       },
+    });
+  }
+
+  // ✅ Bouton "Créer un Admin" - OUVRE UN DIALOGUE
+  openCreateAdminDialog(): void {
+    // TODO: Implémenter le dialogue de création d'admin
+    // Pour l'instant, on utilise un prompt simple
+    const email = prompt('Email du nouvel administrateur:');
+    if (!email) return;
+    
+    const password = prompt('Mot de passe:');
+    if (!password || password.length < 6) {
+      this.notificationService.showError('Mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+    
+    const firstName = prompt('Prénom:');
+    if (!firstName) return;
+    
+    const lastName = prompt('Nom:');
+    if (!lastName) return;
+    
+    const role = confirm('Rôle Super Admin ?') ? 'super_admin' : 'admin';
+    
+    this.adminService.createAdmin({
+      email,
+      password,
+      firstName,
+      lastName,
+      role
+    }).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Administrateur créé avec succès');
+        this.loadAdmins();
+      },
+      error: (error) => {
+        this.notificationService.showError(error.error?.message || 'Erreur lors de la création');
+      }
     });
   }
 

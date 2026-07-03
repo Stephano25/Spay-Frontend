@@ -1,4 +1,3 @@
-// src/app/interceptors/auth.interceptor.ts
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -10,7 +9,7 @@ import { Router } from '@angular/router';
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -25,24 +24,30 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     const token = this.authService.getToken();
-    
+
     let authReq = req;
     if (token) {
+      // ✅ Vérifier que le token n'est pas undefined
+      const cleanToken = token.trim();
       authReq = req.clone({
-        headers: req.headers.set('Authorization', `Bearer ${token}`)
+        headers: req.headers.set('Authorization', `Bearer ${cleanToken}`),
       });
+      console.log('🔑 Token ajouté à la requête:', req.url);
+    } else {
+      console.warn('⚠️ Pas de token pour:', req.url);
     }
-    
+
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
+        console.error('❌ Erreur HTTP:', error.status, req.url);
+
         if (error.status === 401) {
-          // ✅ Token expiré ou invalide -> déconnexion
           console.warn('⚠️ Token expiré ou invalide, déconnexion...');
           this.authService.logout();
           this.router.navigate(['/login']);
         }
         return throwError(() => error);
-      })
+      }),
     );
   }
 }

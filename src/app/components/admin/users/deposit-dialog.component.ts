@@ -53,23 +53,24 @@ export interface DepositDialogResult {
       <div class="quick-amounts">
         <span class="quick-label">Montants rapides</span>
         <div class="amount-chips">
+          <!-- ✅ CORRECTION : Utiliser une méthode au lieu d'assigner directement -->
           <button
-            *ngFor="let amount of quickAmounts"
+            *ngFor="let presetAmount of quickAmounts"
             type="button"
             class="amount-chip"
-            [class.active]="amount === amount"
-            (click)="amount = amount">
-            {{ formatAmount(amount) }}
+            [class.active]="presetAmount === selectedAmount"
+            (click)="selectAmount(presetAmount)">
+            {{ formatAmount(presetAmount) }}
           </button>
         </div>
       </div>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Montant (Ar)</mat-label>
-        <input matInput type="number" [(ngModel)]="amount" min="100" placeholder="1000">
+        <input matInput type="number" [(ngModel)]="selectedAmount" min="100" placeholder="1000">
         <mat-icon matSuffix>attach_money</mat-icon>
         <mat-hint>Minimum 100 Ar</mat-hint>
-        <mat-error *ngIf="amount && amount < 100">Le montant minimum est de 100 Ar</mat-error>
+        <mat-error *ngIf="selectedAmount && selectedAmount < 100">Le montant minimum est de 100 Ar</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
@@ -77,10 +78,10 @@ export interface DepositDialogResult {
         <input matInput [(ngModel)]="description" placeholder="Ex: Bonus, récompense...">
       </mat-form-field>
 
-      <div class="preview" *ngIf="amount && amount >= 100">
+      <div class="preview" *ngIf="selectedAmount && selectedAmount >= 100">
         <div class="preview-row">
           <span>Nouveau solde</span>
-          <span class="preview-new-balance">{{ formatAmount((data.user.balance || 0) + amount) }} Ar</span>
+          <span class="preview-new-balance">{{ formatAmount((data.user.balance || 0) + selectedAmount) }} Ar</span>
         </div>
       </div>
     </mat-dialog-content>
@@ -92,12 +93,12 @@ export interface DepositDialogResult {
       <button
         mat-raised-button
         color="primary"
-        [disabled]="!amount || amount < 100 || isSubmitting"
+        [disabled]="!selectedAmount || selectedAmount < 100 || isSubmitting"
         (click)="onConfirm()">
         <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
         <span *ngIf="!isSubmitting">
           <mat-icon>add</mat-icon>
-          Déposer {{ formatAmount(amount) }} Ar
+          Déposer {{ formatAmount(selectedAmount) }} Ar
         </span>
       </button>
     </mat-dialog-actions>
@@ -300,7 +301,7 @@ export interface DepositDialogResult {
   ],
 })
 export class DepositDialogComponent {
-  amount: number = 0;
+  selectedAmount: number = 0;
   description: string = '';
   isSubmitting: boolean = false;
   quickAmounts = [1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
@@ -319,16 +320,21 @@ export class DepositDialogComponent {
     return new Intl.NumberFormat('fr-MG').format(amount || 0);
   }
 
+  // ✅ Méthode pour sélectionner un montant rapide
+  selectAmount(amount: number): void {
+    this.selectedAmount = amount;
+  }
+
   onCancel(): void {
     this.dialogRef.close();
   }
 
   onConfirm(): void {
-    if (this.amount < 100) return;
+    if (this.selectedAmount < 100) return;
 
     this.isSubmitting = true;
     this.dialogRef.close({
-      amount: this.amount,
+      amount: this.selectedAmount,
       description: this.description || `Dépôt administrateur`,
     });
   }

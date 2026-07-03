@@ -1,12 +1,12 @@
 <!-- ============================================================
-   ADMIN DASHBOARD - SPaye (Version Complète)
+   ADMIN DASHBOARD - SPaye (Version avec séparation des rôles)
    ============================================================ -->
 
 <mat-toolbar color="primary" class="dashboard-toolbar">
   <button mat-icon-button (click)="goBack()" matTooltip="Retour">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span class="brand-title">SPaye Admin</span>
+  <span class="brand-title">SPaye {{ isSuperAdmin ? 'Super Admin' : 'Admin' }}</span>
   <span class="spacer"></span>
 
   <button mat-icon-button [matMenuTriggerFor]="quickMenu" matTooltip="Navigation rapide">
@@ -38,17 +38,10 @@
       <mat-icon>settings</mat-icon>
       <span>Paramètres</span>
     </button>
-    <button mat-menu-item (click)="navigateTo('admins')">
+    <!-- ✅ Super Admin uniquement -->
+    <button *ngIf="isSuperAdmin" mat-menu-item (click)="navigateTo('admins')">
       <mat-icon>admin_panel_settings</mat-icon>
       <span>Administrateurs</span>
-    </button>
-    <button mat-menu-item (click)="navigateTo('deposit')">
-      <mat-icon>add</mat-icon>
-      <span>Dépôt</span>
-    </button>
-    <button mat-menu-item (click)="navigateTo('withdraw')">
-      <mat-icon>remove</mat-icon>
-      <span>Retrait</span>
     </button>
     <mat-divider></mat-divider>
     <button mat-menu-item (click)="logout()" class="logout-item">
@@ -144,18 +137,96 @@
     </div>
 
     <!-- ============================================================
-         SECTION 2: MENU DE NAVIGATION COMPLET
+         SECTION 1.5: STATS ADMIN (selon le rôle)
+    ============================================================ -->
+    <div class="admin-stats-grid" *ngIf="stats">
+      <!-- Admin simple - ses propres transactions -->
+      <div *ngIf="!isSuperAdmin" class="kpi-grid mini">
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats?.myAdminTransactions || 0) }}</div>
+              <div class="kpi-label">Mes transactions admin</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(124,58,237,0.12); color: #7c3aed;">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats?.myAdminVolume || 0) }} Ar</div>
+              <div class="kpi-label">Volume traité</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Super Admin - stats globales -->
+      <div *ngIf="isSuperAdmin" class="kpi-grid mini">
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+              <mat-icon>admin_panel_settings</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats?.totalAdmins || 0) }}</div>
+              <div class="kpi-label">Admins</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+              <mat-icon>supervisor_account</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats?.totalSuperAdmins || 0) }}</div>
+              <div class="kpi-label">Super Admins</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats?.adminTransactions || 0) }}</div>
+              <div class="kpi-label">Transactions admin</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(124,58,237,0.12); color: #7c3aed;">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats?.adminVolume || 0) }} Ar</div>
+              <div class="kpi-label">Volume admin</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         SECTION 2: MENU DE NAVIGATION
     ============================================================ -->
     <div class="section-header">
       <h2 class="section-title">
         <mat-icon>dashboard</mat-icon>
-        Gestion complète
+        Gestion
       </h2>
-      <span class="section-subtitle">Accédez rapidement à toutes les fonctionnalités d'administration</span>
+      <span class="section-subtitle">Accédez rapidement à vos fonctionnalités</span>
     </div>
 
-    <!-- ✅ MENU GRID - 7 BOUTONS -->
-    <mat-grid-list cols="7" rowHeight="160px" gutterSize="16px" class="menu-grid">
+    <mat-grid-list cols="4" rowHeight="140px" gutterSize="16px" class="menu-grid">
       <!-- Profil Admin -->
       <mat-grid-tile>
         <mat-card class="menu-card" (click)="navigateTo('profile')" matRipple>
@@ -164,7 +235,6 @@
               <mat-icon>person</mat-icon>
             </div>
             <span>Mon Profil</span>
-            <span class="menu-badge admin">Admin</span>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -219,7 +289,20 @@
         </mat-card>
       </mat-grid-tile>
 
-      <!-- ✅ DÉPÔT -->
+      <!-- Admins (Super Admin uniquement) -->
+      <mat-grid-tile *ngIf="isSuperAdmin">
+        <mat-card class="menu-card" (click)="navigateTo('admins')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon admins">
+              <mat-icon>admin_panel_settings</mat-icon>
+            </div>
+            <span>Administrateurs</span>
+            <span class="menu-badge admin">{{ formatNumber(stats?.totalAdmins || 0) }}</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- Dépôt (tous les admins) -->
       <mat-grid-tile>
         <mat-card class="menu-card" (click)="navigateTo('deposit')" matRipple>
           <mat-card-content>
@@ -232,7 +315,7 @@
         </mat-card>
       </mat-grid-tile>
 
-      <!-- ✅ RETRAIT -->
+      <!-- Retrait (tous les admins) -->
       <mat-grid-tile>
         <mat-card class="menu-card" (click)="navigateTo('withdraw')" matRipple>
           <mat-card-content>

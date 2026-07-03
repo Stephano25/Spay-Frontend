@@ -153,6 +153,14 @@ export class AdminDepositComponent implements OnInit {
     return (user?.firstName?.charAt(0) || '') + (user?.lastName?.charAt(0) || '');
   }
 
+  onAmountChange(): void {
+  // Cette méthode est appelée à chaque changement de montant
+  // Vous pouvez y ajouter des validations ou des mises à jour
+  if (this.amount && this.amount < 0) {
+      this.amount = 0;
+    }
+  }
+
   goBack(): void {
     this.router.navigate(['/admin/dashboard']);
   }
