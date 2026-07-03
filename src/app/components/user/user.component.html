@@ -4,10 +4,14 @@
   <mat-card class="welcome-card">
     <mat-card-header>
       <div mat-card-avatar class="profile-avatar-container">
-        @if (profileImageUrl) {
-          <img [src]="profileImageUrl" alt="Photo de profil" class="profile-avatar-img">
+        @if (profileImageUrl && !imageError) {
+          <img 
+            [src]="profileImageUrl" 
+            alt="Photo de profil" 
+            class="profile-avatar-img" 
+            (error)="handleImageError()">
         } @else {
-          <div class="profile-avatar-placeholder" [style.background]="'linear-gradient(135deg, #7c3aed, #4f46e5)'">
+          <div class="profile-avatar-placeholder" [style.background]="getAvatarGradient()">
             {{ getInitials() }}
           </div>
         }

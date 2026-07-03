@@ -142,6 +142,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
+  // ✅ Méthode pour revenir à la liste des conversations (bouton retour mobile)
+  goBackToConversations(): void {
+    this.selectedContact = null;
+    this.closeAllPanels();
+    this.isTyping = false;
+  }
+
   // File helpers
   getFileUrl(fileUrl?: string): string {
     if (!fileUrl) return '';

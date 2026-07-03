@@ -2,27 +2,7 @@
    USER DASHBOARD — SPaye
    ============================================================ */
 /* frontend/src/app/components/user/user.component.css */
-/* Ajouter ces styles */
 
-.menu-badge.user {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
-  font-size: 0.55rem;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.menu-icon.deposit mat-icon,
-.menu-icon.withdraw mat-icon {
-  color: var(--brand-1) !important;
-}
-
-.menu-card:hover .menu-icon.deposit mat-icon,
-.menu-card:hover .menu-icon.withdraw mat-icon {
-  color: white !important;
-}
 .user-dashboard {
   height: 100%;
   width: 100%;
@@ -82,7 +62,9 @@
 }
 
 /* ── Avatar ── */
-.profile-avatar-container { margin-right: 12px; }
+.profile-avatar-container { 
+  margin-right: 12px; 
+}
 
 .profile-avatar-img {
   width: 44px;
@@ -241,6 +223,27 @@
 }
 
 .menu-card:hover span { color: white; }
+
+/* ✅ Badge pour les cartes Dépôt/Retrait */
+.menu-badge.user {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  font-size: 0.55rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.menu-icon.deposit mat-icon,
+.menu-icon.withdraw mat-icon {
+  color: var(--brand-1) !important;
+}
+
+.menu-card:hover .menu-icon.deposit mat-icon,
+.menu-card:hover .menu-icon.withdraw mat-icon {
+  color: white !important;
+}
 
 /* ── Stats row ── */
 .stats-row {
@@ -534,26 +537,4 @@
 
 @media (min-width: 601px) {
   .menu-grid-inner { grid-template-columns: repeat(4, 1fr) !important; }
-}
-/* frontend/src/app/components/user/user.component.css */
-/* Ajouter ces styles à la fin du fichier */
-
-.menu-badge.user {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
-  font-size: 0.55rem;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.menu-icon.deposit mat-icon,
-.menu-icon.withdraw mat-icon {
-  color: var(--brand-1) !important;
-}
-
-.menu-card:hover .menu-icon.deposit mat-icon,
-.menu-card:hover .menu-icon.withdraw mat-icon {
-  color: white !important;
 }

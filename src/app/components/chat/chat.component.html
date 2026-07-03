@@ -86,7 +86,8 @@
 
     <!-- Header -->
     <header class="chat-header">
-      <button class="icon-btn mobile-back" (click)="selectedContact = null">
+      <!-- ✅ Bouton retour mobile corrigé avec la bonne méthode -->
+      <button class="icon-btn mobile-back" (click)="goBackToConversations()" matTooltip="Retour">
         <mat-icon>arrow_back</mat-icon>
       </button>
       <div class="av av-md" [style.background]="getAvatarColor(selectedContact.firstName)">
@@ -352,7 +353,6 @@
       <span class="online-count">{{ onlineFriends.length }}</span>
     </div>
     <div class="online-list">
-      <!-- 🔥 Correction : ngIf sur un élément séparé -->
       <div *ngFor="let f of onlineFriends">
         <div *ngIf="f.friend && f.friendId !== currentUserId" 
              class="online-item"

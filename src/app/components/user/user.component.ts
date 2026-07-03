@@ -9,6 +9,7 @@ import { TransactionService } from '../../services/transaction.service';
 import { NotificationService } from '../../services/notification.service';
 import { User } from '../../models/user.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { environment } from '../../../environments/environment';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatGridListModule } from '@angular/material/grid-list'; // ✅ Ajout de MatGridListModule
+import { MatGridListModule } from '@angular/material/grid-list';
 
 @Component({
   selector: 'app-user',
@@ -30,7 +31,7 @@ import { MatGridListModule } from '@angular/material/grid-list'; // ✅ Ajout de
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatDividerModule,
-    MatGridListModule, // ✅ Ajout dans les imports
+    MatGridListModule,
     TranslatePipe,
   ],
   templateUrl: './user.component.html',
@@ -42,6 +43,13 @@ export class UserComponent implements OnInit, OnDestroy {
   isLoading: boolean = true;
   stats: any = null;
   profileImageUrl: string | null = null;
+  imageError: boolean = false;
+
+  private avatarColors = [
+    '#7c3aed', '#6d28d9', '#4f46e5', '#0891b2', 
+    '#0d9488', '#059669', '#d97706', '#dc2626', 
+    '#db2777', '#9333ea'
+  ];
 
   menuItems = [
     { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/user/wallet' },
@@ -79,13 +87,54 @@ export class UserComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
+  /**
+   * ✅ Construire l'URL complète de l'image
+   */
+  private getFullImageUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    
+    // ✅ Si c'est déjà une URL complète (externe)
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // ✅ Si c'est une URL qui commence par /uploads
+    if (url.startsWith('/uploads')) {
+      return `${environment.baseUrl}${url}`;
+    }
+    
+    // ✅ Si c'est une URL relative vers assets
+    if (url.startsWith('/assets')) {
+      return url;
+    }
+    
+    // ✅ Si c'est juste un nom de fichier
+    if (!url.includes('/')) {
+      // Si c'est une image de profil
+      if (url.startsWith('profile-')) {
+        return `${environment.baseUrl}/uploads/profiles/${url}`;
+      }
+      return `/assets/profiles/${url}`;
+    }
+    
+    return url;
+  }
+
   private loadUserData(): void {
     this.subscriptions.push(
       this.authService.currentUser.subscribe((user) => {
         console.log('👤 Utilisateur reçu:', user?.email);
         this.user = user;
+        this.imageError = false;
+        
         if (user) {
-          this.profileImageUrl = user.profilePicture || null;
+          // ✅ Construire l'URL complète de l'image
+          if (user.profilePicture) {
+            this.profileImageUrl = this.getFullImageUrl(user.profilePicture);
+            console.log('🖼️ URL photo de profil:', this.profileImageUrl);
+          } else {
+            this.profileImageUrl = null;
+          }
         }
         this.isLoading = false;
         
@@ -144,7 +193,27 @@ export class UserComponent implements OnInit, OnDestroy {
 
   getInitials(): string {
     if (!this.user) return '';
-    return (this.user.firstName?.charAt(0) || '') + (this.user.lastName?.charAt(0) || '');
+    const first = this.user.firstName?.charAt(0) || '';
+    const last = this.user.lastName?.charAt(0) || '';
+    return (first + last).toUpperCase();
+  }
+
+  handleImageError(): void {
+    console.warn('❌ Erreur de chargement de l\'image de profil');
+    this.imageError = true;
+    this.profileImageUrl = null;
+  }
+
+  getAvatarGradient(): string {
+    if (!this.user) return 'linear-gradient(135deg, #7c3aed, #4f46e5)';
+    const name = this.user.firstName + this.user.lastName;
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const color1 = this.avatarColors[Math.abs(hash) % this.avatarColors.length];
+    const color2 = this.avatarColors[(Math.abs(hash) + 3) % this.avatarColors.length];
+    return `linear-gradient(135deg, ${color1}, ${color2})`;
   }
 
   formatAmount(amount: number): string {

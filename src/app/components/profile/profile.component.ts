@@ -63,10 +63,13 @@ export class ProfileComponent implements OnInit {
   getFullImageUrl(url: string): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
+    if (url.startsWith('/assets')) {
+      return url;
+    }
     if (url.startsWith('/uploads')) {
       return `${environment.baseUrl}${url}`;
     }
-    return url;
+    return `/assets/profiles/${url}`;
   }
 
   loadUserData() {
@@ -119,6 +122,7 @@ export class ProfileComponent implements OnInit {
     reader.readAsDataURL(file);
   }
 
+  // ✅ Méthode corrigée pour uploader la photo
   uploadProfilePicture(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.selectedFile) {
@@ -132,13 +136,16 @@ export class ProfileComponent implements OnInit {
       
       this.authService.uploadProfilePicture(formData).subscribe({
         next: (response: any) => {
-          // Sauvegarder l'URL relative
-          this.user.profilePicture = response.profilePictureUrl;
-          // Afficher l'URL complète
-          this.previewImage = this.getFullImageUrl(response.profilePictureUrl);
+          // ✅ Utiliser la réponse du serveur
+          const profileUrl = response.profilePictureUrl || response.user?.profilePicture;
+          if (profileUrl) {
+            this.user.profilePicture = profileUrl;
+            this.previewImage = this.getFullImageUrl(profileUrl);
+            this.authService.updateCurrentUser(this.user);
+          }
           this.selectedFile = null;
           this.isUploading = false;
-          this.authService.updateCurrentUser(this.user);
+          this.notificationService.showSuccess('Photo de profil mise à jour');
           resolve();
         },
         error: (error) => {

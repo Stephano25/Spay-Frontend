@@ -10,7 +10,7 @@ export interface User {
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;
-  profilePicture?: string;
+  profilePicture?: string | null; // ✅ Accepter null
   qrCode?: string;
   bio?: string;
 }
