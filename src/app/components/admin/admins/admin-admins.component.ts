@@ -16,6 +16,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatRippleModule } from '@angular/material/core';
 
 @Component({
   selector: 'app-admin-admins',
@@ -33,6 +34,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatTooltipModule,
     MatDialogModule,
     MatToolbarModule,
+    MatRippleModule,
   ],
   templateUrl: './admin-admins.component.html',
   styleUrls: ['./admin-admins.component.css'],
@@ -42,6 +44,13 @@ export class AdminAdminsComponent implements OnInit {
   isLoading = true;
   currentAdminId: string = '';
   isSuperAdmin = false;
+  
+  // ✅ Ajout des propriétés manquantes
+  stats: any = {
+    totalUsers: 0,
+    totalTransactions: 0,
+    totalAdmins: 0,
+  };
 
   constructor(
     private adminService: AdminService,
@@ -62,6 +71,7 @@ export class AdminAdminsComponent implements OnInit {
     }
     
     this.loadAdmins();
+    this.loadStats();
   }
 
   loadAdmins(): void {
@@ -75,6 +85,17 @@ export class AdminAdminsComponent implements OnInit {
         console.error('Erreur chargement admins:', error);
         this.notificationService.showError('Erreur lors du chargement');
         this.isLoading = false;
+      },
+    });
+  }
+
+  loadStats(): void {
+    this.adminService.getDashboardStats().subscribe({
+      next: (data) => {
+        this.stats = data;
+      },
+      error: () => {
+        // Garder les valeurs par défaut
       },
     });
   }
@@ -108,6 +129,21 @@ export class AdminAdminsComponent implements OnInit {
         },
       });
     }
+  }
+
+  // ✅ Méthodes ajoutées
+  navigateTo(route: string): void {
+    this.router.navigate([`/admin/${route}`]);
+  }
+
+  formatNumber(num: number): string {
+    return new Intl.NumberFormat('fr-MG').format(num || 0);
+  }
+
+  openQRScanner(type: 'deposit' | 'withdraw'): void {
+    this.router.navigate(['/admin/dashboard'], { 
+      queryParams: { openScanner: type } 
+    });
   }
 
   getInitials(admin: any): string {

@@ -1,8 +1,8 @@
 // frontend/src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError, of } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 import { User, LoginResponse, RegisterData } from '../models/user.model';
@@ -28,12 +28,10 @@ export class AuthService {
   private getFullImageUrl(url: string | null | undefined): string | null {
     if (!url) return null;
     
-    // ✅ Si c'est déjà une URL complète (externe)
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }
     
-    // ✅ Si c'est une URL relative qui commence par /uploads
     if (url.startsWith('/uploads')) {
       if (environment.production) {
         return url;
@@ -41,16 +39,13 @@ export class AuthService {
       return `${environment.baseUrl}${url}`;
     }
     
-    // ✅ Si c'est une URL relative vers assets (web uniquement)
     if (url.startsWith('/assets')) {
       if (environment.isReactNative) {
-        // En React Native, utiliser le chemin complet
         return `${environment.baseUrl}${url}`;
       }
       return url;
     }
     
-    // ✅ Si c'est juste un nom de fichier
     if (!url.includes('/')) {
       if (url.startsWith('profile-')) {
         if (environment.production) {
@@ -91,6 +86,21 @@ export class AuthService {
     });
   }
 
+  // ✅ Gestion d'erreur améliorée
+  private handleError(error: HttpErrorResponse, fallback?: any): Observable<any> {
+    console.error('❌ Erreur HTTP:', error);
+    
+    // Si c'est une erreur de connexion (502, 503, etc.)
+    if (error.status === 502 || error.status === 503 || error.status === 0) {
+      this.notificationService.showError('Le serveur est indisponible. Veuillez réessayer plus tard.');
+      return of(fallback || null);
+    }
+    
+    const message = error.error?.message || 'Erreur de communication';
+    this.notificationService.showError(message);
+    return throwError(() => error);
+  }
+
   login(email: string, password: string): Observable<LoginResponse> {
     console.log('🔐 Tentative de connexion:', email);
 
@@ -116,12 +126,7 @@ export class AuthService {
 
         this.notificationService.showSuccess('Connexion réussie !');
       }),
-      catchError(error => {
-        const message = error.error?.message || 'Erreur de connexion';
-        console.error('❌ Erreur de connexion:', message);
-        this.notificationService.showError(message);
-        return throwError(() => error);
-      }),
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -146,11 +151,7 @@ export class AuthService {
 
         this.notificationService.showSuccess('Inscription réussie !');
       }),
-      catchError(error => {
-        const message = error.error?.message || "Erreur d'inscription";
-        this.notificationService.showError(message);
-        return throwError(() => error);
-      }),
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -160,7 +161,11 @@ export class AuthService {
         user.profilePicture = this.getFullImageUrl(user.profilePicture) || undefined;
         this.updateCurrentUser(user);
       }),
-      catchError(error => {
+      catchError((error) => {
+        if (error.status === 502) {
+          this.notificationService.showError('Le serveur est indisponible');
+          return of(null as any);
+        }
         this.notificationService.showError('Erreur chargement profil');
         return throwError(() => error);
       }),
@@ -175,10 +180,7 @@ export class AuthService {
         this.currentUserSubject.next(updated);
         this.notificationService.showSuccess('Profil mis à jour');
       }),
-      catchError(error => {
-        this.notificationService.showError('Erreur mise à jour');
-        return throwError(() => error);
-      }),
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -191,10 +193,7 @@ export class AuthService {
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/change-password`, { currentPassword, newPassword }, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Mot de passe modifié')),
-      catchError(error => {
-        this.notificationService.showError(error.error?.message || 'Erreur');
-        return throwError(() => error);
-      }),
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -218,10 +217,7 @@ export class AuthService {
         }
         this.notificationService.showSuccess('Photo de profil mise à jour');
       }),
-      catchError(error => {
-        this.notificationService.showError('Erreur upload');
-        return throwError(() => error);
-      }),
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -235,10 +231,7 @@ export class AuthService {
           this.notificationService.showSuccess('Photo supprimée');
         }
       }),
-      catchError(error => {
-        this.notificationService.showError('Erreur suppression');
-        return throwError(() => error);
-      }),
+      catchError((error) => this.handleError(error)),
     );
   }
 

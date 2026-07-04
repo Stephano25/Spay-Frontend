@@ -53,7 +53,9 @@ export interface Conversation {
 export class ChatService implements OnDestroy {
   private socket: Socket | null = null;
   private apiUrl = `${environment.apiUrl}/chat`;
-  private socketUrl = environment.socketUrl || environment.apiUrl;
+  
+  // ✅ CORRECTION: Utiliser window.location.origin pour le socket
+  private socketUrl = environment.socketUrl || window.location.origin;
 
   private newMessageSubject = new BehaviorSubject<Message | null>(null);
   private typingSubject = new BehaviorSubject<{ userId: string; isTyping: boolean } | null>(null);
@@ -83,6 +85,7 @@ export class ChatService implements OnDestroy {
   private isConnecting = false;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private connectionTimeout: any = null;
 
   constructor(
     private http: HttpClient,
@@ -91,7 +94,6 @@ export class ChatService implements OnDestroy {
   ) {
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       if (user && !this.isConnecting) {
-        // ✅ Attendre que le token soit disponible
         setTimeout(() => this.connectSocket(), 500);
       } else if (!user) {
         this.disconnect();
@@ -107,7 +109,7 @@ export class ChatService implements OnDestroy {
     });
   }
 
-  // ✅ CORRECTION : Connexion Socket avec la bonne URL
+  // ✅ CORRECTION: Connexion Socket avec l'URL correcte
   private connectSocket(): void {
     const token = this.authService.getToken();
     if (!token || this.isConnecting) {
@@ -127,26 +129,33 @@ export class ChatService implements OnDestroy {
       this.socket = null;
     }
 
-    // ✅ Utiliser l'URL de base sans /api
-    const baseUrl = this.socketUrl.replace('/api', '');
+    // ✅ Utiliser l'origine du navigateur (http://localhost:4200)
+    // Le proxy Nginx redirigera vers le backend
+    const baseUrl = this.socketUrl || window.location.origin;
     console.log(`🔌 Connexion au socket: ${baseUrl}`);
 
     this.socket = io(baseUrl, {
       auth: { token },
-      transports: ['websocket', 'polling'],
+      // ✅ Polling d'abord, puis websocket (plus fiable)
+      transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionAttempts: this.maxReconnectAttempts,
       reconnectionDelay: 2000,
       reconnectionDelayMax: 10000,
-      timeout: 20000,
+      timeout: 30000,
       forceNew: true,
       withCredentials: false,
+      path: '/socket.io/',
     });
 
     this.socket.on('connect', () => {
       console.log('✅ Socket connecté:', this.socket?.id);
       this.isConnecting = false;
       this.reconnectAttempts = 0;
+      if (this.connectionTimeout) {
+        clearTimeout(this.connectionTimeout);
+        this.connectionTimeout = null;
+      }
       this.socket?.emit('getOnlineUsers');
     });
 
@@ -202,6 +211,10 @@ export class ChatService implements OnDestroy {
   }
 
   disconnect(): void {
+    if (this.connectionTimeout) {
+      clearTimeout(this.connectionTimeout);
+      this.connectionTimeout = null;
+    }
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
@@ -227,13 +240,21 @@ export class ChatService implements OnDestroy {
   sendMessage(message: any): void {
     if (!this.socket?.connected) {
       this.connectSocket();
-      setTimeout(() => {
+      // ✅ Attendre la connexion avant d'envoyer
+      const maxAttempts = 5;
+      let attempts = 0;
+      const trySend = () => {
+        attempts++;
         if (this.socket?.connected) {
           this.socket.emit('sendMessage', message);
+        } else if (attempts < maxAttempts) {
+          setTimeout(trySend, 500);
         } else {
           console.warn('⚠️ Socket non connecté, message non envoyé');
+          this.notificationService.showError('Connexion au serveur impossible');
         }
-      }, 1500);
+      };
+      setTimeout(trySend, 1000);
       return;
     }
     this.socket.emit('sendMessage', message);
@@ -319,6 +340,10 @@ export class ChatService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.authSubscription?.unsubscribe();
+    if (this.connectionTimeout) {
+      clearTimeout(this.connectionTimeout);
+      this.connectionTimeout = null;
+    }
     this.disconnect();
   }
 }
