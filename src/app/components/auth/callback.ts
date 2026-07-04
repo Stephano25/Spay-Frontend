@@ -23,12 +23,13 @@ import { MatIconModule } from '@angular/material/icon';
       overflow: hidden;
     }
 
-    /* Orbes de fond identiques au dashboard admin */
     .callback-container::before {
       content: '';
       position: absolute;
-      width: 500px; height: 500px;
-      top: -180px; right: -180px;
+      width: 500px;
+      height: 500px;
+      top: -180px;
+      right: -180px;
       border-radius: 50%;
       background: linear-gradient(135deg, rgba(99,102,241,0.07), rgba(139,92,246,0.04));
       pointer-events: none;
@@ -38,20 +39,24 @@ import { MatIconModule } from '@angular/material/icon';
     .callback-container::after {
       content: '';
       position: absolute;
-      width: 360px; height: 360px;
-      bottom: -120px; left: -80px;
+      width: 360px;
+      height: 360px;
+      bottom: -120px;
+      left: -80px;
       border-radius: 50%;
       background: linear-gradient(135deg, rgba(139,92,246,0.05), rgba(99,102,241,0.03));
       pointer-events: none;
       animation: orb 24s ease-in-out infinite reverse;
     }
 
-    /* Logo animé — même style que le dashboard */
     .callback-logo {
-      width: 76px; height: 76px;
+      width: 76px;
+      height: 76px;
       border-radius: 22px;
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       box-shadow: 0 8px 24px rgba(99,102,241,0.35);
       animation: float 3.5s ease-in-out infinite;
       position: relative;
@@ -60,11 +65,11 @@ import { MatIconModule } from '@angular/material/icon';
 
     .callback-logo mat-icon {
       font-size: 36px !important;
-      width: 36px !important; height: 36px !important;
+      width: 36px !important;
+      height: 36px !important;
       color: white;
     }
 
-    /* Card centrale */
     .callback-card {
       background: var(--surface);
       border: 0.5px solid var(--border);
@@ -82,14 +87,15 @@ import { MatIconModule } from '@angular/material/icon';
       text-align: center;
     }
 
-    /* Spinner personnalisé */
     .spinner-wrapper {
       position: relative;
-      width: 56px; height: 56px;
+      width: 56px;
+      height: 56px;
     }
 
     .spinner-ring {
-      width: 56px; height: 56px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       border: 3px solid var(--border);
       border-top-color: #6366f1;
@@ -97,7 +103,6 @@ import { MatIconModule } from '@angular/material/icon';
       animation: spin 0.85s linear infinite;
     }
 
-    /* Texte */
     .callback-title {
       font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
       font-size: 1.125rem;
@@ -114,7 +119,6 @@ import { MatIconModule } from '@angular/material/icon';
       font-weight: 400;
     }
 
-    /* Barre de progression */
     .progress-bar {
       width: 100%;
       height: 3px;
@@ -130,7 +134,37 @@ import { MatIconModule } from '@angular/material/icon';
       animation: progressSlide 1.8s ease-in-out infinite;
     }
 
-    /* ── Animations ── */
+    .error-message {
+      color: #ef4444;
+      font-size: 0.9rem;
+      margin-top: 12px;
+    }
+
+    .btn-retry {
+      margin-top: 12px;
+      padding: 10px 30px;
+      border: none;
+      border-radius: 8px;
+      background: #7c3aed;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-retry:hover {
+      background: #6d28d9;
+      transform: translateY(-2px);
+    }
+
+    .success-icon {
+      font-size: 48px !important;
+      width: 48px !important;
+      height: 48px !important;
+      color: #10b981 !important;
+    }
+
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -159,33 +193,45 @@ import { MatIconModule } from '@angular/material/icon';
   `],
   template: `
     <div class="callback-container">
-      <!-- Logo flottant -->
       <div class="callback-logo">
         <mat-icon>account_balance_wallet</mat-icon>
       </div>
 
-      <!-- Card de chargement -->
       <div class="callback-card">
-        <!-- Spinner -->
-        <div class="spinner-wrapper">
-          <div class="spinner-ring"></div>
-        </div>
-
-        <!-- Textes -->
-        <div>
+        <!-- Loading -->
+        <div *ngIf="isProcessing">
+          <div class="spinner-wrapper">
+            <div class="spinner-ring"></div>
+          </div>
           <p class="callback-title">Connexion en cours…</p>
           <p class="callback-subtitle">Vérification de vos identifiants</p>
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
         </div>
 
-        <!-- Barre de progression -->
-        <div class="progress-bar">
-          <div class="progress-fill"></div>
+        <!-- Succès -->
+        <div *ngIf="!isProcessing && !error">
+          <mat-icon class="success-icon">check_circle</mat-icon>
+          <p class="callback-title">Connexion réussie !</p>
+          <p class="callback-subtitle">Redirection en cours...</p>
+        </div>
+
+        <!-- Erreur -->
+        <div *ngIf="!isProcessing && error">
+          <mat-icon style="font-size: 48px; width: 48px; height: 48px; color: #ef4444;">error</mat-icon>
+          <p class="callback-title">Erreur de connexion</p>
+          <p class="callback-subtitle error-message">{{ error }}</p>
+          <button class="btn-retry" (click)="retry()">Réessayer</button>
         </div>
       </div>
     </div>
   `
 })
 export class AuthCallbackComponent implements OnInit {
+  isProcessing = true;
+  error: string | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
@@ -193,30 +239,72 @@ export class AuthCallbackComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // ✅ Extraire le token des query params
     this.route.queryParams.subscribe(params => {
       const token = params['token'];
-
-      if (!token) {
-        this.router.navigate(['/login']);
-        return;
-      }
-
-      localStorage.setItem('token', token);
-
-      this.authService.getProfile().subscribe({
-        next: (user) => {
-          localStorage.setItem('user', JSON.stringify(user));
-          this.authService.updateCurrentUser(user);
-
-          // Redirection selon le rôle
-          const isAdmin = user.role === 'admin' || user.role === 'super_admin';
-          this.router.navigate([isAdmin ? '/admin' : '/user']);
-        },
-        error: () => {
-          localStorage.removeItem('token');
-          this.router.navigate(['/login']);
-        }
-      });
+      this.handleToken(token);
     });
+
+    // ✅ Fallback: si token dans le fragment (pour certains OAuth)
+    this.route.fragment.subscribe(fragment => {
+      if (fragment) {
+        const params = new URLSearchParams(fragment);
+        const token = params.get('token');
+        if (token) {
+          this.handleToken(token);
+        }
+      }
+    });
+  }
+
+  private handleToken(token: string | null): void {
+    if (!token) {
+      this.isProcessing = false;
+      this.error = 'Token manquant. Veuillez réessayer.';
+      setTimeout(() => this.router.navigate(['/login']), 3000);
+      return;
+    }
+
+    console.log('✅ Token reçu:', token.substring(0, 20) + '...');
+
+    // ✅ Sauvegarder le token
+    localStorage.setItem('token', token);
+
+    // ✅ Récupérer le profil
+    this.authService.getProfile().subscribe({
+      next: (user) => {
+        console.log('👤 Profil récupéré:', user.email, 'Rôle:', user.role);
+        localStorage.setItem('user', JSON.stringify(user));
+        this.authService.updateCurrentUser(user);
+
+        this.isProcessing = false;
+
+        // ✅ Redirection selon le rôle
+        setTimeout(() => {
+          if (user.role === 'admin' || user.role === 'super_admin') {
+            console.log('🔑 Admin, redirection vers /admin/dashboard');
+            this.router.navigate(['/admin/dashboard']);
+          } else {
+            console.log('👤 User, redirection vers /user/dashboard');
+            this.router.navigate(['/user/dashboard']);
+          }
+        }, 500);
+      },
+      error: (err) => {
+        this.isProcessing = false;
+        this.error = 'Erreur lors de la récupération du profil. Veuillez réessayer.';
+        console.error('❌ Erreur callback:', err);
+        localStorage.removeItem('token');
+        setTimeout(() => this.router.navigate(['/login']), 3000);
+      }
+    });
+  }
+
+  retry(): void {
+    this.error = null;
+    this.isProcessing = true;
+    setTimeout(() => {
+      this.router.navigate(['/login']);
+    }, 500);
   }
 }

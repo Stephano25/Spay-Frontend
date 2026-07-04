@@ -1,5 +1,5 @@
 # ============================================================
-# DOCKER COMPOSE - SPaye Frontend
+# DOCKER COMPOSE - SPaye Frontend (Conteneur séparé)
 # ============================================================
 
 services:
@@ -11,11 +11,11 @@ services:
     ports:
       - "4200:80"
     restart: unless-stopped
-    # ✅ Utiliser le réseau existant
+    # ✅ Utiliser le réseau partagé avec le backend
     networks:
       - spaye-network
 
-# ✅ Réseau externe (créé par le backend)
+# ✅ Réseau partagé (doit exister, créé par le backend)
 networks:
   spaye-network:
     external: true

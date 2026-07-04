@@ -25,7 +25,6 @@ export class AuthService {
     if (!url) return null;
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
     if (url.startsWith('/uploads')) {
-      // ✅ Utiliser baseUrl si défini, sinon utiliser le proxy
       return this.baseUrl ? `${this.baseUrl}${url}` : url;
     }
     if (url.startsWith('/assets')) return url;
@@ -72,7 +71,7 @@ export class AuthService {
     return throwError(() => error);
   }
 
-  // ✅ LOGIN - Fonctionne
+  // ✅ LOGIN
   login(email: string, password: string): Observable<LoginResponse> {
     console.log('🔐 Tentative de connexion:', email);
 
@@ -96,7 +95,7 @@ export class AuthService {
     );
   }
 
-  // ✅ REGISTER - Fonctionne
+  // ✅ REGISTER
   register(userData: RegisterData): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/register`, userData).pipe(
       tap(response => {
@@ -118,10 +117,11 @@ export class AuthService {
     );
   }
 
-  // ✅ GOOGLE AUTH - Connexion avec Google
+  // ✅ GOOGLE OAUTH - Redirection vers le backend
   loginWithGoogle(): void {
-    // ✅ Rediriger vers Google OAuth via le proxy
-    window.location.href = `${this.apiUrl}/auth/google`;
+    const googleAuthUrl = `${this.apiUrl}/auth/google`;
+    console.log('🔀 Redirection vers Google:', googleAuthUrl);
+    window.location.href = googleAuthUrl;
   }
 
   // ✅ GOOGLE CALLBACK - Traitement du callback

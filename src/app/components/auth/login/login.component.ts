@@ -80,11 +80,13 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  // ✅ CORRECTION : Google OAuth avec URL complète
+  // ✅ Google OAuth - Redirection vers le backend
   continueWithGoogle(): void {
-    // Utiliser l'URL complète du backend pour éviter les problèmes de proxy
+    // Utiliser l'URL complète du backend
     const googleAuthUrl = `${environment.apiUrl}/auth/google`;
     console.log('🔀 Redirection vers Google:', googleAuthUrl);
+    
+    // Redirection complète vers le backend qui gère OAuth
     window.location.href = googleAuthUrl;
   }
 
