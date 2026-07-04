@@ -256,14 +256,14 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // ✅ Traitement du paiement/scan
+  // ✅ Traitement du paiement/scan - Version corrigée
   processPayment() {
     if (this.paymentForm.invalid) return;
 
     this.isProcessing = true;
     const amount = this.paymentForm.value.amount;
     
-    // Vérifier le solde
+    // ✅ Vérifier le solde avec checkBalance() corrigé
     this.walletService.checkBalance().subscribe({
       next: (balance) => {
         if (balance < amount && this.scanType !== 'deposit') {

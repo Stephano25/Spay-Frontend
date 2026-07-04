@@ -29,9 +29,12 @@ export class WalletService {
 
   /**
    * Vérifie le solde (retourne un nombre)
+   * ✅ Méthode unifiée et corrigée
    */
   checkBalance(): Observable<number> {
-    return this.getBalance().pipe(map(res => res.balance));
+    return this.getBalance().pipe(
+      map(res => res.balance || 0)
+    );
   }
 
   /**

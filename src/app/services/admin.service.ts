@@ -7,31 +7,31 @@ import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 import { User } from '../models/user.model';
 
+export interface DailyStat {
+  date: string;
+  users: number;
+  transactions: number;
+  volume: number;
+}
+
+export interface TopUser {
+  userId: string;
+  name: string;
+  transactionCount: number;
+  totalVolume: number;
+}
+
+// ✅ Interface unifiée et corrigée
 export interface AdminDashboardStats {
   totalUsers: number;
   activeUsers: number;
   totalTransactions: number;
   totalVolume: number;
-  recentUsers: User[];
-  recentTransactions: {
-    id: string;
-    type: string;
-    amount: number;
-    status: string;
-    createdAt: Date;
-  }[];
-  dailyStats: {
-    date: string;
-    users: number;
-    transactions: number;
-    volume: number;
-  }[];
-  topUsers: {
-    userId: string;
-    name: string;
-    transactionCount: number;
-    totalVolume: number;
-  }[];
+  recentUsers: any[];
+  recentTransactions: any[];
+  dailyStats: DailyStat[];
+  topUsers: TopUser[];
+  // ✅ Propriétés optionnelles (le backend les renvoie selon le rôle)
   totalAdmins?: number;
   totalSuperAdmins?: number;
   adminTransactions?: number;
@@ -134,6 +134,7 @@ export class AdminService {
             this.authService.logout();
           }
           this.notificationService.showError('Erreur chargement des statistiques');
+          // ✅ Retour avec toutes les propriétés attendues
           return of({
             totalUsers: 0,
             activeUsers: 0,
@@ -249,7 +250,7 @@ export class AdminService {
   }
 
   // ============================================================
-  // QR CODE - Génération et Scan (Méthodes uniques)
+  // QR CODE - Génération et Scan
   // ============================================================
   generateQRCode(type: 'deposit' | 'withdraw', amount?: number): Observable<QRCodeResponse> {
     return this.http

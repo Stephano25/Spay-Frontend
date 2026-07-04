@@ -89,3 +89,67 @@
     </mat-card-content>
   </mat-card>
 </div>
+
+<!-- Menu grid -->
+<div class="menu-grid-flex">
+  <mat-card class="menu-card" (click)="navigateTo('profile')" matRipple>
+    <mat-card-content>
+      <div class="menu-icon profile"><mat-icon>person</mat-icon></div>
+      <span>Mon Profil</span>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="menu-card" (click)="navigateTo('users')" matRipple>
+    <mat-card-content>
+      <div class="menu-icon users"><mat-icon>people</mat-icon></div>
+      <span>Utilisateurs</span>
+      <span class="menu-badge">{{ formatNumber(stats?.totalUsers || 0) }}</span>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="menu-card" (click)="navigateTo('transactions')" matRipple>
+    <mat-card-content>
+      <div class="menu-icon transactions"><mat-icon>receipt</mat-icon></div>
+      <span>Transactions</span>
+      <span class="menu-badge">{{ formatNumber(stats?.totalTransactions || 0) }}</span>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="menu-card" (click)="navigateTo('stats')" matRipple>
+    <mat-card-content>
+      <div class="menu-icon stats"><mat-icon>bar_chart</mat-icon></div>
+      <span>Statistiques</span>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="menu-card" (click)="navigateTo('settings')" matRipple>
+    <mat-card-content>
+      <div class="menu-icon settings"><mat-icon>settings</mat-icon></div>
+      <span>Paramètres</span>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="menu-card" *ngIf="isSuperAdmin" (click)="navigateTo('admins')" matRipple>
+    <mat-card-content>
+      <div class="menu-icon admins"><mat-icon>admin_panel_settings</mat-icon></div>
+      <span>Administrateurs</span>
+      <span class="menu-badge admin">{{ formatNumber(stats?.totalAdmins || 0) }}</span>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="menu-card" (click)="openQRScanner('deposit')" matRipple>
+    <mat-card-content>
+      <div class="menu-icon deposit"><mat-icon>qr_code</mat-icon></div>
+      <span>Dépôt QR</span>
+      <span class="menu-badge admin">QR</span>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="menu-card" (click)="openQRScanner('withdraw')" matRipple>
+    <mat-card-content>
+      <div class="menu-icon withdraw"><mat-icon>qr_code</mat-icon></div>
+      <span>Retrait QR</span>
+      <span class="menu-badge admin">QR</span>
+    </mat-card-content>
+  </mat-card>
+</div>

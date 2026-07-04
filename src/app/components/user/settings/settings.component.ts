@@ -6,7 +6,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -231,70 +232,99 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     );
   }
 
+  // ✅ VERSION CORRIGÉE - loadSocialData avec fallback
   private loadSocialData(): void {
-    // Chargement des données sociales
+    // Utiliser des valeurs par défaut et capturer les erreurs
+    // Ces endpoints peuvent ne pas exister dans l'API actuelle
+    
+    // Chargement du nombre d'amis
     this.subscriptions.push(
-      this.userService.getFriendsCount().subscribe({
-        next: (count) => this.friendsCount = count,
-        error: () => console.error('Erreur chargement nombre amis')
+      this.userService.getFriendsCount().pipe(
+        catchError(() => of(0))
+      ).subscribe({
+        next: (count) => this.friendsCount = count || 0,
+        error: () => this.friendsCount = 0
       })
     );
     
+    // Chargement du nombre de posts
     this.subscriptions.push(
-      this.userService.getPostsCount().subscribe({
-        next: (count) => this.postsCount = count,
-        error: () => console.error('Erreur chargement nombre posts')
+      this.userService.getPostsCount().pipe(
+        catchError(() => of(0))
+      ).subscribe({
+        next: (count) => this.postsCount = count || 0,
+        error: () => this.postsCount = 0
       })
     );
     
+    // Chargement de la liste des amis
     this.subscriptions.push(
-      this.userService.getFriendsList().subscribe({
-        next: (friends) => this.friendsList = friends,
-        error: () => console.error('Erreur chargement liste amis')
+      this.userService.getFriendsList().pipe(
+        catchError(() => of([]))
+      ).subscribe({
+        next: (friends) => this.friendsList = friends || [],
+        error: () => this.friendsList = []
       })
     );
     
+    // Chargement des amis proches
     this.subscriptions.push(
-      this.userService.getCloseFriends().subscribe({
-        next: (friends) => this.closeFriends = friends,
-        error: () => console.error('Erreur chargement amis proches')
+      this.userService.getCloseFriends().pipe(
+        catchError(() => of([]))
+      ).subscribe({
+        next: (friends) => this.closeFriends = friends || [],
+        error: () => this.closeFriends = []
       })
     );
     
+    // Chargement des connaissances
     this.subscriptions.push(
-      this.userService.getAcquaintances().subscribe({
-        next: (friends) => this.acquaintances = friends,
-        error: () => console.error('Erreur chargement connaissances')
+      this.userService.getAcquaintances().pipe(
+        catchError(() => of([]))
+      ).subscribe({
+        next: (friends) => this.acquaintances = friends || [],
+        error: () => this.acquaintances = []
       })
     );
     
+    // Chargement des demandes d'amis en attente
     this.subscriptions.push(
-      this.userService.getPendingFriendRequests().subscribe({
-        next: (requests) => this.pendingFriendRequests = requests,
-        error: () => console.error('Erreur chargement demandes amis')
+      this.userService.getPendingFriendRequests().pipe(
+        catchError(() => of([]))
+      ).subscribe({
+        next: (requests) => this.pendingFriendRequests = requests || [],
+        error: () => this.pendingFriendRequests = []
       })
     );
     
+    // Chargement des utilisateurs bloqués
     this.subscriptions.push(
-      this.userService.getBlockedUsers().subscribe({
-        next: (users) => this.blockedUsers = users,
-        error: () => console.error('Erreur chargement utilisateurs bloqués')
+      this.userService.getBlockedUsers().pipe(
+        catchError(() => of([]))
+      ).subscribe({
+        next: (users) => this.blockedUsers = users || [],
+        error: () => this.blockedUsers = []
       })
     );
     
+    // Chargement des suggestions d'amis
     this.subscriptions.push(
-      this.userService.getFriendSuggestions().subscribe({
-        next: (suggestions) => this.friendSuggestions = suggestions,
-        error: () => console.error('Erreur chargement suggestions')
+      this.userService.getFriendSuggestions().pipe(
+        catchError(() => of([]))
+      ).subscribe({
+        next: (suggestions) => this.friendSuggestions = suggestions || [],
+        error: () => this.friendSuggestions = []
       })
     );
   }
 
   private loadActiveDevices(): void {
     this.subscriptions.push(
-      this.userService.getActiveDevices().subscribe({
-        next: (devices) => this.activeDevices = devices,
-        error: () => console.error('Erreur chargement appareils')
+      this.userService.getActiveDevices().pipe(
+        catchError(() => of([]))
+      ).subscribe({
+        next: (devices) => this.activeDevices = devices || [],
+        error: () => this.activeDevices = []
       })
     );
   }
