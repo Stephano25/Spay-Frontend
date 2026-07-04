@@ -1,4 +1,3 @@
-// frontend/src/app/components/auth/login/login.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -50,7 +49,6 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // ✅ Vérifier si déjà connecté
     if (this.authService.isAuthenticated()) {
       const user = this.authService.getCurrentUser();
       if (user?.role === 'admin' || user?.role === 'super_admin') {
@@ -73,14 +71,21 @@ export class LoginComponent implements OnInit {
     const { email, password } = this.loginForm.value;
     
     this.authService.login(email, password).subscribe({
+      next: () => {
+        this.isLoading = false;
+      },
       error: () => {
         this.isLoading = false;
       }
     });
   }
 
+  // ✅ CORRECTION : Google OAuth avec URL complète
   continueWithGoogle(): void {
-    window.location.href = `${environment.apiUrl}/auth/google`;
+    // Utiliser l'URL complète du backend pour éviter les problèmes de proxy
+    const googleAuthUrl = `${environment.apiUrl}/auth/google`;
+    console.log('🔀 Redirection vers Google:', googleAuthUrl);
+    window.location.href = googleAuthUrl;
   }
 
   get email() { return this.loginForm.get('email'); }

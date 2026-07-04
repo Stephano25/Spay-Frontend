@@ -1,11 +1,17 @@
 {
-  "/uploads": {
+  "/api": {
     "target": "http://localhost:3000",
     "secure": false,
     "changeOrigin": true,
-    "logLevel": "debug"
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/api": "/api"
+    },
+    "headers": {
+      "Connection": "keep-alive"
+    }
   },
-  "/api": {
+  "/uploads": {
     "target": "http://localhost:3000",
     "secure": false,
     "changeOrigin": true,

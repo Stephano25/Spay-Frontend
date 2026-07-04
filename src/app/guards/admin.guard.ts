@@ -1,4 +1,3 @@
-// frontend/src/app/guards/admin.guard.ts
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -23,7 +22,7 @@ export class AdminGuard implements CanActivate {
       return false;
     }
 
-    // Vérifier si l'utilisateur est admin ou super_admin
+    // ✅ Vérifier si l'utilisateur est admin ou super_admin
     const isAdmin = user.role === 'admin' || user.role === 'super_admin';
     
     if (!isAdmin) {
@@ -32,7 +31,7 @@ export class AdminGuard implements CanActivate {
       return false;
     }
 
-    // Vérifier les routes spécifiques pour super_admin
+    // ✅ Vérifier les routes spécifiques pour super_admin
     const adminRoutes = ['admins', 'admins/create'];
     const currentRoute = route.routeConfig?.path || '';
     

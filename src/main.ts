@@ -10,17 +10,9 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, appConfig)
   .then(() => {
-    // Le thème est géré par ThemeService après la connexion
-    // Ne pas forcer de thème ici
-    
-    // Service Worker (notifications push)
-    if ('serviceWorker' in navigator && !environment.production) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/assets/notification-sw.js')
-          .then(reg => console.log('✅ Service Worker enregistré', reg))
-          .catch(err => console.error('❌ Erreur SW', err));
-      });
-    }
+    console.log('🚀 SPaye Frontend démarré');
+    console.log('📊 Environnement:', environment.production ? 'production' : 'development');
+    console.log('🔗 API URL:', environment.apiUrl);
   })
   .catch((err) => {
     console.error('❌ Erreur de bootstrap:', err);

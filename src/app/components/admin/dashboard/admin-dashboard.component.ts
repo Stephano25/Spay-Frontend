@@ -1,4 +1,3 @@
-// frontend/src/app/components/admin/dashboard/admin-dashboard.component.ts
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -45,7 +44,7 @@ import { MatDividerModule } from '@angular/material/divider';
     TranslatePipe,
     QRScannerComponent,
     QRTransactionFormComponent,
-    QRGeneratorComponent, // ✅ Ajout du QRGeneratorComponent
+    QRGeneratorComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
@@ -55,6 +54,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   stats: AdminDashboardStats | null = null;
   isLoading = true;
   isSuperAdmin = false;
+  isAdmin = false;
   private subscriptions: Subscription[] = [];
   private charts: Chart[] = [];
   private chartInitialized = false;
@@ -69,24 +69,26 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   showQRGenerator: boolean = false;
   qrGeneratorType: 'deposit' | 'withdraw' = 'deposit';
 
-  adminMenuItems = [
-    { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
-    { icon: 'people', label: 'Utilisateurs', route: '/admin/users' },
-    { icon: 'receipt', label: 'Transactions', route: '/admin/transactions' },
-    { icon: 'bar_chart', label: 'Statistiques', route: '/admin/stats' },
-    { icon: 'person', label: 'Mon Profil', route: '/admin/profile' },
-    { icon: 'settings', label: 'Paramètres', route: '/admin/settings' },
-  ];
+  // ✅ Menu items selon le rôle (corrigé)
+  get menuItems() {
+    const baseMenu = [
+      { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
+      { icon: 'people', label: 'Utilisateurs', route: '/admin/users' },
+      { icon: 'receipt', label: 'Transactions', route: '/admin/transactions' },
+      { icon: 'bar_chart', label: 'Statistiques', route: '/admin/stats' },
+      { icon: 'person', label: 'Mon Profil', route: '/admin/profile' },
+      { icon: 'settings', label: 'Paramètres', route: '/admin/settings' },
+    ];
 
-  superAdminMenuItems = [
-    { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
-    { icon: 'people', label: 'Utilisateurs', route: '/admin/users' },
-    { icon: 'receipt', label: 'Transactions', route: '/admin/transactions' },
-    { icon: 'bar_chart', label: 'Statistiques', route: '/admin/stats' },
-    { icon: 'admin_panel_settings', label: 'Administrateurs', route: '/admin/admins' },
-    { icon: 'person', label: 'Mon Profil', route: '/admin/profile' },
-    { icon: 'settings', label: 'Paramètres', route: '/admin/settings' },
-  ];
+    // ✅ Super Admin a accès à la gestion des administrateurs
+    if (this.isSuperAdmin) {
+      return [
+        ...baseMenu,
+        { icon: 'admin_panel_settings', label: 'Administrateurs', route: '/admin/admins' }
+      ];
+    }
+    return baseMenu;
+  }
 
   constructor(
     private adminService: AdminService,
@@ -124,15 +126,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     this.destroyAllCharts();
   }
 
-  get menuItems() {
-    return this.isSuperAdmin ? this.superAdminMenuItems : this.adminMenuItems;
-  }
-
   private loadUserData(): void {
     this.subscriptions.push(
       this.authService.currentUser.subscribe((user) => {
         this.user = user;
         this.isSuperAdmin = user?.role === 'super_admin';
+        this.isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+        
         if (user && user.role !== 'admin' && user.role !== 'super_admin') {
           this.router.navigate(['/user']);
         }
@@ -469,7 +469,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   // ============================================================
-  // QR CODE METHODS - SCANNER
+  // QR CODE METHODS
   // ============================================================
   
   openQRScanner(type: 'deposit' | 'withdraw'): void {
@@ -510,10 +510,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       this.refreshData();
     }
   }
-
-  // ============================================================
-  // QR CODE - GÉNÉRATION POUR DÉPÔT ET RETRAIT
-  // ============================================================
 
   openQRGenerator(type: 'deposit' | 'withdraw'): void {
     this.qrGeneratorType = type;

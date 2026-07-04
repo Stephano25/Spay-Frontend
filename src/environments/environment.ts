@@ -1,11 +1,10 @@
-// frontend/src/environments/environment.ts
 export const environment = {
   production: false,
-  // ✅ Utiliser /api (via le proxy Nginx)
   apiUrl: '/api',
-  socketUrl: '',
-  baseUrl: '',
+  socketUrl: '/',
+  baseUrl: 'http://localhost:3000',
   uploadUrl: '/uploads',
+  
   isWeb: true,
   isReactNative: false,
   isCapacitor: false,

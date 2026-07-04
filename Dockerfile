@@ -12,7 +12,7 @@ RUN npm install --legacy-peer-deps && npm cache clean --force
 
 COPY . .
 
-RUN npm run build:prod || npm run build
+RUN npm run build:prod
 
 FROM nginx:alpine
 

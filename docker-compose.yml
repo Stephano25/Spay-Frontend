@@ -1,16 +1,22 @@
+# ============================================================
+# DOCKER COMPOSE - SPaye Frontend
+# ============================================================
+
 services:
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: spaye-frontend
-    restart: unless-stopped
     ports:
       - "4200:80"
+    restart: unless-stopped
+    # ✅ Utiliser le réseau existant
     networks:
       - spaye-network
 
-# ✅ Définir le réseau ici si vous voulez qu'il soit créé automatiquement
+# ✅ Réseau externe (créé par le backend)
 networks:
   spaye-network:
     external: true
+    name: spaye-network

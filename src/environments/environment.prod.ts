@@ -1,10 +1,11 @@
-// frontend/src/environments/environment.prod.ts
 export const environment = {
   production: true,
+  // ✅ Utiliser le proxy Nginx (chemin relatif)
   apiUrl: '/api',
-  socketUrl: '',
+  socketUrl: '/',
   baseUrl: '',
   uploadUrl: '/uploads',
+  
   isWeb: true,
   isReactNative: false,
   isCapacitor: false,

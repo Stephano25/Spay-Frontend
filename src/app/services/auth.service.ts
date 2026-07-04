@@ -1,4 +1,3 @@
-// frontend/src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -10,7 +9,7 @@ import { User, LoginResponse, RegisterData } from '../models/user.model';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private apiUrl = environment.apiUrl;
-  private uploadUrl = environment.uploadUrl || `${environment.baseUrl}/uploads`;
+  private baseUrl = environment.baseUrl || '';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser = this.currentUserSubject.asObservable();
 
@@ -22,43 +21,17 @@ export class AuthService {
     this.loadStoredUser();
   }
 
-  /**
-   * ✅ Construire l'URL complète de l'image (externe ou interne)
-   */
   private getFullImageUrl(url: string | null | undefined): string | null {
     if (!url) return null;
-    
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
     if (url.startsWith('/uploads')) {
-      if (environment.production) {
-        return url;
-      }
-      return `${environment.baseUrl}${url}`;
+      // ✅ Utiliser baseUrl si défini, sinon utiliser le proxy
+      return this.baseUrl ? `${this.baseUrl}${url}` : url;
     }
-    
-    if (url.startsWith('/assets')) {
-      if (environment.isReactNative) {
-        return `${environment.baseUrl}${url}`;
-      }
-      return url;
-    }
-    
+    if (url.startsWith('/assets')) return url;
     if (!url.includes('/')) {
-      if (url.startsWith('profile-')) {
-        if (environment.production) {
-          return `/uploads/profiles/${url}`;
-        }
-        return `${environment.baseUrl}/uploads/profiles/${url}`;
-      }
-      if (environment.isReactNative) {
-        return `${environment.baseUrl}/assets/profiles/${url}`;
-      }
-      return `/assets/profiles/${url}`;
+      return this.baseUrl ? `${this.baseUrl}/uploads/profiles/${url}` : `/uploads/profiles/${url}`;
     }
-    
     return url;
   }
 
@@ -70,7 +43,7 @@ export class AuthService {
         const user = JSON.parse(savedUser) as User;
         user.profilePicture = this.getFullImageUrl(user.profilePicture) || undefined;
         this.currentUserSubject.next(user);
-        console.log('👤 Utilisateur chargé depuis localStorage:', user.email, 'Rôle:', user.role);
+        console.log('👤 Utilisateur chargé:', user.email, 'Rôle:', user.role);
       } catch {
         console.log('❌ Erreur chargement utilisateur');
         this.logout();
@@ -86,11 +59,9 @@ export class AuthService {
     });
   }
 
-  // ✅ Gestion d'erreur améliorée
   private handleError(error: HttpErrorResponse, fallback?: any): Observable<any> {
     console.error('❌ Erreur HTTP:', error);
     
-    // Si c'est une erreur de connexion (502, 503, etc.)
     if (error.status === 502 || error.status === 503 || error.status === 0) {
       this.notificationService.showError('Le serveur est indisponible. Veuillez réessayer plus tard.');
       return of(fallback || null);
@@ -101,6 +72,7 @@ export class AuthService {
     return throwError(() => error);
   }
 
+  // ✅ LOGIN - Fonctionne
   login(email: string, password: string): Observable<LoginResponse> {
     console.log('🔐 Tentative de connexion:', email);
 
@@ -117,19 +89,14 @@ export class AuthService {
 
         console.log('✅ Connexion réussie:', response.user.email, 'Rôle:', response.user.role);
 
-        const user = response.user;
-        if (user.role === 'admin' || user.role === 'super_admin') {
-          this.router.navigate(['/admin/dashboard']);
-        } else {
-          this.router.navigate(['/user/dashboard']);
-        }
-
+        this.redirectBasedOnRole(response.user);
         this.notificationService.showSuccess('Connexion réussie !');
       }),
       catchError((error) => this.handleError(error)),
     );
   }
 
+  // ✅ REGISTER - Fonctionne
   register(userData: RegisterData): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/register`, userData).pipe(
       tap(response => {
@@ -142,17 +109,48 @@ export class AuthService {
         localStorage.setItem('user', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
 
-        const user = response.user;
-        if (user.role === 'admin' || user.role === 'super_admin') {
-          this.router.navigate(['/admin/dashboard']);
-        } else {
-          this.router.navigate(['/user/dashboard']);
-        }
+        console.log('✅ Inscription réussie:', response.user.email, 'Rôle:', response.user.role);
 
+        this.redirectBasedOnRole(response.user);
         this.notificationService.showSuccess('Inscription réussie !');
       }),
       catchError((error) => this.handleError(error)),
     );
+  }
+
+  // ✅ GOOGLE AUTH - Connexion avec Google
+  loginWithGoogle(): void {
+    // ✅ Rediriger vers Google OAuth via le proxy
+    window.location.href = `${this.apiUrl}/auth/google`;
+  }
+
+  // ✅ GOOGLE CALLBACK - Traitement du callback
+  handleGoogleCallback(token: string): void {
+    if (token) {
+      localStorage.setItem('token', token);
+      this.getProfile().subscribe({
+        next: (user) => {
+          if (user) {
+            this.notificationService.showSuccess('Connexion Google réussie !');
+            this.redirectBasedOnRole(user);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Erreur callback Google:', error);
+          this.notificationService.showError('Erreur lors de la connexion Google');
+          this.router.navigate(['/login']);
+        }
+      });
+    }
+  }
+
+  // ✅ REDIRECTION SELON LE RÔLE
+  private redirectBasedOnRole(user: User): void {
+    if (user.role === 'super_admin' || user.role === 'admin') {
+      this.router.navigate(['/admin/dashboard']);
+    } else {
+      this.router.navigate(['/user/dashboard']);
+    }
   }
 
   getProfile(): Observable<User> {
@@ -162,7 +160,7 @@ export class AuthService {
         this.updateCurrentUser(user);
       }),
       catchError((error) => {
-        if (error.status === 502) {
+        if (error.status === 502 || error.status === 0) {
           this.notificationService.showError('Le serveur est indisponible');
           return of(null as any);
         }
@@ -198,9 +196,7 @@ export class AuthService {
   }
 
   uploadProfilePicture(formData: FormData): Observable<any> {
-    const uploadUrl = environment.isReactNative 
-      ? `${environment.baseUrl}/users/upload-profile-picture`
-      : `${this.apiUrl}/users/upload-profile-picture`;
+    const uploadUrl = `${this.apiUrl}/users/upload-profile-picture`;
       
     return this.http.post(uploadUrl, formData, {
       headers: new HttpHeaders({
@@ -248,8 +244,7 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    const token = this.getToken();
-    return !!token;
+    return !!this.getToken();
   }
 
   getCurrentUser(): User | null {
@@ -259,5 +254,10 @@ export class AuthService {
   isAdmin(): boolean {
     const user = this.currentUserSubject.value;
     return user?.role === 'admin' || user?.role === 'super_admin';
+  }
+
+  isSuperAdmin(): boolean {
+    const user = this.currentUserSubject.value;
+    return user?.role === 'super_admin';
   }
 }

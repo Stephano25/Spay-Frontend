@@ -1,7 +1,3 @@
-// ============================================================
-// REGISTER COMPONENT - SPaye
-// ============================================================
-
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
@@ -57,9 +53,13 @@ export class RegisterComponent {
     private authService: AuthService,
     private router: Router
   ) {
-    // Rediriger si déjà connecté
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/user']);
+      const user = this.authService.getCurrentUser();
+      if (user?.role === 'admin' || user?.role === 'super_admin') {
+        this.router.navigate(['/admin/dashboard']);
+      } else {
+        this.router.navigate(['/user/dashboard']);
+      }
     }
 
     this.registerForm = this.fb.group({
@@ -98,13 +98,15 @@ export class RegisterComponent {
     };
 
     this.authService.register(userData).subscribe({
+      next: () => {
+        this.isLoading = false;
+      },
       error: () => {
         this.isLoading = false;
       }
     });
   }
 
-  // Getters
   get firstName() { return this.registerForm.get('firstName'); }
   get lastName() { return this.registerForm.get('lastName'); }
   get email() { return this.registerForm.get('email'); }
