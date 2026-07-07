@@ -1,5 +1,5 @@
 /* ============================================================
-   CHAT COMPONENT — SPaye  (modern, professional, dark-capable)
+   CHAT COMPONENT — SPaye
    ============================================================ */
 
 /* ── Root layout ── */
@@ -166,9 +166,9 @@
   box-shadow: 0 1px 0 rgba(0,0,0,.3);
 }
 
-/* ✅ Par défaut, le bouton retour est caché (visible uniquement en mobile) */
+/* ✅ Le bouton retour est TOUJOURS visible */
 .mobile-back { 
-  display: none !important; 
+  display: flex !important; 
 }
 
 .contact-meta { flex: 1; min-width: 0; }
@@ -777,14 +777,8 @@
     transition: transform .25s ease;
   }
   
-  /* ✅ Quand une conversation est sélectionnée, la sidebar est masquée */
   .mobile-chat-open .sidebar {
     transform: translateX(-100%);
-  }
-  
-  /* ✅ Le bouton retour s'affiche en mobile */
-  .mobile-back { 
-    display: flex !important; 
   }
   
   .messages-area { 

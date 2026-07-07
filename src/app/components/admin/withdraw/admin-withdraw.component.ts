@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AdminService } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
 
@@ -37,11 +37,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 })
 export class AdminWithdrawComponent implements OnInit {
   users: any[] = [];
+  admins: any[] = [];
   selectedUserId: string = '';
   amount: number = 0;
   description: string = '';
   isLoading = false;
   isSubmitting = false;
+  isAdminWithdraw: boolean = false;
+  targetAdminId: string | null = null;
 
   withdrawResult: {
     success: boolean;
@@ -55,10 +58,20 @@ export class AdminWithdrawComponent implements OnInit {
     private adminService: AdminService,
     private notificationService: NotificationService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
-    this.loadUsers();
+    this.route.queryParams.subscribe(params => {
+      this.isAdminWithdraw = params['target'] === 'admin';
+      this.targetAdminId = params['adminId'] || null;
+      
+      if (this.isAdminWithdraw) {
+        this.loadAdmins();
+      } else {
+        this.loadUsers();
+      }
+    });
   }
 
   loadUsers(): void {
@@ -76,13 +89,35 @@ export class AdminWithdrawComponent implements OnInit {
     });
   }
 
+  loadAdmins(): void {
+    this.isLoading = true;
+    this.adminService.getAdmins().subscribe({
+      next: (admins) => {
+        this.admins = admins;
+        this.isLoading = false;
+        
+        if (this.targetAdminId) {
+          const target = this.admins.find(a => a.id === this.targetAdminId);
+          if (target) {
+            this.selectedUserId = target.id;
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Erreur chargement admins:', error);
+        this.notificationService.showError('Erreur lors du chargement des administrateurs');
+        this.isLoading = false;
+      },
+    });
+  }
+
   selectQuickAmount(amount: number): void {
     this.amount = amount;
   }
 
   onSubmit(): void {
     if (!this.selectedUserId) {
-      this.notificationService.showError('Veuillez sélectionner un utilisateur');
+      this.notificationService.showError('Veuillez sélectionner un ' + (this.isAdminWithdraw ? 'administrateur' : 'utilisateur'));
       return;
     }
 
@@ -91,7 +126,7 @@ export class AdminWithdrawComponent implements OnInit {
       return;
     }
 
-    const user = this.users.find((u) => u.id === this.selectedUserId);
+    const user = this.getSelectedUser();
     if (!user) {
       this.notificationService.showError('Utilisateur non trouvé');
       return;
@@ -133,7 +168,13 @@ export class AdminWithdrawComponent implements OnInit {
           this.selectedUserId = '';
           this.amount = 0;
           this.description = '';
-          this.loadUsers();
+          
+          if (this.isAdminWithdraw) {
+            this.loadAdmins();
+          } else {
+            this.loadUsers();
+          }
+          
           setTimeout(() => (this.withdrawResult = null), 5000);
         },
         error: (error) => {
@@ -149,6 +190,9 @@ export class AdminWithdrawComponent implements OnInit {
   }
 
   getSelectedUser(): any {
+    if (this.isAdminWithdraw) {
+      return this.admins.find((u) => u.id === this.selectedUserId);
+    }
     return this.users.find((u) => u.id === this.selectedUserId);
   }
 

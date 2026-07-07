@@ -82,5 +82,68 @@ export const ADMIN_ROUTES: Routes = [
       ),
     canActivate: [AdminGuard],
   },
+  // ✅ NOUVEAU : WALLET ADMIN
+  {
+    path: 'wallet',
+    loadComponent: () =>
+      import('../user/wallet/wallet.component').then(
+        (m) => m.WalletComponent,
+      ),
+    canActivate: [AdminGuard],
+  },
+  // ✅ NOUVEAU : WALLET ADMIN - Envoyer
+  {
+    path: 'wallet/send',
+    loadComponent: () =>
+      import('../user/wallet/send-money/send-money.component').then(
+        (m) => m.SendMoneyComponent,
+      ),
+    canActivate: [AdminGuard],
+  },
+  // ✅ NOUVEAU : WALLET ADMIN - Recevoir
+  {
+    path: 'wallet/receive',
+    loadComponent: () =>
+      import('../user/wallet/receive-money/receive-money.component').then(
+        (m) => m.ReceiveMoneyComponent,
+      ),
+    canActivate: [AdminGuard],
+  },
+  // ✅ NOUVEAU : FRIENDS ADMIN
+  {
+    path: 'friends',
+    loadComponent: () =>
+      import('../friends/friends.component').then(
+        (m) => m.FriendsComponent,
+      ),
+    canActivate: [AdminGuard],
+  },
+  // ✅ NOUVEAU : CHAT ADMIN
+  {
+    path: 'chat',
+    loadComponent: () =>
+      import('../chat/chat.component').then(
+        (m) => m.ChatComponent,
+      ),
+    canActivate: [AdminGuard],
+  },
+  // ✅ NOUVEAU : MOBILE MONEY ADMIN
+  {
+    path: 'mobile-money',
+    loadComponent: () =>
+      import('../mobile-money/mobile-money.component').then(
+        (m) => m.MobileMoneyComponent,
+      ),
+    canActivate: [AdminGuard],
+  },
+  // ✅ NOUVEAU : SCAN PAY ADMIN
+  {
+    path: 'scan-pay',
+    loadComponent: () =>
+      import('../scan-pay/scan-pay.component').then(
+        (m) => m.ScanPayComponent,
+      ),
+    canActivate: [AdminGuard],
+  },
   { path: '**', redirectTo: 'dashboard' },
 ];

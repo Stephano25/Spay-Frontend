@@ -39,6 +39,12 @@ export interface AdminDashboardStats {
   myAdminTransactions?: number;
   myAdminVolume?: number;
   userRole?: string;
+
+  // ✅ NOUVEAU : Statistiques de commission pour SuperAdmin
+  totalCommission?: number;
+  commissionTransactions?: number;
+  recentCommissions?: any[];
+  commissionRate?: number;
 }
 
 export interface QRCodeResponse {
@@ -395,6 +401,26 @@ export class AdminService {
       }),
     );
   }
+
+  /**
+  * Récupère les statistiques des commissions (SuperAdmin uniquement)
+  */
+  getCommissionStats(): Observable<any> {
+    return this.http
+      .get<any>(`${this.apiUrl}/dashboard/commissions`, { headers: this.getHeaders() })
+      .pipe(
+        tap((data) => console.log('💰 Statistiques commissions reçues:', data)),
+        catchError((error) => {
+          console.error('❌ Erreur getCommissionStats:', error);
+          return of({
+            totalCommission: 0,
+            commissionTransactions: 0,
+            recentCommissions: [],
+            commissionRate: 0.5
+          });
+        }),
+      );
+    }
 
   updateAdminProfile(profileData: any): Observable<any> {
     return this.http

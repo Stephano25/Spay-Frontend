@@ -29,6 +29,25 @@
             </div>
           </div>
 
+          <!-- ✅ Affichage du solde -->
+          <div class="balance-section">
+            <div class="balance-display">
+              <span class="balance-label">Solde du portefeuille</span>
+              <span class="balance-amount">{{ formatAmount(admin.balance) }} Ar</span>
+            </div>
+            <!-- ✅ Bouton Top-Up pour SuperAdmin -->
+            <button *ngIf="isSuperAdmin" 
+                    mat-raised-button 
+                    color="primary" 
+                    (click)="openTopUpModal()"
+                    class="topup-btn">
+              <mat-icon>add</mat-icon>
+              Augmenter le solde
+            </button>
+          </div>
+
+          <mat-divider></mat-divider>
+
           <div *ngIf="editMode; else viewMode" class="edit-mode">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Prénom</mat-label>
@@ -139,5 +158,69 @@
         </mat-card-content>
       </mat-card>
     </ng-container>
+  </div>
+</div>
+
+<!-- ✅ MODAL TOP-UP POUR SUPERADMIN -->
+<div class="modal-overlay" *ngIf="showTopUpModal" (click)="closeTopUpModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <mat-icon>account_balance_wallet</mat-icon>
+        Augmenter le portefeuille
+      </h3>
+      <button mat-icon-button (click)="closeTopUpModal()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-subtitle">Ajoutez des fonds à votre portefeuille administrateur</p>
+      
+      <div class="quick-amounts">
+        <button *ngFor="let amount of [1000, 5000, 10000, 25000, 50000, 100000]"
+                class="quick-amount-btn"
+                [class.active]="topUpAmount === amount"
+                (click)="topUpAmount = amount">
+          {{ formatAmount(amount) }} Ar
+        </button>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Montant (Ar)</mat-label>
+        <input matInput type="number" [(ngModel)]="topUpAmount" min="100" placeholder="1000">
+        <mat-icon matSuffix>attach_money</mat-icon>
+        <mat-hint>Minimum 100 Ar</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description (optionnelle)</mat-label>
+        <input matInput [(ngModel)]="topUpDescription" placeholder="Top-up portefeuille" maxlength="200">
+      </mat-form-field>
+
+      <div class="preview" *ngIf="topUpAmount >= 100">
+        <div class="preview-row">
+          <span>Montant à ajouter</span>
+          <span class="preview-amount">+ {{ formatAmount(topUpAmount) }} Ar</span>
+        </div>
+        <div class="preview-row total">
+          <span>Nouveau solde</span>
+          <span class="preview-new-balance">{{ formatAmount((admin.balance || 0) + topUpAmount) }} Ar</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button mat-stroked-button (click)="closeTopUpModal()" [disabled]="isTopUpSubmitting">
+        Annuler
+      </button>
+      <button mat-raised-button color="primary" 
+              (click)="topUpWallet()" 
+              [disabled]="!topUpAmount || topUpAmount < 100 || isTopUpSubmitting">
+        <mat-spinner diameter="20" *ngIf="isTopUpSubmitting"></mat-spinner>
+        <span *ngIf="!isTopUpSubmitting">
+          <mat-icon>add</mat-icon>
+          Ajouter {{ formatAmount(topUpAmount) }} Ar
+        </span>
+      </button>
+    </div>
   </div>
 </div>

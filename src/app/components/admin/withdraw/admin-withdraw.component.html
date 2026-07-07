@@ -2,16 +2,16 @@
   <button mat-icon-button (click)="goBack()" matTooltip="Retour">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span>Retrait d'argent</span>
+  <span>{{ isAdminWithdraw ? 'Retrait sur Administrateur' : 'Retrait d\'argent' }}</span>
   <span class="spacer"></span>
-  <span class="toolbar-badge">Administrateur</span>
+  <span class="toolbar-badge">{{ isAdminWithdraw ? 'Admin' : 'Utilisateur' }}</span>
 </mat-toolbar>
 
 <div class="withdraw-container">
   <div class="withdraw-content">
     <div class="loading-container" *ngIf="isLoading">
       <mat-spinner diameter="50"></mat-spinner>
-      <p>Chargement des utilisateurs...</p>
+      <p>Chargement des {{ isAdminWithdraw ? 'administrateurs' : 'utilisateurs' }}...</p>
     </div>
 
     <mat-card class="withdraw-card" *ngIf="!isLoading">
@@ -20,7 +20,9 @@
           <mat-icon>account_balance_wallet</mat-icon>
         </div>
         <mat-card-title>Effectuer un retrait</mat-card-title>
-        <mat-card-subtitle>Débitez le compte d'un utilisateur</mat-card-subtitle>
+        <mat-card-subtitle>
+          {{ isAdminWithdraw ? 'Débitez le compte d\'un administrateur' : 'Débitez le compte d\'un utilisateur' }}
+        </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
@@ -41,18 +43,21 @@
         <div class="form-section">
           <div class="section-label">
             <mat-icon>person</mat-icon>
-            <span>Utilisateur</span>
+            <span>{{ isAdminWithdraw ? 'Administrateur' : 'Utilisateur' }}</span>
           </div>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Rechercher un utilisateur</mat-label>
-            <mat-select [(ngModel)]="selectedUserId" placeholder="Sélectionnez un utilisateur">
-              <mat-option *ngFor="let user of users" [value]="user.id">
+            <mat-label>Rechercher un {{ isAdminWithdraw ? 'administrateur' : 'utilisateur' }}</mat-label>
+            <mat-select [(ngModel)]="selectedUserId" placeholder="Sélectionnez un {{ isAdminWithdraw ? 'administrateur' : 'utilisateur' }}">
+              <mat-option *ngFor="let user of (isAdminWithdraw ? admins : users)" [value]="user.id">
                 <div class="user-option">
                   <div class="user-avatar-sm">{{ getUserInitials(user) }}</div>
                   <div class="user-option-info">
                     <span class="user-option-name">{{ user.firstName }} {{ user.lastName }}</span>
                     <span class="user-option-email">{{ user.email }}</span>
+                    <span *ngIf="isAdminWithdraw" class="user-option-role">
+                      {{ user.role === 'super_admin' ? 'Super Admin' : 'Admin' }}
+                    </span>
                   </div>
                   <span class="user-option-balance">{{ formatAmount(user.balance) }} Ar</span>
                 </div>
@@ -66,6 +71,10 @@
               <div class="selected-user-info">
                 <div class="selected-user-name">{{ getSelectedUser().firstName }} {{ getSelectedUser().lastName }}</div>
                 <div class="selected-user-email">{{ getSelectedUser().email }}</div>
+                <div *ngIf="isAdminWithdraw" class="selected-user-role">
+                  <span class="role-label">Rôle</span>
+                  <span class="role-value">{{ getSelectedUser().role === 'super_admin' ? 'Super Admin' : 'Admin' }}</span>
+                </div>
                 <div class="selected-user-balance">
                   <span class="balance-label">Solde actuel</span>
                   <span class="balance-value">{{ formatAmount(getSelectedUser().balance) }} Ar</span>
@@ -104,7 +113,7 @@
 
           <div class="deposit-preview" *ngIf="amount && amount >= 100 && getSelectedUser()">
             <div class="preview-row">
-              <span>Utilisateur</span>
+              <span>{{ isAdminWithdraw ? 'Administrateur' : 'Utilisateur' }}</span>
               <span>{{ getSelectedUser().firstName }} {{ getSelectedUser().lastName }}</span>
             </div>
             <div class="preview-row">
@@ -160,7 +169,7 @@
             <div class="info-icon"><mat-icon>info</mat-icon></div>
             <div>
               <h4>Retrait instantané</h4>
-              <p>Le montant est débité immédiatement du compte de l'utilisateur</p>
+              <p>Le montant est débité immédiatement du compte de {{ isAdminWithdraw ? 'l\'administrateur' : 'l\'utilisateur' }}</p>
             </div>
           </div>
           <div class="info-item">

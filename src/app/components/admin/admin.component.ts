@@ -6,13 +6,34 @@ import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
 import { SidebarComponent } from '../layout/sidebar/sidebar.component';
 
+// ✅ AJOUTER LES IMPORTS MANQUANTS
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, RouterModule, SidebarComponent],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    SidebarComponent,
+    MatIconModule,     // ✅ AJOUTÉ
+    MatButtonModule,   // ✅ AJOUTÉ
+  ],
   template: `
     <app-sidebar>
       <div class="admin-content">
+        <!-- ✅ Boutons pour SuperAdmin uniquement -->
+        <div *ngIf="isSuperAdmin" class="admin-actions">
+          <button mat-raised-button color="primary" (click)="navigateToDeposit()" matTooltip="Déposer sur un administrateur">
+            <mat-icon>account_balance_wallet</mat-icon>
+            Dépôt Admin
+          </button>
+          <button mat-raised-button color="primary" (click)="navigateToWithdraw()" matTooltip="Retirer sur un administrateur">
+            <mat-icon>account_balance_wallet</mat-icon>
+            Retrait Admin
+          </button>
+        </div>
         <router-outlet></router-outlet>
       </div>
     </app-sidebar>
@@ -26,9 +47,35 @@ import { SidebarComponent } from '../layout/sidebar/sidebar.component';
         animation: fadeUp 0.4s var(--ease) both;
       }
 
+      .admin-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 0 16px 0;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .admin-actions button {
+        border-radius: var(--r-pill) !important;
+        font-weight: 600 !important;
+        background: var(--brand-grad) !important;
+        color: white !important;
+      }
+
+      .admin-actions button:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-brand) !important;
+      }
+
       @media (max-width: 768px) {
         .admin-content {
           padding: 16px 14px;
+        }
+        .admin-actions {
+          justify-content: center;
+        }
+        .admin-actions button {
+          width: 100%;
         }
       }
 
@@ -47,6 +94,7 @@ import { SidebarComponent } from '../layout/sidebar/sidebar.component';
 })
 export class AdminComponent implements OnInit, OnDestroy {
   admin: User | null = null;
+  isSuperAdmin: boolean = false;
   private subscriptions: Subscription[] = [];
 
   constructor(private authService: AuthService, private router: Router) {}
@@ -69,12 +117,14 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
 
     this.admin = user;
+    this.isSuperAdmin = user.role === 'super_admin';
     console.log('✅ Admin chargé:', user.email, 'Rôle:', user.role);
 
     this.subscriptions.push(
       this.authService.currentUser.subscribe((user) => {
         if (user) {
           this.admin = user;
+          this.isSuperAdmin = user.role === 'super_admin';
         }
       }),
     );
@@ -86,5 +136,13 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  navigateToDeposit(): void {
+    this.router.navigate(['/admin/deposit'], { queryParams: { target: 'admin' } });
+  }
+
+  navigateToWithdraw(): void {
+    this.router.navigate(['/admin/withdraw'], { queryParams: { target: 'admin' } });
   }
 }

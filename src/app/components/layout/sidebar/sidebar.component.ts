@@ -1,4 +1,4 @@
-// src/app/components/layout/sidebar/sidebar.component.ts
+// frontend/src/app/components/layout/sidebar/sidebar.component.ts
 import { Component, HostListener, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -31,13 +31,30 @@ export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit {
   isMobile = false;
   isOpen = false;
   currentUser: any = null;
+  isSuperAdmin = false;
   private themeSubscription!: Subscription;
 
   adminMenuItems = [
     { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
+    { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/admin/wallet' },
+    { icon: 'people', label: 'Amis', route: '/admin/friends' },
+    { icon: 'chat', label: 'Messages', route: '/admin/chat' },
     { icon: 'people', label: 'Utilisateurs', route: '/admin/users' },
     { icon: 'receipt', label: 'Transactions', route: '/admin/transactions' },
     { icon: 'bar_chart', label: 'Statistiques', route: '/admin/stats' },
+    { icon: 'settings', label: 'Paramètres', route: '/admin/settings' },
+    { icon: 'person', label: 'Mon Profil', route: '/admin/profile' }
+  ];
+
+  adminSuperMenuItems = [
+    { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
+    { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/admin/wallet' },
+    { icon: 'people', label: 'Amis', route: '/admin/friends' },
+    { icon: 'chat', label: 'Messages', route: '/admin/chat' },
+    { icon: 'people', label: 'Utilisateurs', route: '/admin/users' },
+    { icon: 'receipt', label: 'Transactions', route: '/admin/transactions' },
+    { icon: 'bar_chart', label: 'Statistiques', route: '/admin/stats' },
+    { icon: 'admin_panel_settings', label: 'Administrateurs', route: '/admin/admins' },
     { icon: 'settings', label: 'Paramètres', route: '/admin/settings' },
     { icon: 'person', label: 'Mon Profil', route: '/admin/profile' }
   ];
@@ -65,6 +82,7 @@ export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit {
     this.checkScreenSize();
     this.authService.currentUser.subscribe(user => {
       this.currentUser = user;
+      this.isSuperAdmin = user?.role === 'super_admin';
     });
     this.themeSubscription = this.themeService.currentTheme$.subscribe(() => {
       this.adminMenuItems = [...this.adminMenuItems];
@@ -72,7 +90,6 @@ export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Appliquer la classe collapsed sur le mat-drawer-content
     this.updateDrawerContentClass();
   }
 
@@ -135,7 +152,10 @@ export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get menuItems() {
-    return this.isAdmin() ? this.adminMenuItems : this.userMenuItems;
+    if (this.isAdmin()) {
+      return this.isSuperAdmin ? this.adminSuperMenuItems : this.adminMenuItems;
+    }
+    return this.userMenuItems;
   }
 
   translate(key: string): string {

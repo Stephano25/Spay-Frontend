@@ -1,4 +1,3 @@
-<!-- frontend/src/app/components/admin/dashboard/admin-dashboard.component.html -->
 <mat-toolbar color="primary" class="dashboard-toolbar">
   <button mat-icon-button (click)="goBack()" matTooltip="Retour">
     <mat-icon>arrow_back</mat-icon>
@@ -13,6 +12,22 @@
     <button mat-menu-item (click)="navigateTo('dashboard')">
       <mat-icon>dashboard</mat-icon>
       <span>Tableau de bord</span>
+    </button>
+    <mat-divider></mat-divider>
+    <!-- ✅ NOUVEAU : Wallet -->
+    <button mat-menu-item (click)="navigateTo('wallet')">
+      <mat-icon>account_balance_wallet</mat-icon>
+      <span>Portefeuille</span>
+    </button>
+    <!-- ✅ NOUVEAU : Friends -->
+    <button mat-menu-item (click)="navigateTo('friends')">
+      <mat-icon>people</mat-icon>
+      <span>Amis</span>
+    </button>
+    <!-- ✅ NOUVEAU : Chat -->
+    <button mat-menu-item (click)="navigateTo('chat')">
+      <mat-icon>chat</mat-icon>
+      <span>Messages</span>
     </button>
     <mat-divider></mat-divider>
     <button mat-menu-item (click)="navigateTo('profile')">
@@ -38,6 +53,10 @@
     <button *ngIf="isSuperAdmin" mat-menu-item (click)="navigateTo('admins')">
       <mat-icon>admin_panel_settings</mat-icon>
       <span>Administrateurs</span>
+    </button>
+    <button *ngIf="isSuperAdmin" mat-menu-item (click)="navigateTo('deposit')">
+      <mat-icon>account_balance_wallet</mat-icon>
+      <span>Dépôt Admin</span>
     </button>
     <mat-divider></mat-divider>
     <button mat-menu-item (click)="logout()" class="logout-item">
@@ -199,6 +218,69 @@
       </div>
     </div>
 
+    <!-- ✅ COMMISSIONS SuperAdmin -->
+    <div *ngIf="isSuperAdmin && stats" class="commission-stats">
+      <div class="section-header">
+        <h2 class="section-title">
+          <mat-icon>receipt_long</mat-icon>
+          Commissions perçues
+        </h2>
+        <span class="section-subtitle">Taux: {{ stats.commissionRate || 0.5 }}%</span>
+      </div>
+
+      <div class="kpi-grid mini">
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats!.totalCommission || 0) }} Ar</div>
+              <div class="kpi-label">Total commissions</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.commissionTransactions || 0) }}</div>
+              <div class="kpi-label">Transactions avec commission</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Dernières commissions -->
+      <mat-card class="recent-card" *ngIf="stats.recentCommissions && stats.recentCommissions.length > 0">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>history</mat-icon>
+            Dernières commissions
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="recent-list">
+            <div *ngFor="let c of stats.recentCommissions.slice(0,5)" class="recent-item">
+              <div class="transaction-icon completed">
+                <mat-icon>payments</mat-icon>
+              </div>
+              <div class="recent-info">
+                <div class="recent-name">{{ c.adminName || 'Admin' }} → {{ c.userName || 'User' }}</div>
+                <div class="recent-volume">
+                  Commission: {{ formatVolume(c.commission) }} Ar sur {{ formatVolume(c.amount) }} Ar
+                </div>
+              </div>
+              <div class="recent-date">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
     <!-- MENU DE NAVIGATION -->
     <div class="section-header">
       <h2 class="section-title"><mat-icon>dashboard</mat-icon> Gestion</h2>
@@ -258,6 +340,36 @@
         </mat-card>
       </mat-grid-tile>
       
+      <!-- ✅ NOUVEAU : Menu Portefeuille -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('wallet')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon wallet"><mat-icon>account_balance_wallet</mat-icon></div>
+            <span>Portefeuille</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- ✅ NOUVEAU : Menu Amis -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('friends')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon friends"><mat-icon>people</mat-icon></div>
+            <span>Amis</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- ✅ NOUVEAU : Menu Chat -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('chat')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon chat"><mat-icon>chat</mat-icon></div>
+            <span>Messages</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
       <!-- Menu Administrateurs (Super Admin uniquement) -->
       <mat-grid-tile *ngIf="isSuperAdmin">
         <mat-card class="menu-card" (click)="navigateTo('admins')" matRipple>
@@ -287,6 +399,37 @@
             <div class="menu-icon withdraw"><mat-icon>qr_code</mat-icon></div>
             <span>Retrait QR</span>
             <span class="menu-badge admin">QR</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- Dépôt Admin (SuperAdmin uniquement) -->
+      <mat-grid-tile *ngIf="isSuperAdmin">
+        <mat-card class="menu-card" (click)="navigateTo('deposit')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon deposit"><mat-icon>account_balance_wallet</mat-icon></div>
+            <span>Dépôt Admin</span>
+            <span class="menu-badge admin">Admin</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- ✅ NOUVEAU : Mobile Money -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('mobile-money')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon mobile-money"><mat-icon>phone_android</mat-icon></div>
+            <span>Mobile Money</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- ✅ NOUVEAU : Scan Pay -->
+      <mat-grid-tile>
+        <mat-card class="menu-card" (click)="navigateTo('scan-pay')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon scan-pay"><mat-icon>qr_code_scanner</mat-icon></div>
+            <span>Scanner</span>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>

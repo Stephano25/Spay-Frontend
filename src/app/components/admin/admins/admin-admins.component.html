@@ -1,10 +1,22 @@
-<!-- frontend/src/app/components/admin/admins/admin-admins.component.html -->
 <mat-toolbar color="primary">
   <button mat-icon-button (click)="goBack()" matTooltip="Retour">
     <mat-icon>arrow_back</mat-icon>
   </button>
   <span>Gestion des Administrateurs</span>
   <span class="spacer"></span>
+  
+  <!-- ✅ NOUVEAU BOUTON : Dépôt Admin -->
+  <button *ngIf="isSuperAdmin" mat-raised-button color="accent" (click)="openAdminDeposit()" matTooltip="Déposer sur un admin">
+    <mat-icon>account_balance_wallet</mat-icon>
+    Dépôt Admin
+  </button>
+  
+  <!-- ✅ NOUVEAU BOUTON : Retrait Admin -->
+  <button *ngIf="isSuperAdmin" mat-raised-button color="accent" (click)="openAdminWithdraw()" matTooltip="Retirer sur un admin">
+    <mat-icon>account_balance_wallet</mat-icon>
+    Retrait Admin
+  </button>
+  
   <button mat-raised-button color="accent" routerLink="/admin/admins/create">
     <mat-icon>person_add</mat-icon>
     Créer un Admin
@@ -63,6 +75,16 @@
               </td>
               <td>{{ admin.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="actions-cell">
+                <!-- ✅ Dépôt Admin -->
+                <button
+                  *ngIf="isSuperAdmin"
+                  mat-icon-button
+                  color="primary"
+                  (click)="depositToAdmin(admin)"
+                  matTooltip="Déposer sur cet admin">
+                  <mat-icon>add</mat-icon>
+                </button>
+                <!-- Suppression -->
                 <button
                   mat-icon-button
                   color="warn"

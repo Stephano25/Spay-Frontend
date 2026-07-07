@@ -22,7 +22,6 @@ export class AdminGuard implements CanActivate {
       return false;
     }
 
-    // ✅ Vérifier si l'utilisateur est admin ou super_admin
     const isAdmin = user.role === 'admin' || user.role === 'super_admin';
     
     if (!isAdmin) {
@@ -31,11 +30,11 @@ export class AdminGuard implements CanActivate {
       return false;
     }
 
-    // ✅ Vérifier les routes spécifiques pour super_admin
-    const adminRoutes = ['admins', 'admins/create'];
+    // ✅ Routes nécessitant SuperAdmin
+    const superAdminRoutes = ['admins', 'admins/create'];
     const currentRoute = route.routeConfig?.path || '';
     
-    if (adminRoutes.some(r => currentRoute.includes(r))) {
+    if (superAdminRoutes.some(r => currentRoute.includes(r))) {
       if (user.role !== 'super_admin') {
         this.notificationService.showError('Accès réservé aux Super Administrateurs');
         this.router.navigate(['/admin/dashboard']);

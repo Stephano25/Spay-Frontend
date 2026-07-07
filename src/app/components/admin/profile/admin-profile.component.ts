@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { AdminService } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
+import { WalletService } from '../../../services/wallet.service';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,6 +16,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-admin-profile',
@@ -33,6 +35,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatTooltipModule,
+    MatDialogModule,
   ],
   templateUrl: './admin-profile.component.html',
   styleUrls: ['./admin-profile.component.css'],
@@ -43,17 +46,28 @@ export class AdminProfileComponent implements OnInit {
   editMode = false;
   isLoading = true;
   isSaving = false;
+  isSuperAdmin = false;
+
+  // ✅ Pour l'augmentation du portefeuille
+  showTopUpModal = false;
+  topUpAmount: number = 0;
+  topUpDescription: string = '';
+  isTopUpSubmitting = false;
 
   constructor(
     private authService: AuthService,
     private adminService: AdminService,
+    private walletService: WalletService,
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit() {
     this.loadAdminData();
     this.loadStats();
+    const user = this.authService.getCurrentUser();
+    this.isSuperAdmin = user?.role === 'super_admin';
   }
 
   loadAdminData() {
@@ -62,6 +76,7 @@ export class AdminProfileComponent implements OnInit {
       next: (user) => {
         if (user) {
           this.admin = user;
+          this.isSuperAdmin = user.role === 'super_admin';
         }
         this.isLoading = false;
       },
@@ -109,6 +124,64 @@ export class AdminProfileComponent implements OnInit {
           'Erreur lors de la mise à jour du profil'
         );
         this.isSaving = false;
+      },
+    });
+  }
+
+  // ✅ OUVRIRE LE MODAL DE TOP-UP
+  openTopUpModal() {
+    this.topUpAmount = 0;
+    this.topUpDescription = '';
+    this.showTopUpModal = true;
+  }
+
+  // ✅ FERMER LE MODAL
+  closeTopUpModal() {
+    this.showTopUpModal = false;
+    this.topUpAmount = 0;
+    this.topUpDescription = '';
+    this.isTopUpSubmitting = false;
+  }
+
+  // ✅ AUGMENTER LE PORTEFEUILLE DU SUPERADMIN
+  topUpWallet() {
+    if (!this.topUpAmount || this.topUpAmount < 100) {
+      this.notificationService.showError('Le montant minimum est de 100 Ar');
+      return;
+    }
+
+    if (!this.admin) {
+      this.notificationService.showError('Administrateur non trouvé');
+      return;
+    }
+
+    this.isTopUpSubmitting = true;
+
+    // Utiliser le service Admin pour déposer sur lui-même
+    this.adminService.depositMoney(
+      this.admin.id,
+      this.topUpAmount,
+      this.topUpDescription || `Top-up portefeuille SuperAdmin`
+    ).subscribe({
+      next: (response) => {
+        this.isTopUpSubmitting = false;
+        this.notificationService.showSuccess(
+          `💰 ${this.formatAmount(this.topUpAmount)} Ar ajoutés à votre portefeuille avec succès!`
+        );
+        // Mettre à jour le solde affiché
+        if (this.admin) {
+          this.admin.balance = response.newBalance || (this.admin.balance + this.topUpAmount);
+          this.authService.updateCurrentUser(this.admin);
+        }
+        this.closeTopUpModal();
+        this.loadAdminData();
+      },
+      error: (error) => {
+        console.error('Erreur top-up:', error);
+        this.isTopUpSubmitting = false;
+        this.notificationService.showError(
+          error?.error?.message || 'Erreur lors du top-up du portefeuille'
+        );
       },
     });
   }

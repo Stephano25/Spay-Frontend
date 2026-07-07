@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AdminService } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
 
@@ -37,11 +37,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 })
 export class AdminDepositComponent implements OnInit {
   users: any[] = [];
+  admins: any[] = [];
   selectedUserId: string = '';
   amount: number = 0;
   description: string = '';
   isLoading = false;
   isSubmitting = false;
+  isAdminDeposit: boolean = false;
+  targetAdminId: string | null = null;
 
   depositResult: {
     success: boolean;
@@ -55,10 +58,21 @@ export class AdminDepositComponent implements OnInit {
     private adminService: AdminService,
     private notificationService: NotificationService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
-    this.loadUsers();
+    // ✅ Récupérer les paramètres pour savoir si c'est un dépôt admin
+    this.route.queryParams.subscribe(params => {
+      this.isAdminDeposit = params['target'] === 'admin';
+      this.targetAdminId = params['adminId'] || null;
+      
+      if (this.isAdminDeposit) {
+        this.loadAdmins();
+      } else {
+        this.loadUsers();
+      }
+    });
   }
 
   loadUsers(): void {
@@ -76,13 +90,36 @@ export class AdminDepositComponent implements OnInit {
     });
   }
 
+  loadAdmins(): void {
+    this.isLoading = true;
+    this.adminService.getAdmins().subscribe({
+      next: (admins) => {
+        this.admins = admins;
+        this.isLoading = false;
+        
+        // Si un adminId est spécifié, le sélectionner automatiquement
+        if (this.targetAdminId) {
+          const target = this.admins.find(a => a.id === this.targetAdminId);
+          if (target) {
+            this.selectedUserId = target.id;
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Erreur chargement admins:', error);
+        this.notificationService.showError('Erreur lors du chargement des administrateurs');
+        this.isLoading = false;
+      },
+    });
+  }
+
   selectQuickAmount(amount: number): void {
     this.amount = amount;
   }
 
   onSubmit(): void {
     if (!this.selectedUserId) {
-      this.notificationService.showError('Veuillez sélectionner un utilisateur');
+      this.notificationService.showError('Veuillez sélectionner un ' + (this.isAdminDeposit ? 'administrateur' : 'utilisateur'));
       return;
     }
 
@@ -91,7 +128,7 @@ export class AdminDepositComponent implements OnInit {
       return;
     }
 
-    const user = this.users.find((u) => u.id === this.selectedUserId);
+    const user = this.getSelectedUser();
     if (!user) {
       this.notificationService.showError('Utilisateur non trouvé');
       return;
@@ -126,7 +163,13 @@ export class AdminDepositComponent implements OnInit {
           this.selectedUserId = '';
           this.amount = 0;
           this.description = '';
-          this.loadUsers();
+          
+          if (this.isAdminDeposit) {
+            this.loadAdmins();
+          } else {
+            this.loadUsers();
+          }
+          
           setTimeout(() => (this.depositResult = null), 5000);
         },
         error: (error) => {
@@ -142,6 +185,9 @@ export class AdminDepositComponent implements OnInit {
   }
 
   getSelectedUser(): any {
+    if (this.isAdminDeposit) {
+      return this.admins.find((u) => u.id === this.selectedUserId);
+    }
     return this.users.find((u) => u.id === this.selectedUserId);
   }
 
@@ -154,9 +200,7 @@ export class AdminDepositComponent implements OnInit {
   }
 
   onAmountChange(): void {
-  // Cette méthode est appelée à chaque changement de montant
-  // Vous pouvez y ajouter des validations ou des mises à jour
-  if (this.amount && this.amount < 0) {
+    if (this.amount && this.amount < 0) {
       this.amount = 0;
     }
   }

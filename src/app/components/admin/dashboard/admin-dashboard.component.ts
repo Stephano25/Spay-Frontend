@@ -69,7 +69,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   showQRGenerator: boolean = false;
   qrGeneratorType: 'deposit' | 'withdraw' = 'deposit';
 
-  // ✅ Menu items selon le rôle (corrigé)
   get menuItems() {
     const baseMenu = [
       { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
@@ -80,11 +79,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       { icon: 'settings', label: 'Paramètres', route: '/admin/settings' },
     ];
 
-    // ✅ Super Admin a accès à la gestion des administrateurs
     if (this.isSuperAdmin) {
       return [
         ...baseMenu,
-        { icon: 'admin_panel_settings', label: 'Administrateurs', route: '/admin/admins' }
+        { icon: 'admin_panel_settings', label: 'Administrateurs', route: '/admin/admins' },
+        { icon: 'account_balance_wallet', label: 'Dépôt Admin', route: '/admin/deposit' },
       ];
     }
     return baseMenu;
@@ -146,6 +145,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       next: (data) => {
         this.stats = data;
         this.isLoading = false;
+        
+        // ✅ Si SuperAdmin, charger les stats des commissions
+        if (this.isSuperAdmin) {
+          this.loadCommissionStats();
+        }
+        
         setTimeout(() => this.createCharts(), 300);
       },
       error: (err) => {
@@ -173,10 +178,37 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     });
   }
 
+  // ✅ NOUVELLE MÉTHODE : Chargement des commissions
+  private loadCommissionStats(): void {
+    this.adminService.getCommissionStats().subscribe({
+      next: (commissionData) => {
+        if (this.stats) {
+          this.stats.totalCommission = commissionData.totalCommission || 0;
+          this.stats.commissionTransactions = commissionData.commissionTransactions || 0;
+          this.stats.recentCommissions = commissionData.recentCommissions || [];
+          this.stats.commissionRate = commissionData.commissionRate || 0.5;
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erreur chargement commissions:', err);
+        // Valeurs par défaut
+        if (this.stats) {
+          this.stats.totalCommission = 0;
+          this.stats.commissionTransactions = 0;
+          this.stats.recentCommissions = [];
+          this.stats.commissionRate = 0.5;
+        }
+      }
+    });
+  }
+
   private loadDashboardDataSilent(): void {
     this.adminService.getDashboardStats().subscribe({
       next: (data) => {
         this.stats = data;
+        if (this.isSuperAdmin) {
+          this.loadCommissionStats();
+        }
         this.updateCharts();
       },
       error: (err) => console.error('❌ Erreur refresh silencieux:', err),

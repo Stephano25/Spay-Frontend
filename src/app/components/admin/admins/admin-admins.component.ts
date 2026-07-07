@@ -1,4 +1,3 @@
-// frontend/src/app/components/admin/admins/admin-admins.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -45,7 +44,6 @@ export class AdminAdminsComponent implements OnInit {
   currentAdminId: string = '';
   isSuperAdmin = false;
   
-  // ✅ Ajout des propriétés manquantes
   stats: any = {
     totalUsers: 0,
     totalTransactions: 0,
@@ -131,7 +129,7 @@ export class AdminAdminsComponent implements OnInit {
     }
   }
 
-  // ✅ Méthodes ajoutées
+  // ✅ Navigation
   navigateTo(route: string): void {
     this.router.navigate([`/admin/${route}`]);
   }
@@ -152,5 +150,22 @@ export class AdminAdminsComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/admin/dashboard']);
+  }
+
+  // ✅ Ouvrir le dépôt admin
+  openAdminDeposit(): void {
+    this.router.navigate(['/admin/deposit'], { queryParams: { target: 'admin' } });
+  }
+
+  // ✅ Ouvrir le retrait admin
+  openAdminWithdraw(): void {
+    this.router.navigate(['/admin/withdraw'], { queryParams: { target: 'admin' } });
+  }
+
+  // ✅ Déposer sur un admin spécifique
+  depositToAdmin(admin: any): void {
+    this.router.navigate(['/admin/deposit'], {
+      queryParams: { adminId: admin.id, target: 'admin' }
+    });
   }
 }
