@@ -1,6 +1,6 @@
 <!-- frontend/src/app/components/scan-pay/scan-pay.component.html -->
 <div class="scan-container">
-  <!-- Header personnalisé -->
+  <!-- Header -->
   <div class="scan-header">
     <button class="back-btn" (click)="goBack()" matTooltip="Retour">
       <mat-icon>arrow_back</mat-icon>
@@ -35,11 +35,15 @@
             <p>Utilisez le bouton ci-dessous pour simuler un scan</p>
           </div>
 
-          <!-- Vidéo caméra -->
+          <!-- Conteneur du scanner -->
           <div class="camera-preview" *ngIf="hasCamera && !cameraError && !cameraPermissionDenied" @scaleIn>
-            <video #videoElement class="video-preview" autoplay playsinline></video>
+            <div id="qr-scanner-container" class="scanner-container">
+              <!-- Le scanner HTML5-QRCode s'affiche ici -->
+            </div>
             <div class="scan-overlay">
-              <div class="scan-frame"></div>
+              <div class="scan-frame">
+                <div class="scan-line"></div>
+              </div>
               <p>
                 {{ scanType === 'deposit' ? 'Scannez le QR Code de dépôt' : 
                    scanType === 'withdraw' ? 'Scannez le QR Code de retrait' : 
@@ -70,7 +74,7 @@
           </div>
         </div>
 
-        <!-- Formulaire de paiement/dépôt/retrait -->
+        <!-- Formulaire -->
         <div *ngIf="!isScanning && showPaymentForm" class="payment-mode" @slideInRight>
           <div class="user-info" *ngIf="scannedData" @slideInLeft>
             <div class="user-avatar">
@@ -86,9 +90,9 @@
                    scanType === 'withdraw' ? 'Retrait par QR Code' : 
                    'Paiement par QR code' }}
               </div>
-              <div class="user-phone">{{ scannedData.qrCode }}</div>
-              <div *ngIf="scannedData.adminName" class="user-phone" style="color: var(--brand-1);">
-                Admin: {{ scannedData.adminName }}
+              <div class="user-phone">{{ scannedData.qrCode || scannedData.adminId || 'QR Code' }}</div>
+              <div *ngIf="scannedData.adminName" class="user-phone admin-name">
+                👤 {{ scannedData.adminName }}
               </div>
             </div>
           </div>
@@ -111,7 +115,7 @@
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Description (optionnelle)</mat-label>
               <textarea matInput formControlName="description" rows="2" 
-                        placeholder="Ex: {{ scanType === 'deposit' ? 'Dépôt' : scanType === 'withdraw' ? 'Retrait' : 'Paiement repas' }}..."></textarea>
+                        placeholder="Ex: {{ scanType === 'deposit' ? 'Dépôt' : scanType === 'withdraw' ? 'Retrait' : 'Paiement' }}..."></textarea>
             </mat-form-field>
 
             <div class="quick-amounts">
@@ -126,6 +130,12 @@
               </button>
               <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 20000})">
                 20 000 Ar
+              </button>
+              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 50000})">
+                50 000 Ar
+              </button>
+              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 100000})">
+                100 000 Ar
               </button>
             </div>
 

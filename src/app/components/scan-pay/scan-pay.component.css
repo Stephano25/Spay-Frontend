@@ -1,6 +1,4 @@
-/* ============================================================
-   SCAN & PAY — SPaye
-   ============================================================ */
+/* frontend/src/app/components/scan-pay/scan-pay.component.css */
 
 .scan-container {
   min-height: 100vh;
@@ -24,7 +22,6 @@
   gap: 14px;
 }
 
-/* ── Back button ── */
 .back-btn {
   width: 38px;
   height: 38px;
@@ -41,9 +38,12 @@
   flex-shrink: 0;
 }
 
-.back-btn:hover { background: var(--active); color: var(--brand-1); transform: translateX(-3px); }
+.back-btn:hover {
+  background: var(--active);
+  color: var(--brand-1);
+  transform: translateX(-3px);
+}
 
-/* ── Header title ── */
 .header-title {
   font-family: var(--font-sans);
   font-size: 1.125rem;
@@ -66,7 +66,6 @@
   z-index: 2;
 }
 
-/* ── Cards ── */
 .scan-card {
   border-radius: var(--r-xl) !important;
   box-shadow: var(--shadow-xl) !important;
@@ -76,12 +75,36 @@
   border: 0.5px solid var(--border) !important;
 }
 
-.scan-card mat-card-content { padding: 22px !important; }
+.scan-card mat-card-content {
+  padding: 22px !important;
+}
 
-/* ── Scan mode ── */
-.scan-mode { animation: fadeIn 0.4s var(--ease); }
+/* ── Scanner ── */
+.scanner-container {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  margin-bottom: 18px;
+  position: relative;
+  background: #000;
+  min-height: 280px;
+}
 
-/* ── Camera preview ── */
+#qr-reader {
+  width: 100%;
+  height: 100%;
+}
+
+#qr-reader video {
+  border-radius: var(--r-lg);
+}
+
+#qr-reader .qr-box {
+  display: none !important;
+}
+
+/* ── Scan overlay ── */
 .camera-preview {
   position: relative;
   width: 100%;
@@ -93,8 +116,6 @@
   border: 2px solid var(--border-2);
 }
 
-.video-preview { width: 100%; height: 100%; object-fit: cover; }
-
 .scan-overlay {
   position: absolute;
   inset: 0;
@@ -104,6 +125,7 @@
   justify-content: center;
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(2px);
+  pointer-events: none;
 }
 
 .scan-frame {
@@ -115,23 +137,7 @@
   position: relative;
 }
 
-/* Corner decorators */
-.scan-frame::before,
-.scan-frame::after {
-  content: '';
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  border-color: var(--brand-1);
-  border-style: solid;
-}
-
-.scan-frame::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 6px 0 0 0; }
-.scan-frame::after  { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 6px 0; }
-
-/* Scan line — uses a pseudo on a child element to avoid conflict with corner ::after */
 .scan-line {
-  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -143,7 +149,7 @@
 
 @keyframes scanLine {
   0%   { transform: translateY(0); opacity: 1; }
-  90%  { transform: translateY(calc(var(--scan-height, 100%) - 2px)); opacity: 0.7; }
+  90%  { transform: translateY(calc(100% - 2px)); opacity: 0.7; }
   100% { transform: translateY(0); opacity: 1; }
 }
 
@@ -175,8 +181,41 @@
   animation: float 3s ease-in-out infinite;
 }
 
-.camera-error h3 { color: var(--danger); font-family: var(--font-sans); font-size: 1rem; margin: 0 0 6px; }
-.camera-error p  { color: var(--text-3); font-size: 0.875rem; margin: 0 0 14px; }
+.camera-error h3 {
+  color: var(--danger);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  margin: 0 0 6px;
+}
+
+.camera-error p {
+  color: var(--text-3);
+  font-size: 0.875rem;
+  margin: 0 0 14px;
+}
+
+.retry-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--danger);
+  color: white;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--trans-base);
+  outline: none;
+  font-family: var(--font-body);
+  margin: 0 auto;
+}
+
+.retry-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
+}
 
 /* ── Scanner placeholder ── */
 .scanner-placeholder {
@@ -208,8 +247,19 @@
   z-index: 2;
 }
 
-.scanner-placeholder p       { margin: 0; font-size: 1.125rem; font-weight: 600; position: relative; z-index: 2; }
-.scanner-placeholder .hint   { font-size: 0.8125rem; opacity: 0.8; margin-top: 5px !important; }
+.scanner-placeholder p {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  position: relative;
+  z-index: 2;
+}
+
+.scanner-placeholder .hint {
+  font-size: 0.8125rem;
+  opacity: 0.8;
+  margin-top: 5px !important;
+}
 
 /* ── Scan actions ── */
 .scan-actions {
@@ -249,8 +299,14 @@
   transition: transform 0.5s var(--ease);
 }
 
-.scan-btn.primary:hover::after     { transform: translateX(100%); }
-.scan-btn.primary:hover             { transform: translateY(-2px); box-shadow: var(--shadow-brand) !important; }
+.scan-btn.primary:hover::after {
+  transform: translateX(100%);
+}
+
+.scan-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-brand) !important;
+}
 
 .scan-btn.stroked {
   border: 1.5px solid var(--border-2) !important;
@@ -266,9 +322,10 @@
 }
 
 /* ── Payment mode ── */
-.payment-mode { animation: slideInRight 0.4s var(--ease); }
+.payment-mode {
+  animation: slideInRight 0.4s var(--ease);
+}
 
-/* ── User info row ── */
 .user-info {
   display: flex;
   align-items: center;
@@ -294,13 +351,39 @@
   flex-shrink: 0;
 }
 
-.user-avatar mat-icon { font-size: 1.75rem !important; }
-.user-details         { flex: 1; }
-.user-name            { font-family: var(--font-sans); font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
-.user-phone           { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-3); word-break: break-all; }
+.user-avatar mat-icon {
+  font-size: 1.75rem !important;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-name {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.user-phone {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-3);
+  word-break: break-all;
+}
+
+.admin-name {
+  color: var(--brand-1) !important;
+  font-weight: 600;
+}
 
 /* ── Form ── */
-.full-width { width: 100%; margin-bottom: 14px; }
+.full-width {
+  width: 100%;
+  margin-bottom: 14px;
+}
 
 /* ── Quick amounts ── */
 .quick-amounts {
@@ -359,7 +442,10 @@
   background: transparent !important;
 }
 
-.action-btn.cancel:hover:not(:disabled) { background: var(--danger-bg) !important; transform: translateY(-2px) !important; }
+.action-btn.cancel:hover:not(:disabled) {
+  background: var(--danger-bg) !important;
+  transform: translateY(-2px) !important;
+}
 
 .action-btn.pay {
   background: linear-gradient(135deg, #10b981, #059669) !important;
@@ -367,8 +453,14 @@
   border: none !important;
 }
 
-.action-btn.pay:hover:not(:disabled)  { transform: translateY(-2px) !important; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important; }
-.action-btn.pay:disabled              { opacity: 0.5 !important; }
+.action-btn.pay:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
+}
+
+.action-btn.pay:disabled {
+  opacity: 0.5 !important;
+}
 
 /* ── Info card ── */
 .info-card {
@@ -380,7 +472,9 @@
   animation: fadeUp 0.4s var(--ease) 0.15s both;
 }
 
-.info-card mat-card-content { padding: 20px !important; }
+.info-card mat-card-content {
+  padding: 20px !important;
+}
 
 .info-card h3 {
   font-family: var(--font-sans);
@@ -393,7 +487,9 @@
   gap: 8px;
 }
 
-.info-card h3 mat-icon { color: var(--brand-1) !important; }
+.info-card h3 mat-icon {
+  color: var(--brand-1) !important;
+}
 
 .info-step {
   display: flex;
@@ -404,10 +500,10 @@
   animation: slideInLeft 0.3s var(--ease) both;
 }
 
-.info-step:nth-child(2) { animation-delay: 0.06s; }
-.info-step:nth-child(3) { animation-delay: 0.12s; }
-.info-step:nth-child(4) { animation-delay: 0.18s; }
-.info-step:last-child   { border-bottom: none; padding-bottom: 0; }
+.info-step:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
 
 .info-step mat-icon {
   color: var(--brand-1) !important;
@@ -417,53 +513,87 @@
   flex-shrink: 0;
 }
 
-.info-step span { color: var(--text-3); font-size: 0.875rem; }
-
-/* ── Retry button ── */
-.retry-btn {
-  margin-top: 10px;
-  padding: 7px 18px;
-  border: none;
-  border-radius: var(--r-pill);
-  background: var(--danger);
-  color: white;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all var(--trans-base);
-  box-shadow: var(--shadow-sm);
-  font-family: var(--font-body);
-  outline: none;
+.info-step span {
+  color: var(--text-3);
+  font-size: 0.875rem;
 }
 
-.retry-btn:hover      { opacity: 0.85; transform: translateY(-2px); }
-.retry-btn mat-icon   { font-size: 16px !important; }
-
 /* ── Animations ── */
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.6; transform: scale(0.95); }
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-6px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.95); }
 }
 
 @keyframes orb {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(8px, -10px) scale(1.04); }
-  66%       { transform: translate(-6px, 6px) scale(0.97); }
+  33% { transform: translate(8px, -10px) scale(1.04); }
+  66% { transform: translate(-6px, 6px) scale(0.97); }
 }
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
-  .scan-header                    { padding: 12px 14px; }
-  .scan-card mat-card-content     { padding: 16px !important; }
-  .quick-amounts                  { grid-template-columns: 1fr; }
-  .button-group                   { flex-direction: column; }
-  .scanner-placeholder mat-icon   { font-size: 3.5rem !important; width: 3.5rem !important; height: 3.5rem !important; }
+  .scan-header {
+    padding: 12px 14px;
+  }
+  .scan-card mat-card-content {
+    padding: 16px !important;
+  }
+  .quick-amounts {
+    grid-template-columns: 1fr;
+  }
+  .button-group {
+    flex-direction: column;
+  }
+  .scanner-placeholder mat-icon {
+    font-size: 3.5rem !important;
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+  }
+  .scan-frame {
+    width: 55%;
+    height: 55%;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-info {
+    flex-wrap: wrap;
+  }
+  .user-avatar {
+    width: 44px;
+    height: 44px;
+  }
+  .user-avatar mat-icon {
+    font-size: 1.5rem !important;
+  }
 }
