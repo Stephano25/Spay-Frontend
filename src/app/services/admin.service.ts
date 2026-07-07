@@ -45,6 +45,8 @@ export interface AdminDashboardStats {
   commissionTransactions?: number;
   recentCommissions?: any[];
   commissionRate?: number;
+  myCommission?: number;
+  myCommissionTransactions?: number;
 }
 
 export interface QRCodeResponse {

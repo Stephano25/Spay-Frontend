@@ -58,6 +58,10 @@
       <mat-icon>account_balance_wallet</mat-icon>
       <span>Dépôt Admin</span>
     </button>
+    <button *ngIf="isSuperAdmin" mat-menu-item (click)="navigateTo('withdraw')">
+      <mat-icon>account_balance_wallet</mat-icon>
+      <span>Retrait Admin</span>
+    </button>
     <mat-divider></mat-divider>
     <button mat-menu-item (click)="logout()" class="logout-item">
       <mat-icon>exit_to_app</mat-icon>
@@ -218,12 +222,12 @@
       </div>
     </div>
 
-    <!-- ✅ COMMISSIONS SuperAdmin -->
-    <div *ngIf="isSuperAdmin && stats" class="commission-stats">
+    <!-- ✅ COMMISSIONS - ADMIN -->
+    <div *ngIf="!isSuperAdmin && stats" class="commission-stats">
       <div class="section-header">
         <h2 class="section-title">
           <mat-icon>receipt_long</mat-icon>
-          Commissions perçues
+          Mes commissions
         </h2>
         <span class="section-subtitle">Taux: {{ stats.commissionRate || 0.5 }}%</span>
       </div>
@@ -231,7 +235,70 @@
       <div class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats!.myCommission || 0) }} Ar</div>
+              <div class="kpi-label">Mes commissions</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
             <div class="kpi-icon mini" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.myCommissionTransactions || 0) }}</div>
+              <div class="kpi-label">Transactions avec commission</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Dernières commissions de l'admin -->
+      <mat-card class="recent-card" *ngIf="stats.recentCommissions && stats.recentCommissions.length > 0">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>history</mat-icon>
+            Mes dernières commissions
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="recent-list">
+            <div *ngFor="let c of stats.recentCommissions.slice(0,5)" class="recent-item">
+              <div class="transaction-icon completed">
+                <mat-icon>payments</mat-icon>
+              </div>
+              <div class="recent-info">
+                <div class="recent-name">{{ c.type === 'deposit' ? 'Dépôt' : 'Retrait' }} - {{ c.userName || 'Utilisateur' }}</div>
+                <div class="recent-volume">
+                  Commission: {{ formatVolume(c.commission) }} Ar sur {{ formatVolume(c.amount) }} Ar
+                </div>
+              </div>
+              <div class="recent-date">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- ✅ COMMISSIONS - SUPERADMIN -->
+    <div *ngIf="isSuperAdmin && stats" class="commission-stats">
+      <div class="section-header">
+        <h2 class="section-title">
+          <mat-icon>receipt_long</mat-icon>
+          Commissions
+        </h2>
+        <span class="section-subtitle">Taux: {{ stats.commissionRate || 0.5 }}%</span>
+      </div>
+
+      <div class="kpi-grid mini">
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
               <mat-icon>payments</mat-icon>
             </div>
             <div class="kpi-info">
@@ -243,7 +310,7 @@
 
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
-            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="kpi-icon mini" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
               <mat-icon>receipt</mat-icon>
             </div>
             <div class="kpi-info">
@@ -252,9 +319,33 @@
             </div>
           </mat-card-content>
         </mat-card>
+
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(124,58,237,0.12); color: #7c3aed;">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats!.myCommission || 0) }} Ar</div>
+              <div class="kpi-label">Mes commissions (perso)</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.myCommissionTransactions || 0) }}</div>
+              <div class="kpi-label">Mes transactions avec commission</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
       </div>
 
-      <!-- Dernières commissions -->
+      <!-- Dernières commissions SuperAdmin -->
       <mat-card class="recent-card" *ngIf="stats.recentCommissions && stats.recentCommissions.length > 0">
         <mat-card-header>
           <mat-card-title>
@@ -269,7 +360,7 @@
                 <mat-icon>payments</mat-icon>
               </div>
               <div class="recent-info">
-                <div class="recent-name">{{ c.adminName || 'Admin' }} → {{ c.userName || 'User' }}</div>
+                <div class="recent-name">{{ c.type === 'deposit' ? 'Dépôt' : 'Retrait' }} - {{ c.userName || 'Utilisateur' }}</div>
                 <div class="recent-volume">
                   Commission: {{ formatVolume(c.commission) }} Ar sur {{ formatVolume(c.amount) }} Ar
                 </div>
@@ -409,6 +500,17 @@
           <mat-card-content>
             <div class="menu-icon deposit"><mat-icon>account_balance_wallet</mat-icon></div>
             <span>Dépôt Admin</span>
+            <span class="menu-badge admin">Admin</span>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <!-- Retrait Admin (SuperAdmin uniquement) -->
+      <mat-grid-tile *ngIf="isSuperAdmin">
+        <mat-card class="menu-card" (click)="navigateTo('withdraw')" matRipple>
+          <mat-card-content>
+            <div class="menu-icon withdraw"><mat-icon>account_balance_wallet</mat-icon></div>
+            <span>Retrait Admin</span>
             <span class="menu-badge admin">Admin</span>
           </mat-card-content>
         </mat-card>

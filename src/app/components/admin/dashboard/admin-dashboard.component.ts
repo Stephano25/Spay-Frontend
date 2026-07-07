@@ -72,6 +72,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   get menuItems() {
     const baseMenu = [
       { icon: 'dashboard', label: 'Tableau de bord', route: '/admin/dashboard' },
+      { icon: 'account_balance_wallet', label: 'Portefeuille', route: '/admin/wallet' },
+      { icon: 'people', label: 'Amis', route: '/admin/friends' },
+      { icon: 'chat', label: 'Messages', route: '/admin/chat' },
       { icon: 'people', label: 'Utilisateurs', route: '/admin/users' },
       { icon: 'receipt', label: 'Transactions', route: '/admin/transactions' },
       { icon: 'bar_chart', label: 'Statistiques', route: '/admin/stats' },
@@ -84,6 +87,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         ...baseMenu,
         { icon: 'admin_panel_settings', label: 'Administrateurs', route: '/admin/admins' },
         { icon: 'account_balance_wallet', label: 'Dépôt Admin', route: '/admin/deposit' },
+        { icon: 'account_balance_wallet', label: 'Retrait Admin', route: '/admin/withdraw' },
       ];
     }
     return baseMenu;
@@ -146,8 +150,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         this.stats = data;
         this.isLoading = false;
         
-        // ✅ Si SuperAdmin, charger les stats des commissions
-        if (this.isSuperAdmin) {
+        // ✅ Si SuperAdmin ou Admin, charger les stats des commissions
+        if (this.isSuperAdmin || this.isAdmin) {
           this.loadCommissionStats();
         }
         
@@ -172,13 +176,26 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           myAdminTransactions: 0,
           myAdminVolume: 0,
           userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
+          // ✅ Ajouter les propriétés commissions
+          totalCommission: 0,
+          commissionTransactions: 0,
+          recentCommissions: [],
+          commissionRate: 0.5,
+          myCommission: 0,
+          myCommissionTransactions: 0,
         };
+        
+        // ✅ Même en erreur, charger les commissions
+        if (this.isSuperAdmin || this.isAdmin) {
+          this.loadCommissionStats();
+        }
+        
         setTimeout(() => this.createCharts(), 500);
       },
     });
   }
 
-  // ✅ NOUVELLE MÉTHODE : Chargement des commissions
+  // ✅ MÉTHODE POUR CHARGER LES COMMISSIONS
   private loadCommissionStats(): void {
     this.adminService.getCommissionStats().subscribe({
       next: (commissionData) => {
@@ -187,6 +204,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           this.stats.commissionTransactions = commissionData.commissionTransactions || 0;
           this.stats.recentCommissions = commissionData.recentCommissions || [];
           this.stats.commissionRate = commissionData.commissionRate || 0.5;
+          this.stats.myCommission = commissionData.myCommission || 0;
+          this.stats.myCommissionTransactions = commissionData.myCommissionTransactions || 0;
+          this.stats.userRole = commissionData.userRole || this.stats.userRole;
         }
       },
       error: (err) => {
@@ -197,6 +217,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           this.stats.commissionTransactions = 0;
           this.stats.recentCommissions = [];
           this.stats.commissionRate = 0.5;
+          this.stats.myCommission = 0;
+          this.stats.myCommissionTransactions = 0;
         }
       }
     });
@@ -206,7 +228,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     this.adminService.getDashboardStats().subscribe({
       next: (data) => {
         this.stats = data;
-        if (this.isSuperAdmin) {
+        if (this.isSuperAdmin || this.isAdmin) {
           this.loadCommissionStats();
         }
         this.updateCharts();
@@ -280,6 +302,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         myAdminTransactions: 0,
         myAdminVolume: 0,
         userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
+        totalCommission: 0,
+        commissionTransactions: 0,
+        recentCommissions: [],
+        commissionRate: 0.5,
+        myCommission: 0,
+        myCommissionTransactions: 0,
       };
     }
 
