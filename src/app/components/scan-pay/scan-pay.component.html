@@ -16,9 +16,9 @@
     <mat-card class="scan-card">
       <mat-card-content>
         <!-- Mode scan -->
-        <div *ngIf="isScanning" class="scan-mode" @fadeIn>
+        <div *ngIf="isScanning" class="scan-mode">
           <!-- Message d'erreur de permission -->
-          <div class="camera-error" *ngIf="cameraPermissionDenied" @shake>
+          <div class="camera-error" *ngIf="cameraPermissionDenied">
             <mat-icon>videocam_off</mat-icon>
             <h3>Permission refusée</h3>
             <p>Veuillez autoriser l'accès à la caméra dans les paramètres de votre navigateur</p>
@@ -29,60 +29,57 @@
           </div>
 
           <!-- Message d'erreur caméra -->
-          <div class="camera-error" *ngIf="cameraError && !cameraPermissionDenied" @shake>
+          <div class="camera-error" *ngIf="cameraError && !cameraPermissionDenied">
             <mat-icon>videocam_off</mat-icon>
             <h3>Caméra non disponible</h3>
-            <p>Utilisez le bouton ci-dessous pour simuler un scan</p>
+            <p>Vérifiez que votre caméra est connectée et accessible</p>
+            <button class="retry-btn" (click)="retryScanner()">
+              <mat-icon>refresh</mat-icon>
+              Réessayer
+            </button>
           </div>
 
-          <!-- Conteneur du scanner -->
-          <div class="camera-preview" *ngIf="hasCamera && !cameraError && !cameraPermissionDenied" @scaleIn>
+          <!-- VRAI SCANNER avec caméra -->
+          <div class="camera-preview" *ngIf="hasCamera && !cameraError && !cameraPermissionDenied">
             <div id="qr-scanner-container" class="scanner-container">
               <!-- Le scanner HTML5-QRCode s'affiche ici -->
             </div>
             <div class="scan-overlay">
               <div class="scan-frame">
                 <div class="scan-line"></div>
+                <div class="scan-corners">
+                  <span class="corner tl"></span>
+                  <span class="corner tr"></span>
+                  <span class="corner bl"></span>
+                  <span class="corner br"></span>
+                </div>
               </div>
-              <p>
+              <p class="scan-hint">
                 {{ scanType === 'deposit' ? 'Scannez le QR Code de dépôt' : 
                    scanType === 'withdraw' ? 'Scannez le QR Code de retrait' : 
                    'Placez le QR code dans le cadre' }}
               </p>
+              <span class="scan-status" *ngIf="isCameraStarting">Initialisation de la caméra...</span>
             </div>
           </div>
 
-          <!-- Placeholder -->
-          <div class="scanner-placeholder" *ngIf="!hasCamera || cameraError || cameraPermissionDenied" @pulse>
+          <!-- Placeholder quand la caméra n'est pas disponible -->
+          <div class="scanner-placeholder" *ngIf="!hasCamera || cameraError || cameraPermissionDenied">
             <mat-icon>qr_code_scanner</mat-icon>
-            <p>
-              {{ scanType === 'deposit' ? 'Scan de QR Code de dépôt' : 
-                 scanType === 'withdraw' ? 'Scan de QR Code de retrait' : 
-                 'Scan de QR code' }}
-            </p>
-            <p class="hint">Placez le code dans le cadre</p>
-          </div>
-          
-          <div class="scan-actions">
-            <button class="scan-btn primary" (click)="simulateScan()">
-              <mat-icon>qr_code_scanner</mat-icon>
-              Simuler un scan
-            </button>
-            <button class="scan-btn stroked" (click)="goBack()">
-              Annuler
+            <p>Scanner de QR Code</p>
+            <p class="hint">La caméra n'est pas disponible</p>
+            <button class="retry-btn" (click)="retryScanner()">
+              <mat-icon>refresh</mat-icon>
+              Réessayer
             </button>
           </div>
         </div>
 
-        <!-- Formulaire -->
-        <div *ngIf="!isScanning && showPaymentForm" class="payment-mode" @slideInRight>
-          <div class="user-info" *ngIf="scannedData" @slideInLeft>
+        <!-- Formulaire de paiement -->
+        <div *ngIf="!isScanning && showPaymentForm" class="payment-mode">
+          <div class="user-info" *ngIf="scannedData">
             <div class="user-avatar">
-              <mat-icon>
-                {{ scanType === 'deposit' ? 'add' : 
-                   scanType === 'withdraw' ? 'remove' : 
-                   'qr_code' }}
-              </mat-icon>
+              <mat-icon>{{ scanType === 'deposit' ? 'add' : scanType === 'withdraw' ? 'remove' : 'qr_code' }}</mat-icon>
             </div>
             <div class="user-details">
               <div class="user-name">
@@ -159,7 +156,7 @@
     </mat-card>
 
     <!-- Instructions -->
-    <mat-card class="info-card" *ngIf="isScanning" @slideInUp>
+    <mat-card class="info-card" *ngIf="isScanning">
       <mat-card-content>
         <h3>
           {{ scanType === 'deposit' ? 'Comment déposer ?' : 
@@ -168,27 +165,19 @@
         </h3>
         <div class="info-step">
           <mat-icon>qr_code_scanner</mat-icon>
-          <span>
-            {{ scanType === 'deposit' ? '1. Scannez le QR code de dépôt fourni par l\'administrateur' : 
-               scanType === 'withdraw' ? '1. Scannez le QR code de retrait fourni par l\'administrateur' : 
-               '1. Scannez le QR code de votre ami' }}
-          </span>
+          <span>1. Placez le QR code dans le cadre de la caméra</span>
         </div>
         <div class="info-step">
           <mat-icon>attach_money</mat-icon>
-          <span>
-            {{ scanType === 'deposit' ? '2. Entrez le montant à déposer' : 
-               scanType === 'withdraw' ? '2. Entrez le montant à retirer' : 
-               '2. Entrez le montant à payer' }}
-          </span>
+          <span>2. Le scan est automatique, saisissez le montant</span>
         </div>
         <div class="info-step">
           <mat-icon>check_circle</mat-icon>
-          <span>
-            {{ scanType === 'deposit' ? '3. Confirmez le dépôt' : 
-               scanType === 'withdraw' ? '3. Confirmez le retrait' : 
-               '3. Confirmez le paiement' }}
-          </span>
+          <span>3. Confirmez la transaction</span>
+        </div>
+        <div class="info-step warning" *ngIf="cameraError || cameraPermissionDenied">
+          <mat-icon>warning</mat-icon>
+          <span>Assurez-vous d'autoriser l'accès à la caméra</span>
         </div>
       </mat-card-content>
     </mat-card>

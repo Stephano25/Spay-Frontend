@@ -1,44 +1,58 @@
-/* ============================================================
-   SPAYE — QR SCANNER
-   ============================================================ */
-
+/* frontend/src/app/components/admin/qr-scanner/qr-scanner.component.css */
 .qr-scanner-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  animation: overlayFade 0.3s ease;
+}
+
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .qr-scanner-card {
   background: var(--surface) !important;
-  border-radius: 16px !important;
-  max-width: 440px;
+  border-radius: 24px !important;
+  max-width: 480px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3) !important;
   border: 0.5px solid var(--border) !important;
-  animation: qrModalIn 0.3s ease;
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .qr-scanner-card mat-card-header {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  padding: 16px 20px !important;
+  padding: 20px 24px !important;
   border-bottom: 0.5px solid var(--border);
 }
 
 .qr-scanner-card mat-card-title {
   display: flex !important;
   align-items: center !important;
-  gap: 10px !important;
-  font-size: 1.0625rem !important;
+  gap: 12px !important;
+  font-size: 1.125rem !important;
   font-weight: 700 !important;
   color: var(--text) !important;
   margin: 0 !important;
@@ -49,22 +63,31 @@
 }
 
 .qr-scanner-card mat-card-content {
-  padding: 20px !important;
+  padding: 24px !important;
 }
 
 .scanner-instructions {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-radius: 10px;
   margin-bottom: 16px;
+  border: 0.5px solid var(--border);
+}
+
+.scanner-instructions mat-icon {
+  color: var(--brand-1);
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
 }
 
 .scanner-instructions p {
-  font-size: 0.875rem;
-  color: var(--text-3);
   margin: 0;
-}
-
-.scanner-input {
-  margin-bottom: 16px;
+  font-size: 0.875rem;
+  color: var(--text-2);
 }
 
 .full-width {
@@ -74,12 +97,14 @@
 .scanner-actions {
   display: flex;
   gap: 12px;
+  margin-top: 4px;
 }
 
 .scanner-actions button {
   flex: 1;
   padding: 10px !important;
   border-radius: 10px !important;
+  height: 44px !important;
 }
 
 .scanner-actions button[color='primary'] {
@@ -91,11 +116,18 @@
   opacity: 0.5 !important;
 }
 
+.scanner-actions button span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .or-divider {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin: 16px 0;
+  margin: 18px 0 16px;
 }
 
 .or-divider::before,
@@ -112,15 +144,41 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 0 4px;
 }
 
 .file-upload {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
+  gap: 10px;
+  padding: 24px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.file-upload:hover {
+  border-color: var(--brand-1);
+  background: var(--surface-2);
+}
+
+.file-upload.dragging {
+  border-color: var(--brand-1);
+  background: var(--brand-grad-soft);
+  transform: scale(1.01);
+}
+
+.file-upload mat-icon {
+  font-size: 40px !important;
+  width: 40px !important;
+  height: 40px !important;
+  color: var(--text-3);
+}
+
+.file-upload span {
+  font-size: 0.875rem;
+  color: var(--text-2);
 }
 
 .file-upload button {
@@ -138,12 +196,13 @@
 @media (max-width: 600px) {
   .qr-scanner-card {
     margin: 12px;
+    border-radius: 20px !important;
   }
   .qr-scanner-card mat-card-header {
-    padding: 12px 16px !important;
+    padding: 16px 18px !important;
   }
   .qr-scanner-card mat-card-content {
-    padding: 16px !important;
+    padding: 18px !important;
   }
   .scanner-actions {
     flex-direction: column;
@@ -152,10 +211,12 @@
     width: 100%;
   }
   .file-upload {
-    flex-direction: column;
+    padding: 16px;
   }
-  .file-upload button {
-    width: 100%;
+  .file-upload mat-icon {
+    font-size: 32px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 }
 

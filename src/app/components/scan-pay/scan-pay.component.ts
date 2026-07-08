@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate, keyframes } from '@angular/animations';
-import { Html5Qrcode, Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 
 // Services
 import { TransactionService } from '../../services/transaction.service';
@@ -69,25 +69,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         style({ transform: 'scale(0.9)', opacity: 0 }),
         animate('0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)', style({ transform: 'scale(1)', opacity: 1 }))
       ])
-    ]),
-    trigger('pulse', [
-      transition(':enter', [
-        style({ transform: 'scale(1)' }),
-        animate('2s ease-in-out', keyframes([
-          style({ transform: 'scale(1)', offset: 0 }),
-          style({ transform: 'scale(1.05)', offset: 0.5 }),
-          style({ transform: 'scale(1)', offset: 1 })
-        ]))
-      ])
-    ]),
-    trigger('shake', [
-      transition('* => *', [
-        animate('0.5s ease-in-out', keyframes([
-          style({ transform: 'translateX(-5px)', offset: 0.25 }),
-          style({ transform: 'translateX(5px)', offset: 0.75 }),
-          style({ transform: 'translateX(0)', offset: 1 })
-        ]))
-      ])
     ])
   ]
 })
@@ -102,13 +83,15 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
   hasCamera = false;
   cameraError = false;
   cameraPermissionDenied = false;
+  isCameraStarting = false;
   
-  // ✅ Type de scan (deposit, withdraw, payment)
+  // Type de scan
   scanType: 'deposit' | 'withdraw' | 'payment' = 'payment';
   
-  // ✅ QR Scanner
+  // QR Scanner
   private html5QrCode: Html5Qrcode | null = null;
   private isScanningQR = false;
+  private scannerContainerId = 'qr-reader';
 
   constructor(
     private fb: FormBuilder,
@@ -126,25 +109,22 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // ✅ Récupérer le type de scan depuis les queryParams
     this.route.queryParams.subscribe(params => {
       if (params['type'] === 'deposit') {
         this.scanType = 'deposit';
-        this.isScanning = true;
       } else if (params['type'] === 'withdraw') {
         this.scanType = 'withdraw';
-        this.isScanning = true;
       } else {
         this.scanType = 'payment';
-        this.isScanning = true;
       }
+      this.isScanning = true;
     });
   }
 
   ngAfterViewInit() {
     setTimeout(() => {
       this.startQRScanner();
-    }, 500);
+    }, 800);
   }
 
   ngOnDestroy() {
@@ -152,16 +132,20 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ============================================================
-  // QR SCANNER
+  // QR SCANNER - VRAI SCANNER
   // ============================================================
 
   async startQRScanner() {
+    if (this.isCameraStarting) return;
+    this.isCameraStarting = true;
+
     try {
-      // ✅ Vérifier si la caméra est disponible
+      // ✅ Vérifier la permission caméra
       const hasCamera = await this.checkCameraPermission();
       if (!hasCamera) {
         this.hasCamera = false;
         this.cameraError = true;
+        this.isCameraStarting = false;
         return;
       }
 
@@ -169,28 +153,15 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cameraError = false;
       this.cameraPermissionDenied = false;
 
-      // ✅ Créer le scanner
-      const scannerContainer = document.getElementById('qr-scanner-container');
-      if (!scannerContainer) {
-        console.error('Scanner container not found');
-        return;
-      }
+      // ✅ Créer le conteneur du scanner
+      this.createScannerContainer();
 
-      // ✅ Nettoyer le conteneur
-      scannerContainer.innerHTML = '';
-
-      const readerElement = document.createElement('div');
-      readerElement.id = 'qr-reader';
-      readerElement.style.width = '100%';
-      readerElement.style.maxWidth = '400px';
-      readerElement.style.margin = '0 auto';
-      scannerContainer.appendChild(readerElement);
-
-      this.html5QrCode = new Html5Qrcode('qr-reader');
+      // ✅ Initialiser le scanner
+      this.html5QrCode = new Html5Qrcode(this.scannerContainerId);
 
       const config = {
-        fps: 15,
-        qrbox: { width: 250, height: 250 },
+        fps: 20,
+        qrbox: { width: 280, height: 280 },
         aspectRatio: 1.0
       };
 
@@ -203,11 +174,89 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
         this.onScanError.bind(this)
       );
 
+      console.log('✅ Scanner démarré avec succès');
+      this.isCameraStarting = false;
+
     } catch (error) {
       console.error('❌ Erreur démarrage scanner:', error);
       this.hasCamera = false;
       this.cameraError = true;
-      this.notificationService.showError('Impossible d\'accéder à la caméra');
+      this.isCameraStarting = false;
+      
+      // ✅ Essayer avec la caméra arrière par défaut
+      try {
+        await this.tryFallbackCamera();
+      } catch {
+        this.notificationService.showError('Impossible d\'accéder à la caméra. Vérifiez les permissions.');
+      }
+    }
+  }
+
+  private async tryFallbackCamera() {
+    if (this.html5QrCode) {
+      try {
+        await this.html5QrCode.start(
+          { facingMode: 'user' },
+          { fps: 15, qrbox: { width: 200, height: 200 } },
+          this.onScanSuccess.bind(this),
+          this.onScanError.bind(this)
+        );
+        console.log('✅ Scanner démarré avec caméra frontale');
+        this.hasCamera = true;
+        this.cameraError = false;
+        this.isCameraStarting = false;
+      } catch (error) {
+        console.error('❌ Erreur caméra frontale:', error);
+        throw error;
+      }
+    }
+  }
+
+  private createScannerContainer(): void {
+    // ✅ Supprimer l'ancien conteneur s'il existe
+    const oldContainer = document.getElementById(this.scannerContainerId);
+    if (oldContainer) {
+      oldContainer.remove();
+    }
+
+    // ✅ Créer le conteneur dans la zone prévue
+    const scannerContainer = document.getElementById('qr-scanner-container');
+    if (scannerContainer) {
+      scannerContainer.innerHTML = '';
+      
+      const readerElement = document.createElement('div');
+      readerElement.id = this.scannerContainerId;
+      readerElement.style.width = '100%';
+      readerElement.style.maxWidth = '400px';
+      readerElement.style.margin = '0 auto';
+      scannerContainer.appendChild(readerElement);
+    } else {
+      // Fallback: créer le conteneur dans le body
+      const container = document.createElement('div');
+      container.id = 'qr-scanner-container';
+      container.style.width = '100%';
+      container.style.maxWidth = '400px';
+      container.style.margin = '0 auto';
+      container.style.position = 'relative';
+      container.style.borderRadius = '12px';
+      container.style.overflow = 'hidden';
+      container.style.background = '#000';
+      container.style.minHeight = '300px';
+      
+      const readerElement = document.createElement('div');
+      readerElement.id = this.scannerContainerId;
+      readerElement.style.width = '100%';
+      readerElement.style.maxWidth = '400px';
+      readerElement.style.margin = '0 auto';
+      container.appendChild(readerElement);
+      
+      // Ajouter dans la vue
+      const cameraPreview = document.querySelector('.camera-preview');
+      if (cameraPreview) {
+        cameraPreview.appendChild(container);
+      } else {
+        document.body.appendChild(container);
+      }
     }
   }
 
@@ -230,6 +279,7 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.html5QrCode && this.isScanningQR) {
       try {
         this.html5QrCode.stop().catch(() => {});
+        this.html5QrCode.clear();
         this.html5QrCode = null;
         this.isScanningQR = false;
       } catch (error) {
@@ -239,9 +289,9 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onScanSuccess(decodedText: string, decodedResult: any) {
-    console.log('✅ QR Code scanné:', decodedText);
+    console.log('✅ QR Code scanné avec succès:', decodedText);
     
-    // ✅ Vibrer si possible
+    // ✅ Vibrer
     if (navigator.vibrate) {
       navigator.vibrate(200);
     }
@@ -251,38 +301,26 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onScanError(error: any) {
-    // Ne pas afficher d'erreur pour chaque tentative
-    // console.log('Erreur scan:', error);
+    // Ignorer les erreurs de scan (log seulement en debug)
+    // console.debug('Erreur scan:', error);
   }
 
   requestCameraPermission() {
     this.cameraPermissionDenied = false;
+    this.cameraError = false;
     this.startQRScanner();
   }
 
   // ============================================================
-  // SIMULATION DE SCAN (pour tests)
+  // RETRY SCANNER
   // ============================================================
 
-  simulateScan() {
-    if (navigator.vibrate) {
-      navigator.vibrate(200);
-    }
-
-    // QR Code simulé
-    const simulatedData = {
-      type: 'admin_transaction',
-      action: this.scanType === 'deposit' ? 'deposit' : this.scanType === 'withdraw' ? 'withdraw' : 'payment',
-      qrCode: 'SPAYE-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
-      adminId: 'admin-123',
-      adminName: 'Administrateur SPaye',
-      amount: this.scanType === 'payment' ? 5000 : null,
-      timestamp: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-      signature: 'simulated-' + Date.now()
-    };
-
-    this.processScannedData(JSON.stringify(simulatedData));
+  retryScanner() {
+    this.cameraError = false;
+    this.cameraPermissionDenied = false;
+    this.hasCamera = false;
+    this.isScanning = true;
+    this.startQRScanner();
   }
 
   // ============================================================
@@ -291,15 +329,11 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
 
   processScannedData(data: string) {
     try {
-      // ✅ Essayer de parser le JSON
       const parsed = JSON.parse(data);
       
-      // ✅ Vérifier le type
       if (parsed.type === 'admin_transaction') {
-        // ✅ Transaction admin (dépôt ou retrait)
         this.scannedData = parsed;
         
-        // ✅ Vérifier l'expiration
         if (parsed.expiresAt && new Date(parsed.expiresAt) < new Date()) {
           this.notificationService.showWarning('Ce QR Code a expiré');
           this.isScanning = true;
@@ -307,7 +341,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
 
-        // ✅ Vérifier l'action
         if (parsed.action === 'deposit' || parsed.action === 'withdraw') {
           this.scanType = parsed.action;
         }
@@ -323,7 +356,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
         this.notificationService.showSuccess(`QR Code ${actionLabel} scanné avec succès`);
         
       } else if (parsed.type === 'payment' || parsed.type === 'payment_request') {
-        // ✅ Paiement standard
         this.scannedData = parsed;
         this.isScanning = false;
         this.showPaymentForm = true;
@@ -342,7 +374,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
       console.error('❌ Erreur traitement QR:', error);
       this.notificationService.showError('QR Code invalide. Veuillez réessayer.');
       
-      // ✅ Réessayer le scan
       setTimeout(() => {
         this.isScanning = true;
         this.startQRScanner();
@@ -364,7 +395,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
     const amount = this.paymentForm.value.amount;
     const description = this.paymentForm.value.description || '';
 
-    // ✅ Vérifier le solde pour les paiements et retraits
     if (this.scanType !== 'deposit') {
       this.walletService.checkBalance().subscribe({
         next: (balance) => {
@@ -387,62 +417,75 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   executeTransaction(amount: number, description: string) {
-    const qrData = this.scannedData ? JSON.stringify(this.scannedData) : '';
-
     switch (this.scanType) {
       case 'deposit':
-        this.handleDeposit(amount, description, qrData);
+        this.handleDeposit(amount, description);
         break;
       case 'withdraw':
-        this.handleWithdraw(amount, description, qrData);
+        this.handleWithdraw(amount, description);
         break;
       default:
-        this.handlePayment(amount, description, qrData);
+        this.handlePayment(amount, description);
     }
   }
 
-  // ✅ Gestion du dépôt
-  private handleDeposit(amount: number, description: string, qrData: string) {
-    // Vérifier que c'est un QR Code admin
+  private handleDeposit(amount: number, description: string) {
     if (!this.scannedData?.adminId) {
       this.notificationService.showError('QR Code de dépôt invalide');
       this.isProcessing = false;
       return;
     }
 
-    // Ici, le dépôt est fait par un admin via un QR Code admin
-    // On simule la validation
-    setTimeout(() => {
-      this.notificationService.showSuccess(
-        `💰 Dépôt de ${this.formatAmount(amount)} Ar effectué avec succès!`
-      );
-      this.isProcessing = false;
-      this.resetScanner();
-      this.router.navigate(['/user/wallet']);
-    }, 1500);
+    this.adminService.depositMoney(
+      this.scannedData.adminId,
+      amount,
+      description || 'Dépôt via QR Code'
+    ).subscribe({
+      next: (response) => {
+        this.notificationService.showSuccess(
+          `💰 Dépôt de ${this.formatAmount(amount)} Ar effectué avec succès!`
+        );
+        this.isProcessing = false;
+        this.resetScanner();
+        this.router.navigate(['/user/wallet']);
+      },
+      error: (error) => {
+        console.error('❌ Erreur dépôt:', error);
+        this.notificationService.showError(error?.error?.message || 'Erreur lors du dépôt');
+        this.isProcessing = false;
+      }
+    });
   }
 
-  // ✅ Gestion du retrait
-  private handleWithdraw(amount: number, description: string, qrData: string) {
+  private handleWithdraw(amount: number, description: string) {
     if (!this.scannedData?.adminId) {
       this.notificationService.showError('QR Code de retrait invalide');
       this.isProcessing = false;
       return;
     }
 
-    // Simuler le retrait
-    setTimeout(() => {
-      this.notificationService.showSuccess(
-        `💰 Retrait de ${this.formatAmount(amount)} Ar effectué avec succès!`
-      );
-      this.isProcessing = false;
-      this.resetScanner();
-      this.router.navigate(['/user/wallet']);
-    }, 1500);
+    this.adminService.withdrawMoney(
+      this.scannedData.adminId,
+      amount,
+      description || 'Retrait via QR Code'
+    ).subscribe({
+      next: (response) => {
+        this.notificationService.showSuccess(
+          `💰 Retrait de ${this.formatAmount(amount)} Ar effectué avec succès!`
+        );
+        this.isProcessing = false;
+        this.resetScanner();
+        this.router.navigate(['/user/wallet']);
+      },
+      error: (error) => {
+        console.error('❌ Erreur retrait:', error);
+        this.notificationService.showError(error?.error?.message || 'Erreur lors du retrait');
+        this.isProcessing = false;
+      }
+    });
   }
 
-  // ✅ Gestion du paiement standard
-  private handlePayment(amount: number, description: string, qrData: string) {
+  private handlePayment(amount: number, description: string) {
     const receiverQrCode = this.scannedData?.qrCode || this.scannedData?.receiverId || '';
 
     if (!receiverQrCode) {
@@ -497,14 +540,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
     if (amount >= 50000) return 'star';
     if (amount >= 10000) return 'trending_up';
     return 'attach_money';
-  }
-
-  getScanTypeLabel(): string {
-    switch(this.scanType) {
-      case 'deposit': return 'Dépôt';
-      case 'withdraw': return 'Retrait';
-      default: return 'Paiement';
-    }
   }
 
   goBack() {

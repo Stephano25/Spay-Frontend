@@ -1,6 +1,6 @@
 <!-- frontend/src/app/components/admin/qr-scanner/qr-scanner.component.html -->
-<div class="qr-scanner-overlay">
-  <mat-card class="qr-scanner-card">
+<div class="qr-scanner-overlay" (click)="close()">
+  <mat-card class="qr-scanner-card" (click)="$event.stopPropagation()">
     <mat-card-header>
       <mat-card-title>
         <mat-icon>qr_code_scanner</mat-icon>
@@ -13,6 +13,7 @@
 
     <mat-card-content>
       <div class="scanner-instructions">
+        <mat-icon>info</mat-icon>
         <p>Scannez le QR Code ou entrez le code manuellement</p>
       </div>
 
@@ -42,11 +43,17 @@
         <span>ou</span>
       </div>
 
-      <div class="file-upload">
+      <div class="file-upload"
+           [class.dragging]="isDragging"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)">
         <input type="file" accept="image/*" (change)="onFileSelected($event)" #fileInput style="display:none">
+        <mat-icon>image</mat-icon>
+        <span>Glissez-déposez une image</span>
         <button mat-stroked-button (click)="fileInput.click()">
-          <mat-icon>image</mat-icon>
-          Importer une image QR Code
+          <mat-icon>upload</mat-icon>
+          Importer une image
         </button>
         <span class="file-hint">PNG, JPG, WEBP</span>
       </div>

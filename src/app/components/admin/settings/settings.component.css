@@ -1,7 +1,4 @@
-/* ============================================================
-   SPAYE — ADMIN SETTINGS
-   ============================================================ */
-
+/* frontend/src/app/components/admin/settings/settings.component.css */
 .settings-page {
   padding: 24px;
   max-height: calc(100vh - 64px);
@@ -18,7 +15,7 @@
 }
 
 .settings-content {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -32,35 +29,81 @@
   color: var(--text-3);
 }
 
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Toolbar */
+.settings-toolbar {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+  color: white !important;
+  padding: 0 16px !important;
+  min-height: 64px !important;
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.3) !important;
+}
+
+.settings-toolbar .spacer {
+  flex: 1;
+}
+
+.settings-toolbar button {
+  color: white !important;
+}
+
+.settings-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
 /* Admin Profile Card */
 .admin-profile-card {
-  border-radius: 16px !important;
+  border-radius: 20px !important;
   margin-bottom: 24px;
   padding: 4px !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06) !important;
+  background: var(--surface) !important;
+  border: 0.5px solid var(--border) !important;
 }
 
 .admin-profile-card mat-card-content {
-  padding: 20px !important;
+  padding: 24px !important;
 }
 
 .admin-profile {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .admin-avatar {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.25);
 }
 
 .admin-info h2 {
@@ -78,7 +121,7 @@
 
 .admin-role {
   display: inline-block;
-  padding: 2px 12px;
+  padding: 2px 14px;
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -99,10 +142,14 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding: 4px 12px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  min-width: 100px;
 }
 
 .info-label {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -111,7 +158,7 @@
 
 .info-value {
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text);
 }
 
@@ -122,37 +169,44 @@
 
 .settings-tabs .mat-mdc-tab-header {
   background: var(--surface-2);
-  border-radius: 12px 12px 0 0;
+  border-radius: 14px 14px 0 0;
   padding: 0 8px;
 }
 
 .settings-tabs .mat-mdc-tab-body-wrapper {
   background: var(--surface);
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 14px 14px;
   border: 0.5px solid var(--border);
   border-top: none;
 }
 
 .tab-content {
-  padding: 20px;
+  padding: 24px;
 }
 
+/* Settings Card */
 .settings-card {
-  border-radius: 12px !important;
+  border-radius: 16px !important;
   margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+  background: var(--surface) !important;
+  border: 0.5px solid var(--border) !important;
 }
 
 .settings-card mat-card-header {
-  padding: 16px 20px 0 !important;
+  padding: 20px 24px 0 !important;
+  display: flex !important;
+  gap: 16px !important;
 }
 
 .settings-card .card-icon {
-  color: var(--brand-1);
+  color: var(--brand-1) !important;
 }
 
 .settings-card mat-card-title {
   font-size: 0.9375rem !important;
   font-weight: 700 !important;
+  color: var(--text) !important;
 }
 
 .settings-card mat-card-subtitle {
@@ -161,7 +215,30 @@
 }
 
 .settings-card mat-card-content {
-  padding: 16px 20px 20px !important;
+  padding: 16px 24px 24px !important;
+}
+
+.settings-card mat-card-actions {
+  padding: 0 24px 20px !important;
+}
+
+.settings-card mat-card-actions button {
+  border-radius: 10px !important;
+  padding: 0 24px !important;
+  height: 44px !important;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.settings-card mat-card-actions button:disabled {
+  opacity: 0.5 !important;
+}
+
+.settings-card mat-card-actions button span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Form */
@@ -174,7 +251,7 @@
 
 .half-width {
   flex: 1;
-  min-width: 180px;
+  min-width: 200px;
 }
 
 .full-width {
@@ -184,33 +261,41 @@
 .toggle-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 6px 0;
+  gap: 6px;
+  padding: 8px 0;
 }
 
 .toggle-group .mat-mdc-slide-toggle {
   font-weight: 500;
   font-size: 0.875rem;
-}
-
-.setting-description {
-  font-size: 0.75rem;
-  color: var(--text-3);
-  margin: 0 0 4px 32px;
+  padding: 2px 0;
 }
 
 /* Theme Buttons */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+
 .theme-buttons,
 .language-buttons {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
 }
 
 .theme-btn,
 .language-btn {
-  padding: 8px 16px;
+  padding: 8px 18px;
   border-radius: 999px;
   border: 1.5px solid var(--border);
   background: var(--surface);
@@ -242,25 +327,38 @@
   font-size: 1.1rem;
 }
 
+.color-picker-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .color-input {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border: 2px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   padding: 2px;
+  transition: border-color 0.3s ease;
+}
+
+.color-input:hover {
+  border-color: var(--brand-1);
 }
 
 .custom-textarea {
   width: 100%;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border: 1.5px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.8125rem;
   background: var(--surface);
   color: var(--text);
   resize: vertical;
+  transition: border-color 0.3s ease;
+  min-height: 100px;
 }
 
 .custom-textarea:focus {
@@ -278,13 +376,20 @@
 .stat-item {
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  padding: 14px 16px;
   background: var(--surface-2);
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 0.5px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .stat-label {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -295,6 +400,65 @@
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text);
+}
+
+/* Notification Channels */
+.notification-channels {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+
+.notification-channels .mat-mdc-slide-toggle {
+  font-weight: 500;
+}
+
+/* Admin Alerts */
+.admin-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.admin-alerts .mat-mdc-slide-toggle {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Operator Toggle */
+.operator-toggle-group {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+
+.operator-toggle-group .mat-mdc-slide-toggle {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.operator-label {
+  font-weight: 500;
+}
+
+/* Fees Grid */
+.fees-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 8px 0;
+  width: 100%;
+}
+
+.fee-field {
+  width: 100%;
+}
+
+.fee-field .mat-mdc-form-field-flex {
+  background: var(--surface-2) !important;
 }
 
 /* Responsive */
@@ -311,6 +475,9 @@
   }
   .system-info {
     justify-content: center;
+  }
+  .fees-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -331,6 +498,12 @@
   .settings-card mat-card-content {
     padding: 12px 16px 16px !important;
   }
+  .settings-card mat-card-header {
+    padding: 16px 16px 0 !important;
+  }
+  .settings-card mat-card-actions {
+    padding: 0 16px 16px !important;
+  }
   .theme-buttons,
   .language-buttons {
     justify-content: center;
@@ -342,9 +515,20 @@
     padding: 16px !important;
   }
   .admin-avatar {
-    width: 44px;
-    height: 44px;
-    font-size: 14px;
+    width: 52px;
+    height: 52px;
+    font-size: 16px;
+  }
+  .notification-channels {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .operator-toggle-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .fees-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -358,7 +542,7 @@
     font-size: 0.7rem;
   }
   .color-input {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
   }
 }

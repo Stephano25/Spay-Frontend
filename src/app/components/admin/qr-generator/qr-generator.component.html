@@ -1,6 +1,6 @@
 <!-- frontend/src/app/components/admin/qr-generator/qr-generator.component.html -->
-<div class="qr-generator-overlay">
-  <mat-card class="qr-generator-card">
+<div class="qr-generator-overlay" (click)="close()">
+  <mat-card class="qr-generator-card" (click)="$event.stopPropagation()">
     <mat-card-header>
       <mat-card-title>
         <mat-icon>qr_code</mat-icon>
@@ -16,8 +16,8 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Type d'opération</mat-label>
           <mat-select [(ngModel)]="selectedType">
-            <mat-option value="deposit">Dépôt</mat-option>
-            <mat-option value="withdraw">Retrait</mat-option>
+            <mat-option value="deposit">💰 Dépôt</mat-option>
+            <mat-option value="withdraw">💳 Retrait</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -37,21 +37,24 @@
           <mat-spinner diameter="20" *ngIf="isGenerating"></mat-spinner>
           <span *ngIf="!isGenerating">
             <mat-icon>qr_code</mat-icon>
-            Générer
+            Générer QR Code
           </span>
         </button>
       </div>
 
-      <div class="qr-result" *ngIf="qrResponse">
+      <!-- QR Code généré -->
+      <div class="qr-result" *ngIf="qrResponse && qrCodeImage">
         <mat-divider></mat-divider>
         
         <div class="qr-image-container">
-          <img [src]="qrResponse.qrCodeImage" alt="QR Code" class="qr-image">
+          <div class="qr-image-wrapper">
+            <img [src]="qrCodeImage" alt="QR Code" class="qr-image" (error)="simulateQRGeneration()">
+          </div>
           <div class="qr-info">
             <div class="qr-info-item">
               <span class="info-label">Type</span>
               <span class="info-value" [class.deposit]="qrResponse.action === 'deposit'" [class.withdraw]="qrResponse.action === 'withdraw'">
-                {{ qrResponse.action === 'deposit' ? 'Dépôt' : 'Retrait' }}
+                {{ qrResponse.action === 'deposit' ? '💰 Dépôt' : '💳 Retrait' }}
               </span>
             </div>
             <div class="qr-info-item" *ngIf="qrResponse.amount">
@@ -60,7 +63,15 @@
             </div>
             <div class="qr-info-item">
               <span class="info-label">Expiration</span>
-              <span class="info-value">{{ formatExpiration(qrResponse.expiresAt) }}</span>
+              <span class="info-value" [class.expired]="isExpired()">
+                {{ formatExpiration(qrResponse.expiresAt) }}
+              </span>
+            </div>
+            <div class="qr-info-item">
+              <span class="info-label">Statut</span>
+              <span class="info-value" [class.active]="!isExpired()" [class.expired]="isExpired()">
+                {{ isExpired() ? '❌ Expiré' : '✅ Actif' }}
+              </span>
             </div>
           </div>
         </div>
@@ -80,6 +91,12 @@
           <mat-icon>warning</mat-icon>
           <span>Ce QR Code a expiré. Veuillez en générer un nouveau.</span>
         </div>
+      </div>
+
+      <!-- Chargement -->
+      <div class="qr-loading" *ngIf="isGenerating">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Génération du QR Code...</p>
       </div>
     </mat-card-content>
   </mat-card>

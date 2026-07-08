@@ -1,7 +1,5 @@
+<!-- frontend/src/app/components/admin/admin-dashboard/admin-dashboard.component.html -->
 <mat-toolbar color="primary" class="dashboard-toolbar">
-  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
-    <mat-icon>arrow_back</mat-icon>
-  </button>
   <span class="brand-title">SPaye {{ isSuperAdmin ? 'Super Admin' : 'Admin' }}</span>
   <span class="spacer"></span>
 
@@ -14,17 +12,14 @@
       <span>Tableau de bord</span>
     </button>
     <mat-divider></mat-divider>
-    <!-- ✅ NOUVEAU : Wallet -->
     <button mat-menu-item (click)="navigateTo('wallet')">
       <mat-icon>account_balance_wallet</mat-icon>
       <span>Portefeuille</span>
     </button>
-    <!-- ✅ NOUVEAU : Friends -->
     <button mat-menu-item (click)="navigateTo('friends')">
       <mat-icon>people</mat-icon>
       <span>Amis</span>
     </button>
-    <!-- ✅ NOUVEAU : Chat -->
     <button mat-menu-item (click)="navigateTo('chat')">
       <mat-icon>chat</mat-icon>
       <span>Messages</span>
@@ -145,9 +140,8 @@
       </mat-card>
     </div>
 
-    <!-- STATS ADMIN (selon le rôle) -->
+    <!-- STATS ADMIN -->
     <div class="admin-stats-grid" *ngIf="stats">
-      <!-- Admin simple -->
       <div *ngIf="!isSuperAdmin" class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
@@ -173,7 +167,6 @@
         </mat-card>
       </div>
 
-      <!-- Super Admin -->
       <div *ngIf="isSuperAdmin" class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
@@ -222,16 +215,12 @@
       </div>
     </div>
 
-    <!-- ✅ COMMISSIONS - ADMIN -->
+    <!-- COMMISSIONS -->
     <div *ngIf="!isSuperAdmin && stats" class="commission-stats">
       <div class="section-header">
-        <h2 class="section-title">
-          <mat-icon>receipt_long</mat-icon>
-          Mes commissions
-        </h2>
+        <h2 class="section-title"><mat-icon>receipt_long</mat-icon> Mes commissions</h2>
         <span class="section-subtitle">Taux: {{ stats.commissionRate || 0.5 }}%</span>
       </div>
-
       <div class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
@@ -244,7 +233,6 @@
             </div>
           </mat-card-content>
         </mat-card>
-
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
             <div class="kpi-icon mini" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
@@ -257,26 +245,17 @@
           </mat-card-content>
         </mat-card>
       </div>
-
-      <!-- Dernières commissions de l'admin -->
       <mat-card class="recent-card" *ngIf="stats.recentCommissions && stats.recentCommissions.length > 0">
         <mat-card-header>
-          <mat-card-title>
-            <mat-icon>history</mat-icon>
-            Mes dernières commissions
-          </mat-card-title>
+          <mat-card-title><mat-icon>history</mat-icon> Mes dernières commissions</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
             <div *ngFor="let c of stats.recentCommissions.slice(0,5)" class="recent-item">
-              <div class="transaction-icon completed">
-                <mat-icon>payments</mat-icon>
-              </div>
+              <div class="transaction-icon completed"><mat-icon>payments</mat-icon></div>
               <div class="recent-info">
                 <div class="recent-name">{{ c.type === 'deposit' ? 'Dépôt' : 'Retrait' }} - {{ c.userName || 'Utilisateur' }}</div>
-                <div class="recent-volume">
-                  Commission: {{ formatVolume(c.commission) }} Ar sur {{ formatVolume(c.amount) }} Ar
-                </div>
+                <div class="recent-volume">Commission: {{ formatVolume(c.commission) }} Ar sur {{ formatVolume(c.amount) }} Ar</div>
               </div>
               <div class="recent-date">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
             </div>
@@ -285,16 +264,11 @@
       </mat-card>
     </div>
 
-    <!-- ✅ COMMISSIONS - SUPERADMIN -->
     <div *ngIf="isSuperAdmin && stats" class="commission-stats">
       <div class="section-header">
-        <h2 class="section-title">
-          <mat-icon>receipt_long</mat-icon>
-          Commissions
-        </h2>
+        <h2 class="section-title"><mat-icon>receipt_long</mat-icon> Commissions</h2>
         <span class="section-subtitle">Taux: {{ stats.commissionRate || 0.5 }}%</span>
       </div>
-
       <div class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
@@ -307,7 +281,6 @@
             </div>
           </mat-card-content>
         </mat-card>
-
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
             <div class="kpi-icon mini" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
@@ -319,7 +292,6 @@
             </div>
           </mat-card-content>
         </mat-card>
-
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
             <div class="kpi-icon mini" style="background: rgba(124,58,237,0.12); color: #7c3aed;">
@@ -331,7 +303,6 @@
             </div>
           </mat-card-content>
         </mat-card>
-
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
             <div class="kpi-icon mini" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
@@ -344,26 +315,17 @@
           </mat-card-content>
         </mat-card>
       </div>
-
-      <!-- Dernières commissions SuperAdmin -->
       <mat-card class="recent-card" *ngIf="stats.recentCommissions && stats.recentCommissions.length > 0">
         <mat-card-header>
-          <mat-card-title>
-            <mat-icon>history</mat-icon>
-            Dernières commissions
-          </mat-card-title>
+          <mat-card-title><mat-icon>history</mat-icon> Dernières commissions</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
             <div *ngFor="let c of stats.recentCommissions.slice(0,5)" class="recent-item">
-              <div class="transaction-icon completed">
-                <mat-icon>payments</mat-icon>
-              </div>
+              <div class="transaction-icon completed"><mat-icon>payments</mat-icon></div>
               <div class="recent-info">
                 <div class="recent-name">{{ c.type === 'deposit' ? 'Dépôt' : 'Retrait' }} - {{ c.userName || 'Utilisateur' }}</div>
-                <div class="recent-volume">
-                  Commission: {{ formatVolume(c.commission) }} Ar sur {{ formatVolume(c.amount) }} Ar
-                </div>
+                <div class="recent-volume">Commission: {{ formatVolume(c.commission) }} Ar sur {{ formatVolume(c.amount) }} Ar</div>
               </div>
               <div class="recent-date">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
             </div>
@@ -431,7 +393,7 @@
         </mat-card>
       </mat-grid-tile>
       
-      <!-- ✅ NOUVEAU : Menu Portefeuille -->
+      <!-- Menu Portefeuille -->
       <mat-grid-tile>
         <mat-card class="menu-card" (click)="navigateTo('wallet')" matRipple>
           <mat-card-content>
@@ -441,7 +403,7 @@
         </mat-card>
       </mat-grid-tile>
 
-      <!-- ✅ NOUVEAU : Menu Amis -->
+      <!-- Menu Amis -->
       <mat-grid-tile>
         <mat-card class="menu-card" (click)="navigateTo('friends')" matRipple>
           <mat-card-content>
@@ -451,7 +413,7 @@
         </mat-card>
       </mat-grid-tile>
 
-      <!-- ✅ NOUVEAU : Menu Chat -->
+      <!-- Menu Chat -->
       <mat-grid-tile>
         <mat-card class="menu-card" (click)="navigateTo('chat')" matRipple>
           <mat-card-content>
@@ -472,9 +434,9 @@
         </mat-card>
       </mat-grid-tile>
       
-      <!-- QR Dépôt -->
+      <!-- QR Dépôt - OUVRE LE GENERATEUR -->
       <mat-grid-tile>
-        <mat-card class="menu-card" (click)="openQRScanner('deposit')" matRipple>
+        <mat-card class="menu-card" (click)="openQRGenerator('deposit')" matRipple>
           <mat-card-content>
             <div class="menu-icon deposit"><mat-icon>qr_code</mat-icon></div>
             <span>Dépôt QR</span>
@@ -483,9 +445,9 @@
         </mat-card>
       </mat-grid-tile>
       
-      <!-- QR Retrait -->
+      <!-- QR Retrait - OUVRE LE GENERATEUR -->
       <mat-grid-tile>
-        <mat-card class="menu-card" (click)="openQRScanner('withdraw')" matRipple>
+        <mat-card class="menu-card" (click)="openQRGenerator('withdraw')" matRipple>
           <mat-card-content>
             <div class="menu-icon withdraw"><mat-icon>qr_code</mat-icon></div>
             <span>Retrait QR</span>
@@ -516,7 +478,7 @@
         </mat-card>
       </mat-grid-tile>
 
-      <!-- ✅ NOUVEAU : Mobile Money -->
+      <!-- Mobile Money -->
       <mat-grid-tile>
         <mat-card class="menu-card" (click)="navigateTo('mobile-money')" matRipple>
           <mat-card-content>
@@ -526,7 +488,7 @@
         </mat-card>
       </mat-grid-tile>
 
-      <!-- ✅ NOUVEAU : Scan Pay -->
+      <!-- Scan Pay -->
       <mat-grid-tile>
         <mat-card class="menu-card" (click)="navigateTo('scan-pay')" matRipple>
           <mat-card-content>
@@ -615,26 +577,27 @@
       </mat-card>
     </div>
 
-    <!-- QR Scanner et Transaction Form -->
-    <app-qr-scanner
-      *ngIf="showQRScanner"
-      (scanResult)="onQRScanResult($event)"
-      (closeScanner)="closeQRScanner()">
-    </app-qr-scanner>
-
-    <app-qr-transaction-form
-      *ngIf="showTransactionForm && qrScanResult"
-      [scanResult]="qrScanResult"
-      (transactionCompleted)="onTransactionCompleted($event)"
-      (cancelled)="closeTransactionForm()">
-    </app-qr-transaction-form>
-
-    <!-- QR Generator -->
+    <!-- QR GENERATOR -->
     <app-qr-generator
       *ngIf="showQRGenerator"
       [defaultType]="qrGeneratorType"
       (qrGenerated)="onQRGenerated($event)"
       (closeGenerator)="closeQRGenerator()">
     </app-qr-generator>
+
+    <!-- QR SCANNER -->
+    <app-qr-scanner
+      *ngIf="showQRScanner"
+      (scanResult)="onQRScanResult($event)"
+      (closeScanner)="closeQRScanner()">
+    </app-qr-scanner>
+
+    <!-- QR TRANSACTION FORM -->
+    <app-qr-transaction-form
+      *ngIf="showTransactionForm && qrScanResult"
+      [scanResult]="qrScanResult"
+      (transactionCompleted)="onTransactionCompleted($event)"
+      (cancelled)="closeTransactionForm()">
+    </app-qr-transaction-form>
   </ng-container>
 </div>

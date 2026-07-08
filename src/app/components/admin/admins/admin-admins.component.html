@@ -5,18 +5,6 @@
   <span>Gestion des Administrateurs</span>
   <span class="spacer"></span>
   
-  <!-- ✅ NOUVEAU BOUTON : Dépôt Admin -->
-  <button *ngIf="isSuperAdmin" mat-raised-button color="accent" (click)="openAdminDeposit()" matTooltip="Déposer sur un admin">
-    <mat-icon>account_balance_wallet</mat-icon>
-    Dépôt Admin
-  </button>
-  
-  <!-- ✅ NOUVEAU BOUTON : Retrait Admin -->
-  <button *ngIf="isSuperAdmin" mat-raised-button color="accent" (click)="openAdminWithdraw()" matTooltip="Retirer sur un admin">
-    <mat-icon>account_balance_wallet</mat-icon>
-    Retrait Admin
-  </button>
-  
   <button mat-raised-button color="accent" routerLink="/admin/admins/create">
     <mat-icon>person_add</mat-icon>
     Créer un Admin

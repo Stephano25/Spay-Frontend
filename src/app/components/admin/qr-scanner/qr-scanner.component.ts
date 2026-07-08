@@ -33,19 +33,26 @@ export class QRScannerComponent implements OnDestroy {
 
   qrInput: string = '';
   isScanning: boolean = false;
+  isDragging: boolean = false;
 
   ngOnDestroy(): void {
-    // Nettoyer si nécessaire
+    // Nettoyer
   }
 
   scan(): void {
     if (!this.qrInput || this.isScanning) return;
 
     this.isScanning = true;
-    setTimeout(() => {
+    
+    // ✅ Vérifier si c'est du JSON
+    try {
+      const parsed = JSON.parse(this.qrInput);
+      this.scanResult.emit(JSON.stringify(parsed));
+    } catch {
+      // ✅ Sinon, envoyer comme un QR simple
       this.scanResult.emit(this.qrInput);
-      this.isScanning = false;
-    }, 500);
+    }
+    this.isScanning = false;
   }
 
   onFileSelected(event: Event): void {
@@ -53,22 +60,67 @@ export class QRScannerComponent implements OnDestroy {
     if (!input.files || input.files.length === 0) return;
 
     const file = input.files[0];
+    
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner une image');
+      input.value = '';
+      return;
+    }
+
     const reader = new FileReader();
 
     reader.onload = (e) => {
       try {
         const result = e.target?.result as string;
         if (result) {
-          this.qrInput = '{"type":"admin_transaction","action":"deposit","adminId":"admin123","adminName":"Admin Test","amount":1000,"timestamp":"2026-07-03T10:00:00Z","expiresAt":"2026-07-03T10:05:00Z","signature":"abc123"}';
+          // ✅ Simulation de lecture QR Code depuis une image
+          const simulatedData = {
+            type: 'admin_transaction',
+            action: 'deposit',
+            adminId: 'admin-' + Date.now().toString(36),
+            adminName: 'Administrateur SPaye',
+            amount: 1000,
+            timestamp: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+            signature: 'simulated-' + Date.now()
+          };
+          this.qrInput = JSON.stringify(simulatedData);
           this.scan();
         }
       } catch (error) {
         console.error('Erreur lecture fichier:', error);
+        alert('Erreur lors de la lecture de l\'image');
       }
     };
 
     reader.readAsDataURL(file);
     input.value = '';
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = false;
+    
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    if (file.type.startsWith('image/')) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.files = files;
+      this.onFileSelected({ target: input } as any);
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = false;
   }
 
   close(): void {

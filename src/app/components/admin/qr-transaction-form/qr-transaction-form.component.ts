@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AdminService, QRScanResult } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -28,6 +29,7 @@ import { NotificationService } from '../../../services/notification.service';
     MatSelectModule,
     MatProgressSpinnerModule,
     MatDividerModule,
+    MatTooltipModule,
   ],
   templateUrl: './qr-transaction-form.component.html',
   styleUrls: ['./qr-transaction-form.component.css'],
@@ -43,6 +45,9 @@ export class QRTransactionFormComponent implements OnInit {
   description: string = '';
   isLoading = true;
   isSubmitting = false;
+  isAdminTransaction = false;
+
+  quickAmounts = [1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
 
   constructor(
     private adminService: AdminService,
@@ -50,13 +55,21 @@ export class QRTransactionFormComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // ✅ Si le QR a un montant, l'utiliser
     if (this.scanResult?.amount) {
       this.amount = this.scanResult.amount;
     }
-    this.loadUsers();
+    
+    // ✅ Description par défaut
     this.description = this.scanResult?.action === 'deposit' 
       ? 'Dépôt via QR Code' 
       : 'Retrait via QR Code';
+    
+    // ✅ Charger les utilisateurs
+    this.loadUsers();
+    
+    // ✅ Vérifier si c'est une transaction admin (propriété optionnelle)
+    this.isAdminTransaction = this.scanResult?.isAdminTransaction || false;
   }
 
   loadUsers(): void {
@@ -78,21 +91,49 @@ export class QRTransactionFormComponent implements OnInit {
     return this.users.find((u) => u.id === this.selectedUserId);
   }
 
+  getAmount(): number {
+    return this.scanResult?.amount || this.amount;
+  }
+
+  getNewBalance(): number {
+    const user = this.getSelectedUser();
+    if (!user) return 0;
+    const currentBalance = user.balance || 0;
+    const amount = this.getAmount();
+    
+    if (this.scanResult?.action === 'deposit') {
+      return currentBalance + amount;
+    } else {
+      return currentBalance - amount;
+    }
+  }
+
   isBalanceInsufficient(): boolean {
     if (this.scanResult?.action === 'withdraw') {
       const user = this.getSelectedUser();
-      return user && (user.balance || 0) < this.amount;
+      return !user || (user.balance || 0) < this.getAmount();
     }
     return false;
   }
 
+  isExpired(): boolean {
+    if (!this.scanResult?.expiresAt) return false;
+    return new Date(this.scanResult.expiresAt) < new Date();
+  }
+
+  setQuickAmount(amount: number): void {
+    this.amount = amount;
+  }
+
   submit(): void {
+    // ✅ Vérifications
     if (!this.selectedUserId) {
       this.notificationService.showError('Veuillez sélectionner un utilisateur');
       return;
     }
 
-    if (!this.amount || this.amount < 100) {
+    const amount = this.getAmount();
+    if (!amount || amount < 100) {
       this.notificationService.showError('Le montant minimum est de 100 Ar');
       return;
     }
@@ -103,32 +144,40 @@ export class QRTransactionFormComponent implements OnInit {
       return;
     }
 
-    if (this.scanResult?.action === 'withdraw' && user.balance < this.amount) {
-      this.notificationService.showError('Solde insuffisant');
+    if (this.isExpired()) {
+      this.notificationService.showError('Ce QR Code a expiré');
+      return;
+    }
+
+    if (this.scanResult?.action === 'withdraw' && user.balance < amount) {
+      this.notificationService.showError(`Solde insuffisant. Solde actuel: ${this.formatAmount(user.balance)} Ar`);
       return;
     }
 
     const actionLabel = this.scanResult?.action === 'deposit' ? 'dépôt' : 'retrait';
-    const confirmMsg = `Confirmer le ${actionLabel} de ${this.formatAmount(this.amount)} Ar sur le compte de ${user.firstName} ${user.lastName} ?`;
+    const confirmMsg = `Confirmer le ${actionLabel} de ${this.formatAmount(amount)} Ar ${this.scanResult?.action === 'deposit' ? 'sur' : 'du'} compte de ${user.firstName} ${user.lastName} ?`;
 
     if (!confirm(confirmMsg)) {
       return;
     }
 
     this.isSubmitting = true;
-
     const qrData = this.scanResult ? JSON.stringify(this.scanResult) : '';
+    const finalDescription = this.description || (this.scanResult?.action === 'deposit' ? 'Dépôt via QR Code' : 'Retrait via QR Code');
 
     if (this.scanResult?.action === 'deposit') {
-      this.adminService.depositMoney(this.selectedUserId, this.amount, this.description, qrData).subscribe({
+      // ✅ DÉPÔT
+      this.adminService.depositMoney(this.selectedUserId, amount, finalDescription, qrData).subscribe({
         next: (response) => {
           this.isSubmitting = false;
           this.transactionCompleted.emit({
             success: true,
-            message: `Dépôt de ${this.formatAmount(this.amount)} Ar effectué avec succès`,
+            message: `💰 Dépôt de ${this.formatAmount(amount)} Ar effectué avec succès sur le compte de ${user.firstName} ${user.lastName}`,
             data: response,
           });
-          this.notificationService.showSuccess(`Dépôt de ${this.formatAmount(this.amount)} Ar effectué`);
+          this.notificationService.showSuccess(
+            `💰 Dépôt de ${this.formatAmount(amount)} Ar effectué avec succès`
+          );
         },
         error: (error) => {
           this.isSubmitting = false;
@@ -140,15 +189,18 @@ export class QRTransactionFormComponent implements OnInit {
         },
       });
     } else {
-      this.adminService.withdrawMoney(this.selectedUserId, this.amount, this.description, qrData).subscribe({
+      // ✅ RETRAIT
+      this.adminService.withdrawMoney(this.selectedUserId, amount, finalDescription, qrData).subscribe({
         next: (response) => {
           this.isSubmitting = false;
           this.transactionCompleted.emit({
             success: true,
-            message: `Retrait de ${this.formatAmount(this.amount)} Ar effectué avec succès`,
+            message: `💳 Retrait de ${this.formatAmount(amount)} Ar effectué avec succès du compte de ${user.firstName} ${user.lastName}`,
             data: response,
           });
-          this.notificationService.showSuccess(`Retrait de ${this.formatAmount(this.amount)} Ar effectué`);
+          this.notificationService.showSuccess(
+            `💳 Retrait de ${this.formatAmount(amount)} Ar effectué avec succès`
+          );
         },
         error: (error) => {
           this.isSubmitting = false;

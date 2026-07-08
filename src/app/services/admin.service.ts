@@ -63,6 +63,13 @@ export interface QRScanResult {
   adminId: string;
   adminName: string;
   amount: number | null;
+
+  qrCode?: string;
+  expiresAt?: string;
+  isAdminTransaction?: boolean;
+  type?: string;
+  timestamp?: string;
+  signature?: string;
 }
 
 export interface SystemSettings {
