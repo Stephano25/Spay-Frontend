@@ -1,146 +1,169 @@
 /* ============================================================
-   QR-SCANNER — Scan de QR Code
+   SPAYE — QR SCANNER
    ============================================================ */
 
 .qr-scanner-overlay {
   position: fixed;
   inset: 0;
-  background: var(--qr-overlay-bg);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
-  animation: qrFadeIn 0.25s var(--ease) both;
 }
 
 .qr-scanner-card {
+  background: var(--surface) !important;
+  border-radius: 16px !important;
+  max-width: 440px;
   width: 100%;
-  max-width: 420px;
-  max-height: 92vh;
+  max-height: 90vh;
   overflow-y: auto;
-  border-radius: var(--qr-card-radius) !important;
-  box-shadow: var(--qr-card-shadow) !important;
-  animation: qrSlideUp 0.3s var(--ease-spring) both;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+  border: 0.5px solid var(--border) !important;
+  animation: qrModalIn 0.3s ease;
 }
 
-.qr-scanner-card::-webkit-scrollbar { width: 4px; }
-.qr-scanner-card::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 999px; }
-
 .qr-scanner-card mat-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 22px 12px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 16px 20px !important;
   border-bottom: 0.5px solid var(--border);
 }
 
 .qr-scanner-card mat-card-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--text);
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-size: 1.0625rem !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  margin: 0 !important;
 }
 
 .qr-scanner-card mat-card-title mat-icon {
   color: var(--brand-1);
-  animation: scanPulse 1.8s var(--ease) infinite;
 }
 
-.qr-scanner-card mat-card-content { padding: 20px 22px 24px; }
+.qr-scanner-card mat-card-content {
+  padding: 20px !important;
+}
 
-/* ── Instructions ── */
-.scanner-instructions { text-align: center; margin-bottom: 16px; }
-.scanner-instructions p { color: var(--text-3); font-size: 0.85rem; }
+.scanner-instructions {
+  text-align: center;
+  margin-bottom: 16px;
+}
 
-.scanner-input { margin-bottom: 6px; }
-.full-width { width: 100%; }
+.scanner-instructions p {
+  font-size: 0.875rem;
+  color: var(--text-3);
+  margin: 0;
+}
 
-/* ── Actions ── */
-.scanner-actions { display: flex; gap: 10px; margin-top: 6px; }
+.scanner-input {
+  margin-bottom: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.scanner-actions {
+  display: flex;
+  gap: 12px;
+}
 
 .scanner-actions button {
   flex: 1;
-  border-radius: var(--r-pill) !important;
-  font-weight: 600 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 46px;
-  transition: transform var(--trans-base) !important;
+  padding: 10px !important;
+  border-radius: 10px !important;
 }
 
 .scanner-actions button[color='primary'] {
-  background: var(--brand-grad) !important;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
   color: white !important;
-  box-shadow: var(--shadow-brand) !important;
 }
 
-.scanner-actions button:hover:not([disabled]) { transform: translateY(-2px); }
+.scanner-actions button[color='primary']:disabled {
+  opacity: 0.5 !important;
+}
 
-/* ── Divider ── */
 .or-divider {
   display: flex;
   align-items: center;
-  text-align: center;
-  margin: 20px 0 16px;
-  color: var(--text-4);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  gap: 16px;
+  margin: 16px 0;
 }
 
-.or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-.or-divider span { padding: 0 12px; }
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 
-/* ── File upload ── */
-.file-upload { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.or-divider span {
+  color: var(--text-3);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 4px;
+}
 
-.file-upload button {
-  width: 100%;
-  border-radius: var(--r-pill) !important;
-  border: 1px dashed var(--border-2) !important;
-  color: var(--text-2) !important;
-  font-weight: 600 !important;
-  height: 48px;
+.file-upload {
   display: flex;
   align-items: center;
+  gap: 12px;
   justify-content: center;
-  gap: 8px;
-  transition: all var(--trans-base) !important;
+  flex-wrap: wrap;
 }
 
-.file-upload button:hover {
-  border-color: var(--brand-1) !important;
-  color: var(--brand-1) !important;
-  background: var(--brand-grad-soft) !important;
+.file-upload button {
+  border-radius: 10px !important;
+  padding: 0 20px !important;
+  height: 40px !important;
 }
 
-.file-hint { font-size: 0.72rem; color: var(--text-4); }
-
-/* ── Animations ── */
-@keyframes qrFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes qrSlideUp {
-  from { opacity: 0; transform: translateY(20px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes scanPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(1.12); }
+.file-hint {
+  font-size: 0.7rem;
+  color: var(--text-3);
 }
 
-/* ── Responsive ── */
-@media (max-width: 480px) {
-  .qr-scanner-overlay { padding: 12px; }
-  .qr-scanner-card { max-width: 100%; max-height: 94vh; }
-  .qr-scanner-card mat-card-header { padding: 16px 16px 10px; }
-  .qr-scanner-card mat-card-content { padding: 16px; }
-  .scanner-actions { flex-direction: column-reverse; }
+/* Responsive */
+@media (max-width: 600px) {
+  .qr-scanner-card {
+    margin: 12px;
+  }
+  .qr-scanner-card mat-card-header {
+    padding: 12px 16px !important;
+  }
+  .qr-scanner-card mat-card-content {
+    padding: 16px !important;
+  }
+  .scanner-actions {
+    flex-direction: column;
+  }
+  .scanner-actions button {
+    width: 100%;
+  }
+  .file-upload {
+    flex-direction: column;
+  }
+  .file-upload button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .qr-scanner-card mat-card-title {
+    font-size: 0.9375rem !important;
+  }
+  .scanner-instructions p {
+    font-size: 0.8125rem;
+  }
 }

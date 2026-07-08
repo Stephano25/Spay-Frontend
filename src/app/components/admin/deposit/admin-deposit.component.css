@@ -1,38 +1,25 @@
-/* frontend/src/app/components/admin/deposit/admin-deposit.component.css */
 /* ============================================================
-   ADMIN DEPOSIT — SPaye
+   SPAYE — DEPOSIT
    ============================================================ */
 
-.deposit-container { min-height: 100vh; background: var(--bg); padding: 0; }
-
-mat-toolbar {
-  background: var(--surface) !important;
-  border-bottom: 0.5px solid var(--border) !important;
-  color: var(--text) !important;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: var(--shadow-xs) !important;
+.deposit-container {
+  padding: 24px;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: var(--bg);
 }
 
-mat-toolbar button { color: var(--text-2) !important; border-radius: 50% !important; transition: all var(--trans-base) !important; }
-mat-toolbar button:hover { background: var(--hover) !important; color: var(--brand-1) !important; }
-mat-toolbar .spacer { flex: 1 1 auto; }
-
-mat-toolbar .toolbar-badge {
-  font-size: 0.7rem;
-  padding: 4px 14px;
+.deposit-container::-webkit-scrollbar {
+  width: 6px;
+}
+.deposit-container::-webkit-scrollbar-thumb {
+  background: var(--border);
   border-radius: 999px;
-  background: var(--brand-grad-soft);
-  color: var(--brand-1);
-  font-weight: 600;
 }
 
 .deposit-content {
-  max-width: 700px;
+  max-width: 600px;
   margin: 0 auto;
-  padding: 28px 24px;
-  animation: fadeUp 0.4s var(--ease) both;
 }
 
 .loading-container {
@@ -40,253 +27,467 @@ mat-toolbar .toolbar-badge {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: 300px;
   gap: 16px;
   color: var(--text-3);
 }
 
 .deposit-card {
-  border-radius: var(--r-xl) !important;
-  background: var(--surface) !important;
-  border: 0.5px solid var(--border) !important;
-  box-shadow: var(--shadow-md) !important;
+  border-radius: 16px !important;
   overflow: hidden;
-  margin-bottom: 24px;
-  animation: fadeUp 0.4s var(--ease) 0.05s both;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06) !important;
+  margin-bottom: 20px;
 }
 
 .deposit-card mat-card-header {
-  padding: 24px 24px 0 !important;
+  padding: 20px 24px 0 !important;
+}
+
+.deposit-card .header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   display: flex;
   align-items: center;
-  gap: 14px;
-  border-bottom: 0.5px solid var(--border);
-  padding-bottom: 18px !important;
-  background: var(--brand-grad-soft);
+  justify-content: center;
+  margin-bottom: 8px;
 }
 
-.header-icon {
-  width: 48px; height: 48px;
-  border-radius: 14px;
-  background: var(--brand-grad);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: var(--shadow-brand);
-  flex-shrink: 0;
+.deposit-card .header-icon mat-icon {
+  color: white;
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
 }
 
-.header-icon mat-icon { font-size: 24px !important; width: 24px !important; height: 24px !important; color: white !important; }
+.deposit-card mat-card-title {
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+}
 
-.deposit-card mat-card-title { font-family: var(--font-sans) !important; font-size: 1.125rem !important; font-weight: 700 !important; color: var(--text) !important; }
-.deposit-card mat-card-subtitle { color: var(--text-3) !important; font-size: 0.8125rem !important; }
-.deposit-card mat-card-content { padding: 24px !important; }
+.deposit-card mat-card-subtitle {
+  font-size: 0.875rem !important;
+  color: var(--text-3) !important;
+}
+
+.deposit-card mat-card-content {
+  padding: 16px 24px 8px !important;
+}
 
 .deposit-card mat-card-actions {
-  padding: 16px 24px 20px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+  padding: 12px 24px 20px !important;
   border-top: 0.5px solid var(--border);
-  background: var(--surface-2);
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
 }
 
+.deposit-card mat-card-actions button {
+  padding: 0 20px !important;
+  height: 40px !important;
+  border-radius: 10px !important;
+}
+
+.deposit-btn {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+  color: white !important;
+}
+
+.deposit-btn:disabled {
+  opacity: 0.5 !important;
+}
+
+.cancel-btn {
+  border-color: var(--border) !important;
+}
+
+/* Result Alert */
 .result-alert {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
-  border-radius: var(--r-md);
-  margin-bottom: 20px;
-  animation: slideInDown 0.3s var(--ease) both;
-  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
 }
 
-.result-alert.success { background: var(--success-bg); color: var(--success); border: 0.5px solid rgba(16,185,129,.3); }
-.result-alert.error { background: var(--danger-bg); color: var(--danger); border: 0.5px solid rgba(239,68,68,.3); }
-.result-alert mat-icon { font-size: 20px !important; width: 20px !important; height: 20px !important; flex-shrink: 0; }
+.result-alert.success {
+  background: rgba(16, 185, 129, 0.10);
+  color: #10b981;
+  border: 0.5px solid rgba(16, 185, 129, 0.2);
+}
+
+.result-alert.error {
+  background: rgba(239, 68, 68, 0.10);
+  color: #ef4444;
+  border: 0.5px solid rgba(239, 68, 68, 0.2);
+}
+
+.result-alert mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+}
 
 .result-alert .new-balance {
-  margin-left: auto;
   font-weight: 700;
-  padding-left: 12px;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
 }
 
-.form-section { margin-bottom: 22px; }
-.form-section:last-child { margin-bottom: 0; }
+/* Form Sections */
+.form-section {
+  padding: 8px 0;
+}
 
 .section-label {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8125rem;
   font-weight: 600;
+  font-size: 0.8125rem;
   color: var(--text-2);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.section-label mat-icon { font-size: 18px !important; width: 18px !important; height: 18px !important; color: var(--brand-1) !important; }
+.section-label mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--text-3);
+}
 
-.full-width { width: 100%; }
+.full-width {
+  width: 100%;
+}
 
-.user-option { display: flex; align-items: center; gap: 12px; padding: 6px 0; width: 100%; }
+/* User Option */
+.user-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
 
 .user-avatar-sm {
-  width: 32px; height: 32px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--brand-grad);
-  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: white;
-  font-weight: 700;
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
   flex-shrink: 0;
 }
 
-.user-option-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.user-option-name { font-weight: 600; color: var(--text); font-size: 0.875rem; }
-.user-option-email { font-size: 0.75rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-option-balance { font-family: var(--font-mono); font-weight: 700; color: var(--success); font-size: 0.875rem; flex-shrink: 0; }
+.user-option-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
 
-.selected-user { margin-top: 12px; }
+.user-option-name {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+.user-option-email {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.user-option-role {
+  font-size: 0.65rem;
+  color: var(--brand-1);
+  font-weight: 600;
+}
+
+.user-option-balance {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+
+/* Selected User */
+.selected-user {
+  margin: 12px 0 8px;
+}
 
 .selected-user-card {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 16px 20px;
-  background: var(--brand-grad-soft);
-  border-radius: var(--r-md);
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-radius: 10px;
   border: 0.5px solid var(--border);
   flex-wrap: wrap;
 }
 
 .selected-user-avatar {
-  width: 52px; height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: var(--brand-grad);
-  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
-  box-shadow: var(--shadow-brand);
 }
 
-.selected-user-info { flex: 1; min-width: 140px; }
-.selected-user-name { font-weight: 700; color: var(--text); font-size: 1rem; }
-.selected-user-email { font-size: 0.8125rem; color: var(--text-3); word-break: break-all; }
+.selected-user-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
 
-.selected-user-balance { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
-.balance-label { font-size: 0.7rem; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-.balance-value { font-family: var(--font-mono); font-weight: 700; color: var(--success); font-size: 1rem; }
+.selected-user-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--text);
+}
 
-.quick-amounts { margin-bottom: 12px; }
+.selected-user-email {
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
+.selected-user-role {
+  display: flex;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.role-label {
+  color: var(--text-3);
+}
+
+.role-value {
+  font-weight: 600;
+  color: var(--brand-1);
+}
+
+.selected-user-balance {
+  display: flex;
+  gap: 8px;
+  font-size: 0.8125rem;
+}
+
+.balance-label {
+  color: var(--text-3);
+}
+
+.balance-value {
+  font-weight: 600;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Quick Amounts */
+.quick-amounts {
+  margin-bottom: 12px;
+}
 
 .quick-label {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-3);
   font-weight: 600;
-  margin-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
 }
 
-.amount-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.amount-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 .amount-chip {
-  padding: 8px 14px;
+  padding: 6px 14px;
   border-radius: 999px;
-  border: 1px solid var(--border-2);
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-2);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--trans-base);
-  font-family: var(--font-sans);
-  min-height: 36px;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
 }
 
-.amount-chip:hover { border-color: var(--brand-1); color: var(--brand-1); transform: translateY(-1px); }
-.amount-chip.active { background: var(--brand-grad); border-color: var(--brand-1); color: white; box-shadow: var(--shadow-brand); }
+.amount-chip:hover {
+  border-color: var(--brand-1);
+  color: var(--brand-1);
+}
 
+.amount-chip.active {
+  background: var(--brand-grad);
+  border-color: var(--brand-1);
+  color: white;
+}
+
+/* Deposit Preview */
 .deposit-preview {
-  margin-top: 14px;
-  padding: 14px 18px;
+  padding: 12px 16px;
   background: var(--surface-2);
-  border-radius: var(--r-md);
+  border-radius: 10px;
   border: 0.5px solid var(--border);
-  animation: fadeUp 0.3s var(--ease) both;
+  margin-top: 8px;
 }
 
-.preview-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.875rem; color: var(--text-2); gap: 8px; flex-wrap: wrap; }
-.preview-row.total { border-top: 0.5px solid var(--border); margin-top: 6px; padding-top: 10px; font-weight: 700; color: var(--text); }
-.preview-amount { color: var(--warning); font-weight: 700; }
-.preview-new-balance { color: var(--success); font-weight: 700; font-family: var(--font-mono); }
-
-.cancel-btn { border-radius: 999px !important; font-weight: 600 !important; color: var(--text-3) !important; transition: all var(--trans-base) !important; }
-.cancel-btn:hover { background: var(--hover) !important; }
-.cancel-btn mat-icon { font-size: 18px !important; margin-right: 4px; }
-
-.deposit-btn {
-  border-radius: 999px !important;
-  font-weight: 600 !important;
-  padding: 0 28px !important;
-  background: var(--brand-grad) !important;
-  color: white !important;
-  box-shadow: var(--shadow-brand) !important;
-  transition: all var(--trans-base) !important;
-  min-height: 46px;
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--text-2);
+  padding: 4px 0;
+  gap: 12px;
 }
 
-.deposit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-brand-hover) !important; }
-.deposit-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none !important; }
-.deposit-btn mat-icon { font-size: 18px !important; margin-right: 6px; }
+.preview-row.total {
+  font-weight: 700;
+  color: var(--text);
+  border-top: 0.5px solid var(--border);
+  padding-top: 8px;
+  margin-top: 4px;
+}
 
+.preview-amount {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.preview-new-balance {
+  color: #7c3aed;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Info Card */
 .info-card {
-  border-radius: var(--r-xl) !important;
-  background: var(--surface) !important;
-  border: 0.5px solid var(--border) !important;
-  box-shadow: var(--shadow-sm) !important;
-  animation: fadeUp 0.4s var(--ease) 0.1s both;
+  border-radius: 12px !important;
 }
 
-.info-card mat-card-content { padding: 20px 24px !important; }
-.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.info-item { display: flex; align-items: flex-start; gap: 12px; }
+.info-card mat-card-content {
+  padding: 16px 20px !important;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
 
 .info-icon {
-  width: 36px; height: 36px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: var(--brand-grad-soft);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.info-icon mat-icon { font-size: 18px !important; width: 18px !important; height: 18px !important; color: var(--brand-1) !important; }
-.info-item h4 { font-size: 0.8125rem; font-weight: 600; color: var(--text); margin: 0 0 2px; }
-.info-item p { font-size: 0.75rem; color: var(--text-3); margin: 0; line-height: 1.5; }
-
-@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideInDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
-
-@media (max-width: 768px) {
-  .deposit-content { padding: 16px 14px; }
-  .deposit-card mat-card-content { padding: 16px !important; }
-  .deposit-card mat-card-actions { flex-direction: column-reverse; }
-  .deposit-card mat-card-actions button { width: 100%; }
-  .selected-user-card { flex-wrap: wrap; }
-  .selected-user-balance { width: 100%; }
-  .info-grid { grid-template-columns: 1fr; gap: 14px; }
-  .amount-chips { gap: 6px; }
-  .amount-chip { padding: 6px 12px; font-size: 0.72rem; }
+.info-icon mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: var(--brand-1);
 }
 
-@media (max-width: 480px) {
-  .deposit-card mat-card-header { flex-wrap: wrap; }
-  .header-icon { width: 40px; height: 40px; }
-  .header-icon mat-icon { font-size: 20px !important; width: 20px !important; height: 20px !important; }
-  .user-option { flex-wrap: wrap; }
-  .user-option-balance { width: 100%; }
-  .selected-user-info { min-width: 100%; }
+.info-item h4 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 2px;
+}
+
+.info-item p {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin: 0;
+}
+
+.toolbar-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .deposit-container {
+    padding: 12px;
+  }
+  .deposit-card mat-card-header {
+    padding: 16px 20px 0 !important;
+  }
+  .deposit-card mat-card-content {
+    padding: 12px 16px 4px !important;
+  }
+  .deposit-card mat-card-actions {
+    flex-direction: column-reverse;
+    padding: 12px 16px 16px !important;
+  }
+  .deposit-card mat-card-actions button {
+    width: 100%;
+  }
+  .selected-user-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .selected-user-avatar {
+    align-self: center;
+  }
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  .amount-chip {
+    padding: 4px 10px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .user-option {
+    flex-wrap: wrap;
+  }
+  .user-option-balance {
+    margin-left: auto;
+  }
+  .deposit-card mat-card-title {
+    font-size: 1rem !important;
+  }
 }

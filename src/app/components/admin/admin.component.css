@@ -1,12 +1,18 @@
+/* ============================================================
+   SPAYE — ADMIN LAYOUT
+   ============================================================ */
+
 .admin-content {
-  padding: 28px 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-  animation: fadeUp 0.4s var(--ease) both;
+  padding: 0;
+  max-height: 100vh;
+  overflow-y: auto;
+  background: var(--bg);
 }
 
-@media (max-width: 768px) {
-  .admin-content {
-    padding: 16px 14px;
-  }
+.admin-content::-webkit-scrollbar {
+  width: 6px;
+}
+.admin-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
 }

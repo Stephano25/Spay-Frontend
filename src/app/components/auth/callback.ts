@@ -11,186 +11,223 @@ import { MatIconModule } from '@angular/material/icon';
   standalone: true,
   imports: [CommonModule, MatProgressSpinnerModule, MatIconModule],
   styles: [`
-    .callback-container {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 28px;
-      background: var(--bg);
-      position: relative;
-      overflow: hidden;
-    }
+    /* ============================================================
+   SPAYE — AUTH CALLBACK
+   ============================================================ */
 
-    .callback-container::before {
-      content: '';
-      position: absolute;
-      width: 500px;
-      height: 500px;
-      top: -180px;
-      right: -180px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(99,102,241,0.07), rgba(139,92,246,0.04));
-      pointer-events: none;
-      animation: orb 18s ease-in-out infinite;
-    }
+.callback-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
 
-    .callback-container::after {
-      content: '';
-      position: absolute;
-      width: 360px;
-      height: 360px;
-      bottom: -120px;
-      left: -80px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(139,92,246,0.05), rgba(99,102,241,0.03));
-      pointer-events: none;
-      animation: orb 24s ease-in-out infinite reverse;
-    }
+.callback-container::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  top: -180px;
+  right: -180px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.07), rgba(139, 92, 246, 0.04));
+  pointer-events: none;
+}
 
-    .callback-logo {
-      width: 76px;
-      height: 76px;
-      border-radius: 22px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 8px 24px rgba(99,102,241,0.35);
-      animation: float 3.5s ease-in-out infinite;
-      position: relative;
-      z-index: 2;
-    }
+.callback-container::after {
+  content: '';
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  bottom: -120px;
+  left: -80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(99, 102, 241, 0.03));
+  pointer-events: none;
+}
 
-    .callback-logo mat-icon {
-      font-size: 36px !important;
-      width: 36px !important;
-      height: 36px !important;
-      color: white;
-    }
+.callback-logo {
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+  position: relative;
+  z-index: 2;
+}
 
-    .callback-card {
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: 28px;
-      padding: 40px 48px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-      animation: scaleIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-      position: relative;
-      z-index: 2;
-      min-width: 300px;
-      text-align: center;
-    }
+.callback-logo mat-icon {
+  font-size: 36px !important;
+  width: 36px !important;
+  height: 36px !important;
+  color: white;
+}
 
-    .spinner-wrapper {
-      position: relative;
-      width: 56px;
-      height: 56px;
-    }
+.callback-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 28px;
+  padding: 40px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 2;
+  min-width: 300px;
+  text-align: center;
+}
 
-    .spinner-ring {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      border: 3px solid var(--border);
-      border-top-color: #6366f1;
-      border-right-color: #8b5cf6;
-      animation: spin 0.85s linear infinite;
-    }
+  .spinner-wrapper {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  }
 
-    .callback-title {
-      font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-      font-size: 1.125rem;
-      font-weight: 700;
-      color: var(--text, #0f0e1a);
-      letter-spacing: -0.01em;
-      margin: 0;
-    }
+  .spinner-ring {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: #6366f1;
+  border-right-color: #8b5cf6;
+  animation: spin 0.85s linear infinite;
+  }
 
-    .callback-subtitle {
-      font-size: 0.8125rem;
-      color: var(--text-3, #7c7a92);
-      margin: -8px 0 0;
-      font-weight: 400;
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
     }
+  }
 
-    .progress-bar {
-      width: 100%;
-      height: 3px;
-      background: var(--border);
-      border-radius: 999px;
-      overflow: hidden;
-    }
+  .callback-title {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  margin: 0;
+  }
 
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #6366f1, #8b5cf6);
-      border-radius: 999px;
-      animation: progressSlide 1.8s ease-in-out infinite;
-    }
+  .callback-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-3);
+  margin: -8px 0 0;
+  font-weight: 400;
+  }
 
-    .error-message {
-      color: #ef4444;
-      font-size: 0.9rem;
-      margin-top: 12px;
-    }
+  .progress-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  }
 
-    .btn-retry {
-      margin-top: 12px;
-      padding: 10px 30px;
-      border: none;
-      border-radius: 8px;
-      background: #7c3aed;
-      color: white;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+  .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 999px;
+  animation: progressSlide 1.8s ease-in-out infinite;
+  }
 
-    .btn-retry:hover {
-      background: #6d28d9;
-      transform: translateY(-2px);
+  @keyframes progressSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
     }
+  }
 
-    .success-icon {
-      font-size: 48px !important;
-      width: 48px !important;
-      height: 48px !important;
-      color: #10b981 !important;
-    }
+  .error-message {
+  color: #ef4444;
+  font-size: 0.9rem;
+  margin-top: 12px;
+  }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+  .btn-retry {
+  margin-top: 12px;
+  padding: 10px 30px;
+  border: none;
+  border-radius: 8px;
+  background: #7c3aed;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-6px); }
-    }
+  .btn-retry:hover {
+  background: #6d28d9;
+  transform: translateY(-2px);
+  }
 
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.92); }
-      to   { opacity: 1; transform: scale(1); }
-    }
+  .success-icon {
+  font-size: 48px !important;
+  width: 48px !important;
+  height: 48px !important;
+  color: #10b981 !important;
+  }
 
-    @keyframes orb {
-      0%,100% { transform: translate(0,0) scale(1); }
-      33%     { transform: translate(-14px,10px) scale(1.04); }
-      66%     { transform: translate(10px,-14px) scale(0.97); }
+  /* Responsive */
+  @media (max-width: 600px) {
+  .callback-card {
+    padding: 28px 24px;
+    min-width: unset;
+    width: 100%;
+    max-width: 380px;
+    border-radius: 20px;
+  }
+  .callback-logo {
+    width: 60px;
+    height: 60px;
+  }
+  .callback-logo mat-icon {
+    font-size: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .callback-title {
+    font-size: 1rem;
     }
+  }
 
-    @keyframes progressSlide {
-      0%   { transform: translateX(-100%); }
-      50%  { transform: translateX(0%); }
-      100% { transform: translateX(100%); }
-    }
-  `],
+  @media (max-width: 400px) {
+  .callback-card {
+    padding: 20px 16px;
+  }
+  .callback-logo {
+    width: 52px;
+    height: 52px;
+  }
+  .callback-logo mat-icon {
+    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+  }
+  .spinner-wrapper {
+    width: 44px;
+    height: 44px;
+  }
+  .spinner-ring {
+    width: 44px;
+    height: 44px;
+  }
+  }`],
   template: `
     <div class="callback-container">
       <div class="callback-logo">

@@ -1,147 +1,129 @@
 /* ============================================================
-   TRANSACTIONS — SPaye
+   SPAYE — TRANSACTIONS
    ============================================================ */
 
 .transactions-container {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   background: var(--bg);
-  position: relative;
-  overflow-x: hidden;
+  font-family: var(--font-body);
+  overflow: hidden;
 }
 
-.spacer { flex: 1 1 auto; }
-
-/* ── Toolbar ── */
-mat-toolbar {
-  background: var(--surface) !important;
-  border-bottom: 0.5px solid var(--border) !important;
-  color: var(--text) !important;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: var(--shadow-xs) !important;
-  animation: fadeDown 0.4s var(--ease) both;
-}
-
-mat-toolbar button                { transition: all var(--trans-base) !important; }
-mat-toolbar button:hover          { background: var(--hover) !important; color: var(--brand-1) !important; }
-
-/* ── Content ── */
 .transactions-content {
-  max-width: 760px;
-  margin: 24px auto;
-  padding: 0 20px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
 }
 
-/* ── Summary cards ── */
+.transactions-content::-webkit-scrollbar {
+  width: 4px;
+}
+.transactions-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+/* Summary Cards */
 .summary-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .summary-card {
+  border-radius: 12px !important;
   cursor: pointer;
-  border-radius: var(--r-xl) !important;
-  background: var(--surface) !important;
-  border: 0.5px solid var(--border) !important;
-  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.3s ease !important;
   overflow: hidden;
-  transition: transform var(--trans-base), box-shadow var(--trans-base) !important;
-  animation: fadeUp 0.4s var(--ease) both;
-  position: relative;
 }
 
-.summary-card:nth-child(1) { animation-delay: 0.05s; }
-.summary-card:nth-child(2) { animation-delay: 0.10s; }
-
-/* Top accent bar on hover */
-.summary-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--brand-grad);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s var(--ease);
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
-
-.summary-card:hover::before { transform: scaleX(1); }
-.summary-card:hover          { transform: translateY(-4px); box-shadow: var(--shadow-lg) !important; }
 
 .summary-card mat-card-content {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 20px !important;
+  gap: 12px;
+  padding: 14px 16px !important;
 }
 
 .summary-icon {
-  width: 54px;
-  height: 54px;
-  border-radius: var(--r-md);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform var(--trans-base);
   flex-shrink: 0;
 }
 
-.summary-card:hover .summary-icon       { transform: scale(1.08); }
-.summary-icon mat-icon                   { font-size: 26px !important; width: 26px !important; height: 26px !important; }
+.summary-card.received .summary-icon {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+.summary-card.sent .summary-icon {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
 
-.summary-card.received .summary-icon             { background: var(--success-bg); }
-.summary-card.received .summary-icon mat-icon    { color: var(--success) !important; }
+.summary-icon mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+}
 
-.summary-card.sent .summary-icon                 { background: var(--danger-bg); }
-.summary-card.sent .summary-icon mat-icon        { color: var(--danger) !important; }
-
-.summary-details  { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.summary-details {
+  flex: 1;
+  min-width: 0;
+}
 
 .summary-label {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.7rem;
   color: var(--text-3);
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.3px;
+  display: block;
 }
 
 .summary-value {
-  font-family: var(--font-mono);
-  font-size: 1.375rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-family: 'JetBrains Mono', monospace;
 }
 
-/* ── Tabs ── */
+/* Tabs */
 .transactions-tabs {
-  margin-bottom: 18px;
-  background: var(--surface) !important;
-  border-radius: var(--r-xl) !important;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm) !important;
-  border: 0.5px solid var(--border) !important;
-  animation: fadeUp 0.4s var(--ease) 0.12s both;
+  margin-bottom: 16px;
 }
 
-/* ── Loading / Error states ── */
+.transactions-tabs .mat-mdc-tab-header {
+  background: var(--surface-2);
+  border-radius: 10px 10px 0 0;
+}
+
+.transactions-tabs .mat-mdc-tab-body-wrapper {
+  background: var(--surface);
+  border-radius: 0 0 10px 10px;
+  border: 0.5px solid var(--border);
+  border-top: none;
+}
+
+/* States */
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 240px;
-  gap: 16px;
+  padding: 48px 20px;
+  gap: 12px;
   color: var(--text-3);
-  font-size: 0.9rem;
 }
 
 .error-state {
@@ -149,228 +131,253 @@ mat-toolbar button:hover          { background: var(--hover) !important; color: 
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 240px;
-  gap: 14px;
-  padding: 32px 20px;
-  text-align: center;
+  padding: 48px 20px;
+  gap: 12px;
+  color: #ef4444;
 }
 
-.error-state mat-icon { font-size: 3rem !important; width: 3rem !important; height: 3rem !important; color: var(--danger); }
-.error-state p        { color: var(--text-2); font-size: 0.9375rem; }
-.error-state button   { border-radius: var(--r-pill) !important; }
+.error-state mat-icon {
+  font-size: 48px !important;
+  width: 48px !important;
+  height: 48px !important;
+}
 
-/* ── List card ── */
+.error-state p {
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+/* Transactions List */
 .transactions-list-card {
-  border-radius: var(--r-xl) !important;
-  background: var(--surface) !important;
-  border: 0.5px solid var(--border) !important;
-  box-shadow: var(--shadow-md) !important;
-  overflow: hidden;
-  animation: fadeUp 0.4s var(--ease) 0.16s both;
+  border-radius: 0 0 12px 12px !important;
+  border-top: none !important;
 }
 
-/* ── Transaction item ── */
+.transactions-list-card mat-card-content {
+  padding: 0 !important;
+}
+
+.transactions-list {
+  padding: 0 !important;
+}
+
 .transaction-item {
-  height: auto !important;
-  margin-bottom: 0 !important;
   border-bottom: 0.5px solid var(--border) !important;
-  transition: background var(--trans-base) !important;
-  animation: fadeUp 0.3s var(--ease) both;
+  padding: 4px 0 !important;
+  transition: background 0.3s ease;
 }
 
-.transaction-item:last-child  { border-bottom: none !important; }
-.transaction-item:hover        { background: var(--hover) !important; }
+.transaction-item:hover {
+  background: var(--hover);
+}
+
+.transaction-item:last-child {
+  border-bottom: none !important;
+}
 
 .transaction-content {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  padding: 10px 16px;
   width: 100%;
-  padding: 14px 18px;
 }
 
-/* ── Transaction icon ── */
 .transaction-icon {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform var(--trans-base);
   flex-shrink: 0;
 }
 
-.transaction-item:hover .transaction-icon   { transform: scale(1.08); }
-.transaction-icon mat-icon                  { font-size: 20px !important; width: 20px !important; height: 20px !important; }
+.transaction-icon.deposit {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+.transaction-icon.withdraw {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+.transaction-icon.transfer {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+.transaction-icon.payment {
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+}
 
-.transaction-icon.sent              { background: var(--danger-bg); }
-.transaction-icon.sent mat-icon     { color: var(--danger) !important; }
-.transaction-icon.received          { background: var(--success-bg); }
-.transaction-icon.received mat-icon { color: var(--success) !important; }
-.transaction-icon.mobile_money      { background: var(--brand-grad-soft); }
-.transaction-icon.mobile_money mat-icon { color: var(--brand-1) !important; }
-.transaction-icon.scan_pay          { background: rgba(139, 92, 246, 0.1); }
-.transaction-icon.scan_pay mat-icon { color: var(--brand-2) !important; }
+.transaction-icon mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
 
-/* ── Transaction info ── */
-.transaction-info { flex: 1; min-width: 0; }
+.transaction-info {
+  flex: 1;
+  min-width: 0;
+}
 
 .transaction-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 5px;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
 }
 
 .transaction-description {
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 500;
+  font-size: 0.875rem;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 260px;
 }
 
 .transaction-amount {
-  font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 1rem;
-  transition: transform var(--trans-base);
+  font-size: 0.9375rem;
+  font-family: 'JetBrains Mono', monospace;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
-.transaction-item:hover .transaction-amount { transform: scale(1.04); }
-.transaction-amount.sent                    { color: var(--danger); }
-.transaction-amount.received                { color: var(--success); }
+.transaction-amount.deposit {
+  color: #10b981;
+}
+.transaction-amount.withdraw {
+  color: #ef4444;
+}
+.transaction-amount.transfer {
+  color: #3b82f6;
+}
+.transaction-amount.payment {
+  color: #7c3aed;
+}
 
-/* ── Meta row ── */
 .transaction-details {
   display: flex;
-  gap: 8px;
-  align-items: center;
+  gap: 12px;
   font-size: 0.7rem;
+  color: var(--text-3);
   flex-wrap: wrap;
 }
 
 .transaction-date {
-  color: var(--text-4);
   white-space: nowrap;
-  background: var(--surface-2);
-  padding: 3px 8px;
-  border-radius: var(--r-pill);
-  border: 0.5px solid var(--border);
 }
 
 .transaction-counterparty {
-  background: var(--surface-2);
-  padding: 3px 8px;
-  border-radius: var(--r-pill);
-  max-width: 200px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--text-3);
-  transition: all var(--trans-base);
-  border: 0.5px solid var(--border);
-  cursor: default;
-}
-
-.transaction-counterparty:hover {
-  background: var(--active);
-  color: var(--brand-1);
-  border-color: var(--brand-1);
 }
 
 .transaction-status {
-  padding: 3px 9px;
-  border-radius: var(--r-pill);
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: var(--warning-bg);
-  color: var(--warning);
+  padding: 0 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
 .transaction-status.completed {
-  background: var(--success-bg);
-  color: var(--success);
+  color: #10b981;
+}
+.transaction-status.pending {
+  color: #f59e0b;
+}
+.transaction-status.failed {
+  color: #ef4444;
 }
 
-/* ── Row actions ── */
 .transaction-actions {
-  opacity: 0.4;
-  transition: opacity var(--trans-base);
-  flex-shrink: 0;
+  color: var(--text-3) !important;
 }
 
-.transaction-item:hover .transaction-actions { opacity: 1; }
-
-.transaction-actions button {
-  transition: all var(--trans-base) !important;
-  border-radius: 50% !important;
+.transaction-actions:hover {
+  color: var(--text) !important;
 }
 
-.transaction-actions button:hover {
-  transform: rotate(90deg) !important;
-  background: var(--hover) !important;
-  color: var(--brand-1) !important;
-}
-
-/* ── Empty state ── */
+/* No Transactions */
 .no-transactions {
-  text-align: center;
-  padding: 56px 20px;
-  color: var(--text-4);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  padding: 48px 20px;
+  gap: 8px;
+  color: var(--text-3);
 }
 
 .no-transactions mat-icon {
-  font-size: 72px !important;
-  width: 72px !important;
-  height: 72px !important;
-  color: var(--text-4);
-  animation: float 3.5s ease-in-out infinite;
+  font-size: 48px !important;
+  width: 48px !important;
+  height: 48px !important;
+  color: var(--border);
 }
 
-.no-transactions h3 { font-family: var(--font-sans); font-size: 1.125rem; color: var(--text-2); margin: 0; }
-.no-transactions p  { color: var(--text-3); font-size: 0.875rem; margin: 0 0 8px; }
-
-.no-transactions button {
-  background: var(--brand-grad) !important;
-  color: white !important;
-  border-radius: var(--r-pill) !important;
-  padding: 8px 22px !important;
-  font-weight: 600 !important;
-  transition: all var(--trans-base) !important;
+.no-transactions h3 {
+  color: var(--text);
+  margin: 0;
+  font-weight: 600;
 }
 
-.no-transactions button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-brand) !important;
+.no-transactions p {
+  font-size: 0.875rem;
+  margin: 0 0 8px;
 }
 
-/* ── Animations ── */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-8px); }
-}
-
-/* ── Responsive ── */
+/* Responsive */
 @media (max-width: 600px) {
-  .transactions-content           { padding: 0 14px; }
-  .summary-cards                  { grid-template-columns: 1fr; }
-  .transaction-header             { flex-direction: column; align-items: flex-start; gap: 3px; }
-  .transaction-description        { max-width: 200px; }
-  .transaction-details            { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .transaction-amount             { font-size: 0.9375rem; }
-  .transaction-actions            { opacity: 1; }
-  .transaction-content            { padding: 12px 14px; }
+  .transactions-content {
+    padding: 12px;
+  }
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+  .summary-card mat-card-content {
+    padding: 12px 14px !important;
+  }
+  .summary-value {
+    font-size: 1rem;
+  }
+  .transaction-content {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+  }
+  .transaction-header {
+    flex-wrap: wrap;
+  }
+  .transaction-amount {
+    font-size: 0.875rem;
+  }
+  .transaction-details {
+    gap: 6px;
+    font-size: 0.65rem;
+  }
+  .transaction-details span:not(:last-child)::after {
+    content: '·';
+    margin-left: 6px;
+  }
+}
+
+@media (max-width: 400px) {
+  .transaction-content {
+    padding: 6px 10px;
+  }
+  .transaction-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .transaction-icon mat-icon {
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
+  .transaction-description {
+    font-size: 0.8125rem;
+  }
+  .transaction-amount {
+    font-size: 0.8125rem;
+  }
 }
