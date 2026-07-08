@@ -25,7 +25,7 @@
           <!-- Prénom et Nom -->
           <div class="row">
             <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Prénom</mat-label>
+              <mat-label>Prénom *</mat-label>
               <input matInput formControlName="firstName" placeholder="Jean">
               <mat-icon matSuffix>person</mat-icon>
               <mat-error *ngIf="firstName?.hasError('required') && firstName?.touched">
@@ -37,7 +37,7 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Nom</mat-label>
+              <mat-label>Nom *</mat-label>
               <input matInput formControlName="lastName" placeholder="Rakoto">
               <mat-icon matSuffix>person</mat-icon>
               <mat-error *ngIf="lastName?.hasError('required') && lastName?.touched">
@@ -51,7 +51,7 @@
 
           <!-- Email -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Adresse email</mat-label>
+            <mat-label>Adresse email *</mat-label>
             <input matInput formControlName="email" type="email" placeholder="exemple@email.com">
             <mat-icon matSuffix>email</mat-icon>
             <mat-error *ngIf="email?.hasError('required') && email?.touched">
@@ -75,7 +75,7 @@
 
           <!-- Mot de passe -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Mot de passe</mat-label>
+            <mat-label>Mot de passe *</mat-label>
             <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
             <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
               <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
@@ -90,7 +90,7 @@
 
           <!-- Confirmation -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Confirmer le mot de passe</mat-label>
+            <mat-label>Confirmer le mot de passe *</mat-label>
             <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
             <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
               <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
