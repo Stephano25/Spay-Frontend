@@ -26,7 +26,7 @@
           <div class="row">
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Prénom *</mat-label>
-              <input matInput formControlName="firstName" placeholder="Jean">
+              <input matInput formControlName="firstName">
               <mat-icon matSuffix>person</mat-icon>
               <mat-error *ngIf="firstName?.hasError('required') && firstName?.touched">
                 Prénom requis
@@ -38,7 +38,7 @@
 
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Nom *</mat-label>
-              <input matInput formControlName="lastName" placeholder="Rakoto">
+              <input matInput formControlName="lastName">
               <mat-icon matSuffix>person</mat-icon>
               <mat-error *ngIf="lastName?.hasError('required') && lastName?.touched">
                 Nom requis
@@ -52,7 +52,7 @@
           <!-- Email -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Adresse email *</mat-label>
-            <input matInput formControlName="email" type="email" placeholder="exemple@email.com">
+            <input matInput formControlName="email" type="email">
             <mat-icon matSuffix>email</mat-icon>
             <mat-error *ngIf="email?.hasError('required') && email?.touched">
               Email requis
@@ -65,7 +65,7 @@
           <!-- Téléphone -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Téléphone (optionnel)</mat-label>
-            <input matInput formControlName="phoneNumber" placeholder="0341234567">
+            <input matInput formControlName="phoneNumber">
             <mat-icon matSuffix>phone</mat-icon>
             <mat-hint>9 à 10 chiffres</mat-hint>
             <mat-error *ngIf="phoneNumber?.hasError('pattern') && phoneNumber?.touched">
