@@ -11,6 +11,8 @@
 
 .transactions-card {
   overflow: hidden;
+  border-radius: var(--r-lg) !important;
+  border: 0.5px solid var(--border) !important;
   animation: fadeUp 0.45s var(--ease) both;
 }
 
@@ -38,6 +40,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .transactions-card mat-card-subtitle {
@@ -62,18 +65,20 @@
   overflow-x: auto;
   border-radius: var(--r-md);
   border: 0.5px solid var(--border);
+  -webkit-overflow-scrolling: touch;
 }
+
+.table-container::-webkit-scrollbar { height: 6px; }
+.table-container::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 999px; }
 
 .transactions-table {
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-body);
-  min-width: 800px;
+  min-width: 760px;
 }
 
-.transactions-table thead {
-  background: var(--surface-2);
-}
+.transactions-table thead { background: var(--surface-2); }
 
 .transactions-table th {
   text-align: left;
@@ -85,6 +90,10 @@
   letter-spacing: 0.06em;
   border-bottom: 0.5px solid var(--border);
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-2);
 }
 
 .transactions-table td {
@@ -101,13 +110,8 @@
   animation: fadeIn 0.35s var(--ease) both;
 }
 
-.transactions-table tbody tr:hover {
-  background: var(--hover);
-}
-
-.transactions-table tbody tr:last-child td {
-  border-bottom: none;
-}
+.transactions-table tbody tr:hover { background: var(--hover); }
+.transactions-table tbody tr:last-child td { border-bottom: none; }
 
 .id-cell {
   font-family: var(--font-mono);
@@ -139,10 +143,10 @@ mat-chip[class*=' type-'] mat-icon {
 }
 
 .type-transfer, .type-send { background: var(--info-bg) !important; color: var(--info) !important; }
-.type-receive { background: var(--success-bg) !important; color: var(--success) !important; }
-.type-deposit { background: var(--success-bg) !important; color: var(--success) !important; }
-.type-withdrawal { background: var(--danger-bg) !important; color: var(--danger) !important; }
-.type-mobile_money { background: var(--brand-grad-soft) !important; color: var(--brand-1) !important; }
+.type-receive               { background: var(--success-bg) !important; color: var(--success) !important; }
+.type-deposit                { background: var(--success-bg) !important; color: var(--success) !important; }
+.type-withdrawal             { background: var(--danger-bg) !important; color: var(--danger) !important; }
+.type-mobile_money           { background: var(--brand-grad-soft) !important; color: var(--brand-1) !important; }
 
 /* ── Status chips ── */
 mat-chip[class^='status-'],
@@ -152,9 +156,9 @@ mat-chip[class*=' status-'] {
 }
 
 .status-completed { background: var(--success-bg) !important; color: var(--success) !important; }
-.status-pending { background: var(--warning-bg) !important; color: var(--warning) !important; }
-.status-failed { background: var(--danger-bg) !important; color: var(--danger) !important; }
-.status-cancelled { background: var(--surface-3) !important; color: var(--text-3) !important; }
+.status-pending    { background: var(--warning-bg) !important; color: var(--warning) !important; }
+.status-failed     { background: var(--danger-bg) !important; color: var(--danger) !important; }
+.status-cancelled  { background: var(--surface-3) !important; color: var(--text-3) !important; }
 
 /* ── Empty state ── */
 .empty-state {
@@ -176,16 +180,8 @@ mat-chip[class*=' status-'] {
   margin-bottom: 6px;
 }
 
-.empty-state h3 {
-  font-family: var(--font-sans);
-  color: var(--text);
-  font-size: 1.05rem;
-}
-
-.empty-state p {
-  font-size: 0.85rem;
-  max-width: 320px;
-}
+.empty-state h3 { font-family: var(--font-sans); color: var(--text); font-size: 1.05rem; }
+.empty-state p  { font-size: 0.85rem; max-width: 320px; }
 
 /* ── Animations ── */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -194,4 +190,12 @@ mat-chip[class*=' status-'] {
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .transactions-container { padding: 14px; }
+  .transactions-card mat-card-header { padding: 18px 18px 14px; }
+  .transactions-table { min-width: 680px; }
+  .transactions-table th, .transactions-table td { padding: 11px 14px; font-size: 0.8125rem; }
+}
+
+@media (max-width: 480px) {
+  .transactions-container { padding: 10px; }
+  .transactions-card mat-card-title { font-size: 1rem; }
 }

@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
+  padding: 14px 20px;
   background: var(--surface);
   border-bottom: 0.5px solid var(--border);
   position: sticky;
@@ -29,10 +29,9 @@
   transition: background var(--trans-base), border-color var(--trans-base);
 }
 
-/* ── Back button ── */
 .back-btn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
   background: var(--surface-2);
@@ -46,13 +45,8 @@
   flex-shrink: 0;
 }
 
-.back-btn:hover {
-  background: var(--active);
-  color: var(--brand-1);
-  transform: translateX(-3px);
-}
+.back-btn:hover { background: var(--active); color: var(--brand-1); transform: translateX(-3px); }
 
-/* ── Page title ── */
 .page-title {
   font-family: var(--font-sans);
   font-size: 1.125rem;
@@ -65,12 +59,11 @@
   letter-spacing: -0.01em;
 }
 
-/* ── Header actions ── */
-.header-actions { display: flex; gap: 8px; }
+.header-actions { display: flex; gap: 2px; }
 
 .action-icon-btn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
   background: var(--surface-2);
@@ -81,6 +74,7 @@
   align-items: center;
   justify-content: center;
   outline: none;
+  flex-shrink: 0;
 }
 
 .action-icon-btn mat-icon { font-size: 18px !important; }
@@ -96,7 +90,7 @@
 .content {
   max-width: 520px;
   margin: 24px auto;
-  padding: 0 20px;
+  padding: 0 20px 40px;
 }
 
 /* ── Loading ── */
@@ -109,12 +103,7 @@
   gap: 28px;
 }
 
-/* Multi-ring spinner */
-.spinner {
-  position: relative;
-  width: 72px;
-  height: 72px;
-}
+.spinner { position: relative; width: 72px; height: 72px; }
 
 .spinner-ring {
   position: absolute;
@@ -128,29 +117,16 @@
 }
 
 .spinner-ring:nth-child(2) {
-  width: 70%;
-  height: 70%;
-  top: 15%;
-  left: 15%;
+  width: 70%; height: 70%; top: 15%; left: 15%;
   border-top-color: var(--brand-2);
   border-bottom-color: var(--brand-1);
   animation-direction: reverse;
   animation-duration: 1s;
 }
 
-.spinner-ring:nth-child(3) {
-  width: 40%;
-  height: 40%;
-  top: 30%;
-  left: 30%;
-  animation-duration: 1.8s;
-}
+.spinner-ring:nth-child(3) { width: 40%; height: 40%; top: 30%; left: 30%; animation-duration: 1.8s; }
 
-.loading-text {
-  color: var(--text-3);
-  font-size: 0.9375rem;
-  animation: pulse 2s infinite;
-}
+.loading-text { color: var(--text-3); font-size: 0.9375rem; animation: pulse 2s infinite; }
 
 /* ── QR Card ── */
 .qr-card {
@@ -175,25 +151,19 @@
   color: var(--text) !important;
 }
 
-.title-icon {
-  color: var(--brand-1) !important;
-  animation: float 4s ease-in-out infinite;
-}
+.title-icon { color: var(--brand-1) !important; animation: float 4s ease-in-out infinite; }
 
-.qr-card mat-card-subtitle {
-  color: var(--text-3) !important;
-  font-size: 0.8125rem !important;
-}
+.qr-card mat-card-subtitle { color: var(--text-3) !important; font-size: 0.8125rem !important; }
 
-/* ── QR Code container ── */
+/* ── QR Code container — génération 100% locale (lib `qrcode`) ── */
 .qr-code-container {
-  width: 260px;
-  height: 260px;
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 1 / 1;
   margin: 0 auto 18px;
   position: relative;
 }
 
-/* Loading state */
 .qr-loading {
   position: absolute;
   inset: 0;
@@ -207,6 +177,8 @@
   color: var(--text-3);
   font-size: 0.8125rem;
   transition: background var(--trans-base);
+  z-index: 2;
+  animation: fadeIn 0.2s var(--ease);
 }
 
 .qr-loading-spinner {
@@ -218,7 +190,6 @@
   animation: spin 0.9s linear infinite;
 }
 
-/* Error state */
 .qr-error {
   position: absolute;
   inset: 0;
@@ -231,16 +202,16 @@
   color: var(--danger);
   gap: 10px;
   border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 16px;
+  text-align: center;
+  z-index: 2;
 }
 
-.qr-error mat-icon {
-  font-size: 2.5rem !important;
-  width: 2.5rem !important;
-  height: 2.5rem !important;
-}
+.qr-error mat-icon { font-size: 2.5rem !important; width: 2.5rem !important; height: 2.5rem !important; }
+.qr-error p { margin: 0; font-size: 0.85rem; font-weight: 600; }
 
 .retry-btn {
-  padding: 6px 16px;
+  padding: 8px 18px;
   border: none;
   border-radius: var(--r-pill);
   background: var(--danger);
@@ -254,12 +225,12 @@
   transition: all var(--trans-base);
   outline: none;
   font-family: var(--font-body);
+  min-height: 38px;
 }
 
 .retry-btn:hover { opacity: 0.85; transform: translateY(-2px); }
 .retry-btn mat-icon { font-size: 16px !important; }
 
-/* QR image display */
 .qr-code-display {
   width: 100%;
   height: 100%;
@@ -277,14 +248,13 @@
   box-shadow: var(--shadow-md);
   animation: scaleIn 0.4s var(--ease) both;
   transition: transform var(--trans-base);
-  /* Always white background — QR codes need high contrast regardless of theme */
   background: #ffffff !important;
-  padding: 8px;
+  padding: 10px;
+  display: block;
 }
 
 .qr-image:hover { transform: scale(1.03); }
 
-/* Scanned overlay */
 .qr-overlay {
   position: absolute;
   inset: 0;
@@ -298,6 +268,7 @@
   animation: scaleIn 0.25s var(--ease);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  z-index: 3;
 }
 
 .qr-overlay mat-icon {
@@ -321,6 +292,7 @@
   border-radius: var(--r-pill);
   border: 0.5px solid var(--border);
   transition: background var(--trans-base), border-color var(--trans-base);
+  flex-wrap: wrap;
 }
 
 .qr-code-label {
@@ -329,10 +301,12 @@
   font-weight: 500;
   white-space: nowrap;
   margin-left: 4px;
+  flex-shrink: 0;
 }
 
 .qr-code-value-container {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -345,6 +319,7 @@
 
 .qr-code-value {
   flex: 1;
+  min-width: 0;
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   color: var(--text);
@@ -355,8 +330,8 @@
 }
 
 .copy-btn {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: none;
   background: var(--brand-grad);
@@ -378,7 +353,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px 6px 10px;
+  padding: 7px 12px 7px 10px;
   background: linear-gradient(135deg, var(--success), #059669);
   color: white;
   border-radius: var(--r-pill);
@@ -386,9 +361,10 @@
   font-weight: 600;
   font-size: 0.9rem;
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  max-width: 100%;
 }
 
-.amount-badge mat-icon { font-size: 18px !important; }
+.amount-badge mat-icon { font-size: 18px !important; flex-shrink: 0; }
 
 .remove-amount {
   width: 22px;
@@ -403,6 +379,7 @@
   justify-content: center;
   transition: background var(--trans-base);
   outline: none;
+  flex-shrink: 0;
 }
 
 .remove-amount:hover { background: rgba(255, 255, 255, 0.4); }
@@ -455,11 +432,12 @@ mat-card-actions {
   justify-content: center;
   gap: 12px;
   padding: 14px 0 6px !important;
+  flex-wrap: wrap;
 }
 
 .action-btn {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: 0.5px solid var(--border);
   background: var(--surface-2);
@@ -472,18 +450,12 @@ mat-card-actions {
   justify-content: center;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
-.action-btn mat-icon {
-  font-size: 20px !important;
-  transition: color var(--trans-base);
-}
+.action-btn mat-icon { font-size: 20px !important; transition: color var(--trans-base); }
 
-.action-btn:hover {
-  transform: translateY(-3px) scale(1.08);
-  color: white;
-  border-color: transparent;
-}
+.action-btn:hover { transform: translateY(-3px) scale(1.08); color: white; border-color: transparent; }
 
 .action-btn.download:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35); }
 .action-btn.copy:hover     { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35); }
@@ -550,15 +522,14 @@ mat-card-actions {
   outline: none;
   position: relative;
   overflow: hidden;
+  min-height: 56px;
 }
 
 .amount-btn::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
   border-radius: 50%;
   background: var(--brand-grad);
   transform: translate(-50%, -50%);
@@ -581,7 +552,7 @@ mat-card-actions {
   align-items: center;
 }
 
-.amount-input { flex: 1; }
+.amount-input { flex: 1; min-width: 0; }
 
 .validate-btn {
   height: 52px;
@@ -622,10 +593,8 @@ mat-card-actions {
 .info-card::before {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
+  top: -50%; right: -50%;
+  width: 200%; height: 200%;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 65%);
   animation: orb 20s linear infinite;
   pointer-events: none;
@@ -640,24 +609,14 @@ mat-card-actions {
   z-index: 2;
 }
 
-.steps {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  position: relative;
-  z-index: 2;
-}
-
+.steps { display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 2; }
 .step { display: flex; gap: 14px; align-items: flex-start; }
 
 .step-number {
-  width: 30px;
-  height: 30px;
+  width: 30px; height: 30px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   font-weight: 700;
   font-size: 0.9rem;
   flex-shrink: 0;
@@ -682,45 +641,20 @@ mat-card-actions {
   border: 0.5px solid var(--border);
   animation: fadeUp 0.4s var(--ease) both;
   transition: background var(--trans-base), border-color var(--trans-base), color var(--trans-base);
+  text-align: center;
 }
 
-.security-tip mat-icon { color: var(--success) !important; font-size: 18px !important; }
+.security-tip mat-icon { color: var(--success) !important; font-size: 18px !important; flex-shrink: 0; }
 
 /* ── Animations ── */
-@keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.94); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-6px); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.6; transform: scale(0.95); }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes shimmer {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.95); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 @keyframes orb {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33%       { transform: translate(8px, -10px) scale(1.04); }
@@ -731,9 +665,14 @@ mat-card-actions {
 @media (max-width: 600px) {
   .header                  { padding: 12px 16px; }
   .page-title              { font-size: 1rem; }
-  .qr-code-container       { width: 220px; height: 220px; }
+  .qr-code-container       { max-width: 220px; }
   .amount-grid             { grid-template-columns: repeat(2, 1fr); }
   .custom-amount           { flex-direction: column; }
   .validate-btn            { width: 100%; }
   mat-card-actions         { flex-wrap: wrap; gap: 10px; }
+}
+
+@media (max-width: 380px) {
+  .qr-code-container { max-width: 180px; }
+  .content { padding: 0 14px 32px; }
 }

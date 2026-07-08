@@ -137,7 +137,7 @@
 
 .btn-retry:hover { background: var(--hover); border-color: var(--brand-1); color: var(--brand-1); transform: translateY(-1px); }
 
-/* ── Balance card (intentionally dark in both themes) ── */
+/* ── Balance card ── */
 .balance-card {
   background: #0f0e1a;
   border-radius: var(--r-xl);
@@ -148,7 +148,6 @@
   animation: fadeUp 0.4s var(--ease) both;
 }
 
-/* Slightly adjusted for each theme so contrast stays good */
 body.light-theme .balance-card { background: #1a1830; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); }
 body.dark-theme  .balance-card { background: #0c0c18; }
 
@@ -199,6 +198,7 @@ body.dark-theme  .balance-card { background: #0c0c18; }
   margin-bottom: 4px;
   position: relative;
   z-index: 1;
+  word-break: break-all;
 }
 
 .balance-currency {
@@ -232,7 +232,7 @@ body.dark-theme  .balance-card { background: #0c0c18; }
 }
 
 .bal-btn {
-  padding: 10px 8px;
+  padding: 12px 8px;
   border-radius: var(--r-md);
   border: 0.5px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);
@@ -247,6 +247,7 @@ body.dark-theme  .balance-card { background: #0c0c18; }
   justify-content: center;
   gap: 6px;
   outline: none;
+  min-height: 44px;
 }
 
 .bal-btn mat-icon { font-size: 16px !important; width: 16px !important; height: 16px !important; }
@@ -288,6 +289,7 @@ body.dark-theme  .balance-card { background: #0c0c18; }
   transition: all var(--trans-base);
   box-shadow: var(--shadow-xs);
   outline: none;
+  min-height: 84px;
 }
 
 .quick-btn mat-icon {
@@ -480,7 +482,6 @@ body.dark-theme  .balance-card { background: #0c0c18; }
 
 .txn-meta { font-size: 0.7rem; color: var(--text-4); margin-top: 2px; }
 
-/* ── Status pills ── */
 .status-pill {
   display: inline-block;
   padding: 1px 7px;
@@ -558,30 +559,11 @@ body.dark-theme  .balance-card { background: #0c0c18; }
 .btn-primary:hover         { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-brand); }
 
 /* ── Animations ── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-8px); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.6; transform: scale(0.95); }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.95); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 @keyframes orb {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33%       { transform: translate(10px, -14px) scale(1.05); }
@@ -591,11 +573,16 @@ body.dark-theme  .balance-card { background: #0c0c18; }
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .wallet-content                         { padding: 16px 14px; }
-  .balance-amount                         { font-size: 2rem; }
+  .balance-amount                         { font-size: 1.9rem; }
   .balance-actions                        { grid-template-columns: 1fr 1fr; }
   .balance-actions .bal-btn:last-child    { grid-column: 1 / -1; }
   .quick-actions                          { grid-template-columns: repeat(2, 1fr); }
   .stats-grid                             { grid-template-columns: 1fr; }
   .skeleton-grid                          { grid-template-columns: repeat(2, 1fr); }
   .skeleton-stats                         { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 380px) {
+  .balance-card { padding: 22px 18px; }
+  .balance-amount { font-size: 1.6rem; }
 }

@@ -25,7 +25,6 @@
   animation: fadeUp 0.4s var(--ease) both;
 }
 
-/* ── KPI grid ── */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -35,58 +34,30 @@
 .kpi-card {
   cursor: default;
   animation: fadeUp 0.4s var(--ease) both;
+  border-radius: var(--r-lg) !important;
+  border: 0.5px solid var(--border) !important;
 }
 
-.kpi-card mat-card-content {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px !important;
-}
+.kpi-card mat-card-content { display: flex; align-items: center; gap: 14px; padding: 18px !important; }
 
 .kpi-icon {
-  width: 48px;
-  height: 48px;
+  width: 48px; height: 48px;
   border-radius: var(--r-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   transition: transform var(--trans-base);
 }
 
-.kpi-card:hover .kpi-icon {
-  transform: scale(1.08) rotate(-3deg);
-}
+.kpi-card:hover .kpi-icon { transform: scale(1.08) rotate(-3deg); }
 
-.kpi-icon.users {
-  background: rgba(59, 130, 246, 0.12);
-  color: var(--info);
-}
-.kpi-icon.active {
-  background: rgba(16, 185, 129, 0.12);
-  color: var(--success);
-}
-.kpi-icon.transactions {
-  background: var(--brand-grad-soft);
-  color: var(--brand-1);
-}
-.kpi-icon.volume {
-  background: rgba(245, 158, 11, 0.12);
-  color: var(--warning);
-}
+.kpi-icon.users { background: rgba(59, 130, 246, 0.12); color: var(--info); }
+.kpi-icon.active { background: rgba(16, 185, 129, 0.12); color: var(--success); }
+.kpi-icon.transactions { background: var(--brand-grad-soft); color: var(--brand-1); }
+.kpi-icon.volume { background: rgba(245, 158, 11, 0.12); color: var(--warning); }
 
-.kpi-icon mat-icon {
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
-}
+.kpi-icon mat-icon { font-size: 24px; width: 24px; height: 24px; }
 
-.kpi-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
+.kpi-info { display: flex; flex-direction: column; min-width: 0; }
 
 .kpi-value {
   font-family: var(--font-sans);
@@ -95,30 +66,22 @@
   color: var(--text);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.kpi-label {
-  font-size: 0.78rem;
-  color: var(--text-3);
-  font-weight: 600;
-  margin-top: 2px;
-}
+.kpi-label { font-size: 0.78rem; color: var(--text-3); font-weight: 600; margin-top: 2px; }
 
-/* ── Chart card ── */
 .chart-card {
   animation: fadeUp 0.5s var(--ease) both;
+  border-radius: var(--r-lg) !important;
+  border: 0.5px solid var(--border) !important;
 }
 
-.chart-card mat-card-header {
-  padding: 20px 22px 8px;
-}
+.chart-card mat-card-header { padding: 20px 22px 8px; }
 
-.chart-card mat-card-title {
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--text);
-}
+.chart-card mat-card-title { font-family: var(--font-sans); font-weight: 700; font-size: 1rem; color: var(--text); }
 
 .chart-card mat-card-content {
   padding: 8px 22px 24px;
@@ -126,14 +89,10 @@
   position: relative;
 }
 
-.chart-card canvas {
-  max-height: 100%;
-}
+.chart-card canvas { max-height: 100%; }
 
-/* ── Animations ── */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-/* ── Responsive ── */
 @media (max-width: 992px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -141,5 +100,11 @@
 @media (max-width: 600px) {
   .stats-container { padding: 14px; }
   .kpi-grid { grid-template-columns: 1fr; }
-  .chart-card mat-card-content { height: 260px; }
+  .chart-card mat-card-content { height: 260px; padding: 8px 16px 20px; }
+  .chart-card mat-card-header { padding: 16px 16px 6px; }
+}
+
+@media (max-width: 400px) {
+  .kpi-card mat-card-content { padding: 14px !important; }
+  .kpi-icon { width: 42px; height: 42px; }
 }
