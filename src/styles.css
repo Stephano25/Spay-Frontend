@@ -61,10 +61,11 @@
   --duration-slow: 380ms;
   --trans-base: var(--duration-base) var(--ease);
 
-  /* Typography */
+  /* Typography - valeurs par défaut */
   --font-sans: 'Space Grotesk', 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-size-base: 16px;
 
   /* QR Code Variables */
   --qr-overlay-bg: rgba(0, 0, 0, 0.6);
@@ -75,7 +76,7 @@
   --qr-info-gap: 20px;
 }
 
-/* ── Thème CLAIR ── */
+/* ── THÈME CLAIR (par défaut) ── */
 body.light-theme,
 body:not(.dark-theme) {
   --bg: #f5f0ff;
@@ -95,7 +96,7 @@ body:not(.dark-theme) {
   color-scheme: light;
 }
 
-/* ── Thème SOMBRE ── */
+/* ── THÈME SOMBRE ── */
 body.dark-theme {
   --bg: #0c0a1a;
   --bg-2: #140f26;
@@ -114,6 +115,56 @@ body.dark-theme {
   color-scheme: dark;
 }
 
+/* ── TAILLES DE POLICE GLOBALES ── */
+/* ✅ Ces classes doivent être appliquées sur le body */
+body.font-small {
+  --font-size-base: 14px;
+  font-size: 14px;
+}
+body.font-small h1 { font-size: calc(1.5rem * 0.875); }
+body.font-small h2 { font-size: calc(1.25rem * 0.875); }
+body.font-small h3 { font-size: calc(1.1rem * 0.875); }
+body.font-small p, 
+body.font-small span, 
+body.font-small div,
+body.font-small .mat-mdc-card-title,
+body.font-small .mat-mdc-card-subtitle,
+body.font-small .mat-mdc-card-content {
+  font-size: calc(1rem * 0.875);
+}
+
+body.font-medium {
+  --font-size-base: 16px;
+  font-size: 16px;
+}
+body.font-medium h1 { font-size: 1.75rem; }
+body.font-medium h2 { font-size: 1.4rem; }
+body.font-medium h3 { font-size: 1.2rem; }
+body.font-medium p, 
+body.font-medium span, 
+body.font-medium div,
+body.font-medium .mat-mdc-card-title,
+body.font-medium .mat-mdc-card-subtitle,
+body.font-medium .mat-mdc-card-content {
+  font-size: 1rem;
+}
+
+body.font-large {
+  --font-size-base: 18px;
+  font-size: 18px;
+}
+body.font-large h1 { font-size: calc(1.75rem * 1.125); }
+body.font-large h2 { font-size: calc(1.4rem * 1.125); }
+body.font-large h3 { font-size: calc(1.2rem * 1.125); }
+body.font-large p, 
+body.font-large span, 
+body.font-large div,
+body.font-large .mat-mdc-card-title,
+body.font-large .mat-mdc-card-subtitle,
+body.font-large .mat-mdc-card-content {
+  font-size: calc(1rem * 1.125);
+}
+
 /* ── Base ── */
 html,
 body {
@@ -123,9 +174,10 @@ body {
   padding: 0;
   overflow: hidden;
   font-family: var(--font-body);
+  font-size: var(--font-size-base, 16px);
   background: var(--bg);
   color: var(--text);
-  transition: background var(--trans-base), color var(--trans-base);
+  transition: background 0.3s ease, color 0.3s ease, font-size 0.3s ease;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -147,12 +199,8 @@ body {
 
 /* ── QR Animations ── */
 @keyframes qrFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes qrSlideUp {
@@ -169,7 +217,6 @@ body {
 .qr-overlay {
   animation: qrFadeIn 0.3s ease;
 }
-
 .qr-card {
   animation: qrSlideUp 0.3s ease;
 }
@@ -256,12 +303,8 @@ body.dark-theme .mat-mdc-card {
 
 /* ── Animations ── */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes fadeUp {
   from {
@@ -284,22 +327,12 @@ body.dark-theme .mat-mdc-card {
   }
 }
 @keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 @keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -309,4 +342,97 @@ body.dark-theme .mat-mdc-card {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ============================================================
+   STYLES POUR LES BOUTONS DE PERSONNALISATION
+   ============================================================ */
+
+.personalization-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.personalization-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.personalization-item label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.personalization-item label mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--brand-1);
+}
+
+.option-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.option-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--border-2);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  min-height: 38px;
+}
+
+.option-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--text-3);
+  transition: color 0.2s ease;
+}
+
+.option-btn .flag-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.option-btn:hover {
+  border-color: var(--brand-1);
+  color: var(--brand-1);
+  transform: translateY(-1px);
+}
+
+.option-btn:hover mat-icon {
+  color: var(--brand-1);
+}
+
+.option-btn.active {
+  background: var(--brand-grad);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--shadow-brand);
+}
+
+.option-btn.active mat-icon {
+  color: #fff;
+}
+.option-btn.active .flag-icon {
+  color: #fff;
 }

@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, finalize } from 'rxjs/operators';
 
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -16,7 +16,7 @@ import { TranslationService } from '../../../services/translation.service';
 import { ThemeService } from '../../../services/theme.service';
 import { User, UserSettings } from '../../../models/user.model';
 
-// ✅ Import du pipe standalone
+// Import du pipe standalone
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -38,6 +38,11 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialogModule } from '@angular/material/dialog';
+
+// ✅ Définition des types pour éviter les erreurs
+type ThemeType = 'light' | 'dark' | 'system';
+type FontSizeType = 'small' | 'medium' | 'large';
+type LanguageType = 'fr' | 'mg' | 'en';
 
 @Component({
   selector: 'app-user-settings',
@@ -103,6 +108,11 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   showNewPassword = false;
   showConfirmPassword = false;
 
+  // États des menus déroulants rapides
+  themeMenuOpen = false;
+  languageMenuOpen = false;
+  fontSizeMenuOpen = false;
+
   // Données sociales
   friendsCount = 0;
   postsCount = 0;
@@ -117,21 +127,25 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
-  languages = [
-    { value: 'fr', label: 'Français' },
-    { value: 'mg', label: 'Malagasy' },
-    { value: 'en', label: 'English' }
+  // ✅ Typage explicite des tableaux avec flags pour les langues
+  languages: { value: LanguageType; label: string; flag: string }[] = [
+    { value: 'fr', label: 'Français', flag: '🇫🇷' },
+    { value: 'mg', label: 'Malagasy', flag: '🇲🇬' },
+    { value: 'en', label: 'English', flag: '🇬🇧' }
   ];
-  themes = [
+  
+  themes: { value: ThemeType; label: string }[] = [
     { value: 'light', label: 'Clair' },
     { value: 'dark', label: 'Sombre' },
     { value: 'system', label: 'Système' }
   ];
-  fontSizes = [
+  
+  fontSizes: { value: FontSizeType; label: string }[] = [
     { value: 'small', label: 'Petite' },
     { value: 'medium', label: 'Moyenne' },
     { value: 'large', label: 'Grande' }
   ];
+  
   privacyOptions = [
     { value: 'public', label: 'Public' },
     { value: 'friends', label: 'Amis uniquement' },
@@ -175,15 +189,30 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     this.loadSettings();
     this.loadSocialData();
     this.loadActiveDevices();
+
+    // ✅ Écouter les changements de langue
+    this.subscriptions.push(
+      this.translationService.language$.subscribe((lang) => {
+        console.log(`🌐 Langue changée dans les settings: ${lang}`);
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
+  // ============================================================
+  // VALIDATEURS
+  // ============================================================
+
   passwordMatchValidator(g: FormGroup) {
     return g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true };
   }
+
+  // ============================================================
+  // CHARGEMENT DES DONNÉES
+  // ============================================================
 
   private loadUserData(): void {
     this.subscriptions.push(
@@ -214,124 +243,108 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
         this.settings = { ...this.settings, ...parsed };
       } catch (e) { console.error(e); }
     }
+    
+    // ✅ Appliquer les paramètres au chargement
     this.applyTheme();
     this.applyFontSize();
-    this.translationService.setLanguage(this.settings.appearance.language);
+    this.applyLanguage();
 
     this.subscriptions.push(
-      this.userService.getUserSettings().subscribe({
-        next: (settings: UserSettings) => {
-          this.settings = { ...this.settings, ...settings };
-          this.saveSettingsToStorage();
-          this.applyTheme();
-          this.applyFontSize();
+      this.userService.getUserSettings().pipe(
+        catchError((error) => {
+          console.warn('⚠️ Impossible de charger les paramètres depuis le serveur:', error);
+          return of(null);
+        }),
+        finalize(() => {
           this.isLoading = false;
-        },
-        error: () => { this.isLoading = false; }
+        })
+      ).subscribe({
+        next: (settings: UserSettings | null) => {
+          if (settings) {
+            this.settings = { ...this.settings, ...settings };
+            this.saveSettingsToStorage();
+            this.applyTheme();
+            this.applyFontSize();
+            this.applyLanguage();
+          }
+        }
       })
     );
   }
 
-  // ✅ VERSION CORRIGÉE - loadSocialData avec fallback
   private loadSocialData(): void {
-    // Utiliser des valeurs par défaut et capturer les erreurs
-    // Ces endpoints peuvent ne pas exister dans l'API actuelle
-    
-    // Chargement du nombre d'amis
+    // ✅ Tous les appels sont protégés avec catchError
     this.subscriptions.push(
-      this.userService.getFriendsCount().pipe(
-        catchError(() => of(0))
-      ).subscribe({
-        next: (count) => this.friendsCount = count || 0,
-        error: () => this.friendsCount = 0
-      })
+      this.userService.getFriendsCount().pipe(catchError(() => of(0)))
+        .subscribe((count) => this.friendsCount = count || 0)
     );
     
-    // Chargement du nombre de posts
     this.subscriptions.push(
-      this.userService.getPostsCount().pipe(
-        catchError(() => of(0))
-      ).subscribe({
-        next: (count) => this.postsCount = count || 0,
-        error: () => this.postsCount = 0
-      })
+      this.userService.getPostsCount().pipe(catchError(() => of(0)))
+        .subscribe((count) => this.postsCount = count || 0)
     );
     
-    // Chargement de la liste des amis
     this.subscriptions.push(
-      this.userService.getFriendsList().pipe(
-        catchError(() => of([]))
-      ).subscribe({
-        next: (friends) => this.friendsList = friends || [],
-        error: () => this.friendsList = []
-      })
+      this.userService.getFriendsList().pipe(catchError(() => of([])))
+        .subscribe((friends) => this.friendsList = friends || [])
     );
     
-    // Chargement des amis proches
     this.subscriptions.push(
-      this.userService.getCloseFriends().pipe(
-        catchError(() => of([]))
-      ).subscribe({
-        next: (friends) => this.closeFriends = friends || [],
-        error: () => this.closeFriends = []
-      })
+      this.userService.getCloseFriends().pipe(catchError(() => of([])))
+        .subscribe((friends) => this.closeFriends = friends || [])
     );
     
-    // Chargement des connaissances
     this.subscriptions.push(
-      this.userService.getAcquaintances().pipe(
-        catchError(() => of([]))
-      ).subscribe({
-        next: (friends) => this.acquaintances = friends || [],
-        error: () => this.acquaintances = []
-      })
+      this.userService.getAcquaintances().pipe(catchError(() => of([])))
+        .subscribe((friends) => this.acquaintances = friends || [])
     );
     
-    // Chargement des demandes d'amis en attente
     this.subscriptions.push(
-      this.userService.getPendingFriendRequests().pipe(
-        catchError(() => of([]))
-      ).subscribe({
-        next: (requests) => this.pendingFriendRequests = requests || [],
-        error: () => this.pendingFriendRequests = []
-      })
+      this.userService.getPendingFriendRequests().pipe(catchError(() => of([])))
+        .subscribe((requests) => this.pendingFriendRequests = requests || [])
     );
     
-    // Chargement des utilisateurs bloqués
     this.subscriptions.push(
-      this.userService.getBlockedUsers().pipe(
-        catchError(() => of([]))
-      ).subscribe({
-        next: (users) => this.blockedUsers = users || [],
-        error: () => this.blockedUsers = []
-      })
+      this.userService.getBlockedUsers().pipe(catchError(() => of([])))
+        .subscribe((users) => this.blockedUsers = users || [])
     );
     
-    // Chargement des suggestions d'amis
     this.subscriptions.push(
-      this.userService.getFriendSuggestions().pipe(
-        catchError(() => of([]))
-      ).subscribe({
-        next: (suggestions) => this.friendSuggestions = suggestions || [],
-        error: () => this.friendSuggestions = []
-      })
+      this.userService.getFriendSuggestions().pipe(catchError(() => of([])))
+        .subscribe((suggestions) => this.friendSuggestions = suggestions || [])
     );
   }
 
   private loadActiveDevices(): void {
     this.subscriptions.push(
-      this.userService.getActiveDevices().pipe(
-        catchError(() => of([]))
-      ).subscribe({
-        next: (devices) => this.activeDevices = devices || [],
-        error: () => this.activeDevices = []
-      })
+      this.userService.getActiveDevices().pipe(catchError(() => of([])))
+        .subscribe((devices) => this.activeDevices = devices || [])
     );
   }
+
+  // ============================================================
+  // SAUVEGARDE
+  // ============================================================
 
   private saveSettingsToStorage(): void {
     localStorage.setItem('user_settings', JSON.stringify(this.settings));
   }
+
+  private saveSettings(): void {
+    this.saveSettingsToStorage();
+    this.subscriptions.push(
+      this.userService.updateUserSettings(this.settings).pipe(
+        catchError((error) => {
+          console.warn('⚠️ Impossible de sauvegarder sur le serveur:', error);
+          return of(null);
+        })
+      ).subscribe()
+    );
+  }
+
+  // ============================================================
+  // PROFIL
+  // ============================================================
 
   saveProfile(): void {
     if (this.profileForm.invalid) return;
@@ -378,6 +391,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ============================================================
+  // SÉCURITÉ
+  // ============================================================
+
   changePassword(): void {
     if (this.passwordForm.invalid) return;
     this.isSaving = true;
@@ -397,6 +414,14 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     );
   }
 
+  private setup2FA(): void {
+    this.notificationService.showInfo('Configuration 2FA - À implémenter');
+  }
+
+  // ============================================================
+  // PARAMÈTRES
+  // ============================================================
+
   saveNotificationSettings(): void {
     this.saveSettings();
     this.notificationService.showSuccess('Paramètres de notification sauvegardés');
@@ -415,43 +440,125 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     this.notificationService.showSuccess('Paramètres de sécurité sauvegardés');
   }
 
-  saveAppearanceSettings(): void {
-    this.saveSettings();
-    this.applyTheme();
-    this.applyFontSize();
-    this.translationService.setLanguage(this.settings.appearance.language);
-    this.notificationService.showSuccess("Paramètres d'apparence sauvegardés");
-  }
-
   saveGeneralSettings(): void {
     this.saveSettings();
     this.notificationService.showSuccess('Paramètres généraux sauvegardés');
   }
 
-  private saveSettings(): void {
-    this.saveSettingsToStorage();
-    this.subscriptions.push(
-      this.userService.updateUserSettings(this.settings).subscribe({
-        next: () => console.log('Saved on server'),
-        error: () => console.warn('Could not save on server')
-      })
-    );
+  // ============================================================
+  // THÈME, LANGUE, POLICE - AVEC APPLICATION IMMÉDIATE
+  // ============================================================
+
+  // ✅ Sélection des options avec application immédiate
+  selectTheme(value: ThemeType): void {
+    this.settings.appearance.theme = value;
+    this.saveAppearanceSettings();
+    this.themeMenuOpen = false;
   }
+
+  selectLanguage(value: LanguageType): void {
+    this.settings.appearance.language = value;
+    this.saveAppearanceSettings();
+    this.languageMenuOpen = false;
+  }
+
+  selectFontSize(value: FontSizeType): void {
+    this.settings.appearance.fontSize = value;
+    this.saveAppearanceSettings();
+    this.fontSizeMenuOpen = false;
+  }
+
+  // ============================================================
+  // SAUVEGARDE ET APPLICATION DES PARAMÈTRES D'APPARENCE
+  // ============================================================
+
+  saveAppearanceSettings(): void {
+    // 1. Sauvegarde dans localStorage
+    this.saveSettingsToStorage();
+    
+    // 2. Sauvegarde sur le serveur (non bloquante)
+    this.saveSettings();
+    
+    // 3. ✅ Application immédiate du thème
+    this.applyTheme();
+    
+    // 4. ✅ Application immédiate de la taille de police
+    this.applyFontSize();
+    
+    // 5. ✅ Application immédiate de la langue
+    this.applyLanguage();
+    
+    this.notificationService.showSuccess("Paramètres d'apparence sauvegardés");
+  }
+
+  // ============================================================
+  // APPLICATION DES STYLES
+  // ============================================================
 
   private applyTheme(): void {
     const theme = this.settings.appearance.theme;
-    const primaryColor = '#7c3aed';
-    const secondaryColor = '#4f46e5';
-    this.themeService.applyTheme(theme, primaryColor, secondaryColor);
+    this.themeService.applyTheme(theme, '#7c3aed', '#4f46e5');
   }
 
   private applyFontSize(): void {
-    this.themeService.applyFontSize(this.settings.appearance.fontSize);
+    const size = this.settings.appearance.fontSize;
+    this.themeService.applyFontSize(size);
   }
 
-  private setup2FA(): void {
-    this.notificationService.showInfo('Configuration 2FA - À implémenter');
+  private applyLanguage(): void {
+    const lang = this.settings.appearance.language;
+    this.translationService.setLanguage(lang);
   }
+
+  // ============================================================
+  // GETTERS POUR LES BOUTONS RAPIDES
+  // ============================================================
+
+  get currentThemeLabel(): string {
+    const theme = this.themes.find(t => t.value === this.settings.appearance.theme);
+    return theme ? theme.label : 'Thème';
+  }
+
+  get currentThemeIcon(): string {
+    const theme = this.settings.appearance.theme;
+    return theme === 'light' ? 'light_mode' : theme === 'dark' ? 'dark_mode' : 'settings_suggest';
+  }
+
+  get currentLanguageLabel(): string {
+    const lang = this.languages.find(l => l.value === this.settings.appearance.language);
+    return lang ? lang.label : 'Langue';
+  }
+
+  get currentFontSizeLabel(): string {
+    const size = this.fontSizes.find(s => s.value === this.settings.appearance.fontSize);
+    return size ? size.label : 'Police';
+  }
+
+  // ============================================================
+  // MÉTHODES DE BASCULEMENT DES MENUS
+  // ============================================================
+
+  toggleThemeMenu(): void {
+    this.themeMenuOpen = !this.themeMenuOpen;
+    this.languageMenuOpen = false;
+    this.fontSizeMenuOpen = false;
+  }
+
+  toggleLanguageMenu(): void {
+    this.languageMenuOpen = !this.languageMenuOpen;
+    this.themeMenuOpen = false;
+    this.fontSizeMenuOpen = false;
+  }
+
+  toggleFontSizeMenu(): void {
+    this.fontSizeMenuOpen = !this.fontSizeMenuOpen;
+    this.themeMenuOpen = false;
+    this.languageMenuOpen = false;
+  }
+
+  // ============================================================
+  // RÉINITIALISATION
+  // ============================================================
 
   resetAllSettings(): void {
     if (confirm('Réinitialiser tous les paramètres ?')) {
@@ -477,19 +584,21 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
       this.saveSettings();
       this.applyTheme();
       this.applyFontSize();
-      this.translationService.setLanguage('fr');
+      this.applyLanguage();
       this.notificationService.showInfo('Paramètres réinitialisés');
     }
   }
 
-  // ✅ Gestion des amis
+  // ============================================================
+  // GESTION DES AMIS
+  // ============================================================
+
   acceptFriendRequest(requestId: string): void {
     this.userService.acceptFriendRequest(requestId).subscribe({
       next: () => {
         this.pendingFriendRequests = this.pendingFriendRequests.filter(r => r.id !== requestId);
         this.friendsCount++;
         this.notificationService.showSuccess('Demande d\'ami acceptée');
-        this.loadSocialData();
       },
       error: () => this.notificationService.showError('Erreur lors de l\'acceptation')
     });
@@ -558,7 +667,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     this.notificationService.showInfo('Recherche d\'utilisateurs - À implémenter');
   }
 
-  // ✅ Gestion des appareils
+  // ============================================================
+  // GESTION DES APPAREILS
+  // ============================================================
+
   revokeDevice(deviceId: string): void {
     if (confirm('Voulez-vous déconnecter cet appareil ?')) {
       this.userService.revokeDevice(deviceId).subscribe({
@@ -583,7 +695,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ✅ Gestion du compte
+  // ============================================================
+  // GESTION DU COMPTE
+  // ============================================================
+
   changeEmail(): void {
     const newEmail = prompt('Entrez votre nouvelle adresse email :');
     if (newEmail && newEmail.includes('@')) {
@@ -661,7 +776,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Méthode reportUser corrigée avec 2 paramètres
+  // ============================================================
+  // SIGNALEMENT
+  // ============================================================
+
   reportUser(userId: string, reason?: string): void {
     const reportReason = reason || prompt('Motif du signalement :');
     if (reportReason) {
@@ -672,6 +790,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
+
   goBack(): void { 
     this.router.navigate(['/user']); 
   }
@@ -679,6 +801,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   logout(): void { 
     this.authService.logout(); 
   }
+
+  // ============================================================
+  // UTILITAIRES
+  // ============================================================
 
   getInitials(): string {
     if (!this.user) return '';

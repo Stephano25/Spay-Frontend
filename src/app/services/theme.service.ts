@@ -20,8 +20,15 @@ export class ThemeService {
     this.authService.currentUser.subscribe(user => {
       this.currentUserId = user?.id || null;
       console.log(`🔁 ThemeService: utilisateur changé, ID = ${this.currentUserId || 'guest'}`);
-      this.loadThemeForCurrentUser();
+      
+      // ✅ Charger les préférences après la connexion
+      setTimeout(() => {
+        this.loadThemeForCurrentUser();
+        this.loadFontSizeForCurrentUser();
+      }, 100);
     });
+    
+    // ✅ Écouter les changements de thème système
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
       const savedTheme = this.getStoredTheme();
       if (savedTheme === 'system') {
@@ -34,8 +41,17 @@ export class ThemeService {
     this.loadThemeForCurrentUser();
   }
 
+  // ✅ Méthode publique pour appliquer la taille de police
+  loadFontSize(): void {
+    this.loadFontSizeForCurrentUser();
+  }
+
   private getStorageKey(): string {
     return this.currentUserId ? `theme_${this.currentUserId}` : 'theme_guest';
+  }
+
+  private getFontSizeKey(): string {
+    return this.currentUserId ? `font-size_${this.currentUserId}` : 'font-size_guest';
   }
 
   private getStoredTheme(): string {
@@ -44,10 +60,22 @@ export class ThemeService {
     return stored || 'light';
   }
 
+  private getStoredFontSize(): string {
+    const key = this.getFontSizeKey();
+    const stored = localStorage.getItem(key);
+    return stored || 'medium';
+  }
+
   private storeTheme(theme: string): void {
     const key = this.getStorageKey();
     localStorage.setItem(key, theme);
     console.log(`💾 Thème sauvegardé: clé=${key}, valeur=${theme}`);
+  }
+
+  private storeFontSize(size: string): void {
+    const key = this.getFontSizeKey();
+    localStorage.setItem(key, size);
+    console.log(`💾 Taille police sauvegardée: clé=${key}, valeur=${size}`);
   }
 
   private storeColors(primary: string, secondary: string): void {
@@ -78,20 +106,35 @@ export class ThemeService {
     this.applyTheme(savedTheme, savedPrimaryColor, savedSecondaryColor);
   }
 
+  loadFontSizeForCurrentUser(): void {
+    const savedSize = this.getStoredFontSize();
+    console.log(`📏 Chargement taille police pour ${this.currentUserId || 'guest'} : ${savedSize}`);
+    this.applyFontSize(savedSize);
+  }
+
   applyTheme(theme: string, primaryColor?: string, secondaryColor?: string): void {
     let actualTheme = theme;
     if (theme === 'system') {
       actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
+    
+    // ✅ Supprimer les anciennes classes
     this.renderer.removeClass(document.body, 'light-theme');
     this.renderer.removeClass(document.body, 'dark-theme');
+    
+    // ✅ Ajouter la nouvelle classe
     this.renderer.addClass(document.body, `${actualTheme}-theme`);
+    
+    // ✅ Application des variables CSS globales
     if (primaryColor) {
       document.documentElement.style.setProperty('--primary-color', primaryColor);
+      document.documentElement.style.setProperty('--brand-1', primaryColor);
     }
     if (secondaryColor) {
       document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+      document.documentElement.style.setProperty('--brand-2', secondaryColor);
     }
+    
     this.storeTheme(theme);
     if (primaryColor || secondaryColor) {
       this.storeColors(primaryColor || '#667eea', secondaryColor || '#764ba2');
@@ -101,20 +144,36 @@ export class ThemeService {
   }
 
   applyFontSize(size: string): void {
-    const body = document.body;
-    body.classList.remove('font-small', 'font-medium', 'font-large');
-    if (size === 'small') body.classList.add('font-small');
-    else if (size === 'large') body.classList.add('font-large');
-    else body.classList.add('font-medium');
-    const key = this.currentUserId ? `font-size_${this.currentUserId}` : 'font-size_guest';
-    localStorage.setItem(key, size);
+    // ✅ Supprimer toutes les classes de taille
+    this.renderer.removeClass(document.body, 'font-small');
+    this.renderer.removeClass(document.body, 'font-medium');
+    this.renderer.removeClass(document.body, 'font-large');
+    
+    // ✅ Ajouter la classe correspondante
+    if (size === 'small') {
+      this.renderer.addClass(document.body, 'font-small');
+      document.documentElement.style.fontSize = '14px';
+    } else if (size === 'large') {
+      this.renderer.addClass(document.body, 'font-large');
+      document.documentElement.style.fontSize = '18px';
+    } else {
+      this.renderer.addClass(document.body, 'font-medium');
+      document.documentElement.style.fontSize = '16px';
+    }
+    
+    // ✅ Sauvegarde
+    this.storeFontSize(size);
+    console.log(`✅ Taille police appliquée: ${size} pour ${this.currentUserId || 'guest'}`);
   }
 
   getCurrentTheme(): string {
     return this.getStoredTheme();
   }
 
-  // 👇 AJOUT DE CES DEUX MÉTHODES
+  getCurrentFontSize(): string {
+    return this.getStoredFontSize();
+  }
+
   getCurrentPrimaryColor(): string {
     return this.getStoredPrimaryColor();
   }

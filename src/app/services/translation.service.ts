@@ -237,6 +237,7 @@ export class TranslationService {
   constructor() {
     const savedLang = localStorage.getItem('user_language') || 'fr';
     this.currentLang = savedLang;
+    this.applyLanguageToDocument(savedLang);
     console.log(`🌐 Langue actuelle: ${this.currentLang}`);
   }
 
@@ -244,7 +245,23 @@ export class TranslationService {
     this.currentLang = lang;
     localStorage.setItem('user_language', lang);
     this.languageSubject.next(lang);
+    this.applyLanguageToDocument(lang);
     console.log(`🌐 Langue changée: ${lang}`);
+  }
+
+  private applyLanguageToDocument(lang: string): void {
+    // ✅ Appliquer l'attribut lang sur le document
+    document.documentElement.lang = lang;
+    
+    // ✅ Pour les langues RTL (si besoin)
+    if (lang === 'ar' || lang === 'he') {
+      document.documentElement.dir = 'rtl';
+    } else {
+      document.documentElement.dir = 'ltr';
+    }
+    
+    // ✅ Sauvegarder dans localStorage
+    localStorage.setItem('user_language', lang);
   }
 
   getCurrentLanguage(): string {

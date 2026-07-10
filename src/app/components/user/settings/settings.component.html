@@ -68,7 +68,9 @@
       <!-- Onglets -->
       <mat-tab-group [(selectedIndex)]="activeTab" class="settings-tabs" [dynamicHeight]="true">
         
-        <!-- Général -->
+        <!-- ========================================================== -->
+        <!-- GÉNÉRAL - AVEC BOUTONS POUR THÈME, LANGUE ET POLICE        -->
+        <!-- ========================================================== -->
         <mat-tab label="Général">
           <div class="tab-content">
             <mat-card class="settings-card">
@@ -80,42 +82,67 @@
                 </div>
               </mat-card-header>
               <mat-card-content>
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Langue</mat-label>
-                  <mat-select [(ngModel)]="settings.appearance.language" (selectionChange)="saveAppearanceSettings()">
-                    @for (lang of languages; track lang.value) {
-                      <mat-option [value]="lang.value">
-                        {{ lang.label }}
-                      </mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Thème</mat-label>
-                  <mat-select [(ngModel)]="settings.appearance.theme" (selectionChange)="saveAppearanceSettings()">
-                    @for (theme of themes; track theme.value) {
-                      <mat-option [value]="theme.value">
-                        <!-- ✅ Correction : comparer theme.value -->
+                
+                <!-- ========================================================== -->
+                <!-- PERSONNALISATION : Thème, Langue, Police en boutons        -->
+                <!-- ========================================================== -->
+                <div class="personalization-section">
+                  
+                  <!-- Thème -->
+                  <div class="personalization-item">
+                    <label>
+                      <mat-icon>palette</mat-icon>
+                      Thème
+                    </label>
+                    <div class="option-buttons">
+                      <button class="option-btn" 
+                              *ngFor="let theme of themes" 
+                              (click)="selectTheme(theme.value)"
+                              [class.active]="settings.appearance.theme === theme.value">
                         <mat-icon>{{ theme.value === 'light' ? 'light_mode' : theme.value === 'dark' ? 'dark_mode' : 'settings_suggest' }}</mat-icon>
                         {{ theme.label }}
-                      </mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
+                      </button>
+                    </div>
+                  </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Taille de police</mat-label>
-                  <mat-select [(ngModel)]="settings.appearance.fontSize" (selectionChange)="saveAppearanceSettings()">
-                    @for (size of fontSizes; track size.value) {
-                      <mat-option [value]="size.value">
+                  <!-- Langue -->
+                  <div class="personalization-item">
+                    <label>
+                      <mat-icon>language</mat-icon>
+                      Langue
+                    </label>
+                    <div class="option-buttons">
+                      <button class="option-btn" 
+                              *ngFor="let lang of languages" 
+                              (click)="selectLanguage(lang.value)"
+                              [class.active]="settings.appearance.language === lang.value">
+                        <span class="flag-icon">{{ lang.flag }}</span>
+                        {{ lang.label }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Taille de police -->
+                  <div class="personalization-item">
+                    <label>
+                      <mat-icon>text_fields</mat-icon>
+                      Taille de police
+                    </label>
+                    <div class="option-buttons">
+                      <button class="option-btn" 
+                              *ngFor="let size of fontSizes" 
+                              (click)="selectFontSize(size.value)"
+                              [class.active]="settings.appearance.fontSize === size.value">
                         <span [style.font-size]="size.value === 'small' ? '12px' : size.value === 'medium' ? '16px' : '20px'">
                           {{ size.label }}
                         </span>
-                      </mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+
+                <mat-divider></mat-divider>
 
                 <div class="toggle-group">
                   <mat-slide-toggle [(ngModel)]="settings.appearance.compactMode" (change)="saveAppearanceSettings()" color="primary">

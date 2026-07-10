@@ -13,15 +13,36 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: 'Inter', 'Roboto', sans-serif; 
-      background: #f5f7fa;
-      transition: font-size 0.3s ease;
+    /* Reset de base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    html, body { height: 100%; }
+    
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Inter', 'Roboto', sans-serif;
+      background: #f5f7fa;
+      transition: background 0.3s ease, color 0.3s ease, font-size 0.3s ease;
+    }
+    
+    /* ✅ La classe font-medium est appliquée par défaut */
+    body {
+      font-size: 16px;
+    }
+    
+    /* ✅ Classes de taille de police - seront surchargées par ThemeService */
+    body.font-small { font-size: 14px; }
+    body.font-medium { font-size: 16px; }
+    body.font-large { font-size: 18px; }
   </style>
 </head>
 <body class="mat-typography font-medium">

@@ -34,11 +34,21 @@ export class AuthInterceptor implements HttpInterceptor {
       });
       console.log('🔑 Token ajouté à la requête:', req.url);
     } else {
-      console.warn('⚠️ Pas de token pour:', req.url);
+      // ✅ Ne pas logger les requêtes vers des endpoints publics
+      if (!req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
+        console.warn('⚠️ Pas de token pour:', req.url);
+      }
     }
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
+        // ✅ Ne pas logger les erreurs 404 pour les endpoints qui n'existent pas encore
+        if (error.status === 404) {
+          console.warn(`⚠️ Endpoint non trouvé (404): ${req.url}`);
+          // ✅ Ne pas rediriger pour les 404
+          return throwError(() => error);
+        }
+
         console.error('❌ Erreur HTTP:', error.status, req.url);
 
         if (error.status === 401) {
