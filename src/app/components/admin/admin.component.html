@@ -1,5 +1,16 @@
+<!-- frontend/src/app/components/admin/admin.component.html -->
 <app-sidebar>
   <div class="admin-content">
+    <div *ngIf="isSuperAdmin" class="admin-actions">
+      <button mat-raised-button color="primary" (click)="navigateToDeposit()" [matTooltip]="'Déposer sur un administrateur' | translate">
+        <mat-icon>account_balance_wallet</mat-icon>
+        {{ 'Dépôt Admin' | translate }}
+      </button>
+      <button mat-raised-button color="primary" (click)="navigateToWithdraw()" [matTooltip]="'Retirer sur un administrateur' | translate">
+        <mat-icon>account_balance_wallet</mat-icon>
+        {{ 'Retrait Admin' | translate }}
+      </button>
+    </div>
     <router-outlet></router-outlet>
   </div>
 </app-sidebar>

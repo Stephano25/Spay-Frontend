@@ -1,4 +1,4 @@
-// src/app/components/mobile-money/mobile-money.component.ts
+// frontend/src/app/components/mobile-money/mobile-money.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -23,6 +23,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 // Interfaces
 interface Operator {
@@ -59,6 +60,7 @@ interface Fees {
     MatSelectModule,
     MatDividerModule,
     MatSliderModule,
+    MatTooltipModule, // ✅ AJOUT
     TranslatePipe
   ],
   templateUrl: './mobile-money.component.html',
@@ -196,10 +198,8 @@ export class MobileMoneyComponent extends BaseComponent implements OnInit, OnDes
     private notificationService: NotificationService,
     private router: Router
   ) {
-    // ✅ APPEL OBLIGATOIRE - DOIT ÊTRE LE PREMIER
     super();
     
-    // ✅ Maintenant on peut utiliser 'this'
     this.mobileMoneyForm = this.fb.group({
       operator: ['', Validators.required],
       phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]{9,10}$')]],
@@ -210,6 +210,13 @@ export class MobileMoneyComponent extends BaseComponent implements OnInit, OnDes
   override ngOnInit() {
     this.loadBalance();
     this.setupFormListeners();
+
+    this.subscriptions.push(
+      this.translationService.language$.subscribe((lang) => {
+        console.log(`🌐 MobileMoneyComponent: Langue changée en ${lang}`);
+        this.cdr.detectChanges();
+      })
+    );
   }
 
   override ngOnDestroy() {

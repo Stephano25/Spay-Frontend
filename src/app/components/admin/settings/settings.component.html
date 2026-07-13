@@ -1,11 +1,11 @@
-<!-- src/app/components/admin/settings/settings.component.html -->
+<!-- frontend/src/app/components/admin/settings/settings.component.html -->
 <mat-toolbar color="primary" class="settings-toolbar">
-  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+  <button mat-icon-button (click)="goBack()" matTooltip="{{ 'Retour' | translate }}">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span>Paramètres d'administration</span>
+  <span>{{ 'Paramètres d'administration' | translate }}</span>
   <span class="spacer"></span>
-  <button mat-icon-button (click)="resetAllSettings()" matTooltip="Réinitialiser">
+  <button mat-icon-button (click)="resetAllSettings()" matTooltip="{{ 'Réinitialiser' | translate }}">
     <mat-icon>settings_backup_restore</mat-icon>
   </button>
 </mat-toolbar>
@@ -15,7 +15,7 @@
     <!-- Loading -->
     <div class="loading-container" *ngIf="isLoading">
       <mat-spinner diameter="60"></mat-spinner>
-      <p>Chargement des paramètres...</p>
+      <p>{{ 'Chargement des paramètres...' | translate }}</p>
     </div>
 
     <ng-container *ngIf="!isLoading">
@@ -27,20 +27,20 @@
             <div class="admin-info">
               <h2>{{ admin?.firstName }} {{ admin?.lastName }}</h2>
               <p>{{ admin?.email }}</p>
-              <span class="admin-role">{{ admin?.role === 'super_admin' ? 'Super Administrateur' : 'Administrateur' }}</span>
+              <span class="admin-role">{{ admin?.role === 'super_admin' ? ('Super Administrateur' | translate) : ('Administrateur' | translate) }}</span>
             </div>
           </div>
           <div class="system-info">
             <div class="info-item">
-              <span class="info-label">Version</span>
+              <span class="info-label">{{ 'Version' | translate }}</span>
               <span class="info-value">{{ versions.app }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Uptime</span>
+              <span class="info-label">{{ 'Uptime' | translate }}</span>
               <span class="info-value">{{ systemStats.uptime }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Sessions actives</span>
+              <span class="info-label">{{ 'Sessions actives' | translate }}</span>
               <span class="info-value">{{ systemStats.activeSessions }}</span>
             </div>
           </div>
@@ -51,27 +51,27 @@
       <mat-tab-group class="settings-tabs" (selectedIndexChange)="activeTab = $event" [selectedIndex]="activeTab">
         
         <!-- Onglet Général -->
-        <mat-tab label="Général">
+        <mat-tab label="{{ 'Général' | translate }}">
           <div class="tab-content">
             <form [formGroup]="generalForm" (ngSubmit)="saveGeneralSettings()">
               <mat-card class="settings-card">
                 <mat-card-header>
                   <mat-icon mat-card-avatar class="card-icon">settings_applications</mat-icon>
                   <div>
-                    <mat-card-title>Informations générales</mat-card-title>
-                    <mat-card-subtitle>Configuration de base du site</mat-card-subtitle>
+                    <mat-card-title>{{ 'Informations générales' | translate }}</mat-card-title>
+                    <mat-card-subtitle>{{ 'Configuration de base du site' | translate }}</mat-card-subtitle>
                   </div>
                 </mat-card-header>
                 <mat-card-content>
                   <!-- Ligne 1 -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Nom du site</mat-label>
+                      <mat-label>{{ 'Nom du site' | translate }}</mat-label>
                       <input matInput formControlName="siteName" placeholder="SPaye">
                       <mat-icon matSuffix>business</mat-icon>
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>URL du site</mat-label>
+                      <mat-label>{{ 'URL du site' | translate }}</mat-label>
                       <input matInput formControlName="siteUrl" placeholder="https://spaye.com">
                       <mat-icon matSuffix>link</mat-icon>
                     </mat-form-field>
@@ -80,12 +80,12 @@
                   <!-- Ligne 2 -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Email admin</mat-label>
+                      <mat-label>{{ 'Email admin' | translate }}</mat-label>
                       <input matInput formControlName="adminEmail" type="email" placeholder="admin@spaye.com">
                       <mat-icon matSuffix>email</mat-icon>
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Email support</mat-label>
+                      <mat-label>{{ 'Email support' | translate }}</mat-label>
                       <input matInput formControlName="supportEmail" type="email" placeholder="support@spaye.com">
                       <mat-icon matSuffix>support</mat-icon>
                     </mat-form-field>
@@ -94,13 +94,13 @@
                   <!-- Ligne 3 -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Rôle par défaut</mat-label>
+                      <mat-label>{{ 'Rôle par défaut' | translate }}</mat-label>
                       <mat-select formControlName="defaultUserRole">
-                        <mat-option *ngFor="let role of userRoles" [value]="role.value">{{ role.label }}</mat-option>
+                        <mat-option *ngFor="let role of userRoles" [value]="role.value">{{ role.label | translate }}</mat-option>
                       </mat-select>
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Taille max fichier (Mo)</mat-label>
+                      <mat-label>{{ 'Taille max fichier (Mo)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="maxFileSize" placeholder="150">
                       <mat-icon matSuffix>file_upload</mat-icon>
                     </mat-form-field>
@@ -109,16 +109,16 @@
                   <!-- Ligne 4 -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Timeout session (min)</mat-label>
+                      <mat-label>{{ 'Timeout session (min)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="sessionTimeout" placeholder="30">
                       <mat-icon matSuffix>timer</mat-icon>
                     </mat-form-field>
                     <div class="toggle-group half-width">
                       <mat-slide-toggle formControlName="maintenanceMode" color="primary">
-                        Mode maintenance
+                        {{ 'Mode maintenance' | translate }}
                       </mat-slide-toggle>
                       <mat-slide-toggle formControlName="registrationEnabled" color="primary">
-                        Inscriptions ouvertes
+                        {{ 'Inscriptions ouvertes' | translate }}
                       </mat-slide-toggle>
                     </div>
                   </div>
@@ -128,7 +128,7 @@
                     <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
                     <span *ngIf="!isSaving">
                       <mat-icon>save</mat-icon>
-                      Enregistrer
+                      {{ 'Enregistrer' | translate }}
                     </span>
                   </button>
                 </mat-card-actions>
@@ -138,40 +138,40 @@
         </mat-tab>
 
         <!-- Onglet Apparence -->
-        <mat-tab label="Apparence">
+        <mat-tab label="{{ 'Apparence' | translate }}">
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
                 <mat-icon mat-card-avatar class="card-icon">palette</mat-icon>
                 <div>
-                  <mat-card-title>Personnalisation</mat-card-title>
-                  <mat-card-subtitle>Thème et apparence</mat-card-subtitle>
+                  <mat-card-title>{{ 'Personnalisation' | translate }}</mat-card-title>
+                  <mat-card-subtitle>{{ 'Thème et apparence' | translate }}</mat-card-subtitle>
                 </div>
               </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="customizationForm">
                   <!-- Thème -->
                   <div class="form-group">
-                    <label class="form-label">Thème</label>
+                    <label class="form-label">{{ 'Thème' | translate }}</label>
                     <div class="theme-buttons">
                       <button type="button" *ngFor="let theme of themes" class="theme-btn"
                               [class.active]="customizationForm.get('theme')?.value === theme.value"
                               (click)="setTheme(theme.value)">
                         <mat-icon>{{ theme.icon }}</mat-icon>
-                        <span>{{ theme.label }}</span>
+                        <span>{{ theme.label | translate }}</span>
                       </button>
                     </div>
                   </div>
 
                   <!-- Langue -->
                   <div class="form-group">
-                    <label class="form-label">Langue</label>
+                    <label class="form-label">{{ 'Langue' | translate }}</label>
                     <div class="language-buttons">
                       <button type="button" *ngFor="let lang of languages" class="language-btn"
                               [class.active]="selectedLanguage === lang.value"
                               (click)="setLanguage(lang.value)">
                         <span class="flag">{{ lang.flag }}</span>
-                        <span>{{ lang.label }}</span>
+                        <span>{{ lang.label | translate }}</span>
                       </button>
                     </div>
                   </div>
@@ -179,12 +179,12 @@
                   <!-- Couleurs -->
                   <div class="form-row">
                     <div class="half-width color-picker-group">
-                      <label class="form-label">Couleur primaire</label>
+                      <label class="form-label">{{ 'Couleur primaire' | translate }}</label>
                       <input type="color" class="color-input" [value]="customizationForm.get('primaryColor')?.value"
                              (change)="updatePrimaryColor($event)">
                     </div>
                     <div class="half-width color-picker-group">
-                      <label class="form-label">Couleur secondaire</label>
+                      <label class="form-label">{{ 'Couleur secondaire' | translate }}</label>
                       <input type="color" class="color-input" [value]="customizationForm.get('secondaryColor')?.value"
                              (change)="updateSecondaryColor($event)">
                     </div>
@@ -192,7 +192,7 @@
 
                   <!-- CSS personnalisé -->
                   <div class="form-group">
-                    <label class="form-label">CSS personnalisé</label>
+                    <label class="form-label">{{ 'CSS personnalisé' | translate }}</label>
                     <textarea class="custom-textarea" rows="4" [value]="customizationForm.get('customCSS')?.value"
                               (input)="updateCustomCSS($event)" placeholder="/* Ajoutez votre CSS personnalisé ici */"></textarea>
                   </div>
@@ -203,7 +203,7 @@
                   <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
                   <span *ngIf="!isSaving">
                     <mat-icon>save</mat-icon>
-                    Enregistrer
+                    {{ 'Enregistrer' | translate }}
                   </span>
                 </button>
               </mat-card-actions>
@@ -212,20 +212,20 @@
         </mat-tab>
 
         <!-- Onglet Système -->
-        <mat-tab label="Système">
+        <mat-tab label="{{ 'Système' | translate }}">
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
                 <mat-icon mat-card-avatar class="card-icon">computer</mat-icon>
                 <div>
-                  <mat-card-title>Informations système</mat-card-title>
-                  <mat-card-subtitle>Statistiques et versions</mat-card-subtitle>
+                  <mat-card-title>{{ 'Informations système' | translate }}</mat-card-title>
+                  <mat-card-subtitle>{{ 'Statistiques et versions' | translate }}</mat-card-subtitle>
                 </div>
               </mat-card-header>
               <mat-card-content>
                 <div class="system-stats-grid">
                   <div class="stat-item">
-                    <span class="stat-label">Version app</span>
+                    <span class="stat-label">{{ 'Version app' | translate }}</span>
                     <span class="stat-value">{{ versions.app }}</span>
                   </div>
                   <div class="stat-item">
@@ -233,19 +233,19 @@
                     <span class="stat-value">{{ versions.angular }}</span>
                   </div>
                   <div class="stat-item">
-                    <span class="stat-label">Uptime</span>
+                    <span class="stat-label">{{ 'Uptime' | translate }}</span>
                     <span class="stat-value">{{ systemStats.uptime }}</span>
                   </div>
                   <div class="stat-item">
-                    <span class="stat-label">Mémoire</span>
+                    <span class="stat-label">{{ 'Mémoire' | translate }}</span>
                     <span class="stat-value">{{ systemStats.memoryUsage }}</span>
                   </div>
                   <div class="stat-item">
-                    <span class="stat-label">Base de données</span>
+                    <span class="stat-label">{{ 'Base de données' | translate }}</span>
                     <span class="stat-value">{{ systemStats.databaseSize }}</span>
                   </div>
                   <div class="stat-item">
-                    <span class="stat-label">API Calls</span>
+                    <span class="stat-label">{{ 'API Calls' | translate }}</span>
                     <span class="stat-value">{{ systemStats.apiCalls }}</span>
                   </div>
                 </div>
@@ -255,15 +255,15 @@
         </mat-tab>
 
         <!-- Onglet Sécurité -->
-        <mat-tab label="Sécurité">
+        <mat-tab label="{{ 'Sécurité' | translate }}">
           <div class="tab-content">
             <form [formGroup]="securityForm" (ngSubmit)="saveSecuritySettings()">
               <mat-card class="settings-card">
                 <mat-card-header>
                   <mat-icon mat-card-avatar class="card-icon">security</mat-icon>
                   <div>
-                    <mat-card-title>Paramètres de sécurité</mat-card-title>
-                    <mat-card-subtitle>Configuration de la sécurité</mat-card-subtitle>
+                    <mat-card-title>{{ 'Paramètres de sécurité' | translate }}</mat-card-title>
+                    <mat-card-subtitle>{{ 'Configuration de la sécurité' | translate }}</mat-card-subtitle>
                   </div>
                 </mat-card-header>
                 <mat-card-content>
@@ -271,7 +271,7 @@
                   <div class="form-row">
                     <div class="full-width">
                       <mat-slide-toggle formControlName="twoFactorAuth" color="primary">
-                        Authentification à deux facteurs (2FA)
+                        {{ 'Authentification à deux facteurs (2FA)' | translate }}
                       </mat-slide-toggle>
                     </div>
                   </div>
@@ -279,18 +279,18 @@
                   <!-- Longueur mot de passe -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Longueur min mot de passe</mat-label>
+                      <mat-label>{{ 'Longueur min mot de passe' | translate }}</mat-label>
                       <input matInput type="number" formControlName="passwordMinLength" placeholder="8">
                     </mat-form-field>
                     <div class="toggle-group half-width">
                       <mat-slide-toggle formControlName="passwordRequireUppercase" color="primary">
-                        Majuscule requise
+                        {{ 'Majuscule requise' | translate }}
                       </mat-slide-toggle>
                       <mat-slide-toggle formControlName="passwordRequireNumbers" color="primary">
-                        Chiffre requis
+                        {{ 'Chiffre requis' | translate }}
                       </mat-slide-toggle>
                       <mat-slide-toggle formControlName="passwordRequireSpecial" color="primary">
-                        Caractère spécial requis
+                        {{ 'Caractère spécial requis' | translate }}
                       </mat-slide-toggle>
                     </div>
                   </div>
@@ -298,11 +298,11 @@
                   <!-- Tentatives de connexion -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Max tentatives de connexion</mat-label>
+                      <mat-label>{{ 'Max tentatives de connexion' | translate }}</mat-label>
                       <input matInput type="number" formControlName="maxLoginAttempts" placeholder="5">
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Durée de verrouillage (min)</mat-label>
+                      <mat-label>{{ 'Durée de verrouillage (min)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="lockoutDuration" placeholder="30">
                     </mat-form-field>
                   </div>
@@ -311,14 +311,14 @@
                   <div class="form-row">
                     <div class="toggle-group half-width">
                       <mat-slide-toggle formControlName="requireEmailVerification" color="primary">
-                        Vérification email requise
+                        {{ 'Vérification email requise' | translate }}
                       </mat-slide-toggle>
                       <mat-slide-toggle formControlName="requirePhoneVerification" color="primary">
-                        Vérification téléphone requise
+                        {{ 'Vérification téléphone requise' | translate }}
                       </mat-slide-toggle>
                     </div>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Timeout session (min)</mat-label>
+                      <mat-label>{{ 'Timeout session (min)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="sessionTimeout" placeholder="60">
                     </mat-form-field>
                   </div>
@@ -328,7 +328,7 @@
                     <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
                     <span *ngIf="!isSaving">
                       <mat-icon>save</mat-icon>
-                      Enregistrer
+                      {{ 'Enregistrer' | translate }}
                     </span>
                   </button>
                 </mat-card-actions>
@@ -338,26 +338,26 @@
         </mat-tab>
 
         <!-- Onglet Paiement -->
-        <mat-tab label="Paiement">
+        <mat-tab label="{{ 'Paiement' | translate }}">
           <div class="tab-content">
             <form [formGroup]="paymentForm" (ngSubmit)="savePaymentSettings()">
               <mat-card class="settings-card">
                 <mat-card-header>
                   <mat-icon mat-card-avatar class="card-icon">payments</mat-icon>
                   <div>
-                    <mat-card-title>Paramètres de paiement</mat-card-title>
-                    <mat-card-subtitle>Configuration des transactions</mat-card-subtitle>
+                    <mat-card-title>{{ 'Paramètres de paiement' | translate }}</mat-card-title>
+                    <mat-card-subtitle>{{ 'Configuration des transactions' | translate }}</mat-card-subtitle>
                   </div>
                 </mat-card-header>
                 <mat-card-content>
                   <!-- Montants -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Transaction min (Ar)</mat-label>
+                      <mat-label>{{ 'Transaction min (Ar)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="minTransaction" placeholder="100">
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Transaction max (Ar)</mat-label>
+                      <mat-label>{{ 'Transaction max (Ar)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="maxTransaction" placeholder="5000000">
                     </mat-form-field>
                   </div>
@@ -365,11 +365,11 @@
                   <!-- Limites -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Limite journalière (Ar)</mat-label>
+                      <mat-label>{{ 'Limite journalière (Ar)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="dailyTransferLimit" placeholder="5000000">
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Limite mensuelle (Ar)</mat-label>
+                      <mat-label>{{ 'Limite mensuelle (Ar)' | translate }}</mat-label>
                       <input matInput type="number" formControlName="monthlyTransferLimit" placeholder="50000000">
                     </mat-form-field>
                   </div>
@@ -377,12 +377,12 @@
                   <!-- Devise -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Devise</mat-label>
+                      <mat-label>{{ 'Devise' | translate }}</mat-label>
                       <input matInput formControlName="currency" placeholder="Ar">
                     </mat-form-field>
                     <div class="toggle-group half-width">
                       <mat-slide-toggle formControlName="mobileMoneyEnabled" color="primary">
-                        Mobile Money activé
+                        {{ 'Mobile Money activé' | translate }}
                       </mat-slide-toggle>
                     </div>
                   </div>
@@ -390,7 +390,7 @@
                   <!-- Opérateurs Mobile Money -->
                   <div class="form-row">
                     <div class="full-width">
-                      <label class="form-label">Opérateurs Mobile Money</label>
+                      <label class="form-label">{{ 'Opérateurs Mobile Money' | translate }}</label>
                       <div class="operator-toggle-group" formGroupName="mobileMoneyOperators">
                         <mat-slide-toggle formControlName="airtel" color="primary">
                           <span class="operator-label">📱 Airtel</span>
@@ -408,7 +408,7 @@
                   <!-- Frais -->
                   <div class="form-row">
                     <div class="full-width">
-                      <label class="form-label">Frais de transfert (%)</label>
+                      <label class="form-label">{{ 'Frais de transfert (%)' | translate }}</label>
                       <div class="fees-grid" formGroupName="transferFees">
                         <mat-form-field appearance="outline" class="fee-field">
                           <mat-label>Airtel</mat-label>
@@ -426,7 +426,7 @@
                           <span matSuffix>%</span>
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="fee-field">
-                          <mat-label>Interne</mat-label>
+                          <mat-label>{{ 'Interne' | translate }}</mat-label>
                           <input matInput type="number" formControlName="internal" placeholder="0" step="0.1">
                           <span matSuffix>%</span>
                         </mat-form-field>
@@ -439,7 +439,7 @@
                     <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
                     <span *ngIf="!isSaving">
                       <mat-icon>save</mat-icon>
-                      Enregistrer
+                      {{ 'Enregistrer' | translate }}
                     </span>
                   </button>
                 </mat-card-actions>
@@ -449,31 +449,31 @@
         </mat-tab>
 
         <!-- Onglet Notifications -->
-        <mat-tab label="Notifications">
+        <mat-tab label="{{ 'Notifications' | translate }}">
           <div class="tab-content">
             <form [formGroup]="notificationForm" (ngSubmit)="saveNotificationSettings()">
               <mat-card class="settings-card">
                 <mat-card-header>
                   <mat-icon mat-card-avatar class="card-icon">notifications</mat-icon>
                   <div>
-                    <mat-card-title>Paramètres de notification</mat-card-title>
-                    <mat-card-subtitle>Configuration des notifications</mat-card-subtitle>
+                    <mat-card-title>{{ 'Paramètres de notification' | translate }}</mat-card-title>
+                    <mat-card-subtitle>{{ 'Configuration des notifications' | translate }}</mat-card-subtitle>
                   </div>
                 </mat-card-header>
                 <mat-card-content>
                   <!-- Canaux -->
                   <div class="form-row">
                     <div class="full-width">
-                      <label class="form-label">Canaux de notification</label>
+                      <label class="form-label">{{ 'Canaux de notification' | translate }}</label>
                       <div class="notification-channels">
                         <mat-slide-toggle formControlName="emailNotifications" color="primary">
-                          📧 Email
+                          📧 {{ 'Email' | translate }}
                         </mat-slide-toggle>
                         <mat-slide-toggle formControlName="smsNotifications" color="primary">
                           📱 SMS
                         </mat-slide-toggle>
                         <mat-slide-toggle formControlName="pushNotifications" color="primary">
-                          🔔 Push
+                          🔔 {{ 'Push' | translate }}
                         </mat-slide-toggle>
                       </div>
                     </div>
@@ -482,22 +482,22 @@
                   <!-- Alertes admin -->
                   <div class="form-row">
                     <div class="full-width">
-                      <label class="form-label">Alertes administrateur</label>
+                      <label class="form-label">{{ 'Alertes administrateur' | translate }}</label>
                       <div class="admin-alerts" formGroupName="adminAlerts">
                         <mat-slide-toggle formControlName="newUser" color="primary">
-                          Nouvel utilisateur
+                          {{ 'Nouvel utilisateur' | translate }}
                         </mat-slide-toggle>
                         <mat-slide-toggle formControlName="newTransaction" color="primary">
-                          Nouvelle transaction
+                          {{ 'Nouvelle transaction' | translate }}
                         </mat-slide-toggle>
                         <mat-slide-toggle formControlName="largeTransaction" color="primary">
-                          Transaction importante
+                          {{ 'Transaction importante' | translate }}
                         </mat-slide-toggle>
                         <mat-slide-toggle formControlName="securityAlert" color="primary">
-                          Alerte de sécurité
+                          {{ 'Alerte de sécurité' | translate }}
                         </mat-slide-toggle>
                         <mat-slide-toggle formControlName="systemError" color="primary">
-                          Erreur système
+                          {{ 'Erreur système' | translate }}
                         </mat-slide-toggle>
                       </div>
                     </div>
@@ -506,9 +506,9 @@
                   <!-- Fréquence -->
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Fréquence des emails</mat-label>
+                      <mat-label>{{ 'Fréquence des emails' | translate }}</mat-label>
                       <mat-select formControlName="emailFrequency">
-                        <mat-option *ngFor="let freq of emailFrequencies" [value]="freq.value">{{ freq.label }}</mat-option>
+                        <mat-option *ngFor="let freq of emailFrequencies" [value]="freq.value">{{ freq.label | translate }}</mat-option>
                       </mat-select>
                     </mat-form-field>
                   </div>
@@ -518,7 +518,7 @@
                     <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
                     <span *ngIf="!isSaving">
                       <mat-icon>save</mat-icon>
-                      Enregistrer
+                      {{ 'Enregistrer' | translate }}
                     </span>
                   </button>
                 </mat-card-actions>

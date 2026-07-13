@@ -1,5 +1,5 @@
 // frontend/src/app/components/admin/dashboard/admin-dashboard.component.ts
-import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -105,16 +105,10 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
     super();
   }
 
-  // ✅ UN SEUL ngOnInit - Supprimer les doublons
+  // ✅ UN SEUL ngOnInit
   override ngOnInit(): void {
     this.loadUserData();
     this.loadDashboardData();
-
-    this.subscriptions.push(
-      this.chatService.onlineStatus$.subscribe(() => {
-        this.loadDashboardDataSilent();
-      })
-    );
 
     // ✅ S'abonner aux changements de langue
     this.subscriptions.push(
@@ -138,7 +132,6 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
       this.chartCreationTimeout = null;
     }
     
-    this.subscriptions.forEach((sub) => sub.unsubscribe());
     this.destroyAllCharts();
     super.ngOnDestroy();
   }

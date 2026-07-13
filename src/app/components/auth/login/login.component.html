@@ -10,11 +10,11 @@
             <img src="/assets/icons/image02.png" alt="SPaye Logo">
           </div>
           <h1 class="app-title">SPaye</h1>
-          <p class="app-subtitle">Service de paiement mobile</p>
+          <p class="app-subtitle">{{ 'Service de paiement mobile' | translate }}</p>
         </div>
-        <mat-card-title class="welcome-title">Bienvenue</mat-card-title>
+        <mat-card-title class="welcome-title">{{ 'Bienvenue' | translate }}</mat-card-title>
         <mat-card-subtitle class="welcome-subtitle">
-          Connectez-vous à votre compte
+          {{ 'Connectez-vous à votre compte' | translate }}
         </mat-card-subtitle>
       </mat-card-header>
 
@@ -24,7 +24,7 @@
           
           <!-- Email -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Adresse email</mat-label>
+            <mat-label>{{ 'Adresse email' | translate }}</mat-label>
             <input 
               matInput 
               formControlName="email" 
@@ -32,16 +32,16 @@
               autocomplete="email">
             <mat-icon matSuffix>email</mat-icon>
             <mat-error *ngIf="email?.hasError('required') && email?.touched">
-              L'email est requis
+              {{ 'L\'email est requis' | translate }}
             </mat-error>
             <mat-error *ngIf="email?.hasError('email') && email?.touched">
-              Veuillez entrer un email valide
+              {{ 'Veuillez entrer un email valide' | translate }}
             </mat-error>
           </mat-form-field>
 
           <!-- Mot de passe -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Mot de passe</mat-label>
+            <mat-label>{{ 'Mot de passe' | translate }}</mat-label>
             <input 
               matInput 
               formControlName="password" 
@@ -56,18 +56,18 @@
               <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
             <mat-error *ngIf="password?.hasError('required') && password?.touched">
-              Le mot de passe est requis
+              {{ 'Le mot de passe est requis' | translate }}
             </mat-error>
             <mat-error *ngIf="password?.hasError('minlength') && password?.touched">
-              Minimum 6 caractères
+              {{ 'Minimum 6 caractères' | translate }}
             </mat-error>
           </mat-form-field>
 
           <!-- Options -->
           <div class="form-options">
-            <mat-checkbox class="remember-me">Se souvenir de moi</mat-checkbox>
+            <mat-checkbox class="remember-me">{{ 'Se souvenir de moi' | translate }}</mat-checkbox>
             <a routerLink="/forgot-password" class="forgot-link">
-              Mot de passe oublié ?
+              {{ 'Mot de passe oublié ?' | translate }}
             </a>
           </div>
 
@@ -81,14 +81,14 @@
             <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
             <span *ngIf="!isLoading">
               <mat-icon>login</mat-icon>
-              Se connecter
+              {{ 'Se connecter' | translate }}
             </span>
           </button>
         </form>
 
         <!-- Séparateur -->
         <div class="divider">
-          <span>ou</span>
+          <span>{{ 'ou' | translate }}</span>
         </div>
 
         <!-- Bouton Google -->
@@ -103,14 +103,14 @@
             <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
             <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
           </svg>
-          <span>Continuer avec Google</span>
+          <span>{{ 'Continuer avec Google' | translate }}</span>
         </button>
 
         <!-- Lien inscription -->
         <div class="register-link">
-          <span>Pas encore de compte ?</span>
+          <span>{{ 'Pas encore de compte ?' | translate }}</span>
           <a routerLink="/register" class="register-link-btn">
-            Créer un compte
+            {{ 'Créer un compte' | translate }}
             <mat-icon>arrow_forward</mat-icon>
           </a>
         </div>
@@ -119,13 +119,13 @@
 
     <!-- Footer -->
     <div class="login-footer">
-      <p>&copy; 2024 SPaye. Tous droits réservés.</p>
+      <p>&copy; 2024 SPaye. {{ 'Tous droits réservés.' | translate }}</p>
       <div class="footer-links">
-        <a href="#">Conditions</a>
+        <a href="#">{{ 'Conditions' | translate }}</a>
         <span class="separator">•</span>
-        <a href="#">Confidentialité</a>
+        <a href="#">{{ 'Confidentialité' | translate }}</a>
         <span class="separator">•</span>
-        <a href="#">Aide</a>
+        <a href="#">{{ 'Aide' | translate }}</a>
       </div>
     </div>
   </div>

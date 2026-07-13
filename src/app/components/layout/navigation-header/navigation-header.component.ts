@@ -1,7 +1,8 @@
-// src/app/components/layout/navigation-header/navigation-header.component.ts
+// frontend/src/app/components/layout/navigation-header/navigation-header.component.ts
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 // Angular Material
 import { MatIconModule } from '@angular/material/icon';
@@ -20,7 +21,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatButtonModule,
     MatMenuModule,
     MatDividerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TranslatePipe // ✅ AJOUT
   ],
   templateUrl: './navigation-header.component.html',
   styleUrls: ['./navigation-header.component.css']

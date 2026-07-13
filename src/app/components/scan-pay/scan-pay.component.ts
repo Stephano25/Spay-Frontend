@@ -22,6 +22,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip'; // ✅ AJOUT
 
 @Component({
   selector: 'app-scan-pay',
@@ -38,6 +39,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatTooltipModule, // ✅ AJOUT
     TranslatePipe
   ],
   templateUrl: './scan-pay.component.html',
@@ -105,10 +107,8 @@ export class ScanPayComponent extends BaseComponent implements OnInit, AfterView
     private router: Router,
     private route: ActivatedRoute
   ) {
-    // ✅ APPEL OBLIGATOIRE - DOIT ÊTRE LE PREMIER
     super();
     
-    // ✅ Maintenant on peut utiliser 'this'
     this.paymentForm = this.fb.group({
       amount: ['', [Validators.required, Validators.min(100)]],
       description: ['']
@@ -126,6 +126,13 @@ export class ScanPayComponent extends BaseComponent implements OnInit, AfterView
       }
       this.isScanning = true;
     });
+
+    this.subscriptions.push(
+      this.translationService.language$.subscribe((lang) => {
+        console.log(`🌐 ScanPayComponent: Langue changée en ${lang}`);
+        this.cdr.detectChanges();
+      })
+    );
   }
 
   ngAfterViewInit() {

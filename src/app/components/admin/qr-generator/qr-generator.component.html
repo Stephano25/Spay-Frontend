@@ -4,9 +4,9 @@
     <mat-card-header>
       <mat-card-title>
         <mat-icon>qr_code</mat-icon>
-        Générer un QR Code
+        {{ 'Générer un QR Code' | translate }}
       </mat-card-title>
-      <button mat-icon-button (click)="close()" matTooltip="Fermer">
+      <button mat-icon-button (click)="close()" matTooltip="{{ 'Fermer' | translate }}">
         <mat-icon>close</mat-icon>
       </button>
     </mat-card-header>
@@ -14,18 +14,18 @@
     <mat-card-content>
       <div class="generator-form">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Type d'opération</mat-label>
+          <mat-label>{{ 'Type d\'opération' | translate }}</mat-label>
           <mat-select [(ngModel)]="selectedType">
-            <mat-option value="deposit">💰 Dépôt</mat-option>
-            <mat-option value="withdraw">💳 Retrait</mat-option>
+            <mat-option value="deposit">💰 {{ 'Dépôt' | translate }}</mat-option>
+            <mat-option value="withdraw">💳 {{ 'Retrait' | translate }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Montant (optionnel)</mat-label>
+          <mat-label>{{ 'Montant (optionnel)' | translate }}</mat-label>
           <input matInput type="number" [(ngModel)]="amount" placeholder="1000" min="0">
           <mat-icon matSuffix>attach_money</mat-icon>
-          <mat-hint>Laissez vide pour un montant à définir au scan</mat-hint>
+          <mat-hint>{{ 'Laissez vide pour un montant à définir au scan' | translate }}</mat-hint>
         </mat-form-field>
 
         <button
@@ -37,7 +37,7 @@
           <mat-spinner diameter="20" *ngIf="isGenerating"></mat-spinner>
           <span *ngIf="!isGenerating">
             <mat-icon>qr_code</mat-icon>
-            Générer QR Code
+            {{ 'Générer QR Code' | translate }}
           </span>
         </button>
       </div>
@@ -52,51 +52,51 @@
           </div>
           <div class="qr-info">
             <div class="qr-info-item">
-              <span class="info-label">Type</span>
+              <span class="info-label">{{ 'Type' | translate }}</span>
               <span class="info-value" [class.deposit]="qrResponse.action === 'deposit'" [class.withdraw]="qrResponse.action === 'withdraw'">
-                {{ qrResponse.action === 'deposit' ? '💰 Dépôt' : '💳 Retrait' }}
+                {{ qrResponse.action === 'deposit' ? ('💰 Dépôt' | translate) : ('💳 Retrait' | translate) }}
               </span>
             </div>
             <div class="qr-info-item" *ngIf="qrResponse.amount">
-              <span class="info-label">Montant</span>
+              <span class="info-label">{{ 'Montant' | translate }}</span>
               <span class="info-value">{{ formatAmount(qrResponse.amount) }} Ar</span>
             </div>
             <div class="qr-info-item">
-              <span class="info-label">Expiration</span>
+              <span class="info-label">{{ 'Expiration' | translate }}</span>
               <span class="info-value" [class.expired]="isExpired()">
                 {{ formatExpiration(qrResponse.expiresAt) }}
               </span>
             </div>
             <div class="qr-info-item">
-              <span class="info-label">Statut</span>
+              <span class="info-label">{{ 'Statut' | translate }}</span>
               <span class="info-value" [class.active]="!isExpired()" [class.expired]="isExpired()">
-                {{ isExpired() ? '❌ Expiré' : '✅ Actif' }}
+                {{ isExpired() ? ('❌ Expiré' | translate) : ('✅ Actif' | translate) }}
               </span>
             </div>
           </div>
         </div>
 
         <div class="qr-actions">
-          <button mat-stroked-button (click)="copyQRCode()" matTooltip="Copier le code">
+          <button mat-stroked-button (click)="copyQRCode()" matTooltip="{{ 'Copier le code' | translate }}">
             <mat-icon>content_copy</mat-icon>
-            Copier
+            {{ 'Copier' | translate }}
           </button>
-          <button mat-stroked-button (click)="downloadQR()" matTooltip="Télécharger">
+          <button mat-stroked-button (click)="downloadQR()" matTooltip="{{ 'Télécharger' | translate }}">
             <mat-icon>download</mat-icon>
-            Télécharger
+            {{ 'Télécharger' | translate }}
           </button>
         </div>
 
         <div class="qr-expiry" *ngIf="isExpired()">
           <mat-icon>warning</mat-icon>
-          <span>Ce QR Code a expiré. Veuillez en générer un nouveau.</span>
+          <span>{{ 'Ce QR Code a expiré. Veuillez en générer un nouveau.' | translate }}</span>
         </div>
       </div>
 
       <!-- Chargement -->
       <div class="qr-loading" *ngIf="isGenerating">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Génération du QR Code...</p>
+        <p>{{ 'Génération du QR Code...' | translate }}</p>
       </div>
     </mat-card-content>
   </mat-card>

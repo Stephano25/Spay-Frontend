@@ -6,6 +6,7 @@ import { AuthService } from '../../../services/auth.service';
 import { TranslationService } from '../../../services/translation.service';
 import { ThemeService } from '../../../services/theme.service';
 import { Subscription } from 'rxjs';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,7 +20,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   imports: [
     CommonModule, RouterModule,
     MatSidenavModule, MatListModule, MatIconModule, MatButtonModule,
-    MatDividerModule, MatTooltipModule
+    MatDividerModule, MatTooltipModule,
+    TranslatePipe // ✅ AJOUT
   ],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']

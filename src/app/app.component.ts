@@ -27,7 +27,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.translationService.setLanguage(savedLang);
     this.themeService.applyLanguage(savedLang);
 
-    // ✅ 2. S'abonner aux changements de langue - SANS appRef.tick()
+    // ✅ 2. S'abonner aux changements de langue
     this.subscriptions.push(
       this.translationService.language$.subscribe((lang) => {
         console.log(`🌐 AppComponent: Langue changée en ${lang}`);
@@ -47,7 +47,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private handleLanguageChange(event: any): void {
     console.log('🌐 AppComponent: Événement languageChanged reçu', event.detail);
-    this.cdr.detectChanges(); // ✅ Pas de appRef.tick()
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {

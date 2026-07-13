@@ -1,15 +1,16 @@
+<!-- frontend/src/app/components/shared/dialog/dialog.component.html -->
 <h2 mat-dialog-title class="dialog-title" [ngClass]="data.type || 'info'">
   <mat-icon>{{ getIcon() }}</mat-icon>
-  {{ data.title }}
+  {{ data.title | translate }}
 </h2>
 <mat-dialog-content class="dialog-content">
-  <p>{{ data.message }}</p>
+  <p>{{ data.message | translate }}</p>
 </mat-dialog-content>
 <mat-dialog-actions align="end" class="dialog-actions">
   <button mat-button (click)="onCancel()">
-    {{ data.cancelText || 'Annuler' }}
+    {{ (data.cancelText || 'Annuler') | translate }}
   </button>
   <button mat-raised-button [color]="getColor()" (click)="onConfirm()">
-    {{ data.confirmText || 'Confirmer' }}
+    {{ (data.confirmText || 'Confirmer') | translate }}
   </button>
 </mat-dialog-actions>

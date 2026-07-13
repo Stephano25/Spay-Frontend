@@ -54,6 +54,12 @@ export class TransactionsComponent extends BaseComponent implements OnInit {
 
   override ngOnInit(): void {
     this.loadTransactions();
+    this.subscriptions.push(
+    this.translationService.language$.subscribe((lang) => {
+      console.log(`🌐 FriendsComponent: Langue changée en ${lang}`);
+      this.cdr.detectChanges();
+      })
+    );
   }
 
   loadTransactions(): void {

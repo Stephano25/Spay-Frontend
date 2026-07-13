@@ -1,11 +1,12 @@
+<!-- frontend/src/app/components/admin/profile/admin-profile.component.html -->
 <div class="profile-container">
   <mat-toolbar color="primary">
-    <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+    <button mat-icon-button (click)="goBack()" [matTooltip]="'Retour' | translate">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span>Mon Profil Administrateur</span>
+    <span>{{ 'Mon Profil Administrateur' | translate }}</span>
     <span class="spacer"></span>
-    <button mat-icon-button (click)="toggleEditMode()" [matTooltip]="editMode ? 'Annuler' : 'Modifier'">
+    <button mat-icon-button (click)="toggleEditMode()" [matTooltip]="editMode ? ('Annuler' | translate) : ('Modifier' | translate)">
       <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
     </button>
   </mat-toolbar>
@@ -13,7 +14,7 @@
   <div class="profile-content">
     <div class="loading-container" *ngIf="isLoading">
       <mat-spinner diameter="50"></mat-spinner>
-      <p>Chargement de votre profil...</p>
+      <p>{{ 'Chargement de votre profil...' | translate }}</p>
     </div>
 
     <ng-container *ngIf="!isLoading && admin">
@@ -25,24 +26,22 @@
             </div>
             <div class="admin-badge">
               <mat-icon>verified</mat-icon>
-              <span>{{ admin.role === 'super_admin' ? 'Super Administrateur' : 'Administrateur' }}</span>
+              <span>{{ admin.role === 'super_admin' ? ('Super Administrateur' | translate) : ('Administrateur' | translate) }}</span>
             </div>
           </div>
 
-          <!-- ✅ Affichage du solde -->
           <div class="balance-section">
             <div class="balance-display">
-              <span class="balance-label">Solde du portefeuille</span>
+              <span class="balance-label">{{ 'Solde du portefeuille' | translate }}</span>
               <span class="balance-amount">{{ formatAmount(admin.balance) }} Ar</span>
             </div>
-            <!-- ✅ Bouton Top-Up pour SuperAdmin -->
             <button *ngIf="isSuperAdmin" 
                     mat-raised-button 
                     color="primary" 
                     (click)="openTopUpModal()"
                     class="topup-btn">
               <mat-icon>add</mat-icon>
-              Augmenter le solde
+              {{ 'Augmenter le solde' | translate }}
             </button>
           </div>
 
@@ -50,30 +49,30 @@
 
           <div *ngIf="editMode; else viewMode" class="edit-mode">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Prénom</mat-label>
+              <mat-label>{{ 'Prénom' | translate }}</mat-label>
               <input matInput [(ngModel)]="admin.firstName" required />
             </mat-form-field>
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Nom</mat-label>
+              <mat-label>{{ 'Nom' | translate }}</mat-label>
               <input matInput [(ngModel)]="admin.lastName" required />
             </mat-form-field>
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Email</mat-label>
+              <mat-label>{{ 'Email' | translate }}</mat-label>
               <input matInput [(ngModel)]="admin.email" type="email" required />
             </mat-form-field>
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Téléphone</mat-label>
+              <mat-label>{{ 'Téléphone' | translate }}</mat-label>
               <input matInput [(ngModel)]="admin.phoneNumber" placeholder="0341234567" />
             </mat-form-field>
             <div class="action-buttons">
               <button mat-stroked-button (click)="toggleEditMode()" [disabled]="isSaving">
-                Annuler
+                {{ 'Annuler' | translate }}
               </button>
               <button mat-raised-button color="primary" (click)="saveProfile()" [disabled]="isSaving">
                 <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
                 <span *ngIf="!isSaving">
                   <mat-icon>save</mat-icon>
-                  Enregistrer
+                  {{ 'Enregistrer' | translate }}
                 </span>
               </button>
             </div>
@@ -84,9 +83,9 @@
               <div class="info-item">
                 <mat-icon>badge</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Rôle</span>
+                  <span class="info-label">{{ 'Rôle' | translate }}</span>
                   <span class="info-value role-badge" [class.super-admin]="admin.role === 'super_admin'">
-                    {{ admin.role === 'super_admin' ? 'Super Administrateur' : 'Administrateur' }}
+                    {{ admin.role === 'super_admin' ? ('Super Administrateur' | translate) : ('Administrateur' | translate) }}
                   </span>
                 </div>
               </div>
@@ -94,7 +93,7 @@
               <div class="info-item">
                 <mat-icon>person</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Nom complet</span>
+                  <span class="info-label">{{ 'Nom complet' | translate }}</span>
                   <span class="info-value">{{ admin.firstName }} {{ admin.lastName }}</span>
                 </div>
               </div>
@@ -102,7 +101,7 @@
               <div class="info-item">
                 <mat-icon>email</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Email</span>
+                  <span class="info-label">{{ 'Email' | translate }}</span>
                   <span class="info-value">{{ admin.email }}</span>
                 </div>
               </div>
@@ -110,15 +109,15 @@
               <div class="info-item">
                 <mat-icon>phone</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Téléphone</span>
-                  <span class="info-value">{{ admin.phoneNumber || 'Non renseigné' }}</span>
+                  <span class="info-label">{{ 'Téléphone' | translate }}</span>
+                  <span class="info-value">{{ admin.phoneNumber || ('Non renseigné' | translate) }}</span>
                 </div>
               </div>
               <mat-divider></mat-divider>
               <div class="info-item">
                 <mat-icon>event</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Date d'inscription</span>
+                  <span class="info-label">{{ 'Date d\'inscription' | translate }}</span>
                   <span class="info-value">{{ admin.createdAt | date:'dd/MM/yyyy' }}</span>
                 </div>
               </div>
@@ -126,26 +125,26 @@
               <div class="info-item">
                 <mat-icon>login</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Dernière connexion</span>
+                  <span class="info-label">{{ 'Dernière connexion' | translate }}</span>
                   <span class="info-value">{{ admin.lastLogin | date:'dd/MM/yyyy HH:mm' }}</span>
                 </div>
               </div>
             </div>
 
             <div class="admin-stats">
-              <h3>Statistiques</h3>
+              <h3>{{ 'Statistiques' | translate }}</h3>
               <div class="stats-grid">
                 <div class="stat-card">
                   <div class="stat-value">{{ stats.totalUsers || 0 }}</div>
-                  <div class="stat-label">Utilisateurs</div>
+                  <div class="stat-label">{{ 'Utilisateurs' | translate }}</div>
                 </div>
                 <div class="stat-card">
                   <div class="stat-value">{{ stats.totalTransactions || 0 }}</div>
-                  <div class="stat-label">Transactions</div>
+                  <div class="stat-label">{{ 'Transactions' | translate }}</div>
                 </div>
                 <div class="stat-card">
                   <div class="stat-value">{{ formatAmount(stats.totalVolume || 0) }}</div>
-                  <div class="stat-label">Volume total</div>
+                  <div class="stat-label">{{ 'Volume total' | translate }}</div>
                 </div>
               </div>
             </div>
@@ -153,7 +152,7 @@
 
           <button mat-raised-button color="warn" class="logout-btn" (click)="logout()">
             <mat-icon>exit_to_app</mat-icon>
-            Déconnexion
+            {{ 'Déconnexion' | translate }}
           </button>
         </mat-card-content>
       </mat-card>
@@ -161,20 +160,20 @@
   </div>
 </div>
 
-<!-- ✅ MODAL TOP-UP POUR SUPERADMIN -->
+<!-- MODAL TOP-UP POUR SUPERADMIN -->
 <div class="modal-overlay" *ngIf="showTopUpModal" (click)="closeTopUpModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>
         <mat-icon>account_balance_wallet</mat-icon>
-        Augmenter le portefeuille
+        {{ 'Augmenter le portefeuille' | translate }}
       </h3>
       <button mat-icon-button (click)="closeTopUpModal()">
         <mat-icon>close</mat-icon>
       </button>
     </div>
     <div class="modal-body">
-      <p class="modal-subtitle">Ajoutez des fonds à votre portefeuille administrateur</p>
+      <p class="modal-subtitle">{{ 'Ajoutez des fonds à votre portefeuille administrateur' | translate }}</p>
       
       <div class="quick-amounts">
         <button *ngFor="let amount of [1000, 5000, 10000, 25000, 50000, 100000]"
@@ -186,31 +185,31 @@
       </div>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Montant (Ar)</mat-label>
+        <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
         <input matInput type="number" [(ngModel)]="topUpAmount" min="100" placeholder="1000">
         <mat-icon matSuffix>attach_money</mat-icon>
-        <mat-hint>Minimum 100 Ar</mat-hint>
+        <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Description (optionnelle)</mat-label>
-        <input matInput [(ngModel)]="topUpDescription" placeholder="Top-up portefeuille" maxlength="200">
+        <mat-label>{{ 'Description (optionnelle)' | translate }}</mat-label>
+        <input matInput [(ngModel)]="topUpDescription" placeholder="{{ 'Top-up portefeuille' | translate }}" maxlength="200">
       </mat-form-field>
 
       <div class="preview" *ngIf="topUpAmount >= 100">
         <div class="preview-row">
-          <span>Montant à ajouter</span>
+          <span>{{ 'Montant à ajouter' | translate }}</span>
           <span class="preview-amount">+ {{ formatAmount(topUpAmount) }} Ar</span>
         </div>
         <div class="preview-row total">
-          <span>Nouveau solde</span>
+          <span>{{ 'Nouveau solde' | translate }}</span>
           <span class="preview-new-balance">{{ formatAmount((admin.balance || 0) + topUpAmount) }} Ar</span>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button mat-stroked-button (click)="closeTopUpModal()" [disabled]="isTopUpSubmitting">
-        Annuler
+        {{ 'Annuler' | translate }}
       </button>
       <button mat-raised-button color="primary" 
               (click)="topUpWallet()" 
@@ -218,7 +217,7 @@
         <mat-spinner diameter="20" *ngIf="isTopUpSubmitting"></mat-spinner>
         <span *ngIf="!isTopUpSubmitting">
           <mat-icon>add</mat-icon>
-          Ajouter {{ formatAmount(topUpAmount) }} Ar
+          {{ 'Ajouter' | translate }} {{ formatAmount(topUpAmount) }} Ar
         </span>
       </button>
     </div>

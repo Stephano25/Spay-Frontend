@@ -58,6 +58,12 @@ export class ProfileComponent extends BaseComponent implements OnInit {
 
   override ngOnInit() {
     this.loadUserData();
+    this.subscriptions.push(
+    this.translationService.language$.subscribe((lang) => {
+      console.log(`🌐 FriendsComponent: Langue changée en ${lang}`);
+      this.cdr.detectChanges();
+      })
+    );
   }
 
   /**

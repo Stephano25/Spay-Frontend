@@ -434,19 +434,14 @@ export class TranslationService {
     // ✅ Mettre à jour le localStorage
     localStorage.setItem('user_language', lang);
     localStorage.setItem('language', lang);
-    
+    this.languageSubject.next(lang);
+    this.themeService.applyLanguage(lang);
+
     // ✅ Déclencher l'événement personnalisé
     setTimeout(() => {
       document.dispatchEvent(new CustomEvent('languageChanged', { 
         detail: { lang, timestamp: Date.now() } 
       }));
     },10);
-
-    // ✅ Forcer une deuxième notification après 100ms pour s'assurer que tout le monde a bien reçu
-    setTimeout(() => {
-      document.dispatchEvent(new CustomEvent('languageChanged', { 
-        detail: { lang, timestamp: Date.now(), force: true } 
-      }));
-    }, 100);
   }
 }

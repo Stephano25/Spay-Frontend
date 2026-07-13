@@ -1,13 +1,13 @@
-<!-- src/app/components/wallet/wallet.component.html -->
+<!-- frontend/src/app/components/user/wallet/wallet.component.html -->
 <div class="wallet-container">
 
   <!-- Header -->
   <header class="wallet-header">
-    <button class="icon-btn" (click)="goBack()" aria-label="Retour">
+    <button class="icon-btn" (click)="goBack()" [attr.aria-label]="'Retour' | translate">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span class="header-title">SPAYE WALLET</span>
-    <button class="icon-btn" (click)="refreshData()" [class.spinning]="isRefreshing" aria-label="Actualiser">
+    <span class="header-title">{{ 'SPAYE WALLET' | translate }}</span>
+    <button class="icon-btn" (click)="refreshData()" [class.spinning]="isRefreshing" [attr.aria-label]="'Actualiser' | translate">
       <mat-icon>refresh</mat-icon>
     </button>
   </header>
@@ -34,7 +34,7 @@
       <div class="error-state">
         <mat-icon>error_outline</mat-icon>
         <p>{{ errorMessage }}</p>
-        <button class="btn-retry" (click)="loadData()">Réessayer</button>
+        <button class="btn-retry" (click)="loadData()">{{ 'Réessayer' | translate }}</button>
       </div>
     }
 
@@ -43,24 +43,24 @@
 
       <!-- Balance card -->
       <div class="balance-card">
-        <div class="balance-label">Solde disponible</div>
+        <div class="balance-label">{{ 'Solde disponible' | translate }}</div>
         <div class="balance-amount">{{ formatAmount(wallet.balance) }}</div>
         <div class="balance-currency">
           <span class="live-dot"></span>
-          MGA · Ariary malgache
+          {{ 'MGA · Ariary malgache' | translate }}
         </div>
         <div class="balance-actions">
           <button class="bal-btn primary" (click)="sendMoney()">
             <mat-icon>send</mat-icon>
-            Envoyer
+            {{ 'Envoyer' | translate }}
           </button>
           <button class="bal-btn" (click)="receiveMoney()">
             <mat-icon>qr_code</mat-icon>
-            Recevoir
+            {{ 'Recevoir' | translate }}
           </button>
           <button class="bal-btn" (click)="mobileMoney()">
             <mat-icon>phone_android</mat-icon>
-            Mobile
+            {{ 'Mobile Money' | translate }}
           </button>
         </div>
       </div>
@@ -69,19 +69,19 @@
       <div class="quick-actions">
         <button class="quick-btn" (click)="sendMoney()">
           <mat-icon>send</mat-icon>
-          <span>Envoyer</span>
+          <span>{{ 'Envoyer' | translate }}</span>
         </button>
         <button class="quick-btn" (click)="scanQR()">
           <mat-icon>qr_code_scanner</mat-icon>
-          <span>Scanner</span>
+          <span>{{ 'Scanner' | translate }}</span>
         </button>
         <button class="quick-btn" (click)="mobileMoney()">
           <mat-icon>phone_android</mat-icon>
-          <span>Mobile Money</span>
+          <span>{{ 'Mobile Money' | translate }}</span>
         </button>
         <button class="quick-btn" (click)="viewAllTransactions()">
           <mat-icon>receipt_long</mat-icon>
-          <span>Historique</span>
+          <span>{{ 'Historique' | translate }}</span>
         </button>
       </div>
 
@@ -92,7 +92,7 @@
             <mat-icon>arrow_downward</mat-icon>
           </div>
           <div class="stat-value">{{ formatAmount(totalDeposits) }}</div>
-          <div class="stat-label">Total dépôts</div>
+          <div class="stat-label">{{ 'Total dépôts' | translate }}</div>
         </div>
 
         <div class="stat-card">
@@ -100,7 +100,7 @@
             <mat-icon>arrow_upward</mat-icon>
           </div>
           <div class="stat-value">{{ formatAmount(totalWithdrawals) }}</div>
-          <div class="stat-label">Total retraits</div>
+          <div class="stat-label">{{ 'Total retraits' | translate }}</div>
         </div>
 
         <div class="stat-card">
@@ -108,16 +108,16 @@
             <mat-icon>swap_horiz</mat-icon>
           </div>
           <div class="stat-value">{{ totalTransactions }}</div>
-          <div class="stat-label">Transactions</div>
+          <div class="stat-label">{{ 'Transactions' | translate }}</div>
         </div>
       </div>
 
       <!-- Transactions récentes -->
       <div class="txn-card">
         <div class="txn-header">
-          <span class="txn-title">Transactions récentes</span>
+          <span class="txn-title">{{ 'Transactions récentes' | translate }}</span>
           <button class="btn-link" (click)="viewAllTransactions()">
-            Voir tout <mat-icon>arrow_forward</mat-icon>
+            {{ 'Voir tout' | translate }} <mat-icon>arrow_forward</mat-icon>
           </button>
         </div>
 
@@ -146,9 +146,9 @@
         } @else {
           <div class="empty-state">
             <mat-icon>receipt_long</mat-icon>
-            <p>Aucune transaction récente</p>
+            <p>{{ 'Aucune transaction récente' | translate }}</p>
             <button class="btn-primary" (click)="sendMoney()">
-              Effectuer une transaction
+              {{ 'Effectuer une transaction' | translate }}
             </button>
           </div>
         }

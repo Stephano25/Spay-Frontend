@@ -1,23 +1,22 @@
+<!-- frontend/src/app/components/mobile-money/mobile-money.component.html -->
 <div class="mobile-money-container">
-  <!-- Header avec animation -->
   <div class="mobile-header" [class.success-header]="currentStep === 'success'" @slideInDown>
-    <button class="back-btn" (click)="goBack()" matTooltip="Retour">
+    <button class="back-btn" (click)="goBack()" matTooltip="{{ 'Retour' | translate }}">
       <mat-icon>arrow_back</mat-icon>
     </button>
     
     <div class="header-title">
       <h1 class="page-title" [class.success-title]="currentStep === 'success'">
-        {{ currentStep === 'success' ? 'Transfert réussi !' : 'Mobile Money' }}
+        {{ currentStep === 'success' ? ('Transfert réussi !' | translate) : ('Mobile Money' | translate) }}
       </h1>
       
-      <!-- Indicateur d'étapes -->
       <div class="step-indicator" *ngIf="currentStep !== 'success'">
         <div class="step-item" [class.active]="currentStep === 'operator' || currentStep === 'amount' || currentStep === 'confirmation'">
           <div class="step-circle" [class.completed]="currentStep === 'amount' || currentStep === 'confirmation'">
             <mat-icon *ngIf="currentStep === 'amount' || currentStep === 'confirmation'">check</mat-icon>
             <span *ngIf="currentStep === 'operator'">1</span>
           </div>
-          <span class="step-label">Opérateur</span>
+          <span class="step-label">{{ 'Opérateur' | translate }}</span>
         </div>
         
         <div class="step-line" [class.active]="currentStep === 'amount' || currentStep === 'confirmation'"></div>
@@ -27,7 +26,7 @@
             <mat-icon *ngIf="currentStep === 'confirmation'">check</mat-icon>
             <span *ngIf="currentStep !== 'confirmation'">2</span>
           </div>
-          <span class="step-label">Montant</span>
+          <span class="step-label">{{ 'Montant' | translate }}</span>
         </div>
         
         <div class="step-line" [class.active]="currentStep === 'confirmation'"></div>
@@ -36,7 +35,7 @@
           <div class="step-circle">
             <span>3</span>
           </div>
-          <span class="step-label">Confirmation</span>
+          <span class="step-label">{{ 'Confirmation' | translate }}</span>
         </div>
       </div>
     </div>
@@ -45,12 +44,11 @@
   </div>
 
   <div class="mobile-content">
-    <!-- Solde disponible -->
     <div class="balance-section" @slideInDown>
       <mat-card class="balance-card">
         <mat-card-content>
           <div class="balance-info">
-            <span class="balance-label">Solde disponible</span>
+            <span class="balance-label">{{ 'Solde disponible' | translate }}</span>
             <span class="balance-amount">{{ formatAmount(balance) }} Ar</span>
           </div>
           <div class="balance-icon">
@@ -61,9 +59,8 @@
       </mat-card>
     </div>
 
-    <!-- Étape 1: Choix de l'opérateur -->
     <div *ngIf="currentStep === 'operator'" class="step-content" @scaleIn>
-      <h2 class="step-title">Choisissez votre opérateur</h2>
+      <h2 class="step-title">{{ 'Choisissez votre opérateur' | translate }}</h2>
       
       <div class="operators-grid">
         <div 
@@ -78,7 +75,7 @@
           </div>
           
           <div class="operator-info">
-            <h3 class="operator-name">{{ op.name }}</h3>
+            <h3 class="operator-name">{{ op.name | translate }}</h3>
             <span class="operator-prefix">{{ op.code }}</span>
           </div>
           
@@ -91,41 +88,37 @@
       </div>
     </div>
 
-    <!-- Étape 2: Formulaire de montant -->
     <div *ngIf="currentStep === 'amount'" class="step-content" @slideInRight>
       <div class="selected-operator" *ngIf="selectedOperator" @slideInLeft>
         <div class="operator-badge" [style.background]="selectedOperator.gradient">
           <mat-icon>{{ selectedOperator.icon }}</mat-icon>
         </div>
-        <span class="operator-name">{{ selectedOperator.name }}</span>
-        <button class="change-operator" (click)="currentStep = 'operator'" matTooltip="Changer d'opérateur">
+        <span class="operator-name">{{ selectedOperator.name | translate }}</span>
+        <button class="change-operator" (click)="currentStep = 'operator'" matTooltip="{{ 'Changer d\'opérateur' | translate }}">
           <mat-icon>edit</mat-icon>
         </button>
       </div>
 
       <form [formGroup]="mobileMoneyForm" class="amount-form">
-        <!-- Numéro de téléphone -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Numéro de téléphone</mat-label>
+          <mat-label>{{ 'Numéro de téléphone' | translate }}</mat-label>
           <input matInput formControlName="phoneNumber" placeholder="034 12 345 67">
           <mat-icon matSuffix>phone</mat-icon>
-          <mat-hint>Numéro à 9 ou 10 chiffres</mat-hint>
-          <mat-error *ngIf="getPhoneNumberError()">{{ getPhoneNumberError() }}</mat-error>
+          <mat-hint>{{ 'Numéro à 9 ou 10 chiffres' | translate }}</mat-hint>
+          <mat-error *ngIf="getPhoneNumberError()">{{ getPhoneNumberError() | translate }}</mat-error>
         </mat-form-field>
 
-        <!-- Montant -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Montant (Ar)</mat-label>
+          <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
           <input matInput type="number" formControlName="amount" placeholder="5000">
           <mat-icon matSuffix>attach_money</mat-icon>
-          <mat-hint>Minimum 500 Ar - Maximum {{ formatAmount(balance) }} Ar</mat-hint>
-          <mat-error *ngIf="getAmountError()">{{ getAmountError() }}</mat-error>
+          <mat-hint>{{ 'Minimum 500 Ar - Maximum' | translate }} {{ formatAmount(balance) }} Ar</mat-hint>
+          <mat-error *ngIf="getAmountError()">{{ getAmountError() | translate }}</mat-error>
           <mat-error *ngIf="mobileMoneyForm.get('amount')?.value > balance">
-            Maximum {{ formatAmount(balance) }} Ar
+            {{ 'Maximum' | translate }} {{ formatAmount(balance) }} Ar
           </mat-error>
         </mat-form-field>
 
-        <!-- Montants rapides -->
         <div class="quick-amounts">
           <button 
             *ngFor="let amount of quickAmounts" 
@@ -139,19 +132,18 @@
           </button>
         </div>
 
-        <!-- Aperçu des frais -->
         <div class="fee-preview" *ngIf="mobileMoneyForm.get('amount')?.value" @fadeIn>
           <div class="fee-row">
-            <span>Montant</span>
+            <span>{{ 'Montant' | translate }}</span>
             <span>{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</span>
           </div>
           <div class="fee-row">
-            <span>Frais ({{ currentFeePercentage }}%)</span>
+            <span>{{ 'Frais' | translate }} ({{ currentFeePercentage }}%)</span>
             <span>{{ formatAmount(calculateFee()) }} Ar</span>
           </div>
           <mat-divider></mat-divider>
           <div class="fee-row total">
-            <span>Total à débiter</span>
+            <span>{{ 'Total à débiter' | translate }}</span>
             <span class="total-amount">{{ formatAmount(calculateTotal()) }} Ar</span>
           </div>
         </div>
@@ -160,28 +152,27 @@
       <div class="action-buttons">
         <button class="action-btn secondary" (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
-          Retour
+          {{ 'Retour' | translate }}
         </button>
         <button 
           class="action-btn primary" 
           [disabled]="!mobileMoneyForm.get('phoneNumber')?.valid || !mobileMoneyForm.get('amount')?.valid || mobileMoneyForm.get('amount')?.value > balance"
           (click)="goToConfirmation()">
-          Continuer
+          {{ 'Continuer' | translate }}
           <mat-icon>arrow_forward</mat-icon>
           <div class="btn-shine"></div>
         </button>
       </div>
     </div>
 
-    <!-- Étape 3: Confirmation -->
     <div *ngIf="currentStep === 'confirmation'" class="step-content" @scaleIn>
       <div class="confirmation-header">
         <div class="check-icon-container">
           <mat-icon class="check-icon">check_circle</mat-icon>
           <div class="ripple"></div>
         </div>
-        <h2>Confirmez le transfert</h2>
-        <p>Vérifiez les informations avant de confirmer</p>
+        <h2>{{ 'Confirmez le transfert' | translate }}</h2>
+        <p>{{ 'Vérifiez les informations avant de confirmer' | translate }}</p>
       </div>
 
       <div class="confirmation-details" *ngIf="selectedOperator">
@@ -190,8 +181,8 @@
             <mat-icon>{{ selectedOperator.icon }}</mat-icon>
           </div>
           <div class="detail-content">
-            <span class="detail-label">Opérateur</span>
-            <span class="detail-value">{{ selectedOperator.name }}</span>
+            <span class="detail-label">{{ 'Opérateur' | translate }}</span>
+            <span class="detail-value">{{ selectedOperator.name | translate }}</span>
           </div>
         </div>
 
@@ -200,7 +191,7 @@
             <mat-icon>phone</mat-icon>
           </div>
           <div class="detail-content">
-            <span class="detail-label">Numéro</span>
+            <span class="detail-label">{{ 'Numéro' | translate }}</span>
             <span class="detail-value">{{ mobileMoneyForm.get('phoneNumber')?.value }}</span>
           </div>
         </div>
@@ -210,27 +201,27 @@
             <mat-icon>attach_money</mat-icon>
           </div>
           <div class="detail-content">
-            <span class="detail-label">Montant</span>
+            <span class="detail-label">{{ 'Montant' | translate }}</span>
             <span class="detail-value amount">{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</span>
           </div>
         </div>
 
         <div class="fee-summary">
           <div class="fee-row">
-            <span>Montant</span>
+            <span>{{ 'Montant' | translate }}</span>
             <span>{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</span>
           </div>
           <div class="fee-row">
-            <span>Frais</span>
+            <span>{{ 'Frais' | translate }}</span>
             <span>+ {{ formatAmount(calculateFee()) }} Ar</span>
           </div>
           <mat-divider></mat-divider>
           <div class="fee-row total">
-            <span>Total à débiter</span>
+            <span>{{ 'Total à débiter' | translate }}</span>
             <span class="total-amount">{{ formatAmount(calculateTotal()) }} Ar</span>
           </div>
           <div class="fee-row balance-after" [class.insufficient]="!isBalanceSufficient()">
-            <span>Solde après transfert</span>
+            <span>{{ 'Solde après transfert' | translate }}</span>
             <span [class.negative]="!isBalanceSufficient()">
               {{ formatAmount(balance - calculateTotal()) }} Ar
             </span>
@@ -239,27 +230,26 @@
 
         <div class="warning-message" *ngIf="!isBalanceSufficient()" @shake>
           <mat-icon>warning</mat-icon>
-          <span>Solde insuffisant pour effectuer ce transfert</span>
+          <span>{{ 'Solde insuffisant pour effectuer ce transfert' | translate }}</span>
         </div>
       </div>
 
       <div class="action-buttons">
         <button class="action-btn secondary" (click)="goBack()" [disabled]="isProcessing">
           <mat-icon>arrow_back</mat-icon>
-          Retour
+          {{ 'Retour' | translate }}
         </button>
         <button 
           class="action-btn primary confirm" 
           (click)="processTransfer()" 
           [disabled]="!isBalanceSufficient() || isProcessing">
           <mat-spinner diameter="24" *ngIf="isProcessing"></mat-spinner>
-          <span *ngIf="!isProcessing">Confirmer le transfert</span>
+          <span *ngIf="!isProcessing">{{ 'Confirmer le transfert' | translate }}</span>
           <div class="btn-shine" *ngIf="!isProcessing"></div>
         </button>
       </div>
     </div>
 
-    <!-- Étape 4: Succès -->
     <div *ngIf="currentStep === 'success'" class="step-content success-step" @scaleIn>
       <div class="success-animation">
         <div class="success-checkmark">
@@ -271,40 +261,40 @@
           </div>
         </div>
         
-        <h2>Transfert réussi !</h2>
+        <h2>{{ 'Transfert réussi !' | translate }}</h2>
         <p class="success-message">
-          Vous avez transféré <strong>{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</strong>
-          vers {{ selectedOperator?.name }}
+          {{ 'Vous avez transféré' | translate }} <strong>{{ formatAmount(mobileMoneyForm.get('amount')?.value) }} Ar</strong>
+          {{ 'vers' | translate }} {{ (selectedOperator?.name || '') | translate }}
         </p>
         
         <div class="transaction-details">
           <div class="detail-item">
-            <span>Numéro</span>
+            <span>{{ 'Numéro' | translate }}</span>
             <strong>{{ mobileMoneyForm.get('phoneNumber')?.value }}</strong>
           </div>
           <div class="detail-item">
-            <span>Frais</span>
+            <span>{{ 'Frais' | translate }}</span>
             <strong>{{ formatAmount(calculateFee()) }} Ar</strong>
           </div>
           <div class="detail-item">
-            <span>Total débité</span>
+            <span>{{ 'Total débité' | translate }}</span>
             <strong class="total">{{ formatAmount(calculateTotal()) }} Ar</strong>
           </div>
         </div>
 
         <div class="success-actions">
-          <button class="action-btn icon" (click)="resetForm()" matTooltip="Nouveau transfert">
+          <button class="action-btn icon" (click)="resetForm()" matTooltip="{{ 'Nouveau transfert' | translate }}">
             <mat-icon>add</mat-icon>
           </button>
-          <button class="action-btn icon" (click)="goBack()" matTooltip="Retour au portefeuille">
+          <button class="action-btn icon" (click)="goBack()" matTooltip="{{ 'Retour au portefeuille' | translate }}">
             <mat-icon>account_balance_wallet</mat-icon>
           </button>
-          <button class="action-btn icon" matTooltip="Partager">
+          <button class="action-btn icon" matTooltip="{{ 'Partager' | translate }}">
             <mat-icon>share</mat-icon>
           </button>
         </div>
 
-        <p class="redirect-message">Redirection automatique dans 3 secondes...</p>
+        <p class="redirect-message">{{ 'Redirection automatique dans 3 secondes...' | translate }}</p>
       </div>
     </div>
   </div>

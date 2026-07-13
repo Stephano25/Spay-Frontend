@@ -1,36 +1,34 @@
+<!-- frontend/src/app/components/profile/profile.component.html -->
 <div class="profile-container">
   <mat-toolbar color="primary">
-    <button mat-icon-button (click)="goBack()" [matTooltip]="'Retour'">
+    <button mat-icon-button (click)="goBack()" [matTooltip]="'Retour' | translate">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span>Mon Profil</span>
+    <span>{{ 'Mon Profil' | translate }}</span>
     <span class="spacer"></span>
-    <button mat-icon-button (click)="toggleEditMode()" [matTooltip]="editMode ? 'Annuler' : 'Modifier'">
+    <button mat-icon-button (click)="toggleEditMode()" [matTooltip]="editMode ? ('Annuler' | translate) : ('Modifier' | translate)">
       <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
     </button>
   </mat-toolbar>
 
   <div class="profile-content">
-    <!-- Loading spinner -->
     @if (isLoading) {
       <div class="loading-container">
         <mat-spinner diameter="50"></mat-spinner>
-        <p>Chargement de votre profil...</p>
+        <p>{{ 'Chargement de votre profil...' | translate }}</p>
       </div>
     }
 
-    <!-- Contenu principal -->
     @if (!isLoading && user) {
       <mat-card class="profile-card">
         <mat-card-content>
-          <!-- Photo de profil -->
           <div class="profile-header">
             @if (previewImage) {
               <div class="profile-avatar-image">
-                <img [src]="previewImage" alt="Photo de profil">
+                <img [src]="previewImage" alt="{{ 'Photo de profil' | translate }}">
                 @if (editMode) {
                   <div class="avatar-overlay">
-                    <button mat-icon-button (click)="removeProfilePicture()" [matTooltip]="'Supprimer'">
+                    <button mat-icon-button (click)="removeProfilePicture()" [matTooltip]="'Supprimer' | translate">
                       <mat-icon>delete</mat-icon>
                     </button>
                   </div>
@@ -51,7 +49,7 @@
                        (change)="onFileSelected($event)">
                 <button mat-raised-button color="primary" (click)="fileInput.click()" [disabled]="isUploading">
                   <mat-icon>cloud_upload</mat-icon>
-                  {{ previewImage ? 'Changer la photo' : 'Ajouter une photo' }}
+                  {{ previewImage ? ('Changer la photo' | translate) : ('Ajouter une photo' | translate) }}
                 </button>
                 @if (isUploading) {
                   <mat-spinner diameter="20" class="upload-spinner"></mat-spinner>
@@ -60,32 +58,31 @@
             }
           </div>
 
-          <!-- Mode édition -->
           @if (editMode) {
             <div class="edit-mode">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Prénom</mat-label>
-                <input matInput [(ngModel)]="user.firstName" required>
+                <mat-label>{{ 'Prénom' | translate }}</mat-label>
+                <input matInput [(ngModel)]="user.firstName" required />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Nom</mat-label>
-                <input matInput [(ngModel)]="user.lastName" required>
+                <mat-label>{{ 'Nom' | translate }}</mat-label>
+                <input matInput [(ngModel)]="user.lastName" required />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Email</mat-label>
-                <input matInput [(ngModel)]="user.email" type="email" required>
+                <mat-label>{{ 'Email' | translate }}</mat-label>
+                <input matInput [(ngModel)]="user.email" type="email" required />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Téléphone</mat-label>
-                <input matInput [(ngModel)]="user.phoneNumber" placeholder="0341234567">
+                <mat-label>{{ 'Téléphone' | translate }}</mat-label>
+                <input matInput [(ngModel)]="user.phoneNumber" placeholder="0341234567" />
               </mat-form-field>
 
               <div class="action-buttons">
                 <button mat-stroked-button (click)="toggleEditMode()" [disabled]="isSaving">
-                  Annuler
+                  {{ 'Annuler' | translate }}
                 </button>
                 <button mat-raised-button color="primary" (click)="saveProfile()" [disabled]="isSaving">
                   @if (isSaving) {
@@ -93,19 +90,18 @@
                   } @else {
                     <span>
                       <mat-icon>save</mat-icon>
-                      Enregistrer
+                      {{ 'Enregistrer' | translate }}
                     </span>
                   }
                 </button>
               </div>
             </div>
           } @else {
-            <!-- Mode visualisation -->
             <div class="profile-info">
               <div class="info-item">
                 <mat-icon>person</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Nom complet</span>
+                  <span class="info-label">{{ 'Nom complet' | translate }}</span>
                   <span class="info-value">{{ user.firstName }} {{ user.lastName }}</span>
                 </div>
               </div>
@@ -115,7 +111,7 @@
               <div class="info-item">
                 <mat-icon>email</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Email</span>
+                  <span class="info-label">{{ 'Email' | translate }}</span>
                   <span class="info-value">{{ user.email }}</span>
                 </div>
               </div>
@@ -125,8 +121,8 @@
               <div class="info-item">
                 <mat-icon>phone</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Téléphone</span>
-                  <span class="info-value">{{ user.phoneNumber || 'Non renseigné' }}</span>
+                  <span class="info-label">{{ 'Téléphone' | translate }}</span>
+                  <span class="info-value">{{ user.phoneNumber || ('Non renseigné' | translate) }}</span>
                 </div>
               </div>
 
@@ -135,7 +131,7 @@
               <div class="info-item">
                 <mat-icon>account_balance_wallet</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">Solde</span>
+                  <span class="info-label">{{ 'Solde' | translate }}</span>
                   <span class="info-value balance">{{ formatAmount(user.balance) }} Ar</span>
                 </div>
               </div>
@@ -145,26 +141,25 @@
               <div class="info-item">
                 <mat-icon>qr_code</mat-icon>
                 <div class="info-content">
-                  <span class="info-label">QR Code</span>
+                  <span class="info-label">{{ 'QR Code' | translate }}</span>
                   <span class="info-value qr-code">{{ user.qrCode }}</span>
                 </div>
               </div>
             </div>
 
-            <!-- QR Code Section -->
             <div class="qr-code-section">
-              <h3>Votre QR Code</h3>
+              <h3>{{ 'Votre QR Code' | translate }}</h3>
               <div class="qr-code-placeholder">
                 <mat-icon>qr_code_2</mat-icon>
                 <span>{{ user.qrCode }}</span>
               </div>
-              <p class="qr-hint">Scannez ce code pour recevoir des paiements</p>
+              <p class="qr-hint">{{ 'Scannez ce code pour recevoir des paiements' | translate }}</p>
             </div>
           }
 
           <button mat-raised-button color="warn" class="logout-btn" (click)="logout()">
             <mat-icon>exit_to_app</mat-icon>
-            Déconnexion
+            {{ 'Déconnexion' | translate }}
           </button>
         </mat-card-content>
       </mat-card>

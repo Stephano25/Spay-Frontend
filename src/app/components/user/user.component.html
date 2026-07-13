@@ -47,7 +47,6 @@
   <!-- Menu de navigation -->
   <div class="menu-grid">
     <div class="menu-grid-inner">
-      <!-- Items existants -->
       @for (item of menuItems; track item.route) {
         <mat-card class="menu-card" (click)="navigateTo(item.route)">
           <mat-card-content>

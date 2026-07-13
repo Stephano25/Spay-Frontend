@@ -6,9 +6,9 @@
         <mat-icon>{{ scanResult.action === 'deposit' ? 'add' : 'remove' }}</mat-icon>
       </div>
       <mat-card-title>
-        {{ scanResult.action === 'deposit' ? '💰 Dépôt' : '💳 Retrait' }}
+        {{ scanResult.action === 'deposit' ? ('💰 Dépôt' | translate) : ('💳 Retrait' | translate) }}
       </mat-card-title>
-      <button mat-icon-button (click)="cancel()" matTooltip="Fermer">
+      <button mat-icon-button (click)="cancel()" [matTooltip]="'Fermer' | translate">
         <mat-icon>close</mat-icon>
       </button>
     </mat-card-header>
@@ -18,10 +18,10 @@
       <div class="admin-info">
         <div class="admin-badge">
           <mat-icon>admin_panel_settings</mat-icon>
-          <span>{{ scanResult.adminName || 'Administrateur' }}</span>
+          <span>{{ scanResult.adminName || ('Administrateur' | translate) }}</span>
         </div>
         <div class="action-badge" [class.deposit]="scanResult.action === 'deposit'" [class.withdraw]="scanResult.action === 'withdraw'">
-          {{ scanResult.action === 'deposit' ? 'Dépôt' : 'Retrait' }}
+          {{ scanResult.action === 'deposit' ? ('Dépôt' | translate) : ('Retrait' | translate) }}
         </div>
       </div>
 
@@ -31,12 +31,12 @@
       <div class="qr-info-section">
         <div class="qr-code-display">
           <mat-icon>qr_code</mat-icon>
-          <span class="qr-code-text">{{ scanResult.qrCode || scanResult.adminId || 'QR Code scanné' }}</span>
+          <span class="qr-code-text">{{ scanResult.qrCode || scanResult.adminId || ('QR Code scanné' | translate) }}</span>
         </div>
         <div class="qr-expiry-info" *ngIf="scanResult.expiresAt">
           <mat-icon [style.color]="isExpired() ? '#ef4444' : '#10b981'">timer</mat-icon>
           <span [style.color]="isExpired() ? '#ef4444' : '#10b981'">
-            {{ isExpired() ? 'Expiré' : 'Valide' }}
+            {{ isExpired() ? ('Expiré' | translate) : ('Valide' | translate) }}
           </span>
         </div>
       </div>
@@ -47,12 +47,12 @@
       <div class="form-section">
         <div class="section-label">
           <mat-icon>person</mat-icon>
-          <span>Utilisateur concerné</span>
+          <span>{{ 'Utilisateur concerné' | translate }}</span>
         </div>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Rechercher un utilisateur</mat-label>
-          <mat-select [(ngModel)]="selectedUserId" placeholder="Sélectionnez un utilisateur">
+          <mat-label>{{ 'Rechercher un utilisateur' | translate }}</mat-label>
+          <mat-select [(ngModel)]="selectedUserId" placeholder="{{ 'Sélectionnez un utilisateur' | translate }}">
             <mat-option *ngFor="let user of users" [value]="user.id">
               <div class="user-option">
                 <div class="user-avatar-sm">{{ getUserInitials(user) }}</div>
@@ -64,7 +64,7 @@
               </div>
             </mat-option>
           </mat-select>
-          <mat-hint>Sélectionnez l'utilisateur concerné par l'opération</mat-hint>
+          <mat-hint>{{ 'Sélectionnez l\'utilisateur concerné par l\'opération' | translate }}</mat-hint>
         </mat-form-field>
 
         <!-- Utilisateur sélectionné -->
@@ -75,7 +75,7 @@
               <div class="selected-user-name">{{ getSelectedUser().firstName }} {{ getSelectedUser().lastName }}</div>
               <div class="selected-user-email">{{ getSelectedUser().email }}</div>
               <div class="selected-user-balance">
-                <span class="balance-label">Solde actuel</span>
+                <span class="balance-label">{{ 'Solde actuel' | translate }}</span>
                 <span class="balance-value">{{ formatAmount(getSelectedUser().balance) }} Ar</span>
               </div>
             </div>
@@ -89,20 +89,20 @@
       <div class="form-section">
         <div class="section-label">
           <mat-icon>attach_money</mat-icon>
-          <span>Montant</span>
+          <span>{{ 'Montant' | translate }}</span>
         </div>
 
         <!-- Montant du QR Code -->
         <div class="amount-display" *ngIf="scanResult.amount">
           <div class="amount-value">{{ formatAmount(scanResult.amount) }} Ar</div>
-          <div class="amount-label">Montant fixé par le QR Code</div>
+          <div class="amount-label">{{ 'Montant fixé par le QR Code' | translate }}</div>
           <mat-icon class="lock-icon">lock</mat-icon>
         </div>
 
         <!-- Montant personnalisé -->
         <ng-container *ngIf="!scanResult.amount">
           <div class="quick-amounts">
-            <span class="quick-label">Montants rapides</span>
+            <span class="quick-label">{{ 'Montants rapides' | translate }}</span>
             <div class="amount-chips">
               <button *ngFor="let quickAmount of quickAmounts" 
                       class="amount-chip" 
@@ -114,19 +114,19 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Montant (Ar)</mat-label>
+            <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
             <input matInput type="number" [(ngModel)]="amount" min="100" placeholder="1000">
             <mat-icon matSuffix>attach_money</mat-icon>
-            <mat-hint>Minimum 100 Ar</mat-hint>
-            <mat-error *ngIf="amount && amount < 100">Le montant minimum est de 100 Ar</mat-error>
+            <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
+            <mat-error *ngIf="amount && amount < 100">{{ 'Le montant minimum est de 100 Ar' | translate }}</mat-error>
           </mat-form-field>
         </ng-container>
 
         <mat-form-field appearance="outline" class="full-width" *ngIf="scanResult.amount">
-          <mat-label>Montant (Ar)</mat-label>
+          <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
           <input matInput type="number" [value]="scanResult.amount" disabled>
           <mat-icon matSuffix>lock</mat-icon>
-          <mat-hint>Montant fixé par le QR Code</mat-hint>
+          <mat-hint>{{ 'Montant fixé par le QR Code' | translate }}</mat-hint>
         </mat-form-field>
       </div>
 
@@ -136,12 +136,12 @@
       <div class="form-section">
         <div class="section-label">
           <mat-icon>notes</mat-icon>
-          <span>Description</span>
+          <span>{{ 'Description' | translate }}</span>
         </div>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Description de l'opération</mat-label>
+          <mat-label>{{ 'Description de l\'opération' | translate }}</mat-label>
           <input matInput [(ngModel)]="description" 
-                 [placeholder]="scanResult.action === 'deposit' ? 'Dépôt effectué par l\'administrateur' : 'Retrait effectué par l\'administrateur'"
+                 [placeholder]="scanResult.action === 'deposit' ? ('Dépôt effectué par l\'administrateur' | translate) : ('Retrait effectué par l\'administrateur' | translate)"
                  maxlength="200">
           <mat-hint align="end">{{ description ? description.length : 0 }}/200</mat-hint>
         </mat-form-field>
@@ -151,36 +151,36 @@
 
       <!-- Résumé -->
       <div class="preview" *ngIf="selectedUserId && getAmount() && getAmount() >= 100">
-        <h4 class="preview-title">📋 Résumé de l'opération</h4>
+        <h4 class="preview-title">📋 {{ 'Résumé de l\'opération' | translate }}</h4>
         <div class="preview-row">
-          <span>Type d'opération</span>
+          <span>{{ 'Type d\'opération' | translate }}</span>
           <span [class.deposit]="scanResult.action === 'deposit'" [class.withdraw]="scanResult.action === 'withdraw'">
-            {{ scanResult.action === 'deposit' ? '💰 Dépôt' : '💳 Retrait' }}
+            {{ scanResult.action === 'deposit' ? ('💰 Dépôt' | translate) : ('💳 Retrait' | translate) }}
           </span>
         </div>
         <div class="preview-row">
-          <span>Utilisateur</span>
+          <span>{{ 'Utilisateur' | translate }}</span>
           <span>{{ getSelectedUser()?.firstName }} {{ getSelectedUser()?.lastName }}</span>
         </div>
         <div class="preview-row">
-          <span>Montant</span>
+          <span>{{ 'Montant' | translate }}</span>
           <span class="preview-amount" [class.deposit]="scanResult.action === 'deposit'" [class.withdraw]="scanResult.action === 'withdraw'">
             {{ scanResult.action === 'deposit' ? '+' : '-' }} {{ formatAmount(getAmount()) }} Ar
           </span>
         </div>
         <div class="preview-row" *ngIf="description">
-          <span>Description</span>
+          <span>{{ 'Description' | translate }}</span>
           <span class="preview-desc">{{ description }}</span>
         </div>
         <div class="preview-row total">
-          <span>Nouveau solde</span>
+          <span>{{ 'Nouveau solde' | translate }}</span>
           <span class="preview-new-balance">
             {{ formatAmount(getNewBalance()) }} Ar
           </span>
         </div>
         <div class="preview-status" [class.insufficient]="isBalanceInsufficient()" *ngIf="scanResult.action === 'withdraw'">
           <mat-icon>{{ isBalanceInsufficient() ? 'warning' : 'check_circle' }}</mat-icon>
-          <span>{{ isBalanceInsufficient() ? '⚠️ Solde insuffisant' : '✅ Solde suffisant' }}</span>
+          <span>{{ isBalanceInsufficient() ? ('⚠️ Solde insuffisant' | translate) : ('✅ Solde suffisant' | translate) }}</span>
         </div>
       </div>
     </mat-card-content>
@@ -189,7 +189,7 @@
     <mat-card-actions>
       <button mat-stroked-button class="cancel-btn" (click)="cancel()" [disabled]="isSubmitting">
         <mat-icon>close</mat-icon>
-        Annuler
+        {{ 'Annuler' | translate }}
       </button>
       <button mat-raised-button 
               [color]="scanResult.action === 'deposit' ? 'primary' : 'warn'"
@@ -199,7 +199,7 @@
         <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
         <span *ngIf="!isSubmitting">
           <mat-icon>{{ scanResult.action === 'deposit' ? 'add' : 'remove' }}</mat-icon>
-          {{ scanResult.action === 'deposit' ? 'Valider le dépôt' : 'Valider le retrait' }}
+          {{ scanResult.action === 'deposit' ? ('Valider le dépôt' | translate) : ('Valider le retrait' | translate) }}
         </span>
       </button>
     </mat-card-actions>

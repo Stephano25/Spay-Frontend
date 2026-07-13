@@ -6,19 +6,18 @@
       mat-icon-button 
       [routerLink]="backRoute || (isAdmin ? '/admin' : '/user')"
       class="back-btn"
-      matTooltip="Retour">
+      [matTooltip]="'Retour' | translate">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h1>{{ title }}</h1>
+    <h1>{{ title | translate }}</h1>
   </div>
   
   <div class="header-right">
-    <!-- Boutons d'action -->
     <ng-container *ngIf="showExportButton">
       <button 
         mat-icon-button 
         (click)="onExport()" 
-        matTooltip="Exporter les paramètres"
+        [matTooltip]="'Exporter les paramètres' | translate"
         class="action-btn">
         <mat-icon>download</mat-icon>
       </button>
@@ -28,13 +27,12 @@
       <button 
         mat-icon-button 
         (click)="onReset()" 
-        matTooltip="Réinitialiser"
+        [matTooltip]="'Réinitialiser' | translate"
         class="action-btn">
         <mat-icon>settings_backup_restore</mat-icon>
       </button>
     </ng-container>
 
-    <!-- Profil utilisateur -->
     <div class="user-info-desktop" *ngIf="user">
       <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
       <div class="user-avatar-small">{{ getInitials() }}</div>
@@ -50,88 +48,86 @@
           <strong>{{ user.firstName }} {{ user.lastName }}</strong>
           <small>{{ user.email }}</small>
           <span class="role-badge" *ngIf="isAdmin">
-            {{ user?.role === 'super_admin' ? 'Super Admin' : 'Admin' }}
+            {{ user?.role === 'super_admin' ? ('Super Admin' | translate) : ('Admin' | translate) }}
           </span>
         </div>
       </div>
       <mat-divider></mat-divider>
       
-      <!-- Menu items pour admin -->
       <ng-container *ngIf="isAdmin">
         <button mat-menu-item routerLink="/admin/dashboard">
           <mat-icon>dashboard</mat-icon>
-          <span>Dashboard</span>
+          <span>{{ 'Dashboard' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/admin/users">
           <mat-icon>people</mat-icon>
-          <span>Utilisateurs</span>
+          <span>{{ 'Utilisateurs' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/admin/transactions">
           <mat-icon>receipt</mat-icon>
-          <span>Transactions</span>
+          <span>{{ 'Transactions' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/admin/stats">
           <mat-icon>bar_chart</mat-icon>
-          <span>Statistiques</span>
+          <span>{{ 'Statistiques' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/admin/settings">
           <mat-icon>settings</mat-icon>
-          <span>Paramètres</span>
+          <span>{{ 'Paramètres' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/admin/profile">
           <mat-icon>person</mat-icon>
-          <span>Mon Profil</span>
+          <span>{{ 'Mon Profil' | translate }}</span>
         </button>
       </ng-container>
       
-      <!-- Menu items pour utilisateur normal -->
       <ng-container *ngIf="!isAdmin">
         <button mat-menu-item routerLink="/user">
           <mat-icon>dashboard</mat-icon>
-          <span>Tableau de bord</span>
+          <span>{{ 'Tableau de bord' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/wallet">
           <mat-icon>account_balance_wallet</mat-icon>
-          <span>Portefeuille</span>
+          <span>{{ 'Portefeuille' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/transactions">
           <mat-icon>swap_horiz</mat-icon>
-          <span>Transactions</span>
+          <span>{{ 'Transactions' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/friends">
           <mat-icon>people</mat-icon>
-          <span>Amis</span>
+          <span>{{ 'Amis' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/chat">
           <mat-icon>chat</mat-icon>
-          <span>Messages</span>
+          <span>{{ 'Messages' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/scan-pay">
           <mat-icon>qr_code_scanner</mat-icon>
-          <span>Scanner</span>
+          <span>{{ 'Scanner' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/mobile-money">
           <mat-icon>phone_android</mat-icon>
-          <span>Mobile Money</span>
+          <span>{{ 'Mobile Money' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/stats">
           <mat-icon>bar_chart</mat-icon>
-          <span>Statistiques</span>
+          <span>{{ 'Statistiques' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/profile">
           <mat-icon>person</mat-icon>
-          <span>Profil</span>
+          <span>{{ 'Profil' | translate }}</span>
         </button>
         <button mat-menu-item routerLink="/user/settings">
           <mat-icon>settings</mat-icon>
-          <span>Paramètres</span>
+          <span>{{ 'Paramètres' | translate }}</span>
         </button>
       </ng-container>
       
       <mat-divider></mat-divider>
       <button mat-menu-item (click)="onLogout()" class="logout-item">
         <mat-icon>exit_to_app</mat-icon>
-        <span>Déconnexion</span>
+        <span>{{ 'Déconnexion' | translate }}</span>
       </button>
     </mat-menu>
   </div>

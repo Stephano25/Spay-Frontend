@@ -1,4 +1,4 @@
-<!-- src/app/components/chat/chat.component.html -->
+<!-- frontend/src/app/components/chat/chat.component.html -->
 <div class="chat-root" [class.mobile-chat-open]="selectedContact" (click)="closeOverlaysOnClick()">
 
   <!-- ══════════════════════════════════════
@@ -6,15 +6,15 @@
   ══════════════════════════════════════ -->
   <aside class="sidebar">
     <div class="sidebar-top">
-      <h1 class="sidebar-brand">Messages</h1>
-      <button class="icon-btn compose-btn" (click)="toggleNewConversation(); $event.stopPropagation()" matTooltip="Nouvelle discussion">
+      <h1 class="sidebar-brand">{{ 'Messages' | translate }}</h1>
+      <button class="icon-btn compose-btn" (click)="toggleNewConversation(); $event.stopPropagation()" matTooltip="{{ 'Nouvelle discussion' | translate }}">
         <mat-icon>edit_square</mat-icon>
       </button>
     </div>
 
     <div class="sidebar-search" (click)="$event.stopPropagation()">
       <mat-icon class="search-icon">search</mat-icon>
-      <input type="text" placeholder="Rechercher…" [(ngModel)]="searchQuery" class="search-input">
+      <input type="text" placeholder="{{ 'Rechercher…' | translate }}" [(ngModel)]="searchQuery" class="search-input">
     </div>
 
     <div class="conv-list">
@@ -40,20 +40,20 @@
 
       <div class="empty-sidebar" *ngIf="filteredConversations.length === 0">
         <mat-icon>chat_bubble_outline</mat-icon>
-        <p>Aucune discussion</p>
-        <button class="pill-btn" (click)="toggleNewConversation()">Démarrer</button>
+        <p>{{ 'Aucune discussion' | translate }}</p>
+        <button class="pill-btn" (click)="toggleNewConversation()">{{ 'Démarrer' | translate }}</button>
       </div>
     </div>
 
     <!-- Overlay nouvelle conversation -->
     <div class="new-conv-overlay" *ngIf="showNewConversation" (click)="$event.stopPropagation()">
       <div class="overlay-bar">
-        <span class="overlay-title">Nouvelle discussion</span>
+        <span class="overlay-title">{{ 'Nouvelle discussion' | translate }}</span>
         <button class="icon-btn" (click)="toggleNewConversation()"><mat-icon>close</mat-icon></button>
       </div>
       <div class="sidebar-search">
         <mat-icon class="search-icon">search</mat-icon>
-        <input type="text" placeholder="Nom, email…" [(ngModel)]="newConversationQuery"
+        <input type="text" placeholder="{{ 'Nom, email…' | translate }}" [(ngModel)]="newConversationQuery"
                (ngModelChange)="searchNewConversation()" class="search-input" autofocus>
       </div>
       <div class="search-res-list">
@@ -72,9 +72,9 @@
           <mat-icon class="blocked-tag" *ngIf="user.isBlocked">block</mat-icon>
         </div>
         <p class="hint" *ngIf="!isSearchingUsers && newConversationQuery.length >= 2 && newConversationResults.length === 0">
-          Aucun résultat
+          {{ 'Aucun résultat' | translate }}
         </p>
-        <p class="hint" *ngIf="newConversationQuery.length < 2">Tapez 2 caractères minimum</p>
+        <p class="hint" *ngIf="newConversationQuery.length < 2">{{ 'Tapez 2 caractères minimum' | translate }}</p>
       </div>
     </div>
   </aside>
@@ -86,8 +86,7 @@
 
     <!-- Header -->
     <header class="chat-header">
-      <!-- ✅ Bouton retour mobile corrigé avec la bonne méthode -->
-      <button class="icon-btn mobile-back" (click)="goBackToConversations()" matTooltip="Retour">
+      <button class="icon-btn mobile-back" (click)="goBackToConversations()" matTooltip="{{ 'Retour' | translate }}">
         <mat-icon>arrow_back</mat-icon>
       </button>
       <div class="av av-md" [style.background]="getAvatarColor(selectedContact.firstName)">
@@ -97,19 +96,19 @@
       <div class="contact-meta">
         <span class="contact-name">{{ selectedContact.firstName }} {{ selectedContact.lastName }}</span>
         <span class="contact-status">
-          <ng-container *ngIf="isTyping"><span class="typing-anim">En train d'écrire<span class="dots"><span>.</span><span>.</span><span>.</span></span></span></ng-container>
-          <ng-container *ngIf="!isTyping && selectedContact.isOnline"><span class="online-label">● En ligne</span></ng-container>
-          <ng-container *ngIf="!isTyping && !selectedContact.isOnline"><span class="offline-label">Hors ligne</span></ng-container>
+          <ng-container *ngIf="isTyping"><span class="typing-anim">{{ 'En train d\'écrire' | translate }}<span class="dots"><span>.</span><span>.</span><span>.</span></span></span></ng-container>
+          <ng-container *ngIf="!isTyping && selectedContact.isOnline"><span class="online-label">{{ '● En ligne' | translate }}</span></ng-container>
+          <ng-container *ngIf="!isTyping && !selectedContact.isOnline"><span class="offline-label">{{ 'Hors ligne' | translate }}</span></ng-container>
         </span>
       </div>
       <div class="header-actions">
-        <button class="icon-btn" (click)="openTransferPanel(); $event.stopPropagation()" matTooltip="Envoyer de l'argent">
+        <button class="icon-btn" (click)="openTransferPanel(); $event.stopPropagation()" matTooltip="{{ 'Envoyer de l\'argent' | translate }}">
           <mat-icon>payments</mat-icon>
         </button>
-        <button class="icon-btn" (click)="startCall('audio'); $event.stopPropagation()" matTooltip="Appel audio">
+        <button class="icon-btn" (click)="startCall('audio'); $event.stopPropagation()" matTooltip="{{ 'Appel audio' | translate }}">
           <mat-icon>call</mat-icon>
         </button>
-        <button class="icon-btn" (click)="startCall('video'); $event.stopPropagation()" matTooltip="Appel vidéo">
+        <button class="icon-btn" (click)="startCall('video'); $event.stopPropagation()" matTooltip="{{ 'Appel vidéo' | translate }}">
           <mat-icon>videocam</mat-icon>
         </button>
         <button class="icon-btn" [matMenuTriggerFor]="moreMenu" (click)="$event.stopPropagation()">
@@ -117,11 +116,11 @@
         </button>
         <mat-menu #moreMenu="matMenu">
           <button mat-menu-item [routerLink]="['/user/profile', selectedContact.userId]">
-            <mat-icon>person</mat-icon><span>Voir le profil</span>
+            <mat-icon>person</mat-icon><span>{{ 'Voir le profil' | translate }}</span>
           </button>
           <mat-divider></mat-divider>
           <button mat-menu-item (click)="blockUser()">
-            <mat-icon>block</mat-icon><span>Bloquer</span>
+            <mat-icon>block</mat-icon><span>{{ 'Bloquer' | translate }}</span>
           </button>
         </mat-menu>
       </div>
@@ -135,7 +134,7 @@
         <div class="msg-row" [class.own]="isOwnMessage(msg)" *ngIf="msg.isDeleted">
           <div class="bubble deleted-bubble">
             <mat-icon class="del-icon">do_not_disturb_on</mat-icon>
-            <span>Message supprimé</span>
+            <span>{{ 'Message supprimé' | translate }}</span>
           </div>
         </div>
 
@@ -148,9 +147,9 @@
               </div>
               <div class="money-details">
                 <span class="money-amt">{{ formatAmount(msg.moneyTransfer?.amount || 0) }} Ar</span>
-                <span class="money-lbl" *ngIf="msg.moneyTransfer?.status === 'completed'">✅ Transfert réussi</span>
-                <span class="money-lbl failed" *ngIf="msg.moneyTransfer?.status === 'failed'">❌ {{ msg.moneyTransfer?.failReason || 'Échec' }}</span>
-                <span class="money-lbl pending" *ngIf="msg.moneyTransfer?.status === 'pending'">⏳ En cours…</span>
+                <span class="money-lbl" *ngIf="msg.moneyTransfer?.status === 'completed'">✅ {{ 'Transfert réussi' | translate }}</span>
+                <span class="money-lbl failed" *ngIf="msg.moneyTransfer?.status === 'failed'">❌ {{ msg.moneyTransfer?.failReason || ('Échec' | translate) }}</span>
+                <span class="money-lbl pending" *ngIf="msg.moneyTransfer?.status === 'pending'">⏳ {{ 'En cours…' | translate }}</span>
               </div>
             </div>
             <div class="reactions-bar" *ngIf="groupedReactions(msg).length">
@@ -201,7 +200,7 @@
               <div *ngIf="msg.type === 'image' || (msg.type === 'file' && getFileType(msg) === 'image')" class="media-wrap">
                 <img [src]="getFileUrl(msg.fileUrl)" alt="image" class="msg-img"
                      (error)="msg.fileUrl = undefined" loading="lazy">
-                <a [href]="getFileUrl(msg.fileUrl)" download class="dl-overlay" matTooltip="Télécharger">
+                <a [href]="getFileUrl(msg.fileUrl)" download class="dl-overlay" matTooltip="{{ 'Télécharger' | translate }}">
                   <mat-icon>download</mat-icon>
                 </a>
               </div>
@@ -209,10 +208,10 @@
               <!-- Vidéo -->
               <div *ngIf="getFileType(msg) === 'video'" class="media-wrap video-wrap">
                 <video [src]="getFileUrl(msg.fileUrl)" controls class="msg-video" preload="metadata">
-                  Votre navigateur ne supporte pas la vidéo.
+                  {{ 'Votre navigateur ne supporte pas la vidéo.' | translate }}
                 </video>
                 <a [href]="getFileUrl(msg.fileUrl)" download class="dl-btn-sm">
-                  <mat-icon>download</mat-icon> Télécharger
+                  <mat-icon>download</mat-icon> {{ 'Télécharger' | translate }}
                 </a>
               </div>
 
@@ -231,7 +230,7 @@
                   <span class="doc-name">{{ msg.fileName }}</span>
                   <span class="doc-size">{{ formatFileSize(msg.fileSize) }}</span>
                 </div>
-                <a [href]="getFileUrl(msg.fileUrl)" download class="doc-dl-btn" matTooltip="Télécharger">
+                <a [href]="getFileUrl(msg.fileUrl)" download class="doc-dl-btn" matTooltip="{{ 'Télécharger' | translate }}">
                   <mat-icon>download</mat-icon>
                 </a>
               </div>
@@ -248,7 +247,7 @@
             <!-- Heure -->
             <span class="msg-time" *ngIf="editingMessageId !== msg.id">
               {{ formatTime(msg.createdAt) }}
-              <em *ngIf="msg.isEdited"> · modifié</em>
+              <em *ngIf="msg.isEdited"> · {{ 'modifié' | translate }}</em>
               <mat-icon class="read-tick" *ngIf="isOwnMessage(msg) && msg.isRead">done_all</mat-icon>
               <mat-icon class="read-tick" *ngIf="isOwnMessage(msg) && !msg.isRead">done</mat-icon>
             </span>
@@ -277,7 +276,7 @@
     <!-- Panneau transfert -->
     <div class="transfer-panel" *ngIf="showTransferPanel" (click)="$event.stopPropagation()">
       <div class="transfer-bar">
-        <span class="transfer-title">Envoyer à {{ selectedContact.firstName }}</span>
+        <span class="transfer-title">{{ 'Envoyer à' | translate }} {{ selectedContact.firstName }}</span>
         <button class="icon-btn" (click)="closeTransferPanel()"><mat-icon>close</mat-icon></button>
       </div>
       <div class="quick-amounts">
@@ -286,23 +285,23 @@
                 (click)="transferAmount = a">{{ formatAmount(a) }}</button>
       </div>
       <div class="transfer-row">
-        <input type="number" placeholder="Montant (Ar)" [(ngModel)]="transferAmount" min="100" class="transfer-input">
+        <input type="number" placeholder="{{ 'Montant (Ar)' | translate }}" [(ngModel)]="transferAmount" min="100" class="transfer-input">
         <button class="send-money-btn" [disabled]="!transferAmount || transferAmount <= 0" (click)="confirmTransfer()">
-          <mat-icon>send</mat-icon> Envoyer
+          <mat-icon>send</mat-icon> {{ 'Envoyer' | translate }}
         </button>
       </div>
     </div>
 
     <!-- Composer -->
     <div class="composer" (click)="$event.stopPropagation()">
-      <button class="icon-btn" (click)="toggleEmojiPicker(); $event.stopPropagation()" matTooltip="Emojis">
+      <button class="icon-btn" (click)="toggleEmojiPicker(); $event.stopPropagation()" matTooltip="{{ 'Emojis' | translate }}">
         <mat-icon>sentiment_satisfied_alt</mat-icon>
       </button>
-      <button class="icon-btn" (click)="uploadFile()" matTooltip="Joindre un fichier">
+      <button class="icon-btn" (click)="uploadFile()" matTooltip="{{ 'Joindre un fichier' | translate }}">
         <mat-icon>attach_file</mat-icon>
       </button>
       <button class="icon-btn" [class.recording]="isRecording"
-              (click)="toggleVoiceRecording()" matTooltip="Message vocal">
+              (click)="toggleVoiceRecording()" matTooltip="{{ 'Message vocal' | translate }}">
         <mat-icon>{{ isRecording ? 'stop' : 'mic' }}</mat-icon>
       </button>
       <input type="file" #fileInput style="display:none"
@@ -311,7 +310,7 @@
       <input type="text" [(ngModel)]="newMessage"
              (keydown)="onKeyDown($event)"
              (input)="onTyping()"
-             placeholder="Écrire un message…"
+             placeholder="{{ 'Écrire un message…' | translate }}"
              class="composer-input">
       <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim() || isSending">
         <mat-icon>send</mat-icon>
@@ -323,7 +322,7 @@
       <div class="emoji-grid">
         <span *ngFor="let e of emojis" class="emoji-item" (click)="sendEmoji(e)">{{ e }}</span>
       </div>
-      <button class="close-emoji-btn" (click)="showEmojiPicker = false">Fermer</button>
+      <button class="close-emoji-btn" (click)="showEmojiPicker = false">{{ 'Fermer' | translate }}</button>
     </div>
   </main>
 
@@ -334,10 +333,10 @@
         <div class="no-chat-icon-wrap">
           <mat-icon>forum</mat-icon>
         </div>
-        <h2>Vos messages</h2>
-        <p>Sélectionnez une conversation ou démarrez-en une nouvelle</p>
+        <h2>{{ 'Vos messages' | translate }}</h2>
+        <p>{{ 'Sélectionnez une conversation ou démarrez-en une nouvelle' | translate }}</p>
         <button class="pill-btn primary" (click)="toggleNewConversation()">
-          <mat-icon>add</mat-icon> Nouvelle discussion
+          <mat-icon>add</mat-icon> {{ 'Nouvelle discussion' | translate }}
         </button>
       </div>
     </div>
@@ -349,7 +348,7 @@
   <aside class="online-panel">
     <div class="online-header">
       <span class="live-dot-pulse"></span>
-      <span class="online-title">En ligne</span>
+      <span class="online-title">{{ 'En ligne' | translate }}</span>
       <span class="online-count">{{ onlineFriends.length }}</span>
     </div>
     <div class="online-list">
@@ -364,7 +363,7 @@
           <span class="online-name">{{ f.friend.firstName }}</span>
         </div>
       </div>
-      <p class="hint-online" *ngIf="onlineFriends.length === 0">Aucun ami en ligne</p>
+      <p class="hint-online" *ngIf="onlineFriends.length === 0">{{ 'Aucun ami en ligne' | translate }}</p>
     </div>
   </aside>
 
@@ -376,7 +375,7 @@
       <div class="call-avatar">
         <mat-icon>{{ incomingCall.type === 'video' ? 'videocam' : 'call' }}</mat-icon>
       </div>
-      <p class="call-info">Appel {{ incomingCall.type === 'video' ? 'vidéo' : 'audio' }} entrant</p>
+      <p class="call-info">{{ 'Appel' | translate }} {{ incomingCall.type === 'video' ? ('vidéo' | translate) : ('audio' | translate) }} {{ 'entrant' | translate }}</p>
       <div class="call-btns">
         <button class="call-btn accept" (click)="acceptCall()"><mat-icon>call</mat-icon></button>
         <button class="call-btn reject" (click)="rejectCall()"><mat-icon>call_end</mat-icon></button>
@@ -395,7 +394,7 @@
         <div class="pulse-ring"></div>
         <mat-icon class="call-audio-icon">account_circle</mat-icon>
       </div>
-      <p class="call-status">{{ activeCall.status === 'calling' ? 'Appel en cours…' : 'En communication' }}</p>
+      <p class="call-status">{{ activeCall.status === 'calling' ? ('Appel en cours…' | translate) : ('En communication' | translate) }}</p>
       <div class="call-controls">
         <button class="ctrl-btn" [class.off]="isMuted" (click)="toggleMute()">
           <mat-icon>{{ isMuted ? 'mic_off' : 'mic' }}</mat-icon>

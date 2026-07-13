@@ -1,8 +1,10 @@
+// frontend/src/app/components/admin/stats/admin-stats.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AdminDataService, DashboardStats } from '../../../services/admin-data.service';
 import Chart from 'chart.js/auto';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -11,7 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { BaseComponent } from '../../base.component';
 
 @Component({
@@ -26,6 +28,7 @@ import { BaseComponent } from '../../base.component';
     MatProgressSpinnerModule,
     MatToolbarModule,
     MatButtonModule,
+    MatTooltipModule, // ✅ AJOUT
     TranslatePipe
   ],
   templateUrl: './admin-stats.component.html',
@@ -36,7 +39,9 @@ export class AdminStatsComponent extends BaseComponent implements OnInit {
   isLoading = true;
   private chart: Chart | null = null;
 
-  constructor(private adminDataService: AdminDataService, private router: Router) { super ();}
+  constructor(private adminDataService: AdminDataService, private router: Router) { 
+    super(); 
+  }
 
   override ngOnInit(): void {
     this.loadStats();

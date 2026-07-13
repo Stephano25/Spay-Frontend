@@ -10,11 +10,11 @@
             <img src="/assets/icons/image02.png" alt="SPaye Logo">
           </div>
           <h1 class="app-title">SPaye</h1>
-          <p class="app-subtitle">Créez votre compte</p>
+          <p class="app-subtitle">{{ 'Créez votre compte' | translate }}</p>
         </div>
-        <mat-card-title class="welcome-title">Rejoignez SPaye</mat-card-title>
+        <mat-card-title class="welcome-title">{{ 'Rejoignez SPaye' | translate }}</mat-card-title>
         <mat-card-subtitle class="welcome-subtitle">
-          Commencez à effectuer vos paiements en toute simplicité
+          {{ 'Commencez à effectuer vos paiements en toute simplicité' | translate }}
         </mat-card-subtitle>
       </mat-card-header>
 
@@ -25,89 +25,89 @@
           <!-- Prénom et Nom -->
           <div class="row">
             <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Prénom *</mat-label>
+              <mat-label>{{ 'Prénom' | translate }} *</mat-label>
               <input matInput formControlName="firstName">
               <mat-icon matSuffix>person</mat-icon>
               <mat-error *ngIf="firstName?.hasError('required') && firstName?.touched">
-                Prénom requis
+                {{ 'Prénom requis' | translate }}
               </mat-error>
               <mat-error *ngIf="firstName?.hasError('minlength') && firstName?.touched">
-                Minimum 2 caractères
+                {{ 'Minimum 2 caractères' | translate }}
               </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Nom *</mat-label>
+              <mat-label>{{ 'Nom' | translate }} *</mat-label>
               <input matInput formControlName="lastName">
               <mat-icon matSuffix>person</mat-icon>
               <mat-error *ngIf="lastName?.hasError('required') && lastName?.touched">
-                Nom requis
+                {{ 'Nom requis' | translate }}
               </mat-error>
               <mat-error *ngIf="lastName?.hasError('minlength') && lastName?.touched">
-                Minimum 2 caractères
+                {{ 'Minimum 2 caractères' | translate }}
               </mat-error>
             </mat-form-field>
           </div>
 
           <!-- Email -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Adresse email *</mat-label>
+            <mat-label>{{ 'Adresse email' | translate }} *</mat-label>
             <input matInput formControlName="email" type="email">
             <mat-icon matSuffix>email</mat-icon>
             <mat-error *ngIf="email?.hasError('required') && email?.touched">
-              Email requis
+              {{ 'Email requis' | translate }}
             </mat-error>
             <mat-error *ngIf="email?.hasError('email') && email?.touched">
-              Email invalide
+              {{ 'Email invalide' | translate }}
             </mat-error>
           </mat-form-field>
 
           <!-- Téléphone -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Téléphone (optionnel)</mat-label>
+            <mat-label>{{ 'Téléphone (optionnel)' | translate }}</mat-label>
             <input matInput formControlName="phoneNumber">
             <mat-icon matSuffix>phone</mat-icon>
-            <mat-hint>9 à 10 chiffres</mat-hint>
+            <mat-hint>{{ '9 à 10 chiffres' | translate }}</mat-hint>
             <mat-error *ngIf="phoneNumber?.hasError('pattern') && phoneNumber?.touched">
-              Format invalide (9-10 chiffres)
+              {{ 'Format invalide (9-10 chiffres)' | translate }}
             </mat-error>
           </mat-form-field>
 
           <!-- Mot de passe -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Mot de passe *</mat-label>
+            <mat-label>{{ 'Mot de passe' | translate }} *</mat-label>
             <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
             <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
               <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
             <mat-error *ngIf="password?.hasError('required') && password?.touched">
-              Mot de passe requis
+              {{ 'Mot de passe requis' | translate }}
             </mat-error>
             <mat-error *ngIf="password?.hasError('minlength') && password?.touched">
-              Minimum 6 caractères
+              {{ 'Minimum 6 caractères' | translate }}
             </mat-error>
           </mat-form-field>
 
           <!-- Confirmation -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Confirmer le mot de passe *</mat-label>
+            <mat-label>{{ 'Confirmer le mot de passe' | translate }} *</mat-label>
             <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'">
             <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
               <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
             <mat-error *ngIf="registerForm.hasError('mismatch') && confirmPassword?.touched">
-              Les mots de passe ne correspondent pas
+              {{ 'Les mots de passe ne correspondent pas' | translate }}
             </mat-error>
           </mat-form-field>
 
           <!-- Conditions -->
           <div class="terms">
             <mat-checkbox formControlName="acceptTerms" color="primary">
-              J'accepte les <a href="#" class="terms-link">conditions d'utilisation</a>
-              et la <a href="#" class="terms-link">politique de confidentialité</a>
+              {{ 'J\'accepte les' | translate }} <a href="#" class="terms-link">{{ 'conditions d\'utilisation' | translate }}</a>
+              {{ 'et la' | translate }} <a href="#" class="terms-link">{{ 'politique de confidentialité' | translate }}</a>
             </mat-checkbox>
             <mat-error *ngIf="acceptTerms?.hasError('required') && acceptTerms?.touched" class="terms-error">
-              Vous devez accepter les conditions
+              {{ 'Vous devez accepter les conditions' | translate }}
             </mat-error>
           </div>
 
@@ -121,16 +121,16 @@
             <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
             <span *ngIf="!isLoading">
               <mat-icon>person_add</mat-icon>
-              Créer mon compte
+              {{ 'Créer mon compte' | translate }}
             </span>
           </button>
         </form>
 
         <!-- Lien connexion -->
         <div class="login-link">
-          <span>Déjà inscrit ?</span>
+          <span>{{ 'Déjà inscrit ?' | translate }}</span>
           <a routerLink="/login" class="login-link-btn">
-            Se connecter
+            {{ 'Se connecter' | translate }}
             <mat-icon>arrow_forward</mat-icon>
           </a>
         </div>
@@ -139,13 +139,13 @@
 
     <!-- Footer -->
     <div class="register-footer">
-      <p>&copy; 2024 SPaye. Tous droits réservés.</p>
+      <p>&copy; 2024 SPaye. {{ 'Tous droits réservés.' | translate }}</p>
       <div class="footer-links">
-        <a href="#">Conditions</a>
+        <a href="#">{{ 'Conditions' | translate }}</a>
         <span class="separator">•</span>
-        <a href="#">Confidentialité</a>
+        <a href="#">{{ 'Confidentialité' | translate }}</a>
         <span class="separator">•</span>
-        <a href="#">Aide</a>
+        <a href="#">{{ 'Aide' | translate }}</a>
       </div>
     </div>
   </div>

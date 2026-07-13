@@ -21,7 +21,7 @@ export class TranslatePipe implements PipeTransform, OnDestroy {
       console.log(`🔄 TranslatePipe: Langue changée vers ${lang}`);
       this.currentLang = lang;
       this.lastKey = ''; // ✅ Force le recalcul
-      this.cdr.markForCheck(); // ✅ Pas de appRef.tick()
+      this.cdr.markForCheck();
     });
   }
 
@@ -35,6 +35,7 @@ export class TranslatePipe implements PipeTransform, OnDestroy {
       this.lastKey = key;
       this.currentLang = currentLang;
       this.lastTranslation = this.translationService.translate(key);
+      console.log(`🔄 TranslatePipe: Traduction de "${key}" -> "${this.lastTranslation}" (${currentLang})`);
       this.cdr.markForCheck();
     }
     return this.lastTranslation;

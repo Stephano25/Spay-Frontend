@@ -1,5 +1,5 @@
 // frontend/src/app/components/base.component.ts
-import { Component, OnDestroy, ChangeDetectorRef, inject, OnInit, ApplicationRef } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectorRef, inject, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { TranslationService } from '../services/translation.service';
 import { ThemeService } from '../services/theme.service';
@@ -11,7 +11,6 @@ export class BaseComponent implements OnInit, OnDestroy {
   protected translationService = inject(TranslationService);
   protected themeService = inject(ThemeService);
   protected cdr = inject(ChangeDetectorRef);
-  protected appRef = inject(ApplicationRef);
   protected subscriptions: Subscription[] = [];
   
   private langSubscription: Subscription;
@@ -23,11 +22,13 @@ export class BaseComponent implements OnInit, OnDestroy {
     this.langSubscription = this.translationService.language$.subscribe((lang) => {
       console.log(`🌐 ${this.constructor.name}: Langue changée en ${lang}`);
       this.cdr.markForCheck();
+      this.cdr.detectChanges(); // ✅ FORCER la détection
     });
 
     this.fontSizeSubscription = this.themeService.currentFontSize$.subscribe((size) => {
       console.log(`📏 ${this.constructor.name}: Taille de police changée en ${size}`);
       this.cdr.markForCheck();
+      this.cdr.detectChanges();
     });
   }
 
@@ -36,6 +37,7 @@ export class BaseComponent implements OnInit, OnDestroy {
     this.langChangeListener = (event: CustomEvent) => {
       console.log(`🌐 ${this.constructor.name}: Événement languageChanged reçu -> ${event.detail?.lang}`);
       this.cdr.markForCheck();
+      this.cdr.detectChanges(); // ✅ FORCER la détection
     };
     document.addEventListener('languageChanged', this.langChangeListener as EventListener);
   }

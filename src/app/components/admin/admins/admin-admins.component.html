@@ -1,13 +1,14 @@
+<!-- frontend/src/app/components/admin/admins/admin-admins.component.html -->
 <mat-toolbar color="primary">
-  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+  <button mat-icon-button (click)="goBack()" matTooltip="{{ 'Retour' | translate }}">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span>Gestion des Administrateurs</span>
+  <span>{{ 'Gestion des Administrateurs' | translate }}</span>
   <span class="spacer"></span>
   
   <button mat-raised-button color="accent" routerLink="/admin/admins/create">
     <mat-icon>person_add</mat-icon>
-    Créer un Admin
+    {{ 'Créer un Admin' | translate }}
   </button>
 </mat-toolbar>
 
@@ -16,28 +17,28 @@
     <mat-card-header>
       <mat-card-title>
         <mat-icon>admin_panel_settings</mat-icon>
-        Administrateurs
+        {{ 'Administrateurs' | translate }}
       </mat-card-title>
-      <mat-card-subtitle>Total: {{ admins.length }} administrateurs</mat-card-subtitle>
+      <mat-card-subtitle>{{ 'Total' | translate }}: {{ admins.length }} {{ 'administrateurs' | translate }}</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
       <div class="loading-container" *ngIf="isLoading">
         <mat-spinner diameter="50"></mat-spinner>
-        <p>Chargement des administrateurs...</p>
+        <p>{{ 'Chargement des administrateurs...' | translate }}</p>
       </div>
 
       <div *ngIf="!isLoading" class="table-container">
         <table class="admins-table">
           <thead>
             <tr>
-              <th>Administrateur</th>
-              <th>Email</th>
-              <th>Téléphone</th>
-              <th>Rôle</th>
-              <th>Statut</th>
-              <th>Date d'inscription</th>
-              <th>Actions</th>
+              <th>{{ 'Administrateur' | translate }}</th>
+              <th>{{ 'Email' | translate }}</th>
+              <th>{{ 'Téléphone' | translate }}</th>
+              <th>{{ 'Rôle' | translate }}</th>
+              <th>{{ 'Statut' | translate }}</th>
+              <th>{{ 'Date d\'inscription' | translate }}</th>
+              <th>{{ 'Actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -50,7 +51,7 @@
               <td>{{ admin.phoneNumber || '-' }}</td>
               <td>
                 <mat-chip [class]="'role-' + admin.role">
-                  {{ admin.role === 'super_admin' ? 'Super Admin' : 'Admin' }}
+                  {{ admin.role === 'super_admin' ? ('Super Admin' | translate) : ('Admin' | translate) }}
                 </mat-chip>
               </td>
               <td>
@@ -58,26 +59,24 @@
                   [checked]="admin.isActive"
                   (change)="toggleAdminStatus(admin)"
                   color="primary">
-                  {{ admin.isActive ? 'Actif' : 'Inactif' }}
+                  {{ admin.isActive ? ('Actif' | translate) : ('Inactif' | translate) }}
                 </mat-slide-toggle>
               </td>
               <td>{{ admin.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="actions-cell">
-                <!-- ✅ Dépôt Admin -->
                 <button
                   *ngIf="isSuperAdmin"
                   mat-icon-button
                   color="primary"
                   (click)="depositToAdmin(admin)"
-                  matTooltip="Déposer sur cet admin">
+                  matTooltip="{{ 'Déposer sur cet admin' | translate }}">
                   <mat-icon>add</mat-icon>
                 </button>
-                <!-- Suppression -->
                 <button
                   mat-icon-button
                   color="warn"
                   (click)="deleteAdmin(admin)"
-                  matTooltip="Supprimer"
+                  matTooltip="{{ 'Supprimer' | translate }}"
                   [disabled]="admin.id === currentAdminId">
                   <mat-icon>delete</mat-icon>
                 </button>
@@ -88,11 +87,11 @@
 
         <div *ngIf="admins.length === 0" class="empty-state">
           <mat-icon>admin_panel_settings</mat-icon>
-          <h3>Aucun administrateur</h3>
-          <p>Aucun administrateur n'est enregistré pour le moment</p>
+          <h3>{{ 'Aucun administrateur' | translate }}</h3>
+          <p>{{ 'Aucun administrateur n\'est enregistré pour le moment' | translate }}</p>
           <button mat-raised-button color="primary" routerLink="/admin/admins/create">
             <mat-icon>person_add</mat-icon>
-            Créer le premier administrateur
+            {{ 'Créer le premier administrateur' | translate }}
           </button>
         </div>
       </div>
@@ -105,14 +104,14 @@
   <mat-card class="menu-card" (click)="navigateTo('profile')" matRipple>
     <mat-card-content>
       <div class="menu-icon profile"><mat-icon>person</mat-icon></div>
-      <span>Mon Profil</span>
+      <span>{{ 'Mon Profil' | translate }}</span>
     </mat-card-content>
   </mat-card>
 
   <mat-card class="menu-card" (click)="navigateTo('users')" matRipple>
     <mat-card-content>
       <div class="menu-icon users"><mat-icon>people</mat-icon></div>
-      <span>Utilisateurs</span>
+      <span>{{ 'Utilisateurs' | translate }}</span>
       <span class="menu-badge">{{ formatNumber(stats?.totalUsers || 0) }}</span>
     </mat-card-content>
   </mat-card>
@@ -120,7 +119,7 @@
   <mat-card class="menu-card" (click)="navigateTo('transactions')" matRipple>
     <mat-card-content>
       <div class="menu-icon transactions"><mat-icon>receipt</mat-icon></div>
-      <span>Transactions</span>
+      <span>{{ 'Transactions' | translate }}</span>
       <span class="menu-badge">{{ formatNumber(stats?.totalTransactions || 0) }}</span>
     </mat-card-content>
   </mat-card>
@@ -128,21 +127,21 @@
   <mat-card class="menu-card" (click)="navigateTo('stats')" matRipple>
     <mat-card-content>
       <div class="menu-icon stats"><mat-icon>bar_chart</mat-icon></div>
-      <span>Statistiques</span>
+      <span>{{ 'Statistiques' | translate }}</span>
     </mat-card-content>
   </mat-card>
 
   <mat-card class="menu-card" (click)="navigateTo('settings')" matRipple>
     <mat-card-content>
       <div class="menu-icon settings"><mat-icon>settings</mat-icon></div>
-      <span>Paramètres</span>
+      <span>{{ 'Paramètres' | translate }}</span>
     </mat-card-content>
   </mat-card>
 
   <mat-card class="menu-card" *ngIf="isSuperAdmin" (click)="navigateTo('admins')" matRipple>
     <mat-card-content>
       <div class="menu-icon admins"><mat-icon>admin_panel_settings</mat-icon></div>
-      <span>Administrateurs</span>
+      <span>{{ 'Administrateurs' | translate }}</span>
       <span class="menu-badge admin">{{ formatNumber(stats?.totalAdmins || 0) }}</span>
     </mat-card-content>
   </mat-card>
@@ -150,7 +149,7 @@
   <mat-card class="menu-card" (click)="openQRScanner('deposit')" matRipple>
     <mat-card-content>
       <div class="menu-icon deposit"><mat-icon>qr_code</mat-icon></div>
-      <span>Dépôt QR</span>
+      <span>{{ 'Dépôt QR' | translate }}</span>
       <span class="menu-badge admin">QR</span>
     </mat-card-content>
   </mat-card>
@@ -158,7 +157,7 @@
   <mat-card class="menu-card" (click)="openQRScanner('withdraw')" matRipple>
     <mat-card-content>
       <div class="menu-icon withdraw"><mat-icon>qr_code</mat-icon></div>
-      <span>Retrait QR</span>
+      <span>{{ 'Retrait QR' | translate }}</span>
       <span class="menu-badge admin">QR</span>
     </mat-card-content>
   </mat-card>

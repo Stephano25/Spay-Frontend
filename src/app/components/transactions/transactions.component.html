@@ -1,10 +1,10 @@
-<!-- src/app/components/transactions/transactions.component.html -->
+<!-- frontend/src/app/components/transactions/transactions.component.html -->
 <div class="transactions-container">
   <mat-toolbar color="primary">
     <button mat-icon-button routerLink="/dashboard">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span>Historique des transactions</span>
+    <span>{{ 'Historique des transactions' | translate }}</span>
     <span class="spacer"></span>
     <button mat-icon-button [matMenuTriggerFor]="filterMenu">
       <mat-icon>filter_list</mat-icon>
@@ -12,15 +12,15 @@
     <mat-menu #filterMenu="matMenu">
       <button mat-menu-item (click)="selectedTabIndex = 0">
         <mat-icon>list</mat-icon>
-        <span>Toutes</span>
+        <span>{{ 'Toutes' | translate }}</span>
       </button>
       <button mat-menu-item (click)="selectedTabIndex = 1">
         <mat-icon>arrow_downward</mat-icon>
-        <span>Reçus</span>
+        <span>{{ 'Reçus' | translate }}</span>
       </button>
       <button mat-menu-item (click)="selectedTabIndex = 2">
         <mat-icon>arrow_upward</mat-icon>
-        <span>Envoyés</span>
+        <span>{{ 'Envoyés' | translate }}</span>
       </button>
     </mat-menu>
   </mat-toolbar>
@@ -34,7 +34,7 @@
             <mat-icon>arrow_downward</mat-icon>
           </div>
           <div class="summary-details">
-            <span class="summary-label">Total reçu</span>
+            <span class="summary-label">{{ 'Total reçu' | translate }}</span>
             <span class="summary-value">{{ totalReceived | number }} Ar</span>
           </div>
         </mat-card-content>
@@ -46,7 +46,7 @@
             <mat-icon>arrow_upward</mat-icon>
           </div>
           <div class="summary-details">
-            <span class="summary-label">Total envoyé</span>
+            <span class="summary-label">{{ 'Total envoyé' | translate }}</span>
             <span class="summary-value">{{ totalSent | number }} Ar</span>
           </div>
         </mat-card-content>
@@ -55,22 +55,22 @@
 
     <!-- Onglets de filtre -->
     <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="transactions-tabs">
-      <mat-tab label="Toutes"></mat-tab>
-      <mat-tab label="Reçues"></mat-tab>
-      <mat-tab label="Envoyées"></mat-tab>
+      <mat-tab label="{{ 'Toutes' | translate }}"></mat-tab>
+      <mat-tab label="{{ 'Reçues' | translate }}"></mat-tab>
+      <mat-tab label="{{ 'Envoyées' | translate }}"></mat-tab>
     </mat-tab-group>
 
     <!-- État de chargement -->
     <div *ngIf="isLoading" class="loading-state">
       <mat-spinner diameter="40"></mat-spinner>
-      <p>Chargement des transactions...</p>
+      <p>{{ 'Chargement des transactions...' | translate }}</p>
     </div>
 
     <!-- État d'erreur -->
     <div *ngIf="hasError && !isLoading" class="error-state">
       <mat-icon>error_outline</mat-icon>
       <p>{{ errorMessage }}</p>
-      <button mat-raised-button color="primary" (click)="retry()">Réessayer</button>
+      <button mat-raised-button color="primary" (click)="retry()">{{ 'Réessayer' | translate }}</button>
     </div>
 
     <!-- Liste des transactions -->
@@ -108,19 +108,19 @@
               <mat-menu #transactionMenu="matMenu">
                 <button mat-menu-item (click)="viewDetails(transaction)">
                   <mat-icon>visibility</mat-icon>
-                  <span>Détails</span>
+                  <span>{{ 'Détails' | translate }}</span>
                 </button>
                 <button mat-menu-item *ngIf="transaction.status === 'completed'">
                   <mat-icon>receipt</mat-icon>
-                  <span>Reçu</span>
+                  <span>{{ 'Reçu' | translate }}</span>
                 </button>
                 <button mat-menu-item *ngIf="transaction.type !== 'deposit'" (click)="repeatTransaction(transaction)">
                   <mat-icon>repeat</mat-icon>
-                  <span>Répéter</span>
+                  <span>{{ 'Répéter' | translate }}</span>
                 </button>
                 <button mat-menu-item>
                   <mat-icon>flag</mat-icon>
-                  <span>Signaler</span>
+                  <span>{{ 'Signaler' | translate }}</span>
                 </button>
               </mat-menu>
             </div>
@@ -129,10 +129,10 @@
           <!-- Message si aucune transaction -->
           <div *ngIf="filteredTransactions.length === 0" class="no-transactions">
             <mat-icon>receipt</mat-icon>
-            <h3>Aucune transaction</h3>
-            <p>Vous n'avez pas encore de transactions dans cette catégorie</p>
+            <h3>{{ 'Aucune transaction' | translate }}</h3>
+            <p>{{ 'Vous n\'avez pas encore de transactions dans cette catégorie' | translate }}</p>
             <button mat-raised-button color="primary" routerLink="/scan-pay">
-              Effectuer un paiement
+              {{ 'Effectuer un paiement' | translate }}
             </button>
           </div>
         </mat-list>

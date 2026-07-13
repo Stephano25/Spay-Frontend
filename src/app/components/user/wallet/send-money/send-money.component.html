@@ -1,18 +1,18 @@
+<!-- frontend/src/app/components/user/wallet/send-money/send-money.component.html -->
 <div class="send-money-container">
-  <!-- Header avec animation -->
   <div class="header" [class.success-header]="step === 'success'">
-    <button class="back-btn" (click)="goBack()" matTooltip="Retour">
+    <button class="back-btn" (click)="goBack()" [matTooltip]="'Retour' | translate">
       <mat-icon>arrow_back</mat-icon>
     </button>
     
     <div class="header-title">
       <h1 class="page-title" [class.success-title]="step === 'success'">
-        {{ step === 'success' ? 'Envoi réussi !' : 'Envoyer de l\'argent' }}
+        {{ step === 'success' ? ('Envoi réussi !' | translate) : ('Envoyer de l\'argent' | translate) }}
       </h1>
       <div class="step-indicator" *ngIf="step !== 'success'">
-        <span class="step" [class.active]="step === 'form'">1. Détails</span>
+        <span class="step" [class.active]="step === 'form'">{{ '1. Détails' | translate }}</span>
         <span class="step-separator">—</span>
-        <span class="step" [class.active]="step === 'confirm'">2. Confirmation</span>
+        <span class="step" [class.active]="step === 'confirm'">{{ '2. Confirmation' | translate }}</span>
       </div>
     </div>
     
@@ -20,13 +20,11 @@
   </div>
 
   <div class="content" [class.success-content]="step === 'success'">
-    <!-- Étape 1: Formulaire -->
     <div class="form-section" *ngIf="step === 'form'" @fadeIn>
-      <!-- Solde disponible avec animation -->
       <mat-card class="balance-card" @slideInDown>
         <mat-card-content>
           <div class="balance-info">
-            <span class="balance-label">Solde disponible</span>
+            <span class="balance-label">{{ 'Solde disponible' | translate }}</span>
             <span class="balance-amount">{{ formatAmount(balance) }} Ar</span>
           </div>
           <div class="balance-icon">
@@ -36,19 +34,17 @@
         <div class="balance-wave"></div>
       </mat-card>
 
-      <!-- Formulaire principal -->
       <mat-card class="form-card" @scaleIn>
         <mat-card-content>
-          <!-- Recherche de destinataire -->
           <div class="recipient-section">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Destinataire</mat-label>
+              <mat-label>{{ 'Destinataire' | translate }}</mat-label>
               <input 
                 matInput 
                 type="text" 
                 [(ngModel)]="searchQuery"
                 (ngModelChange)="filterFriends()"
-                placeholder="Nom, email ou téléphone"
+                placeholder="{{ 'Nom, email ou téléphone' | translate }}"
                 [matAutocomplete]="auto">
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
@@ -67,7 +63,6 @@
               </mat-option>
             </mat-autocomplete>
 
-            <!-- Ami sélectionné -->
             <div class="selected-friend" *ngIf="receiverName" @slideInLeft>
               <div class="friend-chip">
                 <div class="friend-chip-avatar">
@@ -81,10 +76,9 @@
             </div>
           </div>
 
-          <!-- Montant -->
           <div class="amount-section">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Montant (Ar)</mat-label>
+              <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
               <input 
                 matInput 
                 type="number" 
@@ -93,11 +87,10 @@
                 [max]="balance"
                 placeholder="1000">
               <mat-icon matSuffix [class]="'amount-icon ' + getAmountIcon()">{{ getAmountIcon() }}</mat-icon>
-              <mat-hint>Minimum 100 Ar</mat-hint>
-              <mat-error *ngIf="amount > balance">Solde insuffisant</mat-error>
+              <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
+              <mat-error *ngIf="amount > balance">{{ 'Solde insuffisant' | translate }}</mat-error>
             </mat-form-field>
 
-            <!-- Montants rapides -->
             <div class="quick-amounts">
               <button 
                 *ngFor="let preset of amountPresets" 
@@ -109,34 +102,31 @@
               </button>
             </div>
 
-            <!-- Barre de progression du montant -->
             <div class="amount-progress" *ngIf="amount > 0">
               <div class="progress-bar">
                 <div class="progress-fill" [style.width.%]="(amount / balance) * 100"></div>
               </div>
-              <span class="progress-text">{{ (amount / balance * 100).toFixed(1) }}% de votre solde</span>
+              <span class="progress-text">{{ (amount / balance * 100).toFixed(1) }}% {{ 'de votre solde' | translate }}</span>
             </div>
           </div>
 
-          <!-- Description (optionnelle) -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Description (optionnelle)</mat-label>
+            <mat-label>{{ 'Description (optionnelle)' | translate }}</mat-label>
             <textarea 
               matInput 
               [(ngModel)]="description" 
               rows="2"
-              placeholder="Ex: Remboursement, cadeau, anniversaire..."></textarea>
+              placeholder="{{ 'Ex: Remboursement, cadeau, anniversaire...' | translate }}"></textarea>
           </mat-form-field>
 
-          <!-- Résumé rapide -->
           <div class="quick-summary" *ngIf="amount > 0 && receiverName" @slideInUp>
             <mat-divider></mat-divider>
             <div class="summary-row">
-              <span>Vous envoyez</span>
+              <span>{{ 'Vous envoyez' | translate }}</span>
               <span class="summary-highlight">{{ formatAmount(amount) }} Ar</span>
             </div>
             <div class="summary-row">
-              <span>À</span>
+              <span>{{ 'À' | translate }}</span>
               <span class="summary-highlight">{{ receiverName }}</span>
             </div>
           </div>
@@ -147,7 +137,7 @@
             class="submit-btn" 
             [disabled]="!receiverId || amount < 100 || amount > balance"
             (click)="sendMoney()">
-            <span>Continuer</span>
+            <span>{{ 'Continuer' | translate }}</span>
             <mat-icon class="btn-icon">arrow_forward</mat-icon>
             <div class="btn-shine"></div>
           </button>
@@ -155,28 +145,25 @@
       </mat-card>
     </div>
 
-    <!-- Étape 2: Confirmation -->
     <div class="confirm-section" *ngIf="step === 'confirm'" @scaleIn>
       <mat-card class="confirm-card">
-        <!-- En-tête avec icône animée -->
         <div class="confirm-header">
           <div class="check-icon-container">
             <mat-icon class="check-icon">check_circle</mat-icon>
             <div class="ripple"></div>
           </div>
-          <h2>Confirmez l'envoi</h2>
-          <p>Vérifiez les informations avant de confirmer</p>
+          <h2>{{ 'Confirmez l\'envoi' | translate }}</h2>
+          <p>{{ 'Vérifiez les informations avant de confirmer' | translate }}</p>
         </div>
 
         <mat-card-content>
-          <!-- Détails de la transaction -->
           <div class="transaction-details">
             <div class="detail-card" @slideInLeft>
               <div class="detail-icon">
                 <mat-icon>person</mat-icon>
               </div>
               <div class="detail-content">
-                <span class="detail-label">Destinataire</span>
+                <span class="detail-label">{{ 'Destinataire' | translate }}</span>
                 <span class="detail-value">{{ receiverName }}</span>
                 <span class="detail-sub">{{ receiverId }}</span>
               </div>
@@ -187,7 +174,7 @@
                 <mat-icon>attach_money</mat-icon>
               </div>
               <div class="detail-content">
-                <span class="detail-label">Montant</span>
+                <span class="detail-label">{{ 'Montant' | translate }}</span>
                 <span class="detail-value amount">{{ formatAmount(amount) }} Ar</span>
               </div>
             </div>
@@ -197,38 +184,36 @@
                 <mat-icon>notes</mat-icon>
               </div>
               <div class="detail-content">
-                <span class="detail-label">Description</span>
+                <span class="detail-label">{{ 'Description' | translate }}</span>
                 <span class="detail-value">{{ description }}</span>
               </div>
             </div>
 
             <div class="balance-preview" @slideInUp>
               <div class="balance-row">
-                <span>Solde avant</span>
+                <span>{{ 'Solde avant' | translate }}</span>
                 <span>{{ formatAmount(balance) }} Ar</span>
               </div>
               <div class="balance-row">
-                <span>Montant à débiter</span>
+                <span>{{ 'Montant à débiter' | translate }}</span>
                 <span class="amount">- {{ formatAmount(amount) }} Ar</span>
               </div>
               <mat-divider></mat-divider>
               <div class="balance-row total">
-                <span>Solde après</span>
+                <span>{{ 'Solde après' | translate }}</span>
                 <span [class.insufficient]="!isBalanceSufficient()">
                   {{ formatAmount(remainingBalance) }} Ar
                 </span>
               </div>
             </div>
 
-            <!-- Message d'avertissement -->
             <div class="warning-message" *ngIf="!isBalanceSufficient()" @shake>
               <mat-icon>warning</mat-icon>
-              <span>Solde insuffisant pour effectuer cette transaction</span>
+              <span>{{ 'Solde insuffisant pour effectuer cette transaction' | translate }}</span>
             </div>
 
-            <!-- Code PIN -->
             <div class="pin-section">
-              <label>Code de sécurité</label>
+              <label>{{ 'Code de sécurité' | translate }}</label>
               <div class="pin-inputs">
                 <input 
                   *ngFor="let i of [1,2,3,4]; let idx = index"
@@ -246,21 +231,20 @@
         <mat-card-actions>
           <button class="cancel-btn" (click)="goBack()" [disabled]="isSubmitting">
             <mat-icon>arrow_back</mat-icon>
-            <span>Retour</span>
+            <span>{{ 'Retour' | translate }}</span>
           </button>
           <button 
             class="confirm-btn" 
             (click)="confirmSend()" 
             [disabled]="!isBalanceSufficient() || isSubmitting || pin.length < 4">
             <mat-spinner diameter="24" *ngIf="isSubmitting"></mat-spinner>
-            <span *ngIf="!isSubmitting">Confirmer l'envoi</span>
+            <span *ngIf="!isSubmitting">{{ 'Confirmer l\'envoi' | translate }}</span>
             <div class="btn-shine" *ngIf="!isSubmitting"></div>
           </button>
         </mat-card-actions>
       </mat-card>
     </div>
 
-    <!-- Étape 3: Succès -->
     <div class="success-section" *ngIf="step === 'success'" @scaleIn>
       <div class="success-animation">
         <div class="success-checkmark">
@@ -272,29 +256,29 @@
           </div>
         </div>
         
-        <h2>Envoi réussi !</h2>
+        <h2>{{ 'Envoi réussi !' | translate }}</h2>
         <p class="success-message">
-          Vous avez envoyé <strong>{{ formatAmount(amount) }} Ar</strong> à {{ receiverName }}
+          {{ 'Vous avez envoyé' | translate }} <strong>{{ formatAmount(amount) }} Ar</strong> {{ 'à' | translate }} {{ receiverName }}
         </p>
         
         <div class="transaction-id">
-          <span>ID de transaction</span>
+          <span>{{ 'ID de transaction' | translate }}</span>
           <strong>#{{ transactionId }}</strong>
         </div>
 
         <div class="success-actions">
-          <button class="action-btn" (click)="reset()" matTooltip="Nouvel envoi">
+          <button class="action-btn" (click)="reset()" [matTooltip]="'Nouvel envoi' | translate">
             <mat-icon>add</mat-icon>
           </button>
-          <button class="action-btn" (click)="goBack()" matTooltip="Retour au portefeuille">
+          <button class="action-btn" (click)="goBack()" [matTooltip]="'Retour au portefeuille' | translate">
             <mat-icon>account_balance_wallet</mat-icon>
           </button>
-          <button class="action-btn" matTooltip="Partager">
+          <button class="action-btn" [matTooltip]="'Partager' | translate">
             <mat-icon>share</mat-icon>
           </button>
         </div>
 
-        <p class="redirect-message">Redirection automatique dans 3 secondes...</p>
+        <p class="redirect-message">{{ 'Redirection automatique dans 3 secondes...' | translate }}</p>
       </div>
     </div>
   </div>

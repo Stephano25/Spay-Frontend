@@ -93,6 +93,12 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
 
   override ngOnInit(): void {
     this.loadAllData();
+    this.subscriptions.push(
+    this.translationService.language$.subscribe((lang) => {
+      console.log(`🌐 FriendsComponent: Langue changée en ${lang}`);
+      this.cdr.detectChanges();
+      })
+    );
   }
 
   override ngOnDestroy(): void {

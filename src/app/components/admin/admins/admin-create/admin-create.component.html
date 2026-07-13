@@ -1,14 +1,14 @@
 <!-- frontend/src/app/components/admin/admins/admin-create/admin-create.component.html -->
 <mat-toolbar color="primary" class="create-toolbar">
-  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+  <button mat-icon-button (click)="goBack()" [matTooltip]="'Retour' | translate">
     <mat-icon>arrow_back</mat-icon>
   </button>
   <span class="toolbar-title">
     <mat-icon>person_add</mat-icon>
-    Créer un administrateur
+    {{ 'Créer un administrateur' | translate }}
   </span>
   <span class="spacer"></span>
-  <span class="toolbar-badge">Super Admin</span>
+  <span class="toolbar-badge">{{ 'Super Admin' | translate }}</span>
 </mat-toolbar>
 
 <div class="create-container">
@@ -19,9 +19,9 @@
           <mat-icon>admin_panel_settings</mat-icon>
         </div>
         <div class="header-text">
-          <mat-card-title>Nouvel administrateur</mat-card-title>
+          <mat-card-title>{{ 'Nouvel administrateur' | translate }}</mat-card-title>
           <mat-card-subtitle>
-            Remplissez tous les champs pour créer un compte administrateur
+            {{ 'Remplissez tous les champs pour créer un compte administrateur' | translate }}
           </mat-card-subtitle>
         </div>
       </mat-card-header>
@@ -35,27 +35,27 @@
           <div class="form-section">
             <div class="section-header">
               <mat-icon>person</mat-icon>
-              <span>Informations personnelles</span>
+              <span>{{ 'Informations personnelles' | translate }}</span>
             </div>
 
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Prénom *</mat-label>
+                <mat-label>{{ 'Prénom' | translate }} *</mat-label>
                 <input matInput formControlName="firstName" placeholder="Jean">
                 <mat-icon matSuffix>person</mat-icon>
                 <mat-error *ngIf="f['firstName'].invalid && f['firstName'].touched">
-                  <span *ngIf="f['firstName'].errors?.['required']">Le prénom est requis</span>
-                  <span *ngIf="f['firstName'].errors?.['minlength']">Minimum 2 caractères</span>
+                  <span *ngIf="f['firstName'].errors?.['required']">{{ 'Le prénom est requis' | translate }}</span>
+                  <span *ngIf="f['firstName'].errors?.['minlength']">{{ 'Minimum 2 caractères' | translate }}</span>
                 </mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Nom *</mat-label>
+                <mat-label>{{ 'Nom' | translate }} *</mat-label>
                 <input matInput formControlName="lastName" placeholder="Dupont">
                 <mat-icon matSuffix>person</mat-icon>
                 <mat-error *ngIf="f['lastName'].invalid && f['lastName'].touched">
-                  <span *ngIf="f['lastName'].errors?.['required']">Le nom est requis</span>
-                  <span *ngIf="f['lastName'].errors?.['minlength']">Minimum 2 caractères</span>
+                  <span *ngIf="f['lastName'].errors?.['required']">{{ 'Le nom est requis' | translate }}</span>
+                  <span *ngIf="f['lastName'].errors?.['minlength']">{{ 'Minimum 2 caractères' | translate }}</span>
                 </mat-error>
               </mat-form-field>
             </div>
@@ -69,27 +69,27 @@
           <div class="form-section">
             <div class="section-header">
               <mat-icon>contact_mail</mat-icon>
-              <span>Contact</span>
+              <span>{{ 'Contact' | translate }}</span>
             </div>
 
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Email *</mat-label>
+                <mat-label>{{ 'Email' | translate }} *</mat-label>
                 <input matInput formControlName="email" placeholder="admin@email.com" type="email">
                 <mat-icon matSuffix>email</mat-icon>
                 <mat-error *ngIf="f['email'].invalid && f['email'].touched">
-                  <span *ngIf="f['email'].errors?.['required']">L'email est requis</span>
-                  <span *ngIf="f['email'].errors?.['email']">Email invalide</span>
+                  <span *ngIf="f['email'].errors?.['required']">{{ 'L\'email est requis' | translate }}</span>
+                  <span *ngIf="f['email'].errors?.['email']">{{ 'Email invalide' | translate }}</span>
                 </mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Téléphone</mat-label>
+                <mat-label>{{ 'Téléphone' | translate }}</mat-label>
                 <input matInput formControlName="phoneNumber" placeholder="0341234567">
                 <mat-icon matSuffix>phone</mat-icon>
-                <mat-hint>9-10 chiffres</mat-hint>
+                <mat-hint>{{ '9-10 chiffres' | translate }}</mat-hint>
                 <mat-error *ngIf="f['phoneNumber'].invalid && f['phoneNumber'].touched">
-                  Numéro invalide (9-10 chiffres)
+                  {{ 'Numéro invalide (9-10 chiffres)' | translate }}
                 </mat-error>
               </mat-form-field>
             </div>
@@ -103,12 +103,12 @@
           <div class="form-section">
             <div class="section-header">
               <mat-icon>security</mat-icon>
-              <span>Sécurité</span>
+              <span>{{ 'Sécurité' | translate }}</span>
             </div>
 
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Mot de passe *</mat-label>
+                <mat-label>{{ 'Mot de passe' | translate }} *</mat-label>
                 <input matInput
                        [type]="hidePassword ? 'password' : 'text'"
                        formControlName="password"
@@ -116,15 +116,15 @@
                 <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
                   <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
                 </button>
-                <mat-hint>Minimum 8 caractères</mat-hint>
+                <mat-hint>{{ 'Minimum 8 caractères' | translate }}</mat-hint>
                 <mat-error *ngIf="f['password'].invalid && f['password'].touched">
-                  <span *ngIf="f['password'].errors?.['required']">Le mot de passe est requis</span>
-                  <span *ngIf="f['password'].errors?.['minlength']">Minimum 8 caractères</span>
+                  <span *ngIf="f['password'].errors?.['required']">{{ 'Le mot de passe est requis' | translate }}</span>
+                  <span *ngIf="f['password'].errors?.['minlength']">{{ 'Minimum 8 caractères' | translate }}</span>
                 </mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Confirmer le mot de passe *</mat-label>
+                <mat-label>{{ 'Confirmer le mot de passe' | translate }} *</mat-label>
                 <input matInput
                        [type]="hideConfirmPassword ? 'password' : 'text'"
                        formControlName="confirmPassword"
@@ -133,14 +133,14 @@
                   <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
                 </button>
                 <mat-error *ngIf="adminForm.errors?.['passwordMismatch'] && f['confirmPassword'].touched">
-                  Les mots de passe ne correspondent pas
+                  {{ 'Les mots de passe ne correspondent pas' | translate }}
                 </mat-error>
               </mat-form-field>
             </div>
 
             <!-- Force du mot de passe -->
             <div class="password-strength" *ngIf="f['password'].value">
-              <span class="strength-label">Force :</span>
+              <span class="strength-label">{{ 'Force :' | translate }}</span>
               <div class="strength-bar">
                 <div class="strength-fill"
                      [style.width.%]="getPasswordStrength(f['password'].value).width"
@@ -148,7 +148,7 @@
                 </div>
               </div>
               <span class="strength-text" [style.color]="getPasswordStrength(f['password'].value).color">
-                {{ getPasswordStrength(f['password'].value).label }}
+                {{ getPasswordStrength(f['password'].value).label | translate }}
               </span>
             </div>
           </div>
@@ -156,20 +156,18 @@
           <mat-divider></mat-divider>
 
           <!-- ============================================================ -->
-          <!-- SECTION 4 : RÔLE ET STATUT (sélecteur corrigé) -->
+          <!-- SECTION 4 : RÔLE ET STATUT -->
           <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>settings</mat-icon>
-              <span>Rôle et statut</span>
+              <span>{{ 'Rôle et statut' | translate }}</span>
             </div>
 
             <div class="form-row">
-              <!-- Rôle - Select avec trigger custom pour l'affichage fermé -->
               <mat-form-field appearance="outline" class="form-field role-field-outer">
-                <mat-label>Rôle *</mat-label>
+                <mat-label>{{ 'Rôle' | translate }} *</mat-label>
                 <mat-select formControlName="role" panelClass="role-select-panel">
-                  <!-- Affichage custom quand le select est FERMÉ -->
                   <mat-select-trigger *ngIf="adminForm.value.role">
                     <span class="trigger-content">
                       <mat-icon
@@ -177,71 +175,67 @@
                         [style.color]="getRoleStyle(adminForm.value.role).color">
                         {{ getRoleIcon(adminForm.value.role) }}
                       </mat-icon>
-                      <span class="trigger-label">{{ getRoleLabel(adminForm.value.role) }}</span>
+                      <span class="trigger-label">{{ getRoleLabel(adminForm.value.role) | translate }}</span>
                     </span>
                   </mat-select-trigger>
 
-                  <!-- Options du menu déroulant -->
                   <mat-option *ngFor="let role of roles" [value]="role.value">
                     <div class="role-option">
                       <mat-icon [style.color]="role.color">{{ role.icon }}</mat-icon>
                       <div class="role-option-content">
-                        <span class="role-option-label">{{ role.label }}</span>
-                        <span class="role-option-desc">{{ role.description }}</span>
+                        <span class="role-option-label">{{ role.label | translate }}</span>
+                        <span class="role-option-desc">{{ role.description | translate }}</span>
                       </div>
                       <span class="role-badge-small"
                             [style.background]="role.bgColor"
                             [style.color]="role.color">
-                        {{ role.value === 'super_admin' ? 'Complet' : 'Limité' }}
+                        {{ role.value === 'super_admin' ? ('Complet' | translate) : ('Limité' | translate) }}
                       </span>
                     </div>
                   </mat-option>
                 </mat-select>
-                <mat-hint>Sélectionnez le rôle de l'administrateur</mat-hint>
+                <mat-hint>{{ 'Sélectionnez le rôle de l\'administrateur' | translate }}</mat-hint>
                 <mat-error *ngIf="f['role'].invalid && f['role'].touched">
-                  Le rôle est requis
+                  {{ 'Le rôle est requis' | translate }}
                 </mat-error>
               </mat-form-field>
 
-              <!-- Référence -->
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Référence *</mat-label>
+                <mat-label>{{ 'Référence' | translate }} *</mat-label>
                 <input matInput formControlName="reference" placeholder="ADMIN-001">
                 <mat-icon matSuffix>badge</mat-icon>
-                <mat-hint>Identifiant unique (3-20 caractères)</mat-hint>
+                <mat-hint>{{ 'Identifiant unique (3-20 caractères)' | translate }}</mat-hint>
                 <mat-error *ngIf="f['reference'].invalid && f['reference'].touched">
-                  <span *ngIf="f['reference'].errors?.['required']">La référence est requise</span>
-                  <span *ngIf="f['reference'].errors?.['minlength']">Minimum 3 caractères</span>
-                  <span *ngIf="f['reference'].errors?.['maxlength']">Maximum 20 caractères</span>
+                  <span *ngIf="f['reference'].errors?.['required']">{{ 'La référence est requise' | translate }}</span>
+                  <span *ngIf="f['reference'].errors?.['minlength']">{{ 'Minimum 3 caractères' | translate }}</span>
+                  <span *ngIf="f['reference'].errors?.['maxlength']">{{ 'Maximum 20 caractères' | translate }}</span>
                 </mat-error>
               </mat-form-field>
             </div>
 
-            <!-- Rôle sélectionné - affiché en chip détaillée -->
             <div class="selected-role-display" *ngIf="adminForm.value.role">
               <div class="role-chip"
                    [style.background]="getRoleStyle(adminForm.value.role).backgroundColor"
                    [style.color]="getRoleStyle(adminForm.value.role).color"
                    [style.border-color]="getRoleStyle(adminForm.value.role).color">
                 <mat-icon>{{ getRoleIcon(adminForm.value.role) }}</mat-icon>
-                <span class="role-chip-label">{{ getRoleLabel(adminForm.value.role) }}</span>
-                <span class="role-chip-desc">{{ getRoleDescription(adminForm.value.role) }}</span>
+                <span class="role-chip-label">{{ getRoleLabel(adminForm.value.role) | translate }}</span>
+                <span class="role-chip-desc">{{ getRoleDescription(adminForm.value.role) | translate }}</span>
               </div>
             </div>
 
-            <!-- Statut -->
             <div class="status-toggle">
               <div class="status-info">
                 <mat-slide-toggle formControlName="isActive" color="primary">
-                  <span class="toggle-label">Compte actif</span>
+                  <span class="toggle-label">{{ 'Compte actif' | translate }}</span>
                 </mat-slide-toggle>
-                <span class="toggle-hint">Désactiver pour bloquer l'accès immédiatement</span>
+                <span class="toggle-hint">{{ 'Désactiver pour bloquer l\'accès immédiatement' | translate }}</span>
               </div>
               <div class="status-indicator"
                    [class.active]="adminForm.value.isActive"
                    [class.inactive]="!adminForm.value.isActive">
                 <span class="status-dot"></span>
-                {{ adminForm.value.isActive ? 'Actif' : 'Inactif' }}
+                {{ adminForm.value.isActive ? ('Actif' | translate) : ('Inactif' | translate) }}
               </div>
             </div>
           </div>
@@ -254,15 +248,15 @@
           <div class="form-section">
             <div class="section-header">
               <mat-icon>qr_code</mat-icon>
-              <span>QR Code</span>
-              <span class="section-badge">Obligatoire</span>
+              <span>{{ 'QR Code' | translate }}</span>
+              <span class="section-badge">{{ 'Obligatoire' | translate }}</span>
             </div>
 
             <div class="qr-code-container">
               <div class="qr-code-info">
                 <p class="qr-hint">
                   <mat-icon>info</mat-icon>
-                  Générez le QR Code de l'administrateur pour faciliter son identification
+                  {{ 'Générez le QR Code de l\'administrateur pour faciliter son identification' | translate }}
                 </p>
               </div>
 
@@ -277,23 +271,21 @@
                   <mat-spinner diameter="20" *ngIf="isGeneratingQR"></mat-spinner>
                   <span *ngIf="!isGeneratingQR" class="btn-inline">
                     <mat-icon>qr_code</mat-icon>
-                    Générer le QR Code
+                    {{ 'Générer le QR Code' | translate }}
                   </span>
                 </button>
 
                 <div class="qr-status" *ngIf="qrCodeGenerated">
                   <mat-icon class="success-icon">check_circle</mat-icon>
-                  <span class="success-text">QR Code généré avec succès</span>
+                  <span class="success-text">{{ 'QR Code généré avec succès' | translate }}</span>
                 </div>
               </div>
 
-              <!-- Message si formulaire incomplet -->
               <div class="qr-warning" *ngIf="adminForm.invalid && !qrCodeGenerated">
                 <mat-icon>warning_amber</mat-icon>
-                <span>Complétez tous les champs requis ci-dessus avant de générer le QR Code</span>
+                <span>{{ 'Complétez tous les champs requis ci-dessus avant de générer le QR Code' | translate }}</span>
               </div>
 
-              <!-- Affichage du QR Code -->
               <div class="qr-display" *ngIf="qrCodeImage">
                 <div class="qr-image-wrapper">
                   <img [src]="qrCodeImage" alt="QR Code" class="qr-image">
@@ -303,19 +295,19 @@
                 </div>
                 <div class="qr-details">
                   <div class="qr-detail-item">
-                    <span class="qr-detail-label">Nom</span>
+                    <span class="qr-detail-label">{{ 'Nom' | translate }}</span>
                     <span class="qr-detail-value">{{ adminForm.value.firstName }} {{ adminForm.value.lastName }}</span>
                   </div>
                   <div class="qr-detail-item">
-                    <span class="qr-detail-label">Email</span>
+                    <span class="qr-detail-label">{{ 'Email' | translate }}</span>
                     <span class="qr-detail-value">{{ adminForm.value.email }}</span>
                   </div>
                   <div class="qr-detail-item">
-                    <span class="qr-detail-label">Rôle</span>
+                    <span class="qr-detail-label">{{ 'Rôle' | translate }}</span>
                     <span class="qr-detail-value role-badge-small"
                           [style.background]="getRoleStyle(adminForm.value.role).backgroundColor"
                           [style.color]="getRoleStyle(adminForm.value.role).color">
-                      {{ getRoleLabel(adminForm.value.role) }}
+                      {{ getRoleLabel(adminForm.value.role) | translate }}
                     </span>
                   </div>
                 </div>
@@ -331,44 +323,44 @@
           <div class="summary-section" *ngIf="adminForm.valid">
             <div class="summary-header">
               <mat-icon>summarize</mat-icon>
-              <span>Résumé des informations</span>
+              <span>{{ 'Résumé des informations' | translate }}</span>
             </div>
             <div class="summary-grid">
               <div class="summary-item">
-                <span class="summary-label">Nom complet</span>
+                <span class="summary-label">{{ 'Nom complet' | translate }}</span>
                 <span class="summary-value">{{ adminForm.value.firstName }} {{ adminForm.value.lastName }}</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Email</span>
+                <span class="summary-label">{{ 'Email' | translate }}</span>
                 <span class="summary-value">{{ adminForm.value.email }}</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Téléphone</span>
-                <span class="summary-value">{{ adminForm.value.phoneNumber || 'Non renseigné' }}</span>
+                <span class="summary-label">{{ 'Téléphone' | translate }}</span>
+                <span class="summary-value">{{ adminForm.value.phoneNumber || ('Non renseigné' | translate) }}</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Référence</span>
+                <span class="summary-label">{{ 'Référence' | translate }}</span>
                 <span class="summary-value">{{ adminForm.value.reference }}</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Rôle</span>
+                <span class="summary-label">{{ 'Rôle' | translate }}</span>
                 <span class="summary-value role-badge"
                       [class.admin]="adminForm.value.role === 'admin'"
                       [class.super-admin]="adminForm.value.role === 'super_admin'">
-                  {{ getRoleLabel(adminForm.value.role) }}
+                  {{ getRoleLabel(adminForm.value.role) | translate }}
                 </span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Statut</span>
+                <span class="summary-label">{{ 'Statut' | translate }}</span>
                 <span class="summary-value status-badge"
                       [class.active]="adminForm.value.isActive"
                       [class.inactive]="!adminForm.value.isActive">
-                  {{ adminForm.value.isActive ? 'Actif' : 'Inactif' }}
+                  {{ adminForm.value.isActive ? ('Actif' | translate) : ('Inactif' | translate) }}
                 </span>
               </div>
               <div class="summary-item" *ngIf="qrCodeGenerated">
-                <span class="summary-label">QR Code</span>
-                <span class="summary-value status-badge active">✓ Généré</span>
+                <span class="summary-label">{{ 'QR Code' | translate }}</span>
+                <span class="summary-value status-badge active">✓ {{ 'Généré' | translate }}</span>
               </div>
             </div>
           </div>
@@ -379,7 +371,7 @@
           <div class="form-actions">
             <button mat-stroked-button type="button" (click)="cancel()" [disabled]="isSubmitting" class="cancel-btn">
               <mat-icon>close</mat-icon>
-              Annuler
+              {{ 'Annuler' | translate }}
             </button>
             <button
               mat-raised-button
@@ -390,7 +382,7 @@
               <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
               <span *ngIf="!isSubmitting" class="btn-inline">
                 <mat-icon>person_add</mat-icon>
-                Créer l'administrateur
+                {{ 'Créer l\'administrateur' | translate }}
               </span>
             </button>
           </div>

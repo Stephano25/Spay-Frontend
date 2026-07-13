@@ -1,23 +1,23 @@
-<!-- src/app/components/friends/friends.component.html -->
+<!-- frontend/src/app/components/friends/friends.component.html -->
 <div class="fr-root">
 
   <!-- ── Header ── -->
   <header class="fr-header">
-    <button class="fr-icon-btn" (click)="goBack()" matTooltip="Retour">
+    <button class="fr-icon-btn" (click)="goBack()" matTooltip="{{ 'Retour' | translate }}">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span class="fr-title">Mes Amis</span>
+    <span class="fr-title">{{ 'Mes amis' | translate }}</span>
     <div class="fr-header-actions">
-      <button class="fr-icon-btn" (click)="showMyQRCode()" matTooltip="Mon QR code">
+      <button class="fr-icon-btn" (click)="showMyQRCode()" matTooltip="{{ 'Mon QR code' | translate }}">
         <mat-icon>qr_code</mat-icon>
       </button>
-      <button class="fr-icon-btn" (click)="scanQRCode()" matTooltip="Scanner un QR code" [class.active-scan]="showQRScanner">
+      <button class="fr-icon-btn" (click)="scanQRCode()" matTooltip="{{ 'Scanner un QR code' | translate }}" [class.active-scan]="showQRScanner">
         <mat-icon>qr_code_scanner</mat-icon>
       </button>
-      <button class="fr-icon-btn" (click)="showAddFriend = !showAddFriend" matTooltip="Ajouter un ami">
+      <button class="fr-icon-btn" (click)="showAddFriend = !showAddFriend" matTooltip="{{ 'Ajouter un ami' | translate }}">
         <mat-icon>person_add</mat-icon>
       </button>
-      <button class="fr-icon-btn pos-rel" (click)="showBlockedUsers = !showBlockedUsers" matTooltip="Utilisateurs bloqués">
+      <button class="fr-icon-btn pos-rel" (click)="showBlockedUsers = !showBlockedUsers" matTooltip="{{ 'Utilisateurs bloqués' | translate }}">
         <mat-icon>block</mat-icon>
         <span class="notif-dot" *ngIf="blockedUsers.length > 0">{{ blockedUsers.length }}</span>
       </button>
@@ -30,11 +30,11 @@
     <div class="modal-backdrop" *ngIf="showQRCode" (click)="showQRCode = false">
       <div class="qr-modal" (click)="$event.stopPropagation()">
         <div class="qr-modal-header">
-          <span>Mon QR Code</span>
+          <span>{{ 'Mon QR code' | translate }}</span>
           <button class="fr-icon-btn" (click)="showQRCode = false"><mat-icon>close</mat-icon></button>
         </div>
-        <img [src]="qrCodeImage" alt="Mon QR Code" class="qr-img">
-        <p class="qr-hint">Montrez ce code à vos amis pour qu'ils vous ajoutent dans SPaye</p>
+        <img [src]="qrCodeImage" alt="{{ 'Mon QR Code' | translate }}" class="qr-img">
+        <p class="qr-hint">{{ 'Montrez ce code à vos amis pour qu\'ils vous ajoutent dans SPaye' | translate }}</p>
       </div>
     </div>
 
@@ -42,7 +42,7 @@
     <div class="modal-backdrop" *ngIf="showQRScanner" (click)="stopQRScan()">
       <div class="qr-modal scanner-modal" (click)="$event.stopPropagation()">
         <div class="qr-modal-header">
-          <span>Scanner un QR Code</span>
+          <span>{{ 'Scanner un QR Code' | translate }}</span>
           <button class="fr-icon-btn" (click)="stopQRScan()"><mat-icon>close</mat-icon></button>
         </div>
         <div class="scanner-wrap">
@@ -53,7 +53,7 @@
             <div class="scan-line"></div>
           </div>
         </div>
-        <p class="qr-hint">Pointez la caméra vers le QR code d'un ami</p>
+        <p class="qr-hint">{{ 'Pointez la caméra vers le QR code d\'un ami' | translate }}</p>
       </div>
     </div>
 
@@ -61,7 +61,7 @@
     @if (isLoading) {
       <div class="fr-loading">
         <div class="spinner"></div>
-        <p>Chargement…</p>
+        <p>{{ 'Chargement...' | translate }}</p>
       </div>
     }
 
@@ -70,12 +70,11 @@
       <div class="online-strip">
         <div class="online-strip-header">
           <span class="pulse-dot"></span>
-          <span>En ligne · {{ onlineFriends.length }}</span>
+          <span>{{ 'En ligne' | translate }} · {{ onlineFriends.length }}</span>
         </div>
         <div class="online-avatars">
           @for (f of onlineFriends; track f.id) {
             @if (f.friend) {
-              <!-- 🔥 Correction : matTooltip sur un élément qui supporte matTooltip -->
               <div class="online-av-item" (click)="chatWithFriend(f.friend.id)" [matTooltip]="f.friend.firstName + ' ' + f.friend.lastName">
                 <div class="av av-md" [style.background]="getAvatarColor(f.friend.firstName)">
                   {{ getInitials(f.friend.firstName, f.friend.lastName) }}
@@ -92,9 +91,9 @@
     <!-- ── Ajouter un ami ── -->
     @if (showAddFriend) {
       <div class="fr-card add-card">
-        <div class="card-title"><mat-icon>person_add</mat-icon> Ajouter un ami</div>
+        <div class="card-title"><mat-icon>person_add</mat-icon> {{ 'Ajouter un ami' | translate }}</div>
         <mat-form-field appearance="outline" class="full-w">
-          <mat-label>Rechercher par nom, email ou téléphone</mat-label>
+          <mat-label>{{ 'Rechercher par nom, email ou téléphone' | translate }}</mat-label>
           <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" placeholder="exemple@email.com">
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
@@ -105,7 +104,7 @@
 
         @if (searchResults.length > 0 && !isSearching) {
           <div class="results-section">
-            <p class="section-label">Résultats</p>
+            <p class="section-label">{{ 'Résultats' | translate }}</p>
             <div class="user-grid">
               @for (user of searchResults; track user.id) {
                 <div class="user-card">
@@ -118,14 +117,14 @@
                   </div>
                   <div class="user-action">
                     @if (user.isBlocked) {
-                      <button class="tag-btn blocked"><mat-icon>block</mat-icon> Bloqué</button>
+                      <button class="tag-btn blocked"><mat-icon>block</mat-icon> {{ 'Bloqué' | translate }}</button>
                     } @else if (user.isFriend) {
-                      <button class="tag-btn friend"><mat-icon>check</mat-icon> Ami</button>
+                      <button class="tag-btn friend"><mat-icon>check</mat-icon> {{ 'Ami' | translate }}</button>
                     } @else if (user.hasPendingRequest) {
-                      <button class="tag-btn pending"><mat-icon>hourglass_empty</mat-icon> Envoyée</button>
+                      <button class="tag-btn pending"><mat-icon>hourglass_empty</mat-icon> {{ 'Envoyée' | translate }}</button>
                     } @else {
                       <button class="add-btn" (click)="sendFriendRequest(user.id)">
-                        <mat-icon>person_add</mat-icon> Ajouter
+                        <mat-icon>person_add</mat-icon> {{ 'Ajouter' | translate }}
                       </button>
                     }
                   </div>
@@ -137,7 +136,7 @@
 
         @if (suggestions.length > 0 && !searchQuery) {
           <div class="results-section">
-            <p class="section-label">Suggestions</p>
+            <p class="section-label">{{ 'Suggestions' | translate }}</p>
             <div class="user-grid">
               @for (user of suggestions; track user.id) {
                 <div class="user-card">
@@ -150,10 +149,10 @@
                   </div>
                   <div class="user-action">
                     @if (user.hasPendingRequest) {
-                      <button class="tag-btn pending"><mat-icon>hourglass_empty</mat-icon> Envoyée</button>
+                      <button class="tag-btn pending"><mat-icon>hourglass_empty</mat-icon> {{ 'Envoyée' | translate }}</button>
                     } @else {
                       <button class="add-btn" (click)="sendFriendRequest(user.id)">
-                        <mat-icon>person_add</mat-icon> Ajouter
+                        <mat-icon>person_add</mat-icon> {{ 'Ajouter' | translate }}
                       </button>
                     }
                   </div>
@@ -168,7 +167,7 @@
     <!-- ── Utilisateurs bloqués ── -->
     @if (showBlockedUsers) {
       <div class="fr-card">
-        <div class="card-title"><mat-icon>block</mat-icon> Utilisateurs bloqués ({{ blockedUsers.length }})</div>
+        <div class="card-title"><mat-icon>block</mat-icon> {{ 'Utilisateurs bloqués' | translate }} ({{ blockedUsers.length }})</div>
         @if (blockedUsers.length > 0) {
           <div class="blocked-list">
             @for (b of blockedUsers; track b.id) {
@@ -182,14 +181,14 @@
                     <span class="user-email">{{ b.friend.email }}</span>
                   </div>
                   <button class="unblock-btn" (click)="unblockUser(b.friendId || b.userId, b.friend.firstName)">
-                    <mat-icon>lock_open</mat-icon> Débloquer
+                    <mat-icon>lock_open</mat-icon> {{ 'Débloquer' | translate }}
                   </button>
                 </div>
               }
             }
           </div>
         } @else {
-          <div class="empty-mini"><mat-icon>block</mat-icon><p>Aucun utilisateur bloqué</p></div>
+          <div class="empty-mini"><mat-icon>block</mat-icon><p>{{ 'Aucun utilisateur bloqué' | translate }}</p></div>
         }
       </div>
     }
@@ -200,7 +199,7 @@
         <div class="section-toggle" (click)="toggleRequestsList()">
           <div class="section-toggle-left">
             <mat-icon>notifications_active</mat-icon>
-            <span>Demandes reçues</span>
+            <span>{{ 'Demandes reçues' | translate }}</span>
             <span class="count-badge">{{ friendRequests.length }}</span>
           </div>
           <mat-icon class="toggle-arrow" [class.rotated]="showRequestsList">expand_more</mat-icon>
@@ -217,10 +216,10 @@
                   <span class="friend-sub">{{ req.sender.email }}</span>
                 </div>
                 <div class="row-actions">
-                  <button class="accept-btn" (click)="acceptRequest(req.id)" matTooltip="Accepter">
+                  <button class="accept-btn" (click)="acceptRequest(req.id)" matTooltip="{{ 'Accepter' | translate }}">
                     <mat-icon>check</mat-icon>
                   </button>
-                  <button class="decline-btn" (click)="declineRequest(req.id)" matTooltip="Refuser">
+                  <button class="decline-btn" (click)="declineRequest(req.id)" matTooltip="{{ 'Refuser' | translate }}">
                     <mat-icon>close</mat-icon>
                   </button>
                 </div>
@@ -236,7 +235,7 @@
       <div class="section-toggle" (click)="toggleFriendsList()">
         <div class="section-toggle-left">
           <mat-icon>people</mat-icon>
-          <span>Mes amis</span>
+          <span>{{ 'Mes amis' | translate }}</span>
           <span class="count-badge">{{ friends.length }}</span>
         </div>
         <mat-icon class="toggle-arrow" [class.rotated]="showFriendsList">expand_more</mat-icon>
@@ -253,22 +252,22 @@
                 <div class="friend-meta">
                   <span class="friend-name">{{ f.friend.firstName }} {{ f.friend.lastName }}</span>
                   <span class="friend-sub" [class.online-text]="f.friend.isOnline">
-                    {{ f.friend.isOnline ? '● En ligne' : formatLastSeen(f.friend.lastSeen) }}
+                    {{ f.friend.isOnline ? ('● En ligne' | translate) : formatLastSeen(f.friend.lastSeen) }}
                   </span>
                 </div>
                 <div class="row-actions hover-actions" (click)="$event.stopPropagation()">
-                  <button class="fr-icon-btn sm" (click)="viewFriendProfile(f.friend.id)" matTooltip="Profil">
+                  <button class="fr-icon-btn sm" (click)="viewFriendProfile(f.friend.id)" matTooltip="{{ 'Profil' | translate }}">
                     <mat-icon>person</mat-icon>
                   </button>
-                  <button class="fr-icon-btn sm" (click)="sendMoneyToFriend(f.friend.id, f.friend.firstName)" matTooltip="Envoyer de l'argent">
+                  <button class="fr-icon-btn sm" (click)="sendMoneyToFriend(f.friend.id, f.friend.firstName)" matTooltip="{{ 'Envoyer de l\'argent' | translate }}">
                     <mat-icon>payments</mat-icon>
                   </button>
-                  <button class="fr-icon-btn sm" [matMenuTriggerFor]="friendMenu" matTooltip="Plus">
+                  <button class="fr-icon-btn sm" [matMenuTriggerFor]="friendMenu" matTooltip="{{ 'Plus' | translate }}">
                     <mat-icon>more_vert</mat-icon>
                   </button>
                   <mat-menu #friendMenu="matMenu">
-                    <button mat-menu-item (click)="removeFriend(f.id)"><mat-icon>person_remove</mat-icon><span>Supprimer</span></button>
-                    <button mat-menu-item (click)="blockUser(f.friend.id, f.friend.firstName)"><mat-icon>block</mat-icon><span>Bloquer</span></button>
+                    <button mat-menu-item (click)="removeFriend(f.id)"><mat-icon>person_remove</mat-icon><span>{{ 'Supprimer' | translate }}</span></button>
+                    <button mat-menu-item (click)="blockUser(f.friend.id, f.friend.firstName)"><mat-icon>block</mat-icon><span>{{ 'Bloquer' | translate }}</span></button>
                   </mat-menu>
                 </div>
               </div>
@@ -277,8 +276,8 @@
         } @else {
           <div class="empty-mini">
             <mat-icon>people_outline</mat-icon>
-            <p>Aucun ami pour l'instant</p>
-            <button class="add-btn" (click)="showAddFriend = true"><mat-icon>person_add</mat-icon> Ajouter un ami</button>
+            <p>{{ 'Aucun ami pour l\'instant' | translate }}</p>
+            <button class="add-btn" (click)="showAddFriend = true"><mat-icon>person_add</mat-icon> {{ 'Ajouter un ami' | translate }}</button>
           </div>
         }
       </div>

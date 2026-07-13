@@ -1,11 +1,11 @@
 <!-- frontend/src/app/components/admin/users/admin-users.component.html -->
 <mat-toolbar color="primary">
-  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+  <button mat-icon-button (click)="goBack()" [matTooltip]="'Retour' | translate">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span>Gestion des utilisateurs</span>
+  <span>{{ 'Gestion des utilisateurs' | translate }}</span>
   <span class="spacer"></span>
-  <span class="toolbar-badge">Total: {{ users.length }}</span>
+  <span class="toolbar-badge">{{ 'Total' | translate }}: {{ users.length }}</span>
 </mat-toolbar>
 
 <div class="users-container">
@@ -13,29 +13,29 @@
     <mat-card-header>
       <mat-card-title>
         <mat-icon>people</mat-icon>
-        Utilisateurs
+        {{ 'Utilisateurs' | translate }}
       </mat-card-title>
-      <mat-card-subtitle>Total: {{ users.length }} utilisateurs</mat-card-subtitle>
+      <mat-card-subtitle>{{ 'Total' | translate }}: {{ users.length }} {{ 'utilisateurs' | translate }}</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
       <div class="loading-container" *ngIf="isLoading">
         <mat-spinner diameter="50"></mat-spinner>
-        <p>Chargement des utilisateurs...</p>
+        <p>{{ 'Chargement des utilisateurs...' | translate }}</p>
       </div>
 
       <div *ngIf="!isLoading" class="table-container">
         <table class="users-table">
           <thead>
             <tr>
-              <th>Utilisateur</th>
-              <th>Email</th>
-              <th>Téléphone</th>
-              <th>Solde</th>
-              <th>Rôle</th>
-              <th>Statut</th>
-              <th>Date</th>
-              <th>Actions</th>
+              <th>{{ 'Utilisateur' | translate }}</th>
+              <th>{{ 'Email' | translate }}</th>
+              <th>{{ 'Téléphone' | translate }}</th>
+              <th>{{ 'Solde' | translate }}</th>
+              <th>{{ 'Rôle' | translate }}</th>
+              <th>{{ 'Statut' | translate }}</th>
+              <th>{{ 'Date' | translate }}</th>
+              <th>{{ 'Actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -49,7 +49,7 @@
               <td class="balance">{{ formatAmount(user.balance) }} Ar</td>
               <td>
                 <mat-chip [class]="'role-' + user.role">
-                  {{ getRoleLabel(user.role) }}
+                  {{ getRoleLabel(user.role) | translate }}
                 </mat-chip>
               </td>
               <td>
@@ -57,51 +57,46 @@
                   [checked]="user.isActive"
                   (change)="toggleUserStatus(user)"
                   color="primary">
-                  {{ user.isActive ? 'Actif' : 'Inactif' }}
+                  {{ user.isActive ? ('Actif' | translate) : ('Inactif' | translate) }}
                 </mat-slide-toggle>
               </td>
               <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="actions-cell">
-                <!-- DÉPÔT QR -->
                 <button
                   mat-icon-button
                   color="primary"
                   (click)="openQRScanner('deposit', user)"
-                  matTooltip="Dépôt par QR Code">
+                  [matTooltip]="'Dépôt par QR Code' | translate">
                   <mat-icon>qr_code_scanner</mat-icon>
                 </button>
-                <!-- RETRAIT QR -->
                 <button
                   mat-icon-button
                   color="warn"
                   (click)="openQRScanner('withdraw', user)"
-                  matTooltip="Retrait par QR Code"
+                  [matTooltip]="'Retrait par QR Code' | translate"
                   [disabled]="user.balance < 100">
                   <mat-icon>qr_code_scanner</mat-icon>
                 </button>
-                <!-- DÉPÔT CLASSIQUE -->
                 <button
                   mat-icon-button
                   color="primary"
                   (click)="depositMoney(user)"
-                  matTooltip="Déposer">
+                  [matTooltip]="'Déposer' | translate">
                   <mat-icon>add</mat-icon>
                 </button>
-                <!-- RETRAIT CLASSIQUE -->
                 <button
                   mat-icon-button
                   color="warn"
                   (click)="withdrawMoney(user)"
-                  matTooltip="Retirer"
+                  [matTooltip]="'Retirer' | translate"
                   [disabled]="user.balance < 100">
                   <mat-icon>remove</mat-icon>
                 </button>
-                <!-- SUPPRESSION -->
                 <button
                   mat-icon-button
                   color="warn"
                   (click)="deleteUser(user)"
-                  matTooltip="Supprimer">
+                  [matTooltip]="'Supprimer' | translate">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -111,8 +106,8 @@
 
         <div *ngIf="users.length === 0" class="empty-state">
           <mat-icon>people_outline</mat-icon>
-          <h3>Aucun utilisateur</h3>
-          <p>Aucun utilisateur n'est enregistré pour le moment</p>
+          <h3>{{ 'Aucun utilisateur' | translate }}</h3>
+          <p>{{ 'Aucun utilisateur n\'est enregistré pour le moment' | translate }}</p>
         </div>
       </div>
     </mat-card-content>
