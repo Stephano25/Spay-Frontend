@@ -5,172 +5,233 @@
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h1 class="header-title">
-      {{ scanType === 'deposit' ? ('Dépôt par QR Code' | translate) : 
-         scanType === 'withdraw' ? ('Retrait par QR Code' | translate) : 
-         ('Scanner & Payer' | translate) }}
+      @if (scanType === 'deposit') {
+        {{ 'Dépôt par QR Code' | translate }}
+      } @else if (scanType === 'withdraw') {
+        {{ 'Retrait par QR Code' | translate }}
+      } @else {
+        {{ 'Scanner & Payer' | translate }}
+      }
     </h1>
   </div>
 
   <div class="scan-content">
     <mat-card class="scan-card">
       <mat-card-content>
-        <div *ngIf="isScanning" class="scan-mode">
-          <div class="camera-error" *ngIf="cameraPermissionDenied">
-            <mat-icon>videocam_off</mat-icon>
-            <h3>{{ 'Permission refusée' | translate }}</h3>
-            <p>{{ 'Veuillez autoriser l\'accès à la caméra dans les paramètres de votre navigateur' | translate }}</p>
-            <button class="retry-btn" (click)="requestCameraPermission()">
-              <mat-icon>refresh</mat-icon>
-              {{ 'Réessayer' | translate }}
-            </button>
-          </div>
+        <!-- Mode Scan -->
+        @if (isScanning) {
+          <div class="scan-mode">
+            <!-- Permission refusée -->
+            @if (cameraPermissionDenied) {
+              <div class="camera-error">
+                <mat-icon>videocam_off</mat-icon>
+                <h3>{{ 'Permission refusée' | translate }}</h3>
+                <p>{{ 'Veuillez autoriser l\'accès à la caméra dans les paramètres de votre navigateur' | translate }}</p>
+                <button class="retry-btn" (click)="requestCameraPermission()">
+                  <mat-icon>refresh</mat-icon>
+                  {{ 'Réessayer' | translate }}
+                </button>
+              </div>
+            }
 
-          <div class="camera-error" *ngIf="cameraError && !cameraPermissionDenied">
-            <mat-icon>videocam_off</mat-icon>
-            <h3>{{ 'Caméra non disponible' | translate }}</h3>
-            <p>{{ 'Vérifiez que votre caméra est connectée et accessible' | translate }}</p>
-            <button class="retry-btn" (click)="retryScanner()">
-              <mat-icon>refresh</mat-icon>
-              {{ 'Réessayer' | translate }}
-            </button>
-          </div>
+            <!-- Erreur caméra -->
+            @if (cameraError && !cameraPermissionDenied) {
+              <div class="camera-error">
+                <mat-icon>videocam_off</mat-icon>
+                <h3>{{ 'Caméra non disponible' | translate }}</h3>
+                <p>{{ 'Vérifiez que votre caméra est connectée et accessible' | translate }}</p>
+                <button class="retry-btn" (click)="retryScanner()">
+                  <mat-icon>refresh</mat-icon>
+                  {{ 'Réessayer' | translate }}
+                </button>
+              </div>
+            }
 
-          <div class="camera-preview" *ngIf="hasCamera && !cameraError && !cameraPermissionDenied">
-            <div id="qr-scanner-container" class="scanner-container">
-            </div>
-            <div class="scan-overlay">
-              <div class="scan-frame">
-                <div class="scan-line"></div>
-                <div class="scan-corners">
-                  <span class="corner tl"></span>
-                  <span class="corner tr"></span>
-                  <span class="corner bl"></span>
-                  <span class="corner br"></span>
+            <!-- Caméra active -->
+            @if (hasCamera && !cameraError && !cameraPermissionDenied) {
+              <div class="camera-preview">
+                <div id="qr-scanner-container" class="scanner-container">
+                </div>
+                <div class="scan-overlay">
+                  <div class="scan-frame">
+                    <div class="scan-line"></div>
+                    <div class="scan-corners">
+                      <span class="corner tl"></span>
+                      <span class="corner tr"></span>
+                      <span class="corner bl"></span>
+                      <span class="corner br"></span>
+                    </div>
+                  </div>
+                  <p class="scan-hint">
+                    @if (scanType === 'deposit') {
+                      {{ 'Scannez le QR Code de dépôt' | translate }}
+                    } @else if (scanType === 'withdraw') {
+                      {{ 'Scannez le QR Code de retrait' | translate }}
+                    } @else {
+                      {{ 'Placez le QR code dans le cadre' | translate }}
+                    }
+                  </p>
+                  @if (isCameraStarting) {
+                    <span class="scan-status">{{ 'Initialisation de la caméra...' | translate }}</span>
+                  }
                 </div>
               </div>
-              <p class="scan-hint">
-                {{ scanType === 'deposit' ? ('Scannez le QR Code de dépôt' | translate) : 
-                   scanType === 'withdraw' ? ('Scannez le QR Code de retrait' | translate) : 
-                   ('Placez le QR code dans le cadre' | translate) }}
-              </p>
-              <span class="scan-status" *ngIf="isCameraStarting">{{ 'Initialisation de la caméra...' | translate }}</span>
-            </div>
-          </div>
+            }
 
-          <div class="scanner-placeholder" *ngIf="!hasCamera || cameraError || cameraPermissionDenied">
+            <!-- Placeholder si caméra non disponible -->
+            @if (!hasCamera || cameraError || cameraPermissionDenied) {
+              <div class="scanner-placeholder">
+                <mat-icon>qr_code_scanner</mat-icon>
+                <p>{{ 'Scanner de QR Code' | translate }}</p>
+                <p class="hint">{{ 'La caméra n\'est pas disponible' | translate }}</p>
+                <button class="retry-btn" (click)="retryScanner()">
+                  <mat-icon>refresh</mat-icon>
+                  {{ 'Réessayer' | translate }}
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Mode Paiement -->
+        @if (!isScanning && showPaymentForm) {
+          <div class="payment-mode">
+            @if (scannedData) {
+              <div class="user-info">
+                <div class="user-avatar">
+                  <mat-icon>
+                    @if (scanType === 'deposit') {
+                      add
+                    } @else if (scanType === 'withdraw') {
+                      remove
+                    } @else {
+                      qr_code
+                    }
+                  </mat-icon>
+                </div>
+                <div class="user-details">
+                  <div class="user-name">
+                    @if (scanType === 'deposit') {
+                      {{ 'Dépôt par QR Code' | translate }}
+                    } @else if (scanType === 'withdraw') {
+                      {{ 'Retrait par QR Code' | translate }}
+                    } @else {
+                      {{ 'Paiement par QR code' | translate }}
+                    }
+                  </div>
+                  <div class="user-phone">{{ scannedData.qrCode || scannedData.adminId || ('QR Code' | translate) }}</div>
+                  @if (scannedData.adminName) {
+                    <div class="user-phone admin-name">
+                      👤 {{ scannedData.adminName }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <form [formGroup]="paymentForm" (ngSubmit)="processPayment()">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
+                <input matInput type="number" formControlName="amount">
+                <mat-icon matSuffix [class]="'amount-icon ' + getAmountIcon(paymentForm.get('amount')?.value || 0)">
+                  {{ getAmountIcon(paymentForm.get('amount')?.value || 0) }}
+                </mat-icon>
+                @if (paymentForm.get('amount')?.hasError('required')) {
+                  <mat-error>{{ 'Montant requis' | translate }}</mat-error>
+                }
+                @if (paymentForm.get('amount')?.hasError('min')) {
+                  <mat-error>{{ 'Minimum 100 Ar' | translate }}</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'Description (optionnelle)' | translate }}</mat-label>
+                <textarea matInput formControlName="description" rows="2" 
+                          [placeholder]="scanType === 'deposit' ? ('Dépôt' | translate) : scanType === 'withdraw' ? ('Retrait' | translate) : ('Paiement' | translate) + '...'"></textarea>
+              </mat-form-field>
+
+              <div class="quick-amounts">
+                <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 1000})">
+                  1 000 Ar
+                </button>
+                <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 5000})">
+                  5 000 Ar
+                </button>
+                <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 10000})">
+                  10 000 Ar
+                </button>
+                <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 20000})">
+                  20 000 Ar
+                </button>
+                <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 50000})">
+                  50 000 Ar
+                </button>
+                <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 100000})">
+                  100 000 Ar
+                </button>
+              </div>
+
+              <div class="button-group">
+                <button class="action-btn cancel" type="button" (click)="resetScanner()" [disabled]="isProcessing">
+                  {{ 'Annuler' | translate }}
+                </button>
+                <button class="action-btn pay" type="submit" [disabled]="!paymentForm.valid || isProcessing">
+                  @if (isProcessing) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  }
+                  @if (!isProcessing) {
+                    <span>
+                      @if (scanType === 'deposit') {
+                        {{ 'Déposer' | translate }}
+                      } @else if (scanType === 'withdraw') {
+                        {{ 'Retirer' | translate }}
+                      } @else {
+                        {{ 'Payer' | translate }}
+                      }
+                      {{ paymentForm.get('amount')?.value | number }} Ar
+                    </span>
+                  }
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Info Card -->
+    @if (isScanning) {
+      <mat-card class="info-card">
+        <mat-card-content>
+          <h3>
+            @if (scanType === 'deposit') {
+              {{ 'Comment déposer ?' | translate }}
+            } @else if (scanType === 'withdraw') {
+              {{ 'Comment retirer ?' | translate }}
+            } @else {
+              {{ 'Comment ça marche ?' | translate }}
+            }
+          </h3>
+          <div class="info-step">
             <mat-icon>qr_code_scanner</mat-icon>
-            <p>{{ 'Scanner de QR Code' | translate }}</p>
-            <p class="hint">{{ 'La caméra n\'est pas disponible' | translate }}</p>
-            <button class="retry-btn" (click)="retryScanner()">
-              <mat-icon>refresh</mat-icon>
-              {{ 'Réessayer' | translate }}
-            </button>
+            <span>{{ '1. Placez le QR code dans le cadre de la caméra' | translate }}</span>
           </div>
-        </div>
-
-        <div *ngIf="!isScanning && showPaymentForm" class="payment-mode">
-          <div class="user-info" *ngIf="scannedData">
-            <div class="user-avatar">
-              <mat-icon>{{ scanType === 'deposit' ? 'add' : scanType === 'withdraw' ? 'remove' : 'qr_code' }}</mat-icon>
-            </div>
-            <div class="user-details">
-              <div class="user-name">
-                {{ scanType === 'deposit' ? ('Dépôt par QR Code' | translate) : 
-                   scanType === 'withdraw' ? ('Retrait par QR Code' | translate) : 
-                   ('Paiement par QR code' | translate) }}
-              </div>
-              <div class="user-phone">{{ scannedData.qrCode || scannedData.adminId || ('QR Code' | translate) }}</div>
-              <div *ngIf="scannedData.adminName" class="user-phone admin-name">
-                👤 {{ scannedData.adminName }}
-              </div>
-            </div>
+          <div class="info-step">
+            <mat-icon>attach_money</mat-icon>
+            <span>{{ '2. Le scan est automatique, saisissez le montant' | translate }}</span>
           </div>
-
-          <form [formGroup]="paymentForm" (ngSubmit)="processPayment()">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
-              <input matInput type="number" formControlName="amount">
-              <mat-icon matSuffix [class]="'amount-icon ' + getAmountIcon(paymentForm.get('amount')?.value || 0)">
-                {{ getAmountIcon(paymentForm.get('amount')?.value || 0) }}
-              </mat-icon>
-              <mat-error *ngIf="paymentForm.get('amount')?.hasError('required')">
-                {{ 'Montant requis' | translate }}
-              </mat-error>
-              <mat-error *ngIf="paymentForm.get('amount')?.hasError('min')">
-                {{ 'Minimum 100 Ar' | translate }}
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'Description (optionnelle)' | translate }}</mat-label>
-              <textarea matInput formControlName="description" rows="2" 
-                        placeholder="{{ scanType === 'deposit' ? ('Dépôt' | translate) : scanType === 'withdraw' ? ('Retrait' | translate) : ('Paiement' | translate) }}..."></textarea>
-            </mat-form-field>
-
-            <div class="quick-amounts">
-              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 1000})">
-                1 000 Ar
-              </button>
-              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 5000})">
-                5 000 Ar
-              </button>
-              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 10000})">
-                10 000 Ar
-              </button>
-              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 20000})">
-                20 000 Ar
-              </button>
-              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 50000})">
-                50 000 Ar
-              </button>
-              <button type="button" class="quick-amount-btn" (click)="paymentForm.patchValue({amount: 100000})">
-                100 000 Ar
-              </button>
+          <div class="info-step">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ '3. Confirmez la transaction' | translate }}</span>
+          </div>
+          @if (cameraError || cameraPermissionDenied) {
+            <div class="info-step warning">
+              <mat-icon>warning</mat-icon>
+              <span>{{ 'Assurez-vous d\'autoriser l\'accès à la caméra' | translate }}</span>
             </div>
-
-            <div class="button-group">
-              <button class="action-btn cancel" type="button" (click)="resetScanner()" [disabled]="isProcessing">
-                {{ 'Annuler' | translate }}
-              </button>
-              <button class="action-btn pay" type="submit" [disabled]="!paymentForm.valid || isProcessing">
-                <mat-spinner diameter="20" *ngIf="isProcessing"></mat-spinner>
-                <span *ngIf="!isProcessing">
-                  {{ scanType === 'deposit' ? ('Déposer' | translate) : 
-                     scanType === 'withdraw' ? ('Retirer' | translate) : 
-                     ('Payer' | translate) }} 
-                  {{ paymentForm.get('amount')?.value | number }} Ar
-                </span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="info-card" *ngIf="isScanning">
-      <mat-card-content>
-        <h3>
-          {{ scanType === 'deposit' ? ('Comment déposer ?' | translate) : 
-             scanType === 'withdraw' ? ('Comment retirer ?' | translate) : 
-             ('Comment ça marche ?' | translate) }}
-        </h3>
-        <div class="info-step">
-          <mat-icon>qr_code_scanner</mat-icon>
-          <span>{{ '1. Placez le QR code dans le cadre de la caméra' | translate }}</span>
-        </div>
-        <div class="info-step">
-          <mat-icon>attach_money</mat-icon>
-          <span>{{ '2. Le scan est automatique, saisissez le montant' | translate }}</span>
-        </div>
-        <div class="info-step">
-          <mat-icon>check_circle</mat-icon>
-          <span>{{ '3. Confirmez la transaction' | translate }}</span>
-        </div>
-        <div class="info-step warning" *ngIf="cameraError || cameraPermissionDenied">
-          <mat-icon>warning</mat-icon>
-          <span>{{ 'Assurez-vous d\'autoriser l\'accès à la caméra' | translate }}</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
   </div>
 </div>
