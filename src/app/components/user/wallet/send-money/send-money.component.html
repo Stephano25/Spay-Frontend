@@ -1,7 +1,7 @@
 <!-- frontend/src/app/components/user/wallet/send-money/send-money.component.html -->
 <div class="send-money-container">
   <div class="header" [class.success-header]="step === 'success'">
-    <button class="back-btn" (click)="goBack()" [matTooltip]="'Retour' | translate">
+    <button class="back-btn" (click)="goBack()" matTooltip="{{ 'Retour' | translate }}">
       <mat-icon>arrow_back</mat-icon>
     </button>
     
@@ -21,6 +21,7 @@
 
   <div class="content" [class.success-content]="step === 'success'">
     <div class="form-section" *ngIf="step === 'form'" @fadeIn>
+      <!-- Balance Card -->
       <mat-card class="balance-card" @slideInDown>
         <mat-card-content>
           <div class="balance-info">
@@ -34,91 +35,115 @@
         <div class="balance-wave"></div>
       </mat-card>
 
+      <!-- Form Card -->
       <mat-card class="form-card" @scaleIn>
         <mat-card-content>
-          <div class="recipient-section">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'Destinataire' | translate }}</mat-label>
-              <input 
-                matInput 
-                type="text" 
-                [(ngModel)]="searchQuery"
-                (ngModelChange)="filterFriends()"
-                placeholder="{{ 'Nom, email ou téléphone' | translate }}"
-                [matAutocomplete]="auto">
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
-
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectFriend($event.option.value)">
-              <mat-option *ngFor="let friend of filteredFriends" [value]="friend" class="friend-option">
-                <div class="friend-option-content">
-                  <div class="friend-avatar" [style.background]="'linear-gradient(135deg, #667eea, #764ba2)'">
-                    {{ friend.friend?.firstName?.charAt(0) }}{{ friend.friend?.lastName?.charAt(0) }}
-                  </div>
-                  <div class="friend-details">
-                    <div class="friend-name">{{ friend.friend?.firstName }} {{ friend.friend?.lastName }}</div>
-                    <div class="friend-email">{{ friend.friend?.email }}</div>
-                  </div>
-                </div>
-              </mat-option>
-            </mat-autocomplete>
-
-            <div class="selected-friend" *ngIf="receiverName" @slideInLeft>
-              <div class="friend-chip">
-                <div class="friend-chip-avatar">
-                  {{ receiverName ? (receiverName.charAt(0) + (receiverName.split(' ')[1] ? receiverName.split(' ')[1].charAt(0) : '')) : '' }}
-                </div>
-                <span class="friend-chip-name">{{ receiverName }}</span>
-                <button class="friend-chip-remove" (click)="reset()">
-                  <mat-icon>close</mat-icon>
-                </button>
-              </div>
+          <!-- Destinataire - Label au-dessus -->
+          <div class="form-field-wrapper">
+            <label class="field-label">
+              <mat-icon>person</mat-icon>
+              {{ 'Destinataire' | translate }}
+            </label>
+            <div class="field-input-wrapper">
+              <mat-form-field appearance="outline" class="full-width">
+                <input 
+                  matInput 
+                  type="text" 
+                  [(ngModel)]="searchQuery"
+                  (ngModelChange)="filterFriends()"
+                  placeholder="{{ 'Nom, email ou téléphone' | translate }}"
+                  [matAutocomplete]="auto">
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
             </div>
           </div>
 
-          <div class="amount-section">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
-              <input 
-                matInput 
-                type="number" 
-                [(ngModel)]="amount" 
-                min="100"
-                [max]="balance"
-                placeholder="1000">
-              <mat-icon matSuffix [class]="'amount-icon ' + getAmountIcon()">{{ getAmountIcon() }}</mat-icon>
-              <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
-              <mat-error *ngIf="amount > balance">{{ 'Solde insuffisant' | translate }}</mat-error>
-            </mat-form-field>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectFriend($event.option.value)">
+            <mat-option *ngFor="let friend of filteredFriends" [value]="friend" class="friend-option">
+              <div class="friend-option-content">
+                <div class="friend-avatar" [style.background]="'linear-gradient(135deg, #667eea, #764ba2)'">
+                  {{ friend.friend?.firstName?.charAt(0) }}{{ friend.friend?.lastName?.charAt(0) }}
+                </div>
+                <div class="friend-details">
+                  <div class="friend-name">{{ friend.friend?.firstName }} {{ friend.friend?.lastName }}</div>
+                  <div class="friend-email">{{ friend.friend?.email }}</div>
+                </div>
+              </div>
+            </mat-option>
+          </mat-autocomplete>
 
-            <div class="quick-amounts">
-              <button 
-                *ngFor="let preset of amountPresets" 
-                type="button" 
-                class="quick-amount-btn" 
-                [class.active]="amount === preset"
-                (click)="amount = preset">
-                {{ formatAmount(preset) }} Ar
+          <!-- Ami sélectionné -->
+          <div class="selected-friend" *ngIf="receiverName" @slideInLeft>
+            <div class="friend-chip">
+              <div class="friend-chip-avatar">
+                {{ receiverName ? (receiverName.charAt(0) + (receiverName.split(' ')[1] ? receiverName.split(' ')[1].charAt(0) : '')) : '' }}
+              </div>
+              <span class="friend-chip-name">{{ receiverName }}</span>
+              <button class="friend-chip-remove" (click)="reset()">
+                <mat-icon>close</mat-icon>
               </button>
             </div>
+          </div>
 
-            <div class="amount-progress" *ngIf="amount > 0">
-              <div class="progress-bar">
-                <div class="progress-fill" [style.width.%]="(amount / balance) * 100"></div>
-              </div>
-              <span class="progress-text">{{ (amount / balance * 100).toFixed(1) }}% {{ 'de votre solde' | translate }}</span>
+          <!-- Montant - Label au-dessus -->
+          <div class="form-field-wrapper">
+            <label class="field-label">
+              <mat-icon>attach_money</mat-icon>
+              {{ 'Montant (Ar)' | translate }}
+            </label>
+            <div class="field-input-wrapper">
+              <mat-form-field appearance="outline" class="full-width">
+                <input 
+                  matInput 
+                  type="number" 
+                  [(ngModel)]="amount" 
+                  min="100"
+                  [max]="balance"
+                  placeholder="1000">
+                <mat-icon matSuffix [class]="'amount-icon ' + getAmountIcon()">{{ getAmountIcon() }}</mat-icon>
+                <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
+                <mat-error *ngIf="amount > balance">{{ 'Solde insuffisant' | translate }}</mat-error>
+              </mat-form-field>
             </div>
           </div>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'Description (optionnelle)' | translate }}</mat-label>
-            <textarea 
-              matInput 
-              [(ngModel)]="description" 
-              rows="2"
-              placeholder="{{ 'Ex: Remboursement, cadeau, anniversaire...' | translate }}"></textarea>
-          </mat-form-field>
+          <!-- Montants rapides -->
+          <div class="quick-amounts">
+            <button 
+              *ngFor="let preset of amountPresets" 
+              type="button" 
+              class="quick-amount-btn" 
+              [class.active]="amount === preset"
+              (click)="amount = preset">
+              {{ formatAmount(preset) }} Ar
+            </button>
+          </div>
 
+          <div class="amount-progress" *ngIf="amount > 0">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="(amount / balance) * 100"></div>
+            </div>
+            <span class="progress-text">{{ (amount / balance * 100).toFixed(1) }}% {{ 'de votre solde' | translate }}</span>
+          </div>
+
+          <!-- Description - Label au-dessus -->
+          <div class="form-field-wrapper">
+            <label class="field-label">
+              <mat-icon>notes</mat-icon>
+              {{ 'Description (optionnelle)' | translate }}
+            </label>
+            <div class="field-input-wrapper">
+              <mat-form-field appearance="outline" class="full-width">
+                <textarea 
+                  matInput 
+                  [(ngModel)]="description" 
+                  rows="2"
+                  placeholder="{{ 'Ex: Remboursement, cadeau, anniversaire...' | translate }}"></textarea>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Résumé rapide -->
           <div class="quick-summary" *ngIf="amount > 0 && receiverName" @slideInUp>
             <mat-divider></mat-divider>
             <div class="summary-row">
@@ -145,6 +170,7 @@
       </mat-card>
     </div>
 
+    <!-- Section Confirmation -->
     <div class="confirm-section" *ngIf="step === 'confirm'" @scaleIn>
       <mat-card class="confirm-card">
         <div class="confirm-header">
@@ -158,6 +184,7 @@
 
         <mat-card-content>
           <div class="transaction-details">
+            <!-- Destinataire -->
             <div class="detail-card" @slideInLeft>
               <div class="detail-icon">
                 <mat-icon>person</mat-icon>
@@ -169,6 +196,7 @@
               </div>
             </div>
 
+            <!-- Montant -->
             <div class="detail-card" @slideInLeft style="animation-delay: 0.1s">
               <div class="detail-icon">
                 <mat-icon>attach_money</mat-icon>
@@ -179,6 +207,7 @@
               </div>
             </div>
 
+            <!-- Description -->
             <div class="detail-card" *ngIf="description" @slideInLeft style="animation-delay: 0.2s">
               <div class="detail-icon">
                 <mat-icon>notes</mat-icon>
@@ -189,6 +218,7 @@
               </div>
             </div>
 
+            <!-- Balance Preview -->
             <div class="balance-preview" @slideInUp>
               <div class="balance-row">
                 <span>{{ 'Solde avant' | translate }}</span>
@@ -207,11 +237,13 @@
               </div>
             </div>
 
+            <!-- Warning -->
             <div class="warning-message" *ngIf="!isBalanceSufficient()" @shake>
               <mat-icon>warning</mat-icon>
               <span>{{ 'Solde insuffisant pour effectuer cette transaction' | translate }}</span>
             </div>
 
+            <!-- PIN Section -->
             <div class="pin-section">
               <label>{{ 'Code de sécurité' | translate }}</label>
               <div class="pin-inputs">
@@ -245,6 +277,7 @@
       </mat-card>
     </div>
 
+    <!-- Section Succès -->
     <div class="success-section" *ngIf="step === 'success'" @scaleIn>
       <div class="success-animation">
         <div class="success-checkmark">
@@ -267,13 +300,13 @@
         </div>
 
         <div class="success-actions">
-          <button class="action-btn" (click)="reset()" [matTooltip]="'Nouvel envoi' | translate">
+          <button class="action-btn" (click)="reset()" matTooltip="{{ 'Nouvel envoi' | translate }}">
             <mat-icon>add</mat-icon>
           </button>
-          <button class="action-btn" (click)="goBack()" [matTooltip]="'Retour au portefeuille' | translate">
+          <button class="action-btn" (click)="goBack()" matTooltip="{{ 'Retour au portefeuille' | translate }}">
             <mat-icon>account_balance_wallet</mat-icon>
           </button>
-          <button class="action-btn" [matTooltip]="'Partager' | translate">
+          <button class="action-btn" matTooltip="{{ 'Partager' | translate }}">
             <mat-icon>share</mat-icon>
           </button>
         </div>
