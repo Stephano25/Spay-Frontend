@@ -1,11 +1,11 @@
+/* frontend/src/app/components/user/user.component.css */
 /* ============================================================
-   SPAYE — USER DASHBOARD
+   SPAYE — USER DASHBOARD (Version améliorée)
    ============================================================ */
 
 .user-dashboard {
-  padding: 16px;
-  max-height: calc(100vh - 64px);
-  overflow-y: auto;
+  padding: 20px;
+  min-height: 100vh;
   background: var(--bg);
   font-family: var(--font-body);
 }
@@ -18,27 +18,38 @@
   border-radius: 999px;
 }
 
-/* Welcome Card */
+/* ============================================================
+   WELCOME CARD
+   ============================================================ */
 .welcome-card {
-  border-radius: 16px !important;
+  border-radius: 20px !important;
   overflow: hidden;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06) !important;
+  margin-bottom: 20px;
+  border: 0.5px solid var(--border);
+  background: var(--surface) !important;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04) !important;
+  animation: fadeUp 0.4s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .welcome-card mat-card-header {
-  padding: 16px 20px 0 !important;
+  padding: 20px 24px 0 !important;
   display: flex !important;
   align-items: center !important;
-  gap: 14px !important;
+  gap: 16px !important;
 }
 
 .profile-avatar-container {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .profile-avatar-img {
@@ -55,110 +66,164 @@
   justify-content: center;
   color: white;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .welcome-card mat-card-title {
-  font-size: 1.0625rem !important;
+  font-size: 1.2rem !important;
   font-weight: 700 !important;
   color: var(--text) !important;
+  letter-spacing: -0.3px;
 }
 
 .welcome-card mat-card-subtitle {
-  font-size: 0.75rem !important;
+  font-size: 0.8rem !important;
   color: var(--text-3) !important;
 }
 
 .welcome-card mat-card-content {
-  padding: 12px 20px 20px !important;
+  padding: 14px 24px 22px !important;
 }
 
 .user-info p {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--text-2);
   margin: 4px 0;
 }
 
-/* Balance Section */
+.user-info p strong {
+  color: var(--text);
+}
+
+/* ============================================================
+   BALANCE SECTION
+   ============================================================ */
 .balance-section {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .loading-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   color: var(--text-3);
+  padding: 8px 0;
+}
+
+.loading-container mat-spinner {
+  transform: scale(0.8);
 }
 
 .balance-container {
   display: flex;
   flex-direction: column;
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: var(--brand-grad-soft);
-  border-radius: 12px;
-  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.balance-container:hover {
+  border-color: var(--brand-1);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.08);
 }
 
 .balance-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--text-3);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
 }
 
 .balance-amount {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: var(--text);
   font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.5px;
 }
 
-/* Menu Grid */
+/* ============================================================
+   MENU GRID
+   ============================================================ */
 .menu-grid {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .menu-grid-inner {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .menu-card {
   cursor: pointer;
-  border-radius: 12px !important;
+  border-radius: 14px !important;
   text-align: center;
-  padding: 4px;
-  transition: all 0.3s ease !important;
+  padding: 6px;
+  border: 0.5px solid var(--border);
+  background: var(--surface) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
   position: relative;
+  overflow: hidden;
+}
+
+.menu-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--brand-grad);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .menu-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  border-color: var(--brand-1);
+}
+
+.menu-card:active {
+  transform: scale(0.97);
+}
+
+.menu-card:hover::before {
+  opacity: 0.04;
 }
 
 .menu-card mat-card-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 10px 8px !important;
+  gap: 6px;
+  padding: 12px 8px !important;
+  position: relative;
+  z-index: 1;
 }
 
 .menu-card mat-icon {
-  font-size: 28px !important;
-  width: 28px !important;
-  height: 28px !important;
+  font-size: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
   color: var(--brand-1);
+  transition: transform 0.3s ease;
+}
+
+.menu-card:hover mat-icon {
+  transform: scale(1.1);
 }
 
 .menu-card span {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-2);
+  transition: color 0.3s ease;
+}
+
+.menu-card:hover span {
+  color: var(--text);
 }
 
 .menu-icon {
@@ -174,42 +239,59 @@
 
 .menu-badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   font-size: 0.5rem;
-  padding: 1px 6px;
+  padding: 1px 8px;
   border-radius: 999px;
   background: var(--brand-grad);
   color: white;
   font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 .menu-badge.user {
   background: rgba(59, 130, 246, 0.12);
   color: #3b82f6;
+  border: 0.5px solid rgba(59, 130, 246, 0.15);
 }
 
-/* Stats Row */
+.menu-badge.admin {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 0.5px solid rgba(239, 68, 68, 0.15);
+}
+
+/* ============================================================
+   STATS ROW
+   ============================================================ */
 .stats-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 14px;
+  padding: 14px 18px;
   background: var(--surface);
-  border-radius: 12px;
+  border-radius: 14px;
   border: 0.5px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--brand-1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
 }
 
 .stat-icon {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: var(--brand-grad-soft);
   display: flex;
@@ -219,9 +301,9 @@
 }
 
 .stat-icon mat-icon {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
   color: var(--brand-1);
 }
 
@@ -231,7 +313,7 @@
 }
 
 .stat-label {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   color: var(--text-3);
   font-weight: 500;
   text-transform: uppercase;
@@ -240,39 +322,57 @@
 }
 
 .stat-value {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
 }
 
-/* Transactions Card */
+/* ============================================================
+   TRANSACTIONS CARD
+   ============================================================ */
 .transactions-card {
-  border-radius: 14px !important;
+  border-radius: 16px !important;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  border: 0.5px solid var(--border);
+  background: var(--surface) !important;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
 }
 
 .transactions-card mat-card-header {
-  padding: 12px 16px 0 !important;
+  padding: 14px 18px 0 !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
 }
 
 .transactions-card mat-card-title {
-  font-size: 0.875rem !important;
+  font-size: 0.95rem !important;
   font-weight: 700 !important;
   color: var(--text) !important;
 }
 
+.transactions-card mat-card-title mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  color: var(--brand-1);
+}
+
 .view-all {
-  font-size: 0.7rem !important;
+  font-size: 0.75rem !important;
   font-weight: 600 !important;
 }
 
+.view-all mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
 .transactions-card mat-card-content {
-  padding: 8px 16px 16px !important;
+  padding: 8px 18px 18px !important;
 }
 
 .transactions-list {
@@ -283,9 +383,17 @@
 .transaction-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0;
+  gap: 14px;
+  padding: 10px 0;
   border-bottom: 0.5px solid var(--border);
+  transition: background 0.2s ease;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 2px 0;
+}
+
+.transaction-item:hover {
+  background: var(--hover);
 }
 
 .transaction-item:last-child {
@@ -293,8 +401,8 @@
 }
 
 .transaction-icon {
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -312,9 +420,9 @@
 }
 
 .transaction-icon mat-icon {
-  font-size: 16px !important;
-  width: 16px !important;
-  height: 16px !important;
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
 }
 
 .transaction-details {
@@ -324,18 +432,18 @@
 
 .transaction-desc {
   font-weight: 500;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text);
 }
 
 .transaction-date {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   color: var(--text-3);
 }
 
 .transaction-amount {
   font-weight: 700;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-family: 'JetBrains Mono', monospace;
   white-space: nowrap;
 }
@@ -347,139 +455,318 @@
   color: #ef4444;
 }
 
-/* Empty Card */
+/* ============================================================
+   EMPTY CARD
+   ============================================================ */
 .empty-card {
-  border-radius: 14px !important;
+  border-radius: 16px !important;
   text-align: center;
-  padding: 16px;
+  padding: 20px;
+  border: 0.5px solid var(--border);
+  background: var(--surface) !important;
 }
 
 .empty-card mat-card-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 24px 16px !important;
+  gap: 10px;
+  padding: 32px 16px !important;
 }
 
 .empty-card mat-icon {
-  font-size: 48px !important;
-  width: 48px !important;
-  height: 48px !important;
+  font-size: 56px !important;
+  width: 56px !important;
+  height: 56px !important;
   color: var(--border);
 }
 
 .empty-card h3 {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text);
   margin: 0;
 }
 
 .empty-card p {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-3);
   margin: 0;
+  max-width: 300px;
 }
 
 .empty-card button {
   margin-top: 4px;
   border-radius: 999px !important;
+  padding: 0 24px !important;
+  min-height: 44px !important;
+  font-weight: 600 !important;
 }
 
-/* Refresh */
+/* ============================================================
+   REFRESH & LOGOUT
+   ============================================================ */
 .refresh-container {
   display: flex;
   justify-content: center;
-  padding: 4px 0 8px;
+  padding: 6px 0 10px;
 }
 
-/* Logout */
+.refresh-container button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50% !important;
+  background: var(--surface-2) !important;
+  border: 0.5px solid var(--border) !important;
+  transition: all 0.3s ease;
+}
+
+.refresh-container button:hover {
+  background: var(--hover) !important;
+  transform: rotate(180deg);
+}
+
+.refresh-container button:active {
+  transform: rotate(360deg) scale(0.95);
+}
+
 .logout-container {
-  padding: 4px 0 16px;
+  padding: 6px 0 20px;
 }
 
 .logout-btn {
   width: 100%;
-  padding: 12px !important;
-  border-radius: 12px !important;
+  padding: 14px !important;
+  border-radius: 14px !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
 }
 
-/* Responsive */
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3) !important;
+}
+
+.logout-btn:active {
+  transform: scale(0.98);
+}
+
+.logout-btn mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 600px) {
   .user-dashboard {
-    padding: 12px;
+    padding: 14px;
   }
+  
   .menu-grid-inner {
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 8px;
   }
+  
   .menu-card mat-card-content {
     padding: 8px 4px !important;
   }
+  
   .menu-card mat-icon {
-    font-size: 22px !important;
-    width: 22px !important;
-    height: 22px !important;
+    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
   }
+  
   .menu-card span {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
   }
+  
   .stats-row {
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 10px;
   }
+  
   .stat-card {
-    padding: 10px 12px;
+    padding: 10px 14px;
   }
-  .welcome-card mat-card-header {
-    padding: 12px 16px 0 !important;
+  
+  .stat-icon {
+    width: 36px;
+    height: 36px;
   }
-  .welcome-card mat-card-content {
-    padding: 8px 16px 16px !important;
-  }
-  .profile-avatar-container {
-    width: 40px;
-    height: 40px;
-  }
-  .profile-avatar-placeholder {
-    font-size: 14px;
-  }
-  .welcome-card mat-card-title {
-    font-size: 0.9375rem !important;
-  }
-  .balance-amount {
-    font-size: 1.25rem;
-  }
-}
-
-@media (max-width: 400px) {
-  .menu-grid-inner {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-  }
-  .menu-card mat-card-content {
-    padding: 6px 2px !important;
-  }
-  .menu-card mat-icon {
+  
+  .stat-icon mat-icon {
     font-size: 18px !important;
     width: 18px !important;
     height: 18px !important;
   }
+  
+  .stat-value {
+    font-size: 0.9rem;
+  }
+  
+  .welcome-card mat-card-header {
+    padding: 16px 18px 0 !important;
+  }
+  
+  .welcome-card mat-card-content {
+    padding: 10px 18px 18px !important;
+  }
+  
+  .profile-avatar-container {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .profile-avatar-placeholder {
+    font-size: 16px;
+  }
+  
+  .welcome-card mat-card-title {
+    font-size: 1rem !important;
+  }
+  
+  .balance-amount {
+    font-size: 1.4rem;
+  }
+  
+  .balance-container {
+    padding: 12px 16px;
+  }
+  
+  .transaction-item {
+    padding: 6px 8px;
+    gap: 10px;
+  }
+  
+  .transaction-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .transaction-icon mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  .transaction-desc {
+    font-size: 0.8rem;
+  }
+  
+  .transaction-amount {
+    font-size: 0.8rem;
+  }
+  
+  .transactions-card mat-card-header {
+    padding: 10px 14px 0 !important;
+  }
+  
+  .transactions-card mat-card-content {
+    padding: 6px 14px 14px !important;
+  }
+  
+  .empty-card mat-icon {
+    font-size: 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+  }
+  
+  .empty-card h3 {
+    font-size: 1rem;
+  }
+  
+  .empty-card p {
+    font-size: 0.8rem;
+  }
+  
+  .logout-btn {
+    padding: 12px !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .user-dashboard {
+    padding: 10px;
+  }
+  
+  .menu-grid-inner {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  
+  .menu-card mat-card-content {
+    padding: 6px 2px !important;
+  }
+  
+  .menu-card mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
   .menu-card span {
     font-size: 0.55rem;
   }
+  
   .stats-row {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
+  
   .balance-amount {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
+  
   .profile-avatar-container {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
+  
   .profile-avatar-placeholder {
-    font-size: 12px;
+    font-size: 14px;
+  }
+  
+  .welcome-card mat-card-title {
+    font-size: 0.9rem !important;
+  }
+  
+  .welcome-card mat-card-subtitle {
+    font-size: 0.7rem !important;
+  }
+  
+  .user-info p {
+    font-size: 0.8rem;
+  }
+  
+  .transaction-item {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .transaction-amount {
+    font-size: 0.75rem;
+  }
+  
+  .empty-card mat-icon {
+    font-size: 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .empty-card h3 {
+    font-size: 0.9rem;
+  }
+  
+  .empty-card button {
+    width: 100%;
   }
 }
