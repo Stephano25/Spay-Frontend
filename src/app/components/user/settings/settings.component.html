@@ -4,7 +4,7 @@
 <!-- ============================================================ -->
 
 <div class="settings-container">
-  <!-- Header avec dégradé -->
+  <!-- Header -->
   <mat-toolbar color="primary" class="settings-header">
     <button mat-icon-button (click)="goBack()" matTooltip="{{ 'Retour' | translate }}">
       <mat-icon>arrow_back</mat-icon>
@@ -51,11 +51,11 @@
               <div class="profile-stats">
                 <div class="stat-badge">
                   <mat-icon>people</mat-icon>
-                  <span>{{ friendsCount }} {{ 'amis' | translate }}</span>
+                  <span>{{ friendsCount | number }} {{ 'amis' | translate }}</span>
                 </div>
                 <div class="stat-badge">
                   <mat-icon>post_add</mat-icon>
-                  <span>{{ postsCount }} {{ 'publications' | translate }}</span>
+                  <span>{{ postsCount | number }} {{ 'publications' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -67,12 +67,20 @@
       </mat-card>
 
       <!-- Onglets -->
-      <mat-tab-group [(selectedIndex)]="activeTab" class="settings-tabs" [dynamicHeight]="true">
+      <mat-tab-group 
+        [(selectedIndex)]="activeTab" 
+        class="settings-tabs" 
+        [dynamicHeight]="true"
+        animationDuration="200ms">
         
         <!-- ========================================================== -->
-        <!-- GÉNÉRAL - AVEC BOUTONS POUR THÈME, LANGUE ET POLICE        -->
+        <!-- GÉNÉRAL                                                    -->
         <!-- ========================================================== -->
-        <mat-tab label="{{ 'Général' | translate }}">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>settings</mat-icon>
+            <span>{{ 'Général' | translate }}</span>
+          </ng-template>
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
@@ -83,10 +91,7 @@
                 </div>
               </mat-card-header>
               <mat-card-content>
-                
-                <!-- PERSONNALISATION : Thème, Langue, Police en boutons -->
                 <div class="personalization-section">
-                  
                   <!-- Thème -->
                   <div class="personalization-item">
                     <label>
@@ -138,7 +143,6 @@
                       </button>
                     </div>
                   </div>
-
                 </div>
 
                 <mat-divider></mat-divider>
@@ -171,7 +175,11 @@
         <!-- ========================================================== -->
         <!-- PROFIL                                                    -->
         <!-- ========================================================== -->
-        <mat-tab label="{{ 'Profil' | translate }}">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>person</mat-icon>
+            <span>{{ 'Profil' | translate }}</span>
+          </ng-template>
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
@@ -184,56 +192,70 @@
               <mat-card-content>
                 <form [formGroup]="profileForm">
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Prénom' | translate }}</mat-label>
-                      <input matInput formControlName="firstName" placeholder="Jean">
-                      <mat-error *ngIf="profileForm.get('firstName')?.hasError('required')">{{ 'Prénom requis' | translate }}</mat-error>
-                      <mat-error *ngIf="profileForm.get('firstName')?.hasError('minlength')">{{ 'Minimum 2 caractères' | translate }}</mat-error>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Nom' | translate }}</mat-label>
-                      <input matInput formControlName="lastName" placeholder="Dupont">
-                      <mat-error *ngIf="profileForm.get('lastName')?.hasError('required')">{{ 'Nom requis' | translate }}</mat-error>
-                      <mat-error *ngIf="profileForm.get('lastName')?.hasError('minlength')">{{ 'Minimum 2 caractères' | translate }}</mat-error>
+                    <div class="form-field-wrapper half-width">
+                      <label class="field-label">{{ 'Prénom' | translate }}</label>
+                      <mat-form-field appearance="outline" class="full-width">
+                        <input matInput formControlName="firstName" placeholder="Jean">
+                        <mat-error *ngIf="profileForm.get('firstName')?.hasError('required')">{{ 'Prénom requis' | translate }}</mat-error>
+                        <mat-error *ngIf="profileForm.get('firstName')?.hasError('minlength')">{{ 'Minimum 2 caractères' | translate }}</mat-error>
+                      </mat-form-field>
+                    </div>
+                    <div class="form-field-wrapper half-width">
+                      <label class="field-label">{{ 'Nom' | translate }}</label>
+                      <mat-form-field appearance="outline" class="full-width">
+                        <input matInput formControlName="lastName" placeholder="Dupont">
+                        <mat-error *ngIf="profileForm.get('lastName')?.hasError('required')">{{ 'Nom requis' | translate }}</mat-error>
+                        <mat-error *ngIf="profileForm.get('lastName')?.hasError('minlength')">{{ 'Minimum 2 caractères' | translate }}</mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <div class="form-field-wrapper">
+                    <label class="field-label">{{ 'Email' | translate }}</label>
+                    <mat-form-field appearance="outline" class="full-width">
+                      <input matInput formControlName="email" type="email" placeholder="exemple@email.com">
+                      <mat-error *ngIf="profileForm.get('email')?.hasError('required')">{{ 'Email requis' | translate }}</mat-error>
+                      <mat-error *ngIf="profileForm.get('email')?.hasError('email')">{{ 'Email invalide' | translate }}</mat-error>
                     </mat-form-field>
                   </div>
 
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'Email' | translate }}</mat-label>
-                    <input matInput formControlName="email" type="email" placeholder="exemple@email.com">
-                    <mat-error *ngIf="profileForm.get('email')?.hasError('required')">{{ 'Email requis' | translate }}</mat-error>
-                    <mat-error *ngIf="profileForm.get('email')?.hasError('email')">{{ 'Email invalide' | translate }}</mat-error>
-                  </mat-form-field>
+                  <div class="form-field-wrapper">
+                    <label class="field-label">{{ 'Téléphone' | translate }}</label>
+                    <mat-form-field appearance="outline" class="full-width">
+                      <input matInput formControlName="phoneNumber" placeholder="0341234567">
+                      <mat-error *ngIf="profileForm.get('phoneNumber')?.hasError('pattern')">{{ 'Numéro invalide (9-10 chiffres)' | translate }}</mat-error>
+                    </mat-form-field>
+                  </div>
 
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'Téléphone' | translate }}</mat-label>
-                    <input matInput formControlName="phoneNumber" placeholder="0341234567">
-                    <mat-error *ngIf="profileForm.get('phoneNumber')?.hasError('pattern')">{{ 'Numéro invalide (9-10 chiffres)' | translate }}</mat-error>
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'Bio' | translate }}</mat-label>
-                    <textarea matInput formControlName="bio" rows="3" maxlength="500" placeholder="{{ 'Parlez-nous de vous...' | translate }}"></textarea>
-                    <mat-hint align="end">{{ profileForm.get('bio')?.value?.length || 0 }}/500</mat-hint>
-                  </mat-form-field>
+                  <div class="form-field-wrapper">
+                    <label class="field-label">{{ 'Bio' | translate }}</label>
+                    <mat-form-field appearance="outline" class="full-width">
+                      <textarea matInput formControlName="bio" rows="3" maxlength="500" placeholder="{{ 'Parlez-nous de vous...' | translate }}"></textarea>
+                      <mat-hint align="end">{{ profileForm.get('bio')?.value?.length || 0 }}/500</mat-hint>
+                    </mat-form-field>
+                  </div>
 
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Date de naissance' | translate }}</mat-label>
-                      <input matInput [matDatepicker]="birthdayPicker" formControlName="birthday">
-                      <mat-datepicker-toggle matSuffix [for]="birthdayPicker"></mat-datepicker-toggle>
-                      <mat-datepicker #birthdayPicker></mat-datepicker>
-                    </mat-form-field>
+                    <div class="form-field-wrapper half-width">
+                      <label class="field-label">{{ 'Date de naissance' | translate }}</label>
+                      <mat-form-field appearance="outline" class="full-width">
+                        <input matInput [matDatepicker]="birthdayPicker" formControlName="birthday" placeholder="01/01/2000">
+                        <mat-datepicker-toggle matSuffix [for]="birthdayPicker"></mat-datepicker-toggle>
+                        <mat-datepicker #birthdayPicker></mat-datepicker>
+                      </mat-form-field>
+                    </div>
 
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Genre' | translate }}</mat-label>
-                      <mat-select formControlName="gender">
-                        <mat-option value="male">{{ 'Homme' | translate }}</mat-option>
-                        <mat-option value="female">{{ 'Femme' | translate }}</mat-option>
-                        <mat-option value="other">{{ 'Autre' | translate }}</mat-option>
-                        <mat-option value="prefer_not">{{ 'Préfère ne pas dire' | translate }}</mat-option>
-                      </mat-select>
-                    </mat-form-field>
+                    <div class="form-field-wrapper half-width">
+                      <label class="field-label">{{ 'Genre' | translate }}</label>
+                      <mat-form-field appearance="outline" class="full-width">
+                        <mat-select formControlName="gender">
+                          <mat-option value="male">{{ 'Homme' | translate }}</mat-option>
+                          <mat-option value="female">{{ 'Femme' | translate }}</mat-option>
+                          <mat-option value="other">{{ 'Autre' | translate }}</mat-option>
+                          <mat-option value="prefer_not">{{ 'Préfère ne pas dire' | translate }}</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
                   </div>
 
                   <div class="form-actions">
@@ -279,7 +301,11 @@
         <!-- ========================================================== -->
         <!-- SÉCURITÉ                                                  -->
         <!-- ========================================================== -->
-        <mat-tab label="{{ 'Sécurité' | translate }}">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>lock</mat-icon>
+            <span>{{ 'Sécurité' | translate }}</span>
+          </ng-template>
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
@@ -291,32 +317,38 @@
               </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="passwordForm">
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'Mot de passe actuel' | translate }}</mat-label>
-                    <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="currentPassword">
-                    <button mat-icon-button matSuffix (click)="showPassword = !showPassword" type="button">
-                      <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                    </button>
-                    <mat-error>{{ 'Mot de passe requis' | translate }}</mat-error>
-                  </mat-form-field>
+                  <div class="form-field-wrapper">
+                    <label class="field-label">{{ 'Mot de passe actuel' | translate }}</label>
+                    <mat-form-field appearance="outline" class="full-width">
+                      <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="currentPassword">
+                      <button mat-icon-button matSuffix (click)="showPassword = !showPassword" type="button">
+                        <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                      </button>
+                      <mat-error>{{ 'Mot de passe requis' | translate }}</mat-error>
+                    </mat-form-field>
+                  </div>
 
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'Nouveau mot de passe' | translate }}</mat-label>
-                    <input matInput [type]="showNewPassword ? 'text' : 'password'" formControlName="newPassword">
-                    <button mat-icon-button matSuffix (click)="showNewPassword = !showNewPassword" type="button">
-                      <mat-icon>{{ showNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                    </button>
-                    <mat-error>{{ 'Minimum 6 caractères' | translate }}</mat-error>
-                  </mat-form-field>
+                  <div class="form-field-wrapper">
+                    <label class="field-label">{{ 'Nouveau mot de passe' | translate }}</label>
+                    <mat-form-field appearance="outline" class="full-width">
+                      <input matInput [type]="showNewPassword ? 'text' : 'password'" formControlName="newPassword">
+                      <button mat-icon-button matSuffix (click)="showNewPassword = !showNewPassword" type="button">
+                        <mat-icon>{{ showNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                      </button>
+                      <mat-error>{{ 'Minimum 6 caractères' | translate }}</mat-error>
+                    </mat-form-field>
+                  </div>
 
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'Confirmer le mot de passe' | translate }}</mat-label>
-                    <input matInput [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword">
-                    <button mat-icon-button matSuffix (click)="showConfirmPassword = !showConfirmPassword" type="button">
-                      <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                    </button>
-                    <mat-error *ngIf="passwordForm.hasError('mismatch')">{{ 'Les mots de passe ne correspondent pas' | translate }}</mat-error>
-                  </mat-form-field>
+                  <div class="form-field-wrapper">
+                    <label class="field-label">{{ 'Confirmer le mot de passe' | translate }}</label>
+                    <mat-form-field appearance="outline" class="full-width">
+                      <input matInput [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword">
+                      <button mat-icon-button matSuffix (click)="showConfirmPassword = !showConfirmPassword" type="button">
+                        <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                      </button>
+                      <mat-error *ngIf="passwordForm.hasError('mismatch')">{{ 'Les mots de passe ne correspondent pas' | translate }}</mat-error>
+                    </mat-form-field>
+                  </div>
 
                   <div class="form-actions">
                     <button mat-raised-button color="primary" (click)="changePassword()" [disabled]="passwordForm.invalid || isSaving">
@@ -345,14 +377,16 @@
 
                 <mat-divider></mat-divider>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ 'Délai d\'expiration de session' | translate }}</mat-label>
-                  <mat-select [(ngModel)]="settings.security.sessionTimeout" (selectionChange)="saveSecuritySettings()">
-                    @for (timeout of sessionTimeouts; track timeout.value) {
-                      <mat-option [value]="timeout.value">{{ timeout.label | translate }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
+                <div class="form-field-wrapper">
+                  <label class="field-label">{{ 'Délai d\'expiration de session' | translate }}</label>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-select [(ngModel)]="settings.security.sessionTimeout" (selectionChange)="saveSecuritySettings()">
+                      @for (timeout of sessionTimeouts; track timeout.value) {
+                        <mat-option [value]="timeout.value">{{ timeout.label | translate }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
 
                 <div class="toggle-group">
                   <mat-slide-toggle [(ngModel)]="settings.security.loginAlerts" (change)="saveSecuritySettings()" color="primary">
@@ -392,7 +426,11 @@
         <!-- ========================================================== -->
         <!-- CONFIDENTIALITÉ                                            -->
         <!-- ========================================================== -->
-        <mat-tab label="{{ 'Confidentialité' | translate }}">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>visibility</mat-icon>
+            <span>{{ 'Confidentialité' | translate }}</span>
+          </ng-template>
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
@@ -403,26 +441,39 @@
                 </div>
               </mat-card-header>
               <mat-card-content>
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ 'Visibilité du profil' | translate }}</mat-label>
-                  <mat-select [(ngModel)]="settings.privacy.profileVisibility" (selectionChange)="savePrivacySettings()">
-                    @for (option of privacyOptions; track option.value) {
-                      <mat-option [value]="option.value">
-                        <mat-icon>{{ option.value === 'public' ? 'public' : option.value === 'friends' ? 'group' : 'lock' }}</mat-icon>
-                        {{ option.label | translate }}
+                <div class="form-field-wrapper">
+                  <label class="field-label">{{ 'Visibilité du profil' | translate }}</label>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-select [(ngModel)]="settings.privacy.profileVisibility" (selectionChange)="savePrivacySettings()">
+                      <mat-option value="public">
+                        <mat-icon>public</mat-icon> {{ 'Public' | translate }}
                       </mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
+                      <mat-option value="friends">
+                        <mat-icon>group</mat-icon> {{ 'Amis uniquement' | translate }}
+                      </mat-option>
+                      <mat-option value="private">
+                        <mat-icon>lock</mat-icon> {{ 'Privé' | translate }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ 'Visibilité des publications' | translate }}</mat-label>
-                  <mat-select [(ngModel)]="settings.privacy.postVisibility" (selectionChange)="savePrivacySettings()">
-                    <mat-option value="public"><mat-icon>public</mat-icon> {{ 'Public' | translate }}</mat-option>
-                    <mat-option value="friends"><mat-icon>group</mat-icon> {{ 'Amis uniquement' | translate }}</mat-option>
-                    <mat-option value="only_me"><mat-icon>lock</mat-icon> {{ 'Moi seulement' | translate }}</mat-option>
-                  </mat-select>
-                </mat-form-field>
+                <div class="form-field-wrapper">
+                  <label class="field-label">{{ 'Visibilité des publications' | translate }}</label>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-select [(ngModel)]="settings.privacy.postVisibility" (selectionChange)="savePrivacySettings()">
+                      <mat-option value="public">
+                        <mat-icon>public</mat-icon> {{ 'Public' | translate }}
+                      </mat-option>
+                      <mat-option value="friends">
+                        <mat-icon>group</mat-icon> {{ 'Amis uniquement' | translate }}
+                      </mat-option>
+                      <mat-option value="only_me">
+                        <mat-icon>lock</mat-icon> {{ 'Moi seulement' | translate }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
 
                 <mat-divider></mat-divider>
 
@@ -508,7 +559,11 @@
         <!-- ========================================================== -->
         <!-- NOTIFICATIONS                                              -->
         <!-- ========================================================== -->
-        <mat-tab label="{{ 'Notifications' | translate }}">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>notifications</mat-icon>
+            <span>{{ 'Notifications' | translate }}</span>
+          </ng-template>
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
@@ -579,14 +634,16 @@
 
                 <mat-divider></mat-divider>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ 'Résumé quotidien' | translate }}</mat-label>
-                  <mat-select [(ngModel)]="settings.notifications.dailyDigest" (selectionChange)="saveNotificationSettings()">
-                    <mat-option value="never">{{ 'Jamais' | translate }}</mat-option>
-                    <mat-option value="daily">{{ 'Quotidien' | translate }}</mat-option>
-                    <mat-option value="weekly">{{ 'Hebdomadaire' | translate }}</mat-option>
-                  </mat-select>
-                </mat-form-field>
+                <div class="form-field-wrapper">
+                  <label class="field-label">{{ 'Résumé quotidien' | translate }}</label>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-select [(ngModel)]="settings.notifications.dailyDigest" (selectionChange)="saveNotificationSettings()">
+                      <mat-option value="never">{{ 'Jamais' | translate }}</mat-option>
+                      <mat-option value="daily">{{ 'Quotidien' | translate }}</mat-option>
+                      <mat-option value="weekly">{{ 'Hebdomadaire' | translate }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
               </mat-card-content>
             </mat-card>
           </div>
@@ -595,7 +652,11 @@
         <!-- ========================================================== -->
         <!-- AMIS                                                       -->
         <!-- ========================================================== -->
-        <mat-tab label="{{ 'Amis' | translate }}">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>people</mat-icon>
+            <span>{{ 'Amis' | translate }}</span>
+          </ng-template>
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>
@@ -741,7 +802,11 @@
         <!-- ========================================================== -->
         <!-- COMPTE                                                     -->
         <!-- ========================================================== -->
-        <mat-tab label="{{ 'Compte' | translate }}">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>account_circle</mat-icon>
+            <span>{{ 'Compte' | translate }}</span>
+          </ng-template>
           <div class="tab-content">
             <mat-card class="settings-card">
               <mat-card-header>

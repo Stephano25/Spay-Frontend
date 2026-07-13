@@ -1,5 +1,5 @@
 // frontend/src/app/components/user/settings/settings.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -72,6 +72,8 @@ type LanguageType = 'fr' | 'mg' | 'en';
   styleUrls: ['./settings.component.css']
 })
 export class UserSettingsComponent extends BaseComponent implements OnInit, OnDestroy {
+  @ViewChild('birthdayPicker') birthdayPicker: any;
+
   user: User | null = null;
   settings: UserSettings = {
     general: { autoplayVideos: true, nsfwFilter: true },
@@ -258,13 +260,27 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
 
   private loadSocialData(): void {
     this.subscriptions.push(
-      this.userService.getFriendsCount().pipe(catchError(() => of(0)))
-        .subscribe((count) => this.friendsCount = count || 0)
+      this.userService.getFriendsCount().pipe(
+        catchError(() => of({ count: 0 }))
+      ).subscribe((result) => {
+        if (typeof result === 'object' && result !== null) {
+          this.friendsCount = result.count || 0;
+        } else {
+          this.friendsCount = result || 0;
+        }
+      })
     );
     
     this.subscriptions.push(
-      this.userService.getPostsCount().pipe(catchError(() => of(0)))
-        .subscribe((count) => this.postsCount = count || 0)
+      this.userService.getPostsCount().pipe(
+        catchError(() => of({ count: 0 }))
+      ).subscribe((result) => {
+        if (typeof result === 'object' && result !== null) {
+          this.postsCount = result.count || 0;
+        } else {
+          this.postsCount = result || 0;
+        }
+      })
     );
     
     this.subscriptions.push(
@@ -439,13 +455,8 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
     console.log(`🌐 UserSettings: Sélection de la langue ${value}`);
     this.settings.appearance.language = value;
     
-    // ✅ Application immédiate via TranslationService
     this.translationService.applyLanguageToAll(value);
-    
-    // ✅ Application via ThemeService
     this.themeService.applyLanguage(value);
-    
-    // ✅ Sauvegarde
     this.saveAppearanceSettings();
     this.languageMenuOpen = false;
     
