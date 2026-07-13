@@ -1,12 +1,13 @@
 <!-- frontend/src/app/components/transactions/transactions.component.html -->
 <div class="transactions-container">
-  <mat-toolbar color="primary">
-    <button mat-icon-button routerLink="/dashboard">
+  <!-- Header -->
+  <mat-toolbar color="primary" class="transactions-toolbar">
+    <button mat-icon-button routerLink="/dashboard" matTooltip="{{ 'Retour' | translate }}">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span>{{ 'Historique des transactions' | translate }}</span>
+    <span class="toolbar-title">{{ 'Historique des transactions' | translate }}</span>
     <span class="spacer"></span>
-    <button mat-icon-button [matMenuTriggerFor]="filterMenu">
+    <button mat-icon-button [matMenuTriggerFor]="filterMenu" matTooltip="{{ 'Filtrer' | translate }}">
       <mat-icon>filter_list</mat-icon>
     </button>
     <mat-menu #filterMenu="matMenu">
@@ -26,9 +27,9 @@
   </mat-toolbar>
 
   <div class="transactions-content">
-    <!-- Cartes de résumé avec totaux réels -->
+    <!-- Cartes de résumé -->
     <div class="summary-cards">
-      <mat-card class="summary-card received" (click)="selectedTabIndex = 1">
+      <mat-card class="summary-card received" (click)="selectedTabIndex = 1" matRipple>
         <mat-card-content>
           <div class="summary-icon">
             <mat-icon>arrow_downward</mat-icon>
@@ -36,11 +37,15 @@
           <div class="summary-details">
             <span class="summary-label">{{ 'Total reçu' | translate }}</span>
             <span class="summary-value">{{ totalReceived | number }} Ar</span>
+            <span class="summary-trend positive">
+              <mat-icon>trending_up</mat-icon>
+              +12%
+            </span>
           </div>
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="summary-card sent" (click)="selectedTabIndex = 2">
+      <mat-card class="summary-card sent" (click)="selectedTabIndex = 2" matRipple>
         <mat-card-content>
           <div class="summary-icon">
             <mat-icon>arrow_upward</mat-icon>
@@ -48,95 +53,138 @@
           <div class="summary-details">
             <span class="summary-label">{{ 'Total envoyé' | translate }}</span>
             <span class="summary-value">{{ totalSent | number }} Ar</span>
+            <span class="summary-trend negative">
+              <mat-icon>trending_down</mat-icon>
+              -5%
+            </span>
           </div>
         </mat-card-content>
       </mat-card>
     </div>
 
-    <!-- Onglets de filtre -->
-    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="transactions-tabs">
-      <mat-tab label="{{ 'Toutes' | translate }}"></mat-tab>
-      <mat-tab label="{{ 'Reçues' | translate }}"></mat-tab>
-      <mat-tab label="{{ 'Envoyées' | translate }}"></mat-tab>
-    </mat-tab-group>
+    <!-- Filtres améliorés -->
+    <div class="filter-tabs">
+      <button class="filter-btn" 
+              [class.active]="selectedTabIndex === 0" 
+              (click)="selectedTabIndex = 0">
+        <mat-icon>list</mat-icon>
+        <span>{{ 'Toutes' | translate }}</span>
+        <span class="filter-count">{{ allTransactions.length }}</span>
+      </button>
+      <button class="filter-btn" 
+              [class.active]="selectedTabIndex === 1" 
+              (click)="selectedTabIndex = 1">
+        <mat-icon>arrow_downward</mat-icon>
+        <span>{{ 'Reçus' | translate }}</span>
+        <span class="filter-count received">{{ getReceivedCount() }}</span>
+      </button>
+      <button class="filter-btn" 
+              [class.active]="selectedTabIndex === 2" 
+              (click)="selectedTabIndex = 2">
+        <mat-icon>arrow_upward</mat-icon>
+        <span>{{ 'Envoyés' | translate }}</span>
+        <span class="filter-count sent">{{ getSentCount() }}</span>
+      </button>
+    </div>
 
     <!-- État de chargement -->
     <div *ngIf="isLoading" class="loading-state">
-      <mat-spinner diameter="40"></mat-spinner>
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+      </div>
       <p>{{ 'Chargement des transactions...' | translate }}</p>
     </div>
 
     <!-- État d'erreur -->
     <div *ngIf="hasError && !isLoading" class="error-state">
-      <mat-icon>error_outline</mat-icon>
+      <div class="error-icon">
+        <mat-icon>error_outline</mat-icon>
+      </div>
+      <h3>{{ 'Oups ! Une erreur est survenue' | translate }}</h3>
       <p>{{ errorMessage }}</p>
-      <button mat-raised-button color="primary" (click)="retry()">{{ 'Réessayer' | translate }}</button>
+      <button mat-raised-button color="primary" (click)="retry()" class="retry-btn">
+        <mat-icon>refresh</mat-icon>
+        {{ 'Réessayer' | translate }}
+      </button>
     </div>
 
     <!-- Liste des transactions -->
-    <mat-card class="transactions-list-card" *ngIf="!isLoading && !hasError">
-      <mat-card-content>
-        <mat-list class="transactions-list">
-          <mat-list-item *ngFor="let transaction of filteredTransactions" class="transaction-item">
-            <div class="transaction-content">
-              <div class="transaction-icon" [ngClass]="transaction.type">
-                <mat-icon [color]="getTransactionColor(transaction.type)">
-                  {{ getTransactionIcon(transaction.type) }}
-                </mat-icon>
-              </div>
-              
-              <div class="transaction-info">
-                <div class="transaction-header">
-                  <span class="transaction-description">{{ transaction.description || transaction.type }}</span>
-                  <span class="transaction-amount" [ngClass]="transaction.type">
-                    {{ (transaction.type !== 'deposit' ? '-' : '+') }}{{ transaction.amount | number }} Ar
-                  </span>
-                </div>
-                
-                <div class="transaction-details">
-                  <span class="transaction-date">{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
-                  <span class="transaction-counterparty">{{ getCounterparty(transaction) }}</span>
-                  <span class="transaction-status" [class.completed]="transaction.status === 'completed'">
-                    {{ getStatusText(transaction.status) }}
-                  </span>
-                </div>
-              </div>
+    <div class="transactions-list-wrapper" *ngIf="!isLoading && !hasError">
+      <div class="transactions-header">
+        <span class="tx-count">{{ filteredTransactions.length }} {{ 'transactions' | translate }}</span>
+        <span class="tx-total">{{ 'Total' | translate }}: {{ getFilteredTotal() | number }} Ar</span>
+      </div>
 
-              <button mat-icon-button class="transaction-actions" [matMenuTriggerFor]="transactionMenu">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #transactionMenu="matMenu">
-                <button mat-menu-item (click)="viewDetails(transaction)">
-                  <mat-icon>visibility</mat-icon>
-                  <span>{{ 'Détails' | translate }}</span>
-                </button>
-                <button mat-menu-item *ngIf="transaction.status === 'completed'">
-                  <mat-icon>receipt</mat-icon>
-                  <span>{{ 'Reçu' | translate }}</span>
-                </button>
-                <button mat-menu-item *ngIf="transaction.type !== 'deposit'" (click)="repeatTransaction(transaction)">
-                  <mat-icon>repeat</mat-icon>
-                  <span>{{ 'Répéter' | translate }}</span>
-                </button>
-                <button mat-menu-item>
-                  <mat-icon>flag</mat-icon>
-                  <span>{{ 'Signaler' | translate }}</span>
-                </button>
-              </mat-menu>
-            </div>
-          </mat-list-item>
-
-          <!-- Message si aucune transaction -->
-          <div *ngIf="filteredTransactions.length === 0" class="no-transactions">
-            <mat-icon>receipt</mat-icon>
-            <h3>{{ 'Aucune transaction' | translate }}</h3>
-            <p>{{ 'Vous n\'avez pas encore de transactions dans cette catégorie' | translate }}</p>
-            <button mat-raised-button color="primary" routerLink="/scan-pay">
-              {{ 'Effectuer un paiement' | translate }}
-            </button>
+      <div class="transactions-list" *ngIf="filteredTransactions.length > 0">
+        <div *ngFor="let transaction of filteredTransactions" class="transaction-item" (click)="viewDetails(transaction)">
+          <div class="transaction-icon" [ngClass]="transaction.type">
+            <mat-icon>{{ getTransactionIcon(transaction.type) }}</mat-icon>
           </div>
-        </mat-list>
-      </mat-card-content>
-    </mat-card>
+          
+          <div class="transaction-info">
+            <div class="transaction-header">
+              <span class="transaction-description">{{ transaction.description || getTypeLabel(transaction.type) }}</span>
+              <span class="transaction-amount" [ngClass]="transaction.type">
+                {{ (transaction.type !== 'deposit' ? '-' : '+') }}{{ transaction.amount | number }} Ar
+              </span>
+            </div>
+            
+            <div class="transaction-details">
+              <span class="transaction-date">{{ transaction.createdAt | date:'dd MMM yyyy' }}</span>
+              <span class="transaction-time">{{ transaction.createdAt | date:'HH:mm' }}</span>
+              <span class="transaction-counterparty">{{ getCounterparty(transaction) }}</span>
+              <span class="transaction-status" [class]="transaction.status">
+                <span class="status-dot"></span>
+                {{ getStatusText(transaction.status) }}
+              </span>
+            </div>
+          </div>
+
+          <button mat-icon-button class="transaction-actions" [matMenuTriggerFor]="transactionMenu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #transactionMenu="matMenu">
+            <button mat-menu-item (click)="viewDetails(transaction)">
+              <mat-icon>visibility</mat-icon>
+              <span>{{ 'Détails' | translate }}</span>
+            </button>
+            <button mat-menu-item *ngIf="transaction.status === 'completed'">
+              <mat-icon>receipt</mat-icon>
+              <span>{{ 'Reçu' | translate }}</span>
+            </button>
+            <button mat-menu-item *ngIf="transaction.type !== 'deposit'" (click)="repeatTransaction(transaction)">
+              <mat-icon>repeat</mat-icon>
+              <span>{{ 'Répéter' | translate }}</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>
+              <mat-icon>flag</mat-icon>
+              <span>{{ 'Signaler' | translate }}</span>
+            </button>
+          </mat-menu>
+        </div>
+      </div>
+
+      <!-- État vide amélioré -->
+      <div *ngIf="filteredTransactions.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <mat-icon>receipt_long</mat-icon>
+        </div>
+        <h3>{{ 'Aucune transaction' | translate }}</h3>
+        <p>{{ 'Vous n\'avez pas encore de transactions dans cette catégorie' | translate }}</p>
+        <div class="empty-actions">
+          <button mat-raised-button color="primary" routerLink="/scan-pay" class="empty-btn">
+            <mat-icon>qr_code_scanner</mat-icon>
+            {{ 'Scanner un QR code' | translate }}
+          </button>
+          <button mat-stroked-button routerLink="/wallet/send" class="empty-btn secondary">
+            <mat-icon>send</mat-icon>
+            {{ 'Envoyer de l\'argent' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

@@ -1,4 +1,4 @@
-// src/app/components/transactions/transactions.component.ts
+// frontend/src/app/components/transactions/transactions.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -11,6 +11,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatRippleModule } from '@angular/material/core';
+import { MatDividerModule } from '@angular/material/divider';
 
 import { TransactionService } from '../../services/transaction.service';
 import { NotificationService } from '../../services/notification.service';
@@ -32,6 +35,9 @@ import { BaseComponent } from '../base.component';
     MatTabsModule,
     MatMenuModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
+    MatRippleModule,
+    MatDividerModule,
     TranslatePipe
   ],
   templateUrl: './transactions.component.html',
@@ -46,21 +52,51 @@ export class TransactionsComponent extends BaseComponent implements OnInit {
   totalReceived = 0;
   totalSent = 0;
 
+  // Types de transactions
+  private readonly INCOME_TYPES: Transaction['type'][] = ['deposit'];
+  private readonly EXPENSE_TYPES: Transaction['type'][] = ['withdrawal', 'payment', 'mobile_money', 'transfer'];
+
+  // Labels des types
+  private readonly TYPE_LABELS: Record<string, string> = {
+    'deposit': 'Dépôt',
+    'withdrawal': 'Retrait',
+    'transfer': 'Transfert',
+    'payment': 'Paiement',
+    'mobile_money': 'Mobile Money'
+  };
+
+  // Icônes des types
+  private readonly TYPE_ICONS: Record<string, string> = {
+    'deposit': 'arrow_downward',
+    'withdrawal': 'arrow_upward',
+    'payment': 'payment',
+    'transfer': 'swap_horiz',
+    'mobile_money': 'phone_android'
+  };
+
+  // Statuts
+  private readonly STATUS_LABELS: Record<string, string> = {
+    'completed': 'Réussi',
+    'pending': 'En attente',
+    'failed': 'Échoué',
+    'cancelled': 'Annulé'
+  };
+
   constructor(
     private transactionService: TransactionService,
     private notificationService: NotificationService,
     private router: Router
-  ) {super();}
+  ) {
+    super();
+  }
 
   override ngOnInit(): void {
     this.loadTransactions();
-    this.subscriptions.push(
-    this.translationService.language$.subscribe((lang) => {
-      console.log(`🌐 FriendsComponent: Langue changée en ${lang}`);
-      this.cdr.detectChanges();
-      })
-    );
   }
+
+  // ============================================================
+  // CHARGEMENT DES DONNÉES
+  // ============================================================
 
   loadTransactions(): void {
     this.isLoading = true;
@@ -74,7 +110,7 @@ export class TransactionsComponent extends BaseComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error(err);
+        console.error('❌ Erreur chargement transactions:', err);
         this.hasError = true;
         this.errorMessage = err.error?.message || 'Impossible de charger les transactions.';
         this.notificationService.showError(this.errorMessage);
@@ -83,18 +119,23 @@ export class TransactionsComponent extends BaseComponent implements OnInit {
     });
   }
 
-  calculateTotals(): void {
-    const incomeTypes: Transaction['type'][] = ['deposit'];
-    const expenseTypes: Transaction['type'][] = ['withdrawal', 'payment', 'mobile_money', 'transfer'];
+  // ============================================================
+  // CALCULS
+  // ============================================================
 
+  calculateTotals(): void {
     this.totalReceived = this.allTransactions
-      .filter(t => incomeTypes.includes(t.type) && t.status === 'completed')
+      .filter(t => this.INCOME_TYPES.includes(t.type) && t.status === 'completed')
       .reduce((sum, t) => sum + t.amount, 0);
 
     this.totalSent = this.allTransactions
-      .filter(t => expenseTypes.includes(t.type) && t.status === 'completed')
+      .filter(t => this.EXPENSE_TYPES.includes(t.type) && t.status === 'completed')
       .reduce((sum, t) => sum + t.amount, 0);
   }
+
+  // ============================================================
+  // FILTRES
+  // ============================================================
 
   get filteredTransactions(): Transaction[] {
     if (this.selectedTabIndex === 0) {
@@ -102,37 +143,43 @@ export class TransactionsComponent extends BaseComponent implements OnInit {
     } else if (this.selectedTabIndex === 1) {
       return this.allTransactions.filter(t => t.type === 'deposit');
     } else if (this.selectedTabIndex === 2) {
-      const expenseTypes: Transaction['type'][] = ['withdrawal', 'payment', 'transfer', 'mobile_money'];
-      return this.allTransactions.filter(t => expenseTypes.includes(t.type));
+      return this.allTransactions.filter(t => this.EXPENSE_TYPES.includes(t.type));
     }
     return this.allTransactions;
   }
 
+  getReceivedCount(): number {
+    return this.allTransactions.filter(t => t.type === 'deposit').length;
+  }
+
+  getSentCount(): number {
+    return this.allTransactions.filter(t => this.EXPENSE_TYPES.includes(t.type)).length;
+  }
+
+  getFilteredTotal(): number {
+    return this.filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
+  }
+
+  // ============================================================
+  // AFFICHAGE
+  // ============================================================
+
   getTransactionIcon(type: Transaction['type']): string {
-    switch (type) {
-      case 'deposit': return 'arrow_downward';
-      case 'withdrawal': return 'arrow_upward';
-      case 'payment': return 'payment';
-      case 'transfer': return 'swap_horiz';
-      case 'mobile_money': return 'phone_android';
-      default: return 'receipt';
-    }
+    return this.TYPE_ICONS[type] || 'receipt';
   }
 
   getTransactionColor(type: Transaction['type']): string {
     if (type === 'deposit') return 'accent';
-    if (['withdrawal', 'payment', 'transfer', 'mobile_money'].includes(type)) return 'warn';
+    if (this.EXPENSE_TYPES.includes(type)) return 'warn';
     return 'primary';
   }
 
   getStatusText(status: string): string {
-    const map: Record<string, string> = {
-      completed: 'Réussi',
-      pending: 'En attente',
-      failed: 'Échoué',
-      cancelled: 'Annulé'
-    };
-    return map[status] || status;
+    return this.STATUS_LABELS[status] || status;
+  }
+
+  getTypeLabel(type: string): string {
+    return this.TYPE_LABELS[type] || type;
   }
 
   getCounterparty(transaction: Transaction): string {
@@ -145,17 +192,32 @@ export class TransactionsComponent extends BaseComponent implements OnInit {
     return '';
   }
 
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
+
   viewDetails(transaction: Transaction): void {
     this.router.navigate(['/transactions', transaction.id]);
   }
 
   repeatTransaction(transaction: Transaction): void {
     this.router.navigate(['/wallet/send'], {
-      queryParams: { amount: transaction.amount, description: transaction.description }
+      queryParams: { 
+        amount: transaction.amount, 
+        description: transaction.description 
+      }
     });
   }
 
   retry(): void {
     this.loadTransactions();
+  }
+
+  // ============================================================
+  // UTILITAIRES
+  // ============================================================
+
+  formatAmount(amount: number): string {
+    return new Intl.NumberFormat('fr-MG').format(amount);
   }
 }
