@@ -3,11 +3,11 @@
 
   <!-- Header -->
   <header class="wallet-header">
-    <button class="icon-btn" (click)="goBack()" [attr.aria-label]="'Retour' | translate">
+    <button class="icon-btn" (click)="goBack()" [attr.aria-label]="'Retour' | translate" matTooltip="{{ 'Retour' | translate }}">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <span class="header-title">{{ 'SPAYE WALLET' | translate }}</span>
-    <button class="icon-btn" (click)="refreshData()" [class.spinning]="isRefreshing" [attr.aria-label]="'Actualiser' | translate">
+    <button class="icon-btn" (click)="refreshData()" [class.spinning]="isRefreshing" [attr.aria-label]="'Actualiser' | translate" matTooltip="{{ 'Actualiser' | translate }}">
       <mat-icon>refresh</mat-icon>
     </button>
   </header>
@@ -42,7 +42,7 @@
     @if (!isLoading && !hasError && wallet) {
 
       <!-- Balance card -->
-      <div class="balance-card">
+      <div class="balance-card" @fadeUp>
         <div class="balance-label">{{ 'Solde disponible' | translate }}</div>
         <div class="balance-amount">{{ formatAmount(wallet.balance) }}</div>
         <div class="balance-currency">
@@ -66,7 +66,7 @@
       </div>
 
       <!-- Quick actions -->
-      <div class="quick-actions">
+      <div class="quick-actions" @staggerFade>
         <button class="quick-btn" (click)="sendMoney()">
           <mat-icon>send</mat-icon>
           <span>{{ 'Envoyer' | translate }}</span>
@@ -86,7 +86,7 @@
       </div>
 
       <!-- Stats -->
-      <div class="stats-grid">
+      <div class="stats-grid" @staggerFade>
         <div class="stat-card">
           <div class="stat-icon income">
             <mat-icon>arrow_downward</mat-icon>
@@ -113,9 +113,12 @@
       </div>
 
       <!-- Transactions récentes -->
-      <div class="txn-card">
+      <div class="txn-card" @fadeUp>
         <div class="txn-header">
-          <span class="txn-title">{{ 'Transactions récentes' | translate }}</span>
+          <span class="txn-title">
+            <mat-icon>receipt_long</mat-icon>
+            {{ 'Transactions récentes' | translate }}
+          </span>
           <button class="btn-link" (click)="viewAllTransactions()">
             {{ 'Voir tout' | translate }} <mat-icon>arrow_forward</mat-icon>
           </button>
@@ -123,19 +126,19 @@
 
         @if (recentTransactions.length > 0) {
           <div class="txn-list">
-            @for (txn of recentTransactions; track txn.id) {
+            @for (txn of recentTransactions; track trackById($index, txn)) {
               <div class="txn-item" (click)="viewTransactionDetails(txn)">
-                <div class="txn-icon" [ngClass]="getTransactionClass(txn)">
+                <div class="txn-icon" [ngClass]="txn.type">
                   <mat-icon>{{ getTransactionIcon(txn) }}</mat-icon>
                 </div>
                 <div class="txn-info">
-                  <div class="txn-desc">{{ txn.description || txn.type }}</div>
+                  <div class="txn-desc">{{ txn.description || (txn.type | translate) }}</div>
                   <div class="txn-meta">
                     {{ txn.createdAt | date:'dd MMM yyyy · HH:mm' }}
+                    <span class="status-pill" [ngClass]="txn.status">
+                      {{ getStatusLabel(txn.status) }}
+                    </span>
                   </div>
-                  <span class="status-pill" [ngClass]="txn.status">
-                    {{ getStatusLabel(txn.status) }}
-                  </span>
                 </div>
                 <div class="txn-amount" [ngClass]="getAmountClass(txn)">
                   {{ getAmountSign(txn) }}{{ formatAmount(txn.amount) }} Ar

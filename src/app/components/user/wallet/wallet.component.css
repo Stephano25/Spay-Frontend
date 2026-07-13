@@ -1,34 +1,37 @@
+/* frontend/src/app/components/user/wallet/wallet.component.css */
 /* ============================================================
-   SPAYE — WALLET
+   SPAYE — WALLET (Version améliorée)
    ============================================================ */
 
 .wallet-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
   font-family: var(--font-body);
-  overflow: hidden;
 }
 
-/* Header */
+/* ============================================================
+   HEADER
+   ============================================================ */
 .wallet-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: var(--surface);
   border-bottom: 0.5px solid var(--border);
   flex-shrink: 0;
-  min-height: 60px;
+  min-height: 72px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .icon-btn {
   background: transparent;
   border: none;
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -42,22 +45,39 @@
   color: var(--text);
 }
 
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
 .icon-btn.spinning mat-icon {
   animation: spin 0.8s linear infinite;
 }
 
-.header-title {
-  font-weight: 700;
-  font-size: 0.875rem;
-  color: var(--text);
-  letter-spacing: 1px;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-/* Content */
+.icon-btn mat-icon {
+  font-size: 26px !important;
+  width: 26px !important;
+  height: 26px !important;
+}
+
+.header-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  letter-spacing: 0.5px;
+  font-family: var(--font-sans);
+}
+
+/* ============================================================
+   CONTENT
+   ============================================================ */
 .wallet-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 20px;
 }
 
 .wallet-content::-webkit-scrollbar {
@@ -68,90 +88,92 @@
   border-radius: 999px;
 }
 
-/* Skeletons */
+/* ============================================================
+   SKELETONS
+   ============================================================ */
 .skeleton-card {
-  height: 140px;
-  background: var(--surface-2);
-  border-radius: 16px;
-  margin-bottom: 16px;
-  animation: shimmer 1.5s infinite;
+  height: 160px;
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  border-radius: 18px;
+  margin-bottom: 18px;
+  animation: shimmer 1.8s infinite;
 }
 
 .skeleton-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .skeleton-item {
-  height: 56px;
-  background: var(--surface-2);
-  border-radius: 12px;
-  animation: shimmer 1.5s infinite;
-  animation-delay: 0.3s;
+  height: 64px;
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  border-radius: 14px;
+  animation: shimmer 1.8s infinite;
+  animation-delay: 0.2s;
 }
 
 .skeleton-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .skeleton-stat {
-  height: 80px;
-  background: var(--surface-2);
-  border-radius: 12px;
-  animation: shimmer 1.5s infinite;
-  animation-delay: 0.6s;
+  height: 88px;
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  border-radius: 14px;
+  animation: shimmer 1.8s infinite;
+  animation-delay: 0.4s;
 }
 
 @keyframes shimmer {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-/* Error State */
+/* ============================================================
+   ERROR STATE
+   ============================================================ */
 .error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
-  gap: 12px;
+  min-height: 320px;
+  gap: 14px;
   color: var(--text-3);
 }
 
 .error-state mat-icon {
-  font-size: 48px !important;
-  width: 48px !important;
-  height: 48px !important;
+  font-size: 56px !important;
+  width: 56px !important;
+  height: 56px !important;
   color: #ef4444;
 }
 
 .error-state p {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   margin: 0;
+  text-align: center;
 }
 
 .btn-retry {
-  padding: 8px 24px;
+  padding: 10px 28px;
   border-radius: 999px;
   border: none;
   background: var(--brand-grad);
   color: white;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn-retry:hover {
@@ -159,107 +181,140 @@
   box-shadow: var(--shadow-brand);
 }
 
-/* Balance Card */
+.btn-retry:active {
+  transform: scale(0.96);
+}
+
+/* ============================================================
+   BALANCE CARD
+   ============================================================ */
 .balance-card {
-  border-radius: 16px !important;
+  border-radius: 20px !important;
   overflow: hidden;
-  background: var(--brand-grad) !important;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
   color: white !important;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 24px rgba(124, 58, 237, 0.3) !important;
 }
 
 .balance-card mat-card-content {
-  padding: 20px !important;
+  padding: 24px !important;
   position: relative;
   z-index: 1;
 }
 
+.balance-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
 .balance-label {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  opacity: 0.8;
+  opacity: 0.85;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .balance-amount {
-  font-size: 2rem;
+  font-size: 2.4rem;
   font-weight: 800;
   font-family: 'JetBrains Mono', monospace;
-  margin: 4px 0;
+  margin: 6px 0 2px;
+  letter-spacing: -0.5px;
 }
 
 .balance-currency {
-  font-size: 0.7rem;
-  opacity: 0.7;
+  font-size: 0.75rem;
+  opacity: 0.8;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .live-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #10b981;
   display: inline-block;
   animation: pulse 1.5s infinite;
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
 .balance-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: 16px;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .bal-btn {
-  padding: 10px;
-  border-radius: 10px;
+  padding: 12px;
+  border-radius: 12px;
   border: none;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.15);
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
   color: white;
+  font-family: 'Inter', sans-serif;
 }
 
 .bal-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.22);
   transform: translateY(-2px);
 }
 
+.bal-btn:active {
+  transform: scale(0.96);
+}
+
 .bal-btn.primary {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.2);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
 }
 
 .bal-btn mat-icon {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
   color: white;
 }
 
-/* Quick Actions */
+/* ============================================================
+   QUICK ACTIONS
+   ============================================================ */
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .quick-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 12px 4px;
-  border-radius: 12px;
+  gap: 6px;
+  padding: 14px 6px;
+  border-radius: 14px;
   border: 0.5px solid var(--border);
   background: var(--surface);
   color: var(--text-2);
@@ -271,40 +326,53 @@
 .quick-btn:hover {
   border-color: var(--brand-1);
   color: var(--brand-1);
-  transform: translateY(-2px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.quick-btn:active {
+  transform: scale(0.96);
 }
 
 .quick-btn mat-icon {
-  font-size: 22px !important;
-  width: 22px !important;
-  height: 22px !important;
+  font-size: 26px !important;
+  width: 26px !important;
+  height: 26px !important;
 }
 
 .quick-btn span {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 500;
 }
 
-/* Stats Grid */
+/* ============================================================
+   STATS GRID
+   ============================================================ */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .stat-card {
-  padding: 12px;
+  padding: 14px 12px;
   background: var(--surface);
-  border-radius: 12px;
+  border-radius: 14px;
   border: 0.5px solid var(--border);
   text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--brand-1);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .stat-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -326,30 +394,34 @@
 }
 
 .stat-icon mat-icon {
-  font-size: 16px !important;
-  width: 16px !important;
-  height: 16px !important;
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
 }
 
 .stat-value {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .stat-label {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   color: var(--text-3);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
-/* Transactions Card */
+/* ============================================================
+   TRANSACTIONS CARD
+   ============================================================ */
 .txn-card {
-  border-radius: 14px !important;
+  border-radius: 16px !important;
   overflow: hidden;
+  border: 0.5px solid var(--border);
+  background: var(--surface) !important;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
 }
 
@@ -361,14 +433,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
+  padding: 16px 18px;
   border-bottom: 0.5px solid var(--border);
 }
 
 .txn-title {
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   color: var(--text);
+}
+
+.txn-title mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  color: var(--brand-1);
 }
 
 .btn-link {
@@ -376,12 +455,13 @@
   border: none;
   color: var(--brand-1);
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn-link:hover {
@@ -389,9 +469,9 @@
 }
 
 .btn-link mat-icon {
-  font-size: 16px !important;
-  width: 16px !important;
-  height: 16px !important;
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
 }
 
 .txn-list {
@@ -402,11 +482,11 @@
 .txn-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
+  gap: 14px;
+  padding: 12px 18px;
   border-bottom: 0.5px solid var(--border);
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .txn-item:hover {
@@ -418,8 +498,8 @@
 }
 
 .txn-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -443,11 +523,15 @@
   background: rgba(124, 58, 237, 0.12);
   color: #7c3aed;
 }
+.txn-icon.mobile_money {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
 
 .txn-icon mat-icon {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
 }
 
 .txn-info {
@@ -457,37 +541,43 @@
 
 .txn-desc {
   font-weight: 500;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text);
 }
 
 .txn-meta {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .status-pill {
   display: inline-block;
-  padding: 0 6px;
+  padding: 1px 8px;
   border-radius: 999px;
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   font-weight: 600;
   text-transform: capitalize;
 }
 
 .status-pill.completed {
   color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
 }
 .status-pill.pending {
   color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
 }
 .status-pill.failed {
   color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .txn-amount {
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-family: 'JetBrains Mono', monospace;
   white-space: nowrap;
 }
@@ -499,39 +589,42 @@
   color: #ef4444;
 }
 
-/* Empty State */
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px 20px;
-  gap: 8px;
+  padding: 40px 20px;
+  gap: 10px;
   color: var(--text-3);
 }
 
 .empty-state mat-icon {
-  font-size: 40px !important;
-  width: 40px !important;
-  height: 40px !important;
+  font-size: 48px !important;
+  width: 48px !important;
+  height: 48px !important;
   color: var(--border);
 }
 
 .empty-state p {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   margin: 0;
 }
 
 .btn-primary {
-  padding: 8px 24px;
+  padding: 10px 28px;
   border-radius: 999px;
   border: none;
   background: var(--brand-grad);
   color: white;
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn-primary:hover {
@@ -539,7 +632,13 @@
   box-shadow: var(--shadow-brand);
 }
 
-/* Responsive */
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 768px) {
   .skeleton-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -548,88 +647,307 @@
 
 @media (max-width: 600px) {
   .wallet-content {
-    padding: 12px;
+    padding: 14px;
   }
-  .balance-amount {
-    font-size: 1.5rem;
-  }
-  .balance-actions {
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 6px;
-  }
-  .bal-btn {
-    padding: 8px;
-    font-size: 0.65rem;
-  }
-  .quick-actions {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-  .stat-value {
-    font-size: 0.875rem;
-  }
-  .txn-item {
-    padding: 8px 12px;
-    flex-wrap: wrap;
-  }
-  .txn-amount {
-    font-size: 0.8125rem;
-  }
-  .skeleton-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .skeleton-stats {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  
   .wallet-header {
-    padding: 8px 12px;
-    min-height: 52px;
+    padding: 12px 16px;
+    min-height: 64px;
   }
+  
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .icon-btn mat-icon {
+    font-size: 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+  }
+  
   .header-title {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
   }
-}
-
-@media (max-width: 400px) {
+  
   .balance-amount {
-    font-size: 1.25rem;
+    font-size: 1.8rem;
   }
+  
+  .balance-card mat-card-content {
+    padding: 18px !important;
+  }
+  
   .balance-actions {
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 4px;
+    gap: 8px;
   }
+  
   .bal-btn {
-    font-size: 0.6rem;
-    padding: 6px;
+    padding: 10px;
+    font-size: 0.7rem;
   }
+  
   .bal-btn mat-icon {
-    font-size: 14px !important;
-    width: 14px !important;
-    height: 14px !important;
-  }
-  .quick-actions {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-  }
-  .quick-btn {
-    padding: 8px 4px;
-  }
-  .quick-btn mat-icon {
     font-size: 18px !important;
     width: 18px !important;
     height: 18px !important;
   }
-  .stats-grid {
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 4px;
+  
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
-  .stat-card {
+  
+  .quick-btn {
+    padding: 12px 6px;
+  }
+  
+  .quick-btn mat-icon {
+    font-size: 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  
+  .stat-value {
+    font-size: 0.95rem;
+  }
+  
+  .txn-item {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  
+  .txn-icon {
+    width: 34px;
+    height: 34px;
+  }
+  
+  .txn-icon mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  
+  .txn-desc {
+    font-size: 0.8rem;
+  }
+  
+  .txn-amount {
+    font-size: 0.85rem;
+  }
+  
+  .txn-header {
+    padding: 12px 14px;
+  }
+  
+  .skeleton-card {
+    height: 140px;
+  }
+  
+  .skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .skeleton-item {
+    height: 56px;
+  }
+  
+  .skeleton-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  
+  .skeleton-stat {
+    height: 76px;
+  }
+}
+
+@media (max-width: 400px) {
+  .wallet-content {
+    padding: 10px;
+  }
+  
+  .wallet-header {
+    padding: 8px 12px;
+    min-height: 56px;
+  }
+  
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+  
+  .icon-btn mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  .header-title {
+    font-size: 0.75rem;
+  }
+  
+  .balance-amount {
+    font-size: 1.4rem;
+  }
+  
+  .balance-card mat-card-content {
+    padding: 14px !important;
+  }
+  
+  .balance-label {
+    font-size: 0.7rem;
+  }
+  
+  .balance-actions {
+    gap: 6px;
+  }
+  
+  .bal-btn {
+    font-size: 0.6rem;
     padding: 8px;
   }
+  
+  .bal-btn mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .quick-btn {
+    padding: 10px 4px;
+  }
+  
+  .quick-btn mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  .quick-btn span {
+    font-size: 0.55rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  
+  .stat-card {
+    padding: 10px 6px;
+  }
+  
+  .stat-icon {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .stat-icon mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
   .stat-value {
+    font-size: 0.85rem;
+  }
+  
+  .stat-label {
+    font-size: 0.55rem;
+  }
+  
+  .txn-item {
+    padding: 8px 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .txn-icon {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .txn-icon mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  .txn-desc {
     font-size: 0.75rem;
+  }
+  
+  .txn-meta {
+    font-size: 0.6rem;
+  }
+  
+  .txn-amount {
+    font-size: 0.75rem;
+  }
+  
+  .txn-header {
+    padding: 10px 12px;
+  }
+  
+  .txn-title {
+    font-size: 0.8rem;
+  }
+  
+  .empty-state {
+    padding: 28px 16px;
+  }
+  
+  .empty-state mat-icon {
+    font-size: 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .empty-state p {
+    font-size: 0.8rem;
+  }
+  
+  .btn-primary {
+    padding: 8px 20px;
+    font-size: 0.8rem;
+  }
+  
+  .btn-retry {
+    padding: 8px 20px;
+    font-size: 0.8rem;
+  }
+  
+  .skeleton-card {
+    height: 120px;
+  }
+  
+  .skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .skeleton-item {
+    height: 48px;
+  }
+  
+  .skeleton-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  
+  .skeleton-stat {
+    height: 64px;
   }
 }

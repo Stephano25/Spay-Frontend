@@ -1,5 +1,5 @@
 // frontend/src/app/components/user/wallet/wallet.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject, forkJoin } from 'rxjs';
@@ -14,7 +14,7 @@ import { NotificationService } from '../../../services/notification.service';
 import { Wallet } from '../../../models/wallet.model';
 import { Transaction } from '../../../models/transaction.model';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
-import { BaseComponent } from '../../base.component';
+import { TranslationService } from '../../../services/translation.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -66,7 +66,7 @@ const ANIMATIONS = [
   styleUrls: ['./wallet.component.css'],
   animations: ANIMATIONS,
 })
-export class WalletComponent extends BaseComponent implements OnInit, OnDestroy {
+export class WalletComponent implements OnInit, OnDestroy {
   wallet: Wallet | null = null;
 
   totalDeposits = 0;
@@ -80,6 +80,7 @@ export class WalletComponent extends BaseComponent implements OnInit, OnDestroy 
   errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
 
   private destroy$ = new Subject<void>();
+  private subscriptions: any[] = [];
 
   private readonly TRANSACTION_ICONS: Record<string, string> = {
     deposit: 'arrow_downward',
@@ -104,15 +105,15 @@ export class WalletComponent extends BaseComponent implements OnInit, OnDestroy 
     private walletService: WalletService,
     private transactionService: TransactionService,
     private notificationService: NotificationService,
-    private router: Router
-  ) {
-    super();
-  }
+    private translationService: TranslationService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  override ngOnInit(): void {
+  ngOnInit(): void {
     this.loadData();
     
-    // ✅ S'abonner aux changements de langue
+    // S'abonner aux changements de langue
     this.subscriptions.push(
       this.translationService.language$.subscribe((lang) => {
         console.log(`🌐 WalletComponent: Langue changée en ${lang}`);
@@ -121,10 +122,11 @@ export class WalletComponent extends BaseComponent implements OnInit, OnDestroy 
     );
   }
 
-  override ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    super.ngOnDestroy();
+    // Nettoyer les souscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   loadData(): void {
@@ -158,12 +160,15 @@ export class WalletComponent extends BaseComponent implements OnInit, OnDestroy 
           this.totalWithdrawals = transactions
             .filter(t => this.EXPENSE_TYPES.has(t.type) && t.status === 'completed')
             .reduce((sum, t) => sum + t.amount, 0);
+            
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('[WalletComponent] Erreur chargement données:', err);
           this.hasError = true;
           this.errorMessage = err?.error?.message ?? 'Impossible de charger les données.';
           this.notificationService.showError(this.errorMessage);
+          this.cdr.detectChanges();
         }
       });
   }
@@ -240,12 +245,12 @@ export class WalletComponent extends BaseComponent implements OnInit, OnDestroy 
     return this.TRANSACTION_ICONS[txn.type] ?? 'receipt';
   }
 
-  getTransactionClass(txn: Transaction): 'income' | 'expense' | 'transfer' {
+  getTransactionClass(txn: Transaction): string {
     if (txn.type === 'transfer') return 'transfer';
     return this.EXPENSE_TYPES.has(txn.type) ? 'expense' : 'income';
   }
 
-  getAmountClass(txn: Transaction): 'positive' | 'negative' {
+  getAmountClass(txn: Transaction): string {
     return this.EXPENSE_TYPES.has(txn.type) ? 'negative' : 'positive';
   }
 
