@@ -16,6 +16,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../base.component';
 
 @Component({
   selector: 'app-profile',
@@ -32,12 +34,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TranslatePipe
   ],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent extends BaseComponent implements OnInit {
   user: any = null;
   editMode = false;
   isLoading = true;
@@ -51,9 +54,9 @@ export class ProfileComponent implements OnInit {
     private authService: AuthService,
     private notificationService: NotificationService,
     private router: Router
-  ) {}
+  ) {super();}
 
-  ngOnInit() {
+  override ngOnInit() {
     this.loadUserData();
   }
 

@@ -17,6 +17,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../base.component';
 
 @Component({
   selector: 'app-chat',
@@ -24,12 +26,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   imports: [
     CommonModule, FormsModule, RouterModule,
     MatIconModule, MatButtonModule, MatMenuModule,
-    MatTooltipModule, MatDividerModule, MatProgressSpinnerModule
+    MatTooltipModule, MatDividerModule, MatProgressSpinnerModule,
+    TranslatePipe
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
-export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('messageContainer') messageContainer!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef;
   @ViewChild('editInput') editInput!: ElementRef;
@@ -85,8 +88,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   recordingTimer: any = null;
   recordingDuration = 0;
 
-  private subscriptions: Subscription[] = [];
-
   emojis = [
     '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰',
     '😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏',
@@ -107,9 +108,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     private configService: ConfigService,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {super();}
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id || '';
     this.loadConversations();
@@ -122,13 +123,22 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       if (params['friendId']) setTimeout(() => this.openChatWithFriendId(params['friendId']), 800);
     });
     setTimeout(() => this.forceReloadFriends(), 3000);
+
+    // ✅ S'abonner aux changements de langue
+    this.subscriptions.push(
+      this.translationService.language$.subscribe((lang) => {
+        console.log(`🌐 ChatComponent: Langue changée en ${lang}`);
+        // ✅ Mettre à jour les traductions dans le template
+        this.cdr.detectChanges();
+      })
+    );
   }
 
   ngAfterViewChecked(): void {
     if (this.shouldScrollToBottom) { this.doScrollToBottom(); this.shouldScrollToBottom = false; }
   }
 
-  ngOnDestroy(): void {
+  override ngOnDestroy(): void {
     this.subscriptions.forEach(s => s.unsubscribe());
     if (this.typingTimeout) clearTimeout(this.typingTimeout);
     this.endCall();
@@ -140,6 +150,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       clearInterval(this.recordingTimer);
       this.recordingTimer = null;
     }
+    super.ngOnDestroy();
   }
 
   // ✅ Méthode pour revenir à la liste des conversations (bouton retour mobile)

@@ -16,6 +16,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatRippleModule } from '@angular/material/core';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-admin-admins',
@@ -34,11 +36,12 @@ import { MatRippleModule } from '@angular/material/core';
     MatDialogModule,
     MatToolbarModule,
     MatRippleModule,
+    TranslatePipe
   ],
   templateUrl: './admin-admins.component.html',
   styleUrls: ['./admin-admins.component.css'],
 })
-export class AdminAdminsComponent implements OnInit {
+export class AdminAdminsComponent extends BaseComponent implements OnInit {
   admins: any[] = [];
   isLoading = true;
   currentAdminId: string = '';
@@ -55,9 +58,11 @@ export class AdminAdminsComponent implements OnInit {
     private authService: AuthService,
     private notificationService: NotificationService,
     private router: Router,
-  ) {}
+  ) {
+    super();
+  }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.currentAdminId = user?.id || '';
     this.isSuperAdmin = user?.role === 'super_admin';

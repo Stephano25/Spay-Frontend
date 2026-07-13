@@ -26,6 +26,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { User } from '../../../models/user.model';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../../base.component';
 
 @Component({
   selector: 'app-admin-users',
@@ -46,11 +48,12 @@ import { User } from '../../../models/user.model';
     MatToolbarModule,
     QRScannerComponent,
     QRTransactionFormComponent,
+    TranslatePipe
   ],
   templateUrl: './admin-users.component.html',
   styleUrls: ['./admin-users.component.css'],
 })
-export class AdminUsersComponent implements OnInit {
+export class AdminUsersComponent extends BaseComponent implements OnInit {
   users: User[] = [];
   isLoading = true;
   
@@ -67,9 +70,9 @@ export class AdminUsersComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private dialog: MatDialog,
-  ) {}
+  ) {super ();}
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.loadUsers();
   }
 

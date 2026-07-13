@@ -12,12 +12,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../../base.component';
 
-export interface DepositDialogData {
+export interface DepositDialogData extends BaseComponent {
   user: any;
 }
 
-export interface DepositDialogResult {
+export interface DepositDialogResult extends BaseComponent {
   amount: number;
   description?: string;
 }
@@ -34,6 +36,7 @@ export interface DepositDialogResult {
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslatePipe
   ],
   template: `
     <h2 mat-dialog-title class="dialog-title">
@@ -218,7 +221,7 @@ export interface DepositDialogResult {
     }
   `]
 })
-export class DepositDialogComponent {
+export class DepositDialogComponent extends BaseComponent{
   selectedAmount: number = 0;
   description: string = '';
   isSubmitting: boolean = false;
@@ -227,7 +230,7 @@ export class DepositDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<DepositDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: DepositDialogData,
-  ) {}
+  ) {super ();}
 
   getUserInitials(): string {
     const user = this.data.user;

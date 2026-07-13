@@ -1,7 +1,4 @@
-// ============================================================
-// ADMIN SETTINGS - SPaye
-// ============================================================
-
+// frontend/src/app/components/admin/settings/settings.component.ts
 import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -14,11 +11,8 @@ import { AdminService } from '../../../services/admin.service';
 import { ThemeService } from '../../../services/theme.service';
 import { TranslationService } from '../../../services/translation.service';
 import { User } from '../../../models/user.model';
-
-// ✅ Import du pipe standalone
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 
-// Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,6 +31,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
+import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-admin-settings',
@@ -64,12 +59,12 @@ import { MatBadgeModule } from '@angular/material/badge';
     MatExpansionModule,
     MatChipsModule,
     MatBadgeModule,
-    TranslatePipe, // ✅ Import du pipe standalone
+    TranslatePipe
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
 })
-export class AdminSettingsComponent implements OnInit, OnDestroy {
+export class AdminSettingsComponent extends BaseComponent implements OnInit, OnDestroy {
   admin: User | null = null;
   
   generalSettings = {
@@ -180,8 +175,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   notificationForm!: FormGroup;
   customizationForm!: FormGroup;
 
-  private subscriptions: Subscription[] = [];
-
   themes = [
     { value: 'light', label: 'Clair', icon: 'light_mode' },
     { value: 'dark', label: 'Sombre', icon: 'dark_mode' },
@@ -201,27 +194,54 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     { value: 'super_admin', label: 'Super Admin' }
   ];
 
+  get currentThemeLabel(): string {
+    const theme = this.themes.find(t => t.value === this.customizationSettings.theme);
+    return theme ? theme.label : 'Thème';
+  }
+
+  get currentThemeIcon(): string {
+    const theme = this.customizationSettings.theme;
+    return theme === 'light' ? 'light_mode' : theme === 'dark' ? 'dark_mode' : 'settings_suggest';
+  }
+
+  get currentLanguageLabel(): string {
+    const lang = this.languages.find(l => l.value === this.selectedLanguage);
+    return lang ? lang.label : 'Langue';
+  }
+
+  get currentLanguageFlag(): string {
+    const lang = this.languages.find(l => l.value === this.selectedLanguage);
+    return lang ? lang.flag : '🇫🇷';
+  }
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private adminService: AdminService,
     private notificationService: NotificationService,
     private router: Router,
-    private renderer: Renderer2,
-    private themeService: ThemeService,
-    private translationService: TranslationService
+    private renderer: Renderer2
   ) {
-    this.initForms();
+    super();
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.loadAdminData();
     this.loadSettings();
     this.loadThemeFromService();
+    this.loadLanguageFromService();
+
+    this.subscriptions.push(
+      this.translationService.language$.subscribe((lang) => {
+        console.log(`🌐 AdminSettings: Langue changée en ${lang}`);
+        this.selectedLanguage = lang;
+        this.cdr.detectChanges();
+      })
+    );
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
   }
 
   private initForms(): void {
@@ -373,6 +393,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadLanguageFromService(): void {
+    const savedLang = localStorage.getItem('user_language') || 'fr';
+    this.selectedLanguage = savedLang;
+  }
+
   private updateForms(): void {
     this.generalForm.patchValue(this.generalSettings);
     this.securityForm.patchValue(this.securitySettings);
@@ -380,6 +405,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.notificationForm.patchValue(this.notificationSettings);
     this.customizationForm.patchValue(this.customizationSettings);
   }
+
+  // ============================================================
+  // SAUVEGARDE DES PARAMÈTRES
+  // ============================================================
 
   saveGeneralSettings(): void {
     if (this.generalForm.invalid) return;
@@ -489,9 +518,63 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     );
   }
 
+  // ============================================================
+  // THÈME, LANGUE, POLICE
+  // ============================================================
+
+  setTheme(themeValue: string): void {
+    console.log(`🎨 AdminSettings: Sélection du thème ${themeValue}`);
+    
+    this.customizationForm.patchValue({ theme: themeValue });
+    this.customizationSettings.theme = themeValue;
+    
+    this.themeService.applyTheme(
+      themeValue,
+      this.customizationSettings.primaryColor,
+      this.customizationSettings.secondaryColor
+    );
+    
+    this.notificationService.showSuccess(`Thème changé en ${this.getThemeName(themeValue)}`);
+  }
+
+  setLanguage(langValue: string): void {
+    console.log(`🌐 AdminSettings: Sélection de la langue ${langValue}`);
+    
+    this.selectedLanguage = langValue;
+    
+    // ✅ Application immédiate via TranslationService
+    this.translationService.applyLanguageToAll(langValue);
+    
+    // ✅ Application via ThemeService
+    this.themeService.applyLanguage(langValue);
+    
+    // ✅ Sauvegarde
+    localStorage.setItem('admin_language', langValue);
+    localStorage.setItem('user_language', langValue);
+    
+    this.customizationForm.patchValue({ language: langValue });
+    
+    this.notificationService.showSuccess(`Langue changée en ${this.getLanguageName(langValue)}`);
+    this.cdr.detectChanges();
+  }
+
+  setFontSize(sizeValue: string): void {
+    console.log(`📏 AdminSettings: Sélection de la taille ${sizeValue}`);
+    
+    this.themeService.applyFontSize(sizeValue);
+    
+    const sizeNames: Record<string, string> = { small: 'Petite', medium: 'Moyenne', large: 'Grande' };
+    this.notificationService.showSuccess(`Taille de police changée en ${sizeNames[sizeValue] || sizeValue}`);
+  }
+
+  // ============================================================
+  // SAUVEGARDE DES PARAMÈTRES DE PERSONNALISATION
+  // ============================================================
+
   saveCustomizationSettings(): void {
     if (this.customizationForm.invalid) return;
     this.isSaving = true;
+    
     const theme = this.customizationForm.get('theme')?.value;
     const primaryColor = this.customizationForm.get('primaryColor')?.value;
     const secondaryColor = this.customizationForm.get('secondaryColor')?.value;
@@ -505,29 +588,19 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.themeService.applyTheme(theme, primaryColor, secondaryColor);
     this.applyCustomCSS(customCSS);
 
+    this.translationService.setLanguage(this.selectedLanguage);
+    this.themeService.applyLanguage(this.selectedLanguage);
+
     setTimeout(() => {
       this.notificationService.showSuccess('Paramètres de personnalisation sauvegardés');
       this.isSaving = false;
+      this.cdr.detectChanges();
     }, 500);
   }
 
-  setTheme(themeValue: string): void {
-    this.customizationForm.patchValue({ theme: themeValue });
-    this.customizationSettings.theme = themeValue;
-    this.themeService.applyTheme(
-      themeValue,
-      this.customizationSettings.primaryColor,
-      this.customizationSettings.secondaryColor
-    );
-    this.notificationService.showSuccess(`Thème changé en ${this.getThemeName(themeValue)}`);
-  }
-
-  setLanguage(langValue: string): void {
-    this.selectedLanguage = langValue;
-    this.translationService.setLanguage(langValue);
-    this.notificationService.showSuccess(`Langue changée en ${this.getLanguageName()}`);
-    setTimeout(() => window.location.reload(), 500);
-  }
+  // ============================================================
+  // MISE À JOUR DES COULEURS
+  // ============================================================
 
   updatePrimaryColor(event: any): void {
     const color = event.target.value;
@@ -573,14 +646,20 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     return theme?.label || 'Clair';
   }
 
-  public getLanguageName(): string {
-    const lang = this.languages.find(l => l.value === this.selectedLanguage);
+  getLanguageName(langValue: string): string {
+    const lang = this.languages.find(l => l.value === langValue);
     return lang?.label || 'Français';
   }
+
+  // ============================================================
+  // RÉINITIALISATION
+  // ============================================================
 
   resetAllSettings(): void {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les paramètres ?')) {
       localStorage.removeItem('admin_settings');
+      localStorage.removeItem('admin_language');
+      
       this.generalSettings = {
         siteName: 'SPaye',
         siteUrl: 'https://spaye.com',
@@ -592,6 +671,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         maxFileSize: 150,
         sessionTimeout: 30
       };
+      
       this.customizationSettings = {
         theme: 'light',
         primaryColor: '#7c3aed',
@@ -601,13 +681,23 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         customCSS: '',
         customJS: ''
       };
+      
       this.selectedLanguage = 'fr';
       this.updateForms();
+      
       this.themeService.applyTheme('light', '#7c3aed', '#4f46e5');
+      this.themeService.applyFontSize('medium');
+      this.translationService.setLanguage('fr');
+      this.themeService.applyLanguage('fr');
+      
       this.notificationService.showInfo('Paramètres généraux réinitialisés');
       setTimeout(() => window.location.reload(), 1500);
     }
   }
+
+  // ============================================================
+  // EXPORT / IMPORT
+  // ============================================================
 
   exportSettings(): void {
     const settings = {
@@ -641,7 +731,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         this.paymentSettings = settings.payment || this.paymentSettings;
         this.notificationSettings = settings.notification || this.notificationSettings;
         this.customizationSettings = settings.customization || this.customizationSettings;
-        if (settings.language) this.selectedLanguage = settings.language;
+        if (settings.language) {
+          this.selectedLanguage = settings.language;
+          this.translationService.setLanguage(settings.language);
+          this.themeService.applyLanguage(settings.language);
+        }
         this.updateForms();
         this.themeService.applyTheme(
           this.customizationSettings.theme,
@@ -655,6 +749,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     };
     reader.readAsText(file);
   }
+
+  // ============================================================
+  // UTILITAIRES
+  // ============================================================
 
   formatLogDate(date: Date): string {
     const now = new Date();
@@ -681,6 +779,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   formatNumber(value: number): string {
     return value.toString();
   }
+
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
 
   logout(): void {
     this.authService.logout();

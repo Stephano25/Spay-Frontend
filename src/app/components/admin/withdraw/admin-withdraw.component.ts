@@ -14,6 +14,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../../base.component';
 
 @Component({
   selector: 'app-admin-withdraw',
@@ -31,11 +33,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatToolbarModule,
+    TranslatePipe
   ],
   templateUrl: './admin-withdraw.component.html',
   styleUrls: ['./admin-withdraw.component.css'],
 })
-export class AdminWithdrawComponent implements OnInit {
+export class AdminWithdrawComponent extends BaseComponent implements OnInit {
   users: any[] = [];
   admins: any[] = [];
   selectedUserId: string = '';
@@ -59,9 +62,9 @@ export class AdminWithdrawComponent implements OnInit {
     private notificationService: NotificationService,
     private router: Router,
     private route: ActivatedRoute,
-  ) {}
+  ) {super ();}
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       this.isAdminWithdraw = params['target'] === 'admin';
       this.targetAdminId = params['adminId'] || null;

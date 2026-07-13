@@ -5,11 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../base.component';
 
 @Component({
   selector: 'app-auth-callback',
   standalone: true,
-  imports: [CommonModule, MatProgressSpinnerModule, MatIconModule],
+  imports: [CommonModule, MatProgressSpinnerModule, MatIconModule, TranslatePipe],
   styles: [`
     /* ============================================================
    SPAYE — AUTH CALLBACK
@@ -265,7 +267,7 @@ import { MatIconModule } from '@angular/material/icon';
     </div>
   `
 })
-export class AuthCallbackComponent implements OnInit {
+export class AuthCallbackComponent extends BaseComponent implements OnInit {
   isProcessing = true;
   error: string | null = null;
 
@@ -273,9 +275,9 @@ export class AuthCallbackComponent implements OnInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) {super();}
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     // ✅ Extraire le token des query params
     this.route.queryParams.subscribe(params => {
       const token = params['token'];

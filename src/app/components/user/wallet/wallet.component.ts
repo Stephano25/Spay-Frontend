@@ -1,3 +1,4 @@
+// frontend/src/app/components/user/wallet/wallet.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -12,6 +13,8 @@ import { TransactionService } from '../../../services/transaction.service';
 import { NotificationService } from '../../../services/notification.service';
 import { Wallet } from '../../../models/wallet.model';
 import { Transaction } from '../../../models/transaction.model';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { BaseComponent } from '../../base.component';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -57,12 +60,13 @@ const ANIMATIONS = [
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatSnackBarModule,
+    TranslatePipe,
   ],
   templateUrl: './wallet.component.html',
   styleUrls: ['./wallet.component.css'],
   animations: ANIMATIONS,
 })
-export class WalletComponent implements OnInit, OnDestroy {
+export class WalletComponent extends BaseComponent implements OnInit, OnDestroy {
   wallet: Wallet | null = null;
 
   totalDeposits = 0;
@@ -100,16 +104,27 @@ export class WalletComponent implements OnInit, OnDestroy {
     private walletService: WalletService,
     private transactionService: TransactionService,
     private notificationService: NotificationService,
-    private router: Router,
-  ) {}
-
-  ngOnInit(): void {
-    this.loadData();
+    private router: Router
+  ) {
+    super();
   }
 
-  ngOnDestroy(): void {
+  override ngOnInit(): void {
+    this.loadData();
+    
+    // ✅ S'abonner aux changements de langue
+    this.subscriptions.push(
+      this.translationService.language$.subscribe((lang) => {
+        console.log(`🌐 WalletComponent: Langue changée en ${lang}`);
+        this.cdr.detectChanges();
+      })
+    );
+  }
+
+  override ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    super.ngOnDestroy();
   }
 
   loadData(): void {
@@ -153,14 +168,12 @@ export class WalletComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ✅ Bouton "Rafraîchir" - fonctionne
   refreshData(): void {
     this.isRefreshing = true;
     this.loadData();
     this.notificationService.showInfo('Données actualisées');
   }
 
-  // ✅ Bouton "Envoyer" - fonctionne
   sendMoney(): void {
     console.log('🔵 Navigation vers Envoyer de l\'argent');
     this.router.navigate(['/user/wallet/send']).catch(err => {
@@ -172,7 +185,6 @@ export class WalletComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Bouton "Recevoir" - fonctionne
   receiveMoney(): void {
     console.log('🔵 Navigation vers Recevoir de l\'argent');
     this.router.navigate(['/user/wallet/receive']).catch(err => {
@@ -184,7 +196,6 @@ export class WalletComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Bouton "Mobile Money" - fonctionne
   mobileMoney(): void {
     console.log('🔵 Navigation vers Mobile Money');
     this.router.navigate(['/user/mobile-money']).catch(err => {
@@ -193,7 +204,6 @@ export class WalletComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Bouton "Scanner QR" - fonctionne
   scanQR(): void {
     console.log('🔵 Navigation vers Scanner QR');
     this.router.navigate(['/user/scan-pay']).catch(err => {
@@ -202,7 +212,6 @@ export class WalletComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Bouton "Voir toutes les transactions" - fonctionne
   viewAllTransactions(): void {
     console.log('🔵 Navigation vers Historique des transactions');
     this.router.navigate(['/user/transactions']).catch(err => {
@@ -211,7 +220,6 @@ export class WalletComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Bouton "Retour" - fonctionne
   goBack(): void {
     console.log('🔵 Navigation vers tableau de bord');
     this.router.navigate(['/user/dashboard']).catch(err => {
@@ -220,7 +228,6 @@ export class WalletComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Clic sur une transaction - fonctionne
   viewTransactionDetails(txn: Transaction): void {
     console.log('🔵 Navigation vers détails transaction:', txn.id);
     this.router.navigate(['/user/transactions', txn.id]).catch(err => {
@@ -228,10 +235,6 @@ export class WalletComponent implements OnInit, OnDestroy {
       this.router.navigate(['/transactions', txn.id]);
     });
   }
-
-  // ============================================================
-  // HELPERS D'AFFICHAGE
-  // ============================================================
 
   getTransactionIcon(txn: Transaction): string {
     return this.TRANSACTION_ICONS[txn.type] ?? 'receipt';

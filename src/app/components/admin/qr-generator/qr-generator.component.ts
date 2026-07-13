@@ -15,6 +15,8 @@ import { Clipboard } from '@angular/cdk/clipboard';
 
 import { AdminService, QRCodeResponse } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-qr-generator',
@@ -31,11 +33,12 @@ import { NotificationService } from '../../../services/notification.service';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatDividerModule,
+    TranslatePipe
   ],
   templateUrl: './qr-generator.component.html',
   styleUrls: ['./qr-generator.component.css'],
 })
-export class QRGeneratorComponent implements OnInit {
+export class QRGeneratorComponent extends BaseComponent implements OnInit {
   @Input() defaultType: 'deposit' | 'withdraw' = 'deposit';
   @Output() qrGenerated = new EventEmitter<QRCodeResponse>();
   @Output() closeGenerator = new EventEmitter<void>();
@@ -50,9 +53,11 @@ export class QRGeneratorComponent implements OnInit {
     private adminService: AdminService,
     private notificationService: NotificationService,
     private clipboard: Clipboard,
-  ) {}
+  ) {
+    super();
+  }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.selectedType = this.defaultType;
     setTimeout(() => {
       this.generateQR();

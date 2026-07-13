@@ -17,6 +17,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-admin-profile',
@@ -36,11 +38,12 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
     MatSlideToggleModule,
     MatTooltipModule,
     MatDialogModule,
+    TranslatePipe
   ],
   templateUrl: './admin-profile.component.html',
   styleUrls: ['./admin-profile.component.css'],
 })
-export class AdminProfileComponent implements OnInit {
+export class AdminProfileComponent extends BaseComponent implements OnInit {
   admin: any = null;
   stats: any = {};
   editMode = false;
@@ -61,9 +64,11 @@ export class AdminProfileComponent implements OnInit {
     private notificationService: NotificationService,
     private router: Router,
     private dialog: MatDialog,
-  ) {}
+  ) {
+    super();
+  }
 
-  ngOnInit() {
+  override ngOnInit() {
     this.loadAdminData();
     this.loadStats();
     const user = this.authService.getCurrentUser();

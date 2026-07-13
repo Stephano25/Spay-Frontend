@@ -16,6 +16,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-receive-money',
@@ -30,7 +32,8 @@ import { MatDividerModule } from '@angular/material/divider';
     MatTooltipModule,
     MatInputModule,
     MatDividerModule,
-    UrlEncodePipe
+    UrlEncodePipe,
+    TranslatePipe
   ],
   templateUrl: './receive-money.component.html',
   styleUrls: ['./receive-money.component.css'],
@@ -79,7 +82,7 @@ import { MatDividerModule } from '@angular/material/divider';
     ])
   ]
 })
-export class ReceiveMoneyComponent implements OnInit, OnDestroy {
+export class ReceiveMoneyComponent extends BaseComponent implements OnInit, OnDestroy {
   qrCode: any = null;
   isLoading: boolean = true;
   showAmountOptions: boolean = false;
@@ -102,16 +105,17 @@ export class ReceiveMoneyComponent implements OnInit, OnDestroy {
     private walletService: WalletService,
     private notificationService: NotificationService,
     private router: Router
-  ) {}
+  ) {super ();}
 
-  ngOnInit() {
+  override ngOnInit() {
     this.generateQR();
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     if (this.expirationInterval) {
       clearInterval(this.expirationInterval);
     }
+    super.ngOnDestroy();
   }
 
   // ✅ Bouton "Générer un QR code" - fonctionne

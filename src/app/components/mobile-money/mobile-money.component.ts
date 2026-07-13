@@ -1,8 +1,11 @@
+// src/app/components/mobile-money/mobile-money.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { trigger, transition, style, animate, keyframes } from '@angular/animations';
+import { BaseComponent } from '../base.component';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 // Services
 import { TransactionService } from '../../services/transaction.service';
@@ -55,7 +58,8 @@ interface Fees {
     MatProgressSpinnerModule,
     MatSelectModule,
     MatDividerModule,
-    MatSliderModule
+    MatSliderModule,
+    TranslatePipe
   ],
   templateUrl: './mobile-money.component.html',
   styleUrls: ['./mobile-money.component.css'],
@@ -123,7 +127,7 @@ interface Fees {
     ])
   ]
 })
-export class MobileMoneyComponent implements OnInit, OnDestroy {
+export class MobileMoneyComponent extends BaseComponent implements OnInit, OnDestroy {
   // État
   currentStep: 'operator' | 'amount' | 'confirmation' | 'success' = 'operator';
   selectedOperator: Operator | null = null;
@@ -133,7 +137,7 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
   // Formulaire
   mobileMoneyForm: FormGroup;
   
-  // 🔥 Opérateurs disponibles - MVola corrigé en VERT
+  // Opérateurs disponibles
   operators: Operator[] = [
     { 
       id: 'airtel', 
@@ -157,7 +161,6 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
       id: 'mvola', 
       name: 'MVola', 
       icon: 'phone_android', 
-      // 🔥 CORRECTION: Couleur MVola en VERT
       color: '#00a651', 
       code: '034',
       prefix: '034',
@@ -193,6 +196,10 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private router: Router
   ) {
+    // ✅ APPEL OBLIGATOIRE - DOIT ÊTRE LE PREMIER
+    super();
+    
+    // ✅ Maintenant on peut utiliser 'this'
     this.mobileMoneyForm = this.fb.group({
       operator: ['', Validators.required],
       phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]{9,10}$')]],
@@ -200,15 +207,16 @@ export class MobileMoneyComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     this.loadBalance();
     this.setupFormListeners();
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     if (this.scanInterval) {
       clearInterval(this.scanInterval);
     }
+    super.ngOnDestroy();
   }
 
   /**

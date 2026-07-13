@@ -5,6 +5,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate, keyframes } from '@angular/animations';
 import { Html5Qrcode } from 'html5-qrcode';
+import { BaseComponent } from '../base.component';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 // Services
 import { TransactionService } from '../../services/transaction.service';
@@ -35,7 +37,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TranslatePipe
   ],
   templateUrl: './scan-pay.component.html',
   styleUrls: ['./scan-pay.component.css'],
@@ -72,7 +75,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     ])
   ]
 })
-export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ScanPayComponent extends BaseComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('videoElement') videoElement!: ElementRef;
   
   isScanning = true;
@@ -102,13 +105,17 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute
   ) {
+    // ✅ APPEL OBLIGATOIRE - DOIT ÊTRE LE PREMIER
+    super();
+    
+    // ✅ Maintenant on peut utiliser 'this'
     this.paymentForm = this.fb.group({
       amount: ['', [Validators.required, Validators.min(100)]],
       description: ['']
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       if (params['type'] === 'deposit') {
         this.scanType = 'deposit';
@@ -127,12 +134,13 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 800);
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.stopQRScanner();
+    super.ngOnDestroy();
   }
 
   // ============================================================
-  // QR SCANNER - VRAI SCANNER
+  // QR SCANNER
   // ============================================================
 
   async startQRScanner() {
@@ -140,7 +148,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isCameraStarting = true;
 
     try {
-      // ✅ Vérifier la permission caméra
       const hasCamera = await this.checkCameraPermission();
       if (!hasCamera) {
         this.hasCamera = false;
@@ -153,10 +160,7 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cameraError = false;
       this.cameraPermissionDenied = false;
 
-      // ✅ Créer le conteneur du scanner
       this.createScannerContainer();
-
-      // ✅ Initialiser le scanner
       this.html5QrCode = new Html5Qrcode(this.scannerContainerId);
 
       const config = {
@@ -183,7 +187,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cameraError = true;
       this.isCameraStarting = false;
       
-      // ✅ Essayer avec la caméra arrière par défaut
       try {
         await this.tryFallbackCamera();
       } catch {
@@ -213,13 +216,11 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private createScannerContainer(): void {
-    // ✅ Supprimer l'ancien conteneur s'il existe
     const oldContainer = document.getElementById(this.scannerContainerId);
     if (oldContainer) {
       oldContainer.remove();
     }
 
-    // ✅ Créer le conteneur dans la zone prévue
     const scannerContainer = document.getElementById('qr-scanner-container');
     if (scannerContainer) {
       scannerContainer.innerHTML = '';
@@ -231,7 +232,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
       readerElement.style.margin = '0 auto';
       scannerContainer.appendChild(readerElement);
     } else {
-      // Fallback: créer le conteneur dans le body
       const container = document.createElement('div');
       container.id = 'qr-scanner-container';
       container.style.width = '100%';
@@ -250,7 +250,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
       readerElement.style.margin = '0 auto';
       container.appendChild(readerElement);
       
-      // Ajouter dans la vue
       const cameraPreview = document.querySelector('.camera-preview');
       if (cameraPreview) {
         cameraPreview.appendChild(container);
@@ -291,7 +290,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
   onScanSuccess(decodedText: string, decodedResult: any) {
     console.log('✅ QR Code scanné avec succès:', decodedText);
     
-    // ✅ Vibrer
     if (navigator.vibrate) {
       navigator.vibrate(200);
     }
@@ -301,8 +299,7 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onScanError(error: any) {
-    // Ignorer les erreurs de scan (log seulement en debug)
-    // console.debug('Erreur scan:', error);
+    // Ignorer les erreurs de scan
   }
 
   requestCameraPermission() {
@@ -311,10 +308,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
     this.startQRScanner();
   }
 
-  // ============================================================
-  // RETRY SCANNER
-  // ============================================================
-
   retryScanner() {
     this.cameraError = false;
     this.cameraPermissionDenied = false;
@@ -322,10 +315,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isScanning = true;
     this.startQRScanner();
   }
-
-  // ============================================================
-  // TRAITEMENT DES DONNÉES SCANNEES
-  // ============================================================
 
   processScannedData(data: string) {
     try {
@@ -380,10 +369,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
       }, 1000);
     }
   }
-
-  // ============================================================
-  // PAIEMENT / DÉPÔT / RETRAIT
-  // ============================================================
 
   processPayment() {
     if (this.paymentForm.invalid) {
@@ -514,10 +499,6 @@ export class ScanPayComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
   }
-
-  // ============================================================
-  // UTILITAIRES
-  // ============================================================
 
   resetScanner() {
     this.isScanning = true;

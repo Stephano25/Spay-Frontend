@@ -1,13 +1,12 @@
-// ============================================================
-// USER SETTINGS - SPaye (Version Corrigée)
-// ============================================================
-
+// frontend/src/app/components/user/settings/settings.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
+import { BaseComponent } from '../../base.component';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -15,9 +14,6 @@ import { UserService } from '../../../services/user.service';
 import { TranslationService } from '../../../services/translation.service';
 import { ThemeService } from '../../../services/theme.service';
 import { User, UserSettings } from '../../../models/user.model';
-
-// Import du pipe standalone
-import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -39,7 +35,6 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialogModule } from '@angular/material/dialog';
 
-// ✅ Définition des types pour éviter les erreurs
 type ThemeType = 'light' | 'dark' | 'system';
 type FontSizeType = 'small' | 'medium' | 'large';
 type LanguageType = 'fr' | 'mg' | 'en';
@@ -76,7 +71,7 @@ type LanguageType = 'fr' | 'mg' | 'en';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
 })
-export class UserSettingsComponent implements OnInit, OnDestroy {
+export class UserSettingsComponent extends BaseComponent implements OnInit, OnDestroy {
   user: User | null = null;
   settings: UserSettings = {
     general: { autoplayVideos: true, nsfwFilter: true },
@@ -108,12 +103,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   showNewPassword = false;
   showConfirmPassword = false;
 
-  // États des menus déroulants rapides
   themeMenuOpen = false;
   languageMenuOpen = false;
   fontSizeMenuOpen = false;
 
-  // Données sociales
   friendsCount = 0;
   postsCount = 0;
   friendsList: any[] = [];
@@ -125,9 +118,6 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   activeDevices: any[] = [];
   profilePhotoUrl: string | null = null;
 
-  private subscriptions: Subscription[] = [];
-
-  // ✅ Typage explicite des tableaux avec flags pour les langues
   languages: { value: LanguageType; label: string; flag: string }[] = [
     { value: 'fr', label: 'Français', flag: '🇫🇷' },
     { value: 'mg', label: 'Malagasy', flag: '🇲🇬' },
@@ -151,6 +141,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     { value: 'friends', label: 'Amis uniquement' },
     { value: 'private', label: 'Privé' }
   ];
+  
   sessionTimeouts = [
     { value: 15, label: '15 minutes' },
     { value: 30, label: '30 minutes' },
@@ -164,10 +155,10 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private notificationService: NotificationService,
-    private router: Router,
-    private translationService: TranslationService,
-    private themeService: ThemeService
+    private router: Router
   ) {
+    super();
+    
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
@@ -177,6 +168,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
       birthday: [''],
       gender: ['']
     });
+    
     this.passwordForm = this.fb.group({
       currentPassword: ['', [Validators.required]],
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
@@ -184,35 +176,28 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     }, { validator: this.passwordMatchValidator });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.loadUserData();
     this.loadSettings();
     this.loadSocialData();
     this.loadActiveDevices();
 
-    // ✅ Écouter les changements de langue
     this.subscriptions.push(
       this.translationService.language$.subscribe((lang) => {
         console.log(`🌐 Langue changée dans les settings: ${lang}`);
+        this.settings.appearance.language = lang as LanguageType;
+        this.cdr.detectChanges();
       })
     );
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
   }
-
-  // ============================================================
-  // VALIDATEURS
-  // ============================================================
 
   passwordMatchValidator(g: FormGroup) {
     return g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true };
   }
-
-  // ============================================================
-  // CHARGEMENT DES DONNÉES
-  // ============================================================
 
   private loadUserData(): void {
     this.subscriptions.push(
@@ -244,7 +229,6 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
       } catch (e) { console.error(e); }
     }
     
-    // ✅ Appliquer les paramètres au chargement
     this.applyTheme();
     this.applyFontSize();
     this.applyLanguage();
@@ -273,7 +257,6 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   }
 
   private loadSocialData(): void {
-    // ✅ Tous les appels sont protégés avec catchError
     this.subscriptions.push(
       this.userService.getFriendsCount().pipe(catchError(() => of(0)))
         .subscribe((count) => this.friendsCount = count || 0)
@@ -321,10 +304,6 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
         .subscribe((devices) => this.activeDevices = devices || [])
     );
   }
-
-  // ============================================================
-  // SAUVEGARDE
-  // ============================================================
 
   private saveSettingsToStorage(): void {
     localStorage.setItem('user_settings', JSON.stringify(this.settings));
@@ -446,54 +425,58 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // THÈME, LANGUE, POLICE - AVEC APPLICATION IMMÉDIATE
+  // THÈME, LANGUE, POLICE
   // ============================================================
 
-  // ✅ Sélection des options avec application immédiate
   selectTheme(value: ThemeType): void {
+    console.log(`🎨 UserSettings: Sélection du thème ${value}`);
     this.settings.appearance.theme = value;
     this.saveAppearanceSettings();
     this.themeMenuOpen = false;
   }
 
   selectLanguage(value: LanguageType): void {
+    console.log(`🌐 UserSettings: Sélection de la langue ${value}`);
     this.settings.appearance.language = value;
+    
+    // ✅ Application immédiate via TranslationService
+    this.translationService.applyLanguageToAll(value);
+    
+    // ✅ Application via ThemeService
+    this.themeService.applyLanguage(value);
+    
+    // ✅ Sauvegarde
     this.saveAppearanceSettings();
     this.languageMenuOpen = false;
+    
+    this.notificationService.showSuccess(`Langue changée en ${this.getLanguageName(value)}`);
+    this.cdr.detectChanges();
   }
 
   selectFontSize(value: FontSizeType): void {
+    console.log(`📏 UserSettings: Sélection de la taille ${value}`);
     this.settings.appearance.fontSize = value;
     this.saveAppearanceSettings();
     this.fontSizeMenuOpen = false;
   }
 
-  // ============================================================
-  // SAUVEGARDE ET APPLICATION DES PARAMÈTRES D'APPARENCE
-  // ============================================================
-
   saveAppearanceSettings(): void {
-    // 1. Sauvegarde dans localStorage
-    this.saveSettingsToStorage();
+    console.log('💾 UserSettings: Sauvegarde des paramètres d\'apparence');
     
-    // 2. Sauvegarde sur le serveur (non bloquante)
+    this.saveSettingsToStorage();
     this.saveSettings();
     
-    // 3. ✅ Application immédiate du thème
-    this.applyTheme();
+    this.themeService.updateAppearance(
+      this.settings.appearance.theme,
+      this.settings.appearance.fontSize,
+      this.settings.appearance.language
+    );
     
-    // 4. ✅ Application immédiate de la taille de police
-    this.applyFontSize();
-    
-    // 5. ✅ Application immédiate de la langue
-    this.applyLanguage();
+    this.translationService.setLanguage(this.settings.appearance.language);
     
     this.notificationService.showSuccess("Paramètres d'apparence sauvegardés");
+    this.cdr.detectChanges();
   }
-
-  // ============================================================
-  // APPLICATION DES STYLES
-  // ============================================================
 
   private applyTheme(): void {
     const theme = this.settings.appearance.theme;
@@ -508,11 +491,17 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
   private applyLanguage(): void {
     const lang = this.settings.appearance.language;
     this.translationService.setLanguage(lang);
+    this.themeService.applyLanguage(lang);
   }
 
   // ============================================================
-  // GETTERS POUR LES BOUTONS RAPIDES
+  // GETTERS
   // ============================================================
+
+  getLanguageName(langValue: string): string {
+    const lang = this.languages.find(l => l.value === langValue);
+    return lang ? lang.label : 'Langue';
+  }
 
   get currentThemeLabel(): string {
     const theme = this.themes.find(t => t.value === this.settings.appearance.theme);
@@ -529,14 +518,15 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
     return lang ? lang.label : 'Langue';
   }
 
+  get currentLanguageFlag(): string {
+    const lang = this.languages.find(l => l.value === this.settings.appearance.language);
+    return lang ? lang.flag : '🇫🇷';
+  }
+
   get currentFontSizeLabel(): string {
     const size = this.fontSizes.find(s => s.value === this.settings.appearance.fontSize);
     return size ? size.label : 'Police';
   }
-
-  // ============================================================
-  // MÉTHODES DE BASCULEMENT DES MENUS
-  // ============================================================
 
   toggleThemeMenu(): void {
     this.themeMenuOpen = !this.themeMenuOpen;

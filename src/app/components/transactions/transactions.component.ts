@@ -15,6 +15,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TransactionService } from '../../services/transaction.service';
 import { NotificationService } from '../../services/notification.service';
 import { Transaction } from '../../models/transaction.model';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../base.component';
 
 @Component({
   selector: 'app-transactions',
@@ -30,11 +32,12 @@ import { Transaction } from '../../models/transaction.model';
     MatTabsModule,
     MatMenuModule,
     MatProgressSpinnerModule,
+    TranslatePipe
   ],
   templateUrl: './transactions.component.html',
   styleUrls: ['./transactions.component.css']
 })
-export class TransactionsComponent implements OnInit {
+export class TransactionsComponent extends BaseComponent implements OnInit {
   selectedTabIndex = 0;
   allTransactions: Transaction[] = [];
   isLoading = true;
@@ -47,9 +50,9 @@ export class TransactionsComponent implements OnInit {
     private transactionService: TransactionService,
     private notificationService: NotificationService,
     private router: Router
-  ) {}
+  ) {super();}
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.loadTransactions();
   }
 

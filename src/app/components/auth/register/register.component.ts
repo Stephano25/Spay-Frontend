@@ -15,6 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
 
 @Component({
   selector: 'app-register',
@@ -29,7 +30,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    TranslatePipe
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],

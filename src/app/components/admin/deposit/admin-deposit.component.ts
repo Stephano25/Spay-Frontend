@@ -14,6 +14,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-admin-deposit',
@@ -31,11 +33,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatToolbarModule,
+    TranslatePipe
   ],
   templateUrl: './admin-deposit.component.html',
   styleUrls: ['./admin-deposit.component.css'],
 })
-export class AdminDepositComponent implements OnInit {
+export class AdminDepositComponent extends BaseComponent implements OnInit {
   users: any[] = [];
   admins: any[] = [];
   selectedUserId: string = '';
@@ -59,9 +62,11 @@ export class AdminDepositComponent implements OnInit {
     private notificationService: NotificationService,
     private router: Router,
     private route: ActivatedRoute,
-  ) {}
+  ) {
+    super();
+  }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     // ✅ Récupérer les paramètres pour savoir si c'est un dépôt admin
     this.route.queryParams.subscribe(params => {
       this.isAdminDeposit = params['target'] === 'admin';

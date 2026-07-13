@@ -12,6 +12,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../../base.component';
 
 @Component({
   selector: 'app-admin-transactions',
@@ -26,21 +28,22 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatChipsModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatToolbarModule
+    MatToolbarModule,
+    TranslatePipe
   ],
   templateUrl: './admin-transactions.component.html',
   styleUrls: ['./admin-transactions.component.css']
 })
-export class AdminTransactionsComponent implements OnInit {
+export class AdminTransactionsComponent extends BaseComponent implements OnInit {
   transactions: Transaction[] = [];
   isLoading = true;
 
   constructor(
     private adminDataService: AdminDataService,
     private router: Router
-  ) {}
+  ) {super ();}
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.loadTransactions();
   }
 

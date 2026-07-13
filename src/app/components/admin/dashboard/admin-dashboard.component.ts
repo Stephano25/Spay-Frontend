@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+// frontend/src/app/components/admin/dashboard/admin-dashboard.component.ts
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -7,8 +8,8 @@ import { AdminService, AdminDashboardStats, QRScanResult, QRCodeResponse } from 
 import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
 import { NotificationService } from '../../../services/notification.service';
+import { TranslationService } from '../../../services/translation.service';
 import { User } from '../../../models/user.model';
-
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { QRScannerComponent } from '../qr-scanner/qr-scanner.component';
 import { QRTransactionFormComponent } from '../qr-transaction-form/qr-transaction-form.component';
@@ -24,6 +25,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -45,17 +47,17 @@ import { MatDividerModule } from '@angular/material/divider';
     QRScannerComponent,
     QRTransactionFormComponent,
     QRGeneratorComponent,
+    TranslatePipe
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
 })
-export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit {
+export class AdminDashboardComponent extends BaseComponent implements OnInit, OnDestroy, AfterViewInit {
   user: User | null = null;
   stats: AdminDashboardStats | null = null;
   isLoading = true;
   isSuperAdmin = false;
   isAdmin = false;
-  private subscriptions: Subscription[] = [];
   private charts: Chart[] = [];
   private chartInitialized = false;
   private chartCreationTimeout: any = null;
@@ -99,16 +101,27 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     private chatService: ChatService,
     private notificationService: NotificationService,
     private router: Router,
-  ) {}
+  ) {
+    super();
+  }
 
-  ngOnInit(): void {
+  // ✅ UN SEUL ngOnInit - Supprimer les doublons
+  override ngOnInit(): void {
     this.loadUserData();
     this.loadDashboardData();
 
     this.subscriptions.push(
       this.chatService.onlineStatus$.subscribe(() => {
         this.loadDashboardDataSilent();
-      }),
+      })
+    );
+
+    // ✅ S'abonner aux changements de langue
+    this.subscriptions.push(
+      this.translationService.language$.subscribe((lang) => {
+        console.log(`🌐 AdminDashboard: Langue changée en ${lang}`);
+        this.cdr.detectChanges();
+      })
     );
   }
 
@@ -119,7 +132,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     }, 500);
   }
 
-  ngOnDestroy(): void {
+  override ngOnDestroy(): void {
     if (this.chartCreationTimeout) {
       clearTimeout(this.chartCreationTimeout);
       this.chartCreationTimeout = null;
@@ -127,6 +140,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     
     this.subscriptions.forEach((sub) => sub.unsubscribe());
     this.destroyAllCharts();
+    super.ngOnDestroy();
   }
 
   private loadUserData(): void {
@@ -150,7 +164,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         this.stats = data;
         this.isLoading = false;
         
-        // ✅ Si SuperAdmin ou Admin, charger les stats des commissions
         if (this.isSuperAdmin || this.isAdmin) {
           this.loadCommissionStats();
         }
@@ -176,7 +189,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           myAdminTransactions: 0,
           myAdminVolume: 0,
           userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
-          // ✅ Ajouter les propriétés commissions
           totalCommission: 0,
           commissionTransactions: 0,
           recentCommissions: [],
@@ -185,7 +197,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           myCommissionTransactions: 0,
         };
         
-        // ✅ Même en erreur, charger les commissions
         if (this.isSuperAdmin || this.isAdmin) {
           this.loadCommissionStats();
         }
@@ -195,7 +206,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     });
   }
 
-  // ✅ MÉTHODE POUR CHARGER LES COMMISSIONS
   private loadCommissionStats(): void {
     this.adminService.getCommissionStats().subscribe({
       next: (commissionData) => {
@@ -211,7 +221,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       },
       error: (err) => {
         console.error('❌ Erreur chargement commissions:', err);
-        // Valeurs par défaut
         if (this.stats) {
           this.stats.totalCommission = 0;
           this.stats.commissionTransactions = 0;

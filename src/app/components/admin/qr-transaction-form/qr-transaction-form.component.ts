@@ -14,6 +14,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AdminService, QRScanResult } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-qr-transaction-form',
@@ -30,11 +32,12 @@ import { NotificationService } from '../../../services/notification.service';
     MatProgressSpinnerModule,
     MatDividerModule,
     MatTooltipModule,
+    TranslatePipe
   ],
   templateUrl: './qr-transaction-form.component.html',
   styleUrls: ['./qr-transaction-form.component.css'],
 })
-export class QRTransactionFormComponent implements OnInit {
+export class QRTransactionFormComponent extends BaseComponent implements OnInit {
   @Input() scanResult: QRScanResult | null = null;
   @Output() transactionCompleted = new EventEmitter<{ success: boolean; message: string; data?: any }>();
   @Output() cancelled = new EventEmitter<void>();
@@ -52,9 +55,11 @@ export class QRTransactionFormComponent implements OnInit {
   constructor(
     private adminService: AdminService,
     private notificationService: NotificationService,
-  ) {}
+  ) {
+    super();
+  }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     // ✅ Si le QR a un montant, l'utiliser
     if (this.scanResult?.amount) {
       this.amount = this.scanResult.amount;

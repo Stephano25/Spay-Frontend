@@ -11,6 +11,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../../base.component';
 
 @Component({
   selector: 'app-admin-stats',
@@ -23,19 +25,20 @@ import { MatButtonModule } from '@angular/material/button';
     MatIconModule,
     MatProgressSpinnerModule,
     MatToolbarModule,
-    MatButtonModule
+    MatButtonModule,
+    TranslatePipe
   ],
   templateUrl: './admin-stats.component.html',
   styleUrls: ['./admin-stats.component.css']
 })
-export class AdminStatsComponent implements OnInit {
+export class AdminStatsComponent extends BaseComponent implements OnInit {
   stats: DashboardStats | null = null;
   isLoading = true;
   private chart: Chart | null = null;
 
-  constructor(private adminDataService: AdminDataService, private router: Router) {}
+  constructor(private adminDataService: AdminDataService, private router: Router) { super ();}
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.loadStats();
   }
 

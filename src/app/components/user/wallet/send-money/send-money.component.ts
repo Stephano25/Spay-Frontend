@@ -20,6 +20,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSliderModule } from '@angular/material/slider';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-send-money',
@@ -37,7 +39,8 @@ import { MatSliderModule } from '@angular/material/slider';
     MatSelectModule,
     MatAutocompleteModule,
     MatTooltipModule,
-    MatSliderModule
+    MatSliderModule,
+    TranslatePipe
   ],
   templateUrl: './send-money.component.html',
   styleUrls: ['./send-money.component.css'],
@@ -74,7 +77,7 @@ import { MatSliderModule } from '@angular/material/slider';
     ])
   ]
 })
-export class SendMoneyComponent implements OnInit {
+export class SendMoneyComponent extends BaseComponent implements OnInit {
   receiverId: string = '';
   receiverName: string = '';
   amount: number = 0;
@@ -102,9 +105,9 @@ export class SendMoneyComponent implements OnInit {
     private friendService: FriendService,
     private notificationService: NotificationService,
     private router: Router
-  ) {}
+  ) {super();}
 
-  ngOnInit() {
+  override ngOnInit() {
     this.loadBalance();
     this.loadFriends();
   }

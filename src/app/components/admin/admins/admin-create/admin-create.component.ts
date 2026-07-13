@@ -19,7 +19,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
-
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from 'src/app/components/base.component';
 @Component({
   selector: 'app-admin-create',
   standalone: true,
@@ -39,11 +40,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatSlideToggleModule,
     MatTooltipModule,
     MatToolbarModule,
+    TranslatePipe
   ],
   templateUrl: './admin-create.component.html',
   styleUrls: ['./admin-create.component.css'],
 })
-export class AdminCreateComponent implements OnInit {
+export class AdminCreateComponent extends BaseComponent implements OnInit {
   adminForm!: FormGroup;
   isSubmitting = false;
   hidePassword = true;
@@ -79,9 +81,9 @@ export class AdminCreateComponent implements OnInit {
     private authService: AuthService,
     private notificationService: NotificationService,
     private router: Router,
-  ) {}
+  ) { super ();}
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.isSuperAdmin = user?.role === 'super_admin';
 

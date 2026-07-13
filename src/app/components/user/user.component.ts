@@ -2,13 +2,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { WalletService } from '../../services/wallet.service';
 import { TransactionService } from '../../services/transaction.service';
 import { NotificationService } from '../../services/notification.service';
+import { TranslationService } from '../../services/translation.service';
 import { User } from '../../models/user.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { BaseComponent } from '../base.component';
 import { environment } from '../../../environments/environment';
 
 import { MatCardModule } from '@angular/material/card';
@@ -37,13 +38,14 @@ import { MatGridListModule } from '@angular/material/grid-list';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
 })
-export class UserComponent implements OnInit, OnDestroy {
+export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
   user: User | null = null;
   balance: number = 0;
   isLoading: boolean = true;
   stats: any = null;
   profileImageUrl: string | null = null;
   imageError: boolean = false;
+  currentLanguage: string = 'fr';
 
   private avatarColors = [
     '#7c3aed', '#6d28d9', '#4f46e5', '#0891b2', 
@@ -64,8 +66,6 @@ export class UserComponent implements OnInit, OnDestroy {
     { icon: 'settings', label: 'Paramètres', route: '/user/settings' }
   ];
 
-  private subscriptions: Subscription[] = [];
-
   constructor(
     private authService: AuthService,
     private walletService: WalletService,
@@ -73,50 +73,44 @@ export class UserComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private router: Router
   ) {
+    super();
     console.log('🏠 UserComponent chargé');
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     console.log('🔄 Initialisation UserComponent');
     this.loadUserData();
     this.loadBalance();
     this.loadStats();
+    
+    // ✅ S'abonner aux changements de langue
+    this.subscriptions.push(
+      this.translationService.language$.subscribe((lang) => {
+        console.log(`🌐 UserComponent: Langue changée en ${lang}`);
+        this.currentLanguage = lang;
+        document.documentElement.lang = lang;
+        this.cdr.detectChanges();
+      })
+    );
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
   }
 
-  /**
-   * ✅ Construire l'URL complète de l'image
-   */
   private getFullImageUrl(url: string | null | undefined): string | null {
     if (!url) return null;
-    
-    // ✅ Si c'est déjà une URL complète (externe)
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    
-    // ✅ Si c'est une URL qui commence par /uploads
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
     if (url.startsWith('/uploads')) {
       return `${environment.baseUrl}${url}`;
     }
-    
-    // ✅ Si c'est une URL relative vers assets
-    if (url.startsWith('/assets')) {
-      return url;
-    }
-    
-    // ✅ Si c'est juste un nom de fichier
+    if (url.startsWith('/assets')) return url;
     if (!url.includes('/')) {
-      // Si c'est une image de profil
       if (url.startsWith('profile-')) {
         return `${environment.baseUrl}/uploads/profiles/${url}`;
       }
       return `/assets/profiles/${url}`;
     }
-    
     return url;
   }
 
@@ -128,7 +122,6 @@ export class UserComponent implements OnInit, OnDestroy {
         this.imageError = false;
         
         if (user) {
-          // ✅ Construire l'URL complète de l'image
           if (user.profilePicture) {
             this.profileImageUrl = this.getFullImageUrl(user.profilePicture);
             console.log('🖼️ URL photo de profil:', this.profileImageUrl);

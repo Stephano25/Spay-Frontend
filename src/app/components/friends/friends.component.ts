@@ -10,6 +10,8 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { FriendService, Friend, FriendRequest, SearchUser } from '../../services/friend.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { BaseComponent } from '../base.component';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,12 +48,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatProgressSpinnerModule,
     MatBadgeModule,
     MatChipsModule,
-    MatTooltipModule // 🔥 Ajout de MatTooltipModule
+    MatTooltipModule,
+    TranslatePipe
   ],
   templateUrl: './friends.component.html',
   styleUrls: ['./friends.component.css']
 })
-export class FriendsComponent implements OnInit, OnDestroy {
+export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy {
   friends: Friend[] = [];
   friendRequests: FriendRequest[] = [];
   searchResults: SearchUser[] = [];
@@ -63,7 +66,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
   showAddFriend = false;
   showBlockedUsers = false;
   showQRCode = false;
-  showQRScanner = false; // 🔥 Ajout de la propriété manquante
+  showQRScanner = false;
   qrCodeImage = '';
 
   searchQuery = '';
@@ -71,7 +74,6 @@ export class FriendsComponent implements OnInit, OnDestroy {
   isSearching = false;
   currentUserId = '';
 
-  private subscriptions: Subscription[] = [];
   private html5QrCode: Html5Qrcode | null = null;
   private isScanning = false;
 
@@ -81,17 +83,22 @@ export class FriendsComponent implements OnInit, OnDestroy {
     private friendService: FriendService,
     private router: Router
   ) {
+    // ✅ APPEL OBLIGATOIRE - DOIT ÊTRE LE PREMIER
+    super();
+    
+    // ✅ Maintenant on peut utiliser 'this'
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id || '';
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     this.loadAllData();
   }
 
-  ngOnDestroy(): void {
+  override ngOnDestroy(): void {
     this.stopQRScan();
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    super.ngOnDestroy(); // ✅ Appeler super.ngOnDestroy()
   }
 
   get onlineFriends(): Friend[] {
@@ -165,7 +172,6 @@ export class FriendsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // 🔥 Correction : scanQRCode avec gestion de showQRScanner
   scanQRCode(): void {
     this.showQRScanner = true;
     if (this.isScanning) {
@@ -215,7 +221,6 @@ export class FriendsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // 🔥 Correction : stopQRScan
   stopQRScan(): void {
     this.showQRScanner = false;
     if (this.html5QrCode && this.isScanning) {

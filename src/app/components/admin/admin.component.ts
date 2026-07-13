@@ -1,3 +1,4 @@
+// frontend/src/app/components/admin/admin.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -5,25 +6,28 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
 import { SidebarComponent } from '../layout/sidebar/sidebar.component';
+import { TranslatePipe } from 'src/app/pipes/translate.pipe';
+import { BaseComponent } from '../base.component';
 
-// ✅ AJOUTER LES IMPORTS MANQUANTS
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterModule, 
+    TranslatePipe,
+    CommonModule,
+    RouterModule,
     SidebarComponent,
-    MatIconModule,     // ✅ AJOUTÉ
-    MatButtonModule,   // ✅ AJOUTÉ
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
   ],
   template: `
     <app-sidebar>
       <div class="admin-content">
-        <!-- ✅ Boutons pour SuperAdmin uniquement -->
         <div *ngIf="isSuperAdmin" class="admin-actions">
           <button mat-raised-button color="primary" (click)="navigateToDeposit()" matTooltip="Déposer sur un administrateur">
             <mat-icon>account_balance_wallet</mat-icon>
@@ -92,14 +96,18 @@ import { MatButtonModule } from '@angular/material/button';
     `,
   ],
 })
-export class AdminComponent implements OnInit, OnDestroy {
+export class AdminComponent extends BaseComponent implements OnInit, OnDestroy {
   admin: User | null = null;
   isSuperAdmin: boolean = false;
-  private subscriptions: Subscription[] = [];
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {
+    super();
+  }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     console.log('🔄 AdminComponent initialisé');
 
     const user = this.authService.getCurrentUser();
@@ -126,12 +134,12 @@ export class AdminComponent implements OnInit, OnDestroy {
           this.admin = user;
           this.isSuperAdmin = user.role === 'super_admin';
         }
-      }),
+      })
     );
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
   }
 
   logout(): void {
