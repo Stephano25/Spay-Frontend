@@ -1,11 +1,10 @@
 // frontend/src/app/components/user/settings/settings.component.ts
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
-import { BaseComponent } from '../../base.component';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 import { AuthService } from '../../../services/auth.service';
@@ -71,7 +70,7 @@ type LanguageType = 'fr' | 'mg' | 'en';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
 })
-export class UserSettingsComponent extends BaseComponent implements OnInit, OnDestroy {
+export class UserSettingsComponent implements OnInit, OnDestroy {
   @ViewChild('birthdayPicker') birthdayPicker: any;
 
   user: User | null = null;
@@ -152,15 +151,18 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
     { value: 0, label: 'Jamais' }
   ];
 
+  private subscriptions: Subscription[] = [];
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private userService: UserService,
     private notificationService: NotificationService,
-    private router: Router
+    private translationService: TranslationService,
+    private themeService: ThemeService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
-    super();
-    
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
@@ -178,7 +180,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
     }, { validator: this.passwordMatchValidator });
   }
 
-  override ngOnInit(): void {
+  ngOnInit(): void {
     this.loadUserData();
     this.loadSettings();
     this.loadSocialData();
@@ -193,8 +195,8 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
     );
   }
 
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   passwordMatchValidator(g: FormGroup) {
@@ -216,6 +218,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
             gender: (user as any).gender || ''
           });
           this.profilePhotoUrl = (user as any).profilePhoto || (user as any).profilePicture || null;
+          this.cdr.detectChanges();
         }
       })
     );
@@ -243,6 +246,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
         }),
         finalize(() => {
           this.isLoading = false;
+          this.cdr.detectChanges();
         })
       ).subscribe({
         next: (settings: UserSettings | null) => {
@@ -252,6 +256,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
             this.applyTheme();
             this.applyFontSize();
             this.applyLanguage();
+            this.cdr.detectChanges();
           }
         }
       })
@@ -268,6 +273,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
         } else {
           this.friendsCount = result || 0;
         }
+        this.cdr.detectChanges();
       })
     );
     
@@ -280,44 +286,66 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
         } else {
           this.postsCount = result || 0;
         }
+        this.cdr.detectChanges();
       })
     );
     
     this.subscriptions.push(
       this.userService.getFriendsList().pipe(catchError(() => of([])))
-        .subscribe((friends) => this.friendsList = friends || [])
+        .subscribe((friends) => {
+          this.friendsList = friends || [];
+          this.cdr.detectChanges();
+        })
     );
     
     this.subscriptions.push(
       this.userService.getCloseFriends().pipe(catchError(() => of([])))
-        .subscribe((friends) => this.closeFriends = friends || [])
+        .subscribe((friends) => {
+          this.closeFriends = friends || [];
+          this.cdr.detectChanges();
+        })
     );
     
     this.subscriptions.push(
       this.userService.getAcquaintances().pipe(catchError(() => of([])))
-        .subscribe((friends) => this.acquaintances = friends || [])
+        .subscribe((friends) => {
+          this.acquaintances = friends || [];
+          this.cdr.detectChanges();
+        })
     );
     
     this.subscriptions.push(
       this.userService.getPendingFriendRequests().pipe(catchError(() => of([])))
-        .subscribe((requests) => this.pendingFriendRequests = requests || [])
+        .subscribe((requests) => {
+          this.pendingFriendRequests = requests || [];
+          this.cdr.detectChanges();
+        })
     );
     
     this.subscriptions.push(
       this.userService.getBlockedUsers().pipe(catchError(() => of([])))
-        .subscribe((users) => this.blockedUsers = users || [])
+        .subscribe((users) => {
+          this.blockedUsers = users || [];
+          this.cdr.detectChanges();
+        })
     );
     
     this.subscriptions.push(
       this.userService.getFriendSuggestions().pipe(catchError(() => of([])))
-        .subscribe((suggestions) => this.friendSuggestions = suggestions || [])
+        .subscribe((suggestions) => {
+          this.friendSuggestions = suggestions || [];
+          this.cdr.detectChanges();
+        })
     );
   }
 
   private loadActiveDevices(): void {
     this.subscriptions.push(
       this.userService.getActiveDevices().pipe(catchError(() => of([])))
-        .subscribe((devices) => this.activeDevices = devices || [])
+        .subscribe((devices) => {
+          this.activeDevices = devices || [];
+          this.cdr.detectChanges();
+        })
     );
   }
 
@@ -350,6 +378,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
           this.user = updatedUser;
           this.notificationService.showSuccess('Profil mis à jour');
           this.isSaving = false;
+          this.cdr.detectChanges();
         },
         error: () => {
           this.notificationService.showError('Erreur mise à jour');
@@ -370,6 +399,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
         next: (url) => {
           this.profilePhotoUrl = url;
           this.notificationService.showSuccess('Photo de profil mise à jour');
+          this.cdr.detectChanges();
         },
         error: () => this.notificationService.showError('Erreur lors du téléchargement')
       });
@@ -381,6 +411,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
       next: () => {
         this.profilePhotoUrl = null;
         this.notificationService.showSuccess('Photo de profil supprimée');
+        this.cdr.detectChanges();
       },
       error: () => this.notificationService.showError('Erreur lors de la suppression')
     });
@@ -400,6 +431,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
           this.notificationService.showSuccess('Mot de passe modifié');
           this.passwordForm.reset();
           this.isSaving = false;
+          this.cdr.detectChanges();
         },
         error: () => {
           this.notificationService.showError('Erreur changement');
@@ -587,6 +619,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
       this.applyFontSize();
       this.applyLanguage();
       this.notificationService.showInfo('Paramètres réinitialisés');
+      this.cdr.detectChanges();
     }
   }
 
@@ -600,6 +633,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
         this.pendingFriendRequests = this.pendingFriendRequests.filter(r => r.id !== requestId);
         this.friendsCount++;
         this.notificationService.showSuccess('Demande d\'ami acceptée');
+        this.cdr.detectChanges();
       },
       error: () => this.notificationService.showError('Erreur lors de l\'acceptation')
     });
@@ -610,6 +644,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
       next: () => {
         this.pendingFriendRequests = this.pendingFriendRequests.filter(r => r.id !== requestId);
         this.notificationService.showSuccess('Demande d\'ami refusée');
+        this.cdr.detectChanges();
       },
       error: () => this.notificationService.showError('Erreur lors du refus')
     });
@@ -620,6 +655,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
       next: () => {
         this.notificationService.showSuccess('Demande d\'ami envoyée');
         this.friendSuggestions = this.friendSuggestions.filter(s => s.id !== userId);
+        this.cdr.detectChanges();
       },
       error: () => this.notificationService.showError('Erreur lors de l\'envoi')
     });
@@ -632,6 +668,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
           this.friendsList = this.friendsList.filter(f => f.id !== friendId);
           this.friendsCount--;
           this.notificationService.showSuccess('Ami supprimé');
+          this.cdr.detectChanges();
         },
         error: () => this.notificationService.showError('Erreur lors de la suppression')
       });
@@ -644,6 +681,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
         next: () => {
           this.unfriend(userId);
           this.notificationService.showSuccess('Utilisateur bloqué');
+          this.cdr.detectChanges();
         },
         error: () => this.notificationService.showError('Erreur lors du blocage')
       });
@@ -655,6 +693,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
       next: () => {
         this.blockedUsers = this.blockedUsers.filter(u => u.id !== userId);
         this.notificationService.showSuccess('Utilisateur débloqué');
+        this.cdr.detectChanges();
       },
       error: () => this.notificationService.showError('Erreur lors du déblocage')
     });
@@ -678,6 +717,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
         next: () => {
           this.activeDevices = this.activeDevices.filter(d => d.id !== deviceId);
           this.notificationService.showSuccess('Appareil déconnecté');
+          this.cdr.detectChanges();
         },
         error: () => this.notificationService.showError('Erreur lors de la déconnexion')
       });
@@ -707,6 +747,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
         next: () => {
           this.notificationService.showSuccess('Email modifié. Vérifiez votre boîte de réception.');
           if (this.user) this.user.email = newEmail;
+          this.cdr.detectChanges();
         },
         error: () => this.notificationService.showError('Erreur lors du changement d\'email')
       });
@@ -722,6 +763,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
         next: () => {
           this.notificationService.showSuccess('Numéro de téléphone modifié');
           if (this.user) this.user.phoneNumber = newPhone;
+          this.cdr.detectChanges();
         },
         error: () => this.notificationService.showError('Erreur lors du changement')
       });
@@ -796,7 +838,7 @@ export class UserSettingsComponent extends BaseComponent implements OnInit, OnDe
   // ============================================================
 
   goBack(): void { 
-    this.router.navigate(['/user']); 
+    this.router.navigate(['/user/dashboard']); 
   }
   
   logout(): void { 
