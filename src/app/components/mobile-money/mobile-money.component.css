@@ -1,25 +1,25 @@
+/* frontend/src/app/components/mobile-money/mobile-money.component.css */
 /* ============================================================
    SPAYE — MOBILE MONEY
    ============================================================ */
 
 .mobile-money-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
   font-family: var(--font-body);
-  overflow: hidden;
 }
 
 /* Header */
 .mobile-header {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: var(--surface);
   border-bottom: 0.5px solid var(--border);
   flex-shrink: 0;
-  min-height: 60px;
+  min-height: 80px;
   transition: all 0.3s ease;
 }
 
@@ -32,31 +32,31 @@
   color: white;
 }
 .mobile-header.success-header .step-label {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.8);
 }
 .mobile-header.success-header .step-circle {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   color: white;
 }
 .mobile-header.success-header .step-circle.completed {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.35);
 }
 .mobile-header.success-header .step-line {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
 }
 .mobile-header.success-header .step-item.active .step-label {
   color: white;
 }
 .mobile-header.success-header .step-item.active .step-circle {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .back-btn {
   background: transparent;
   border: none;
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -71,6 +71,12 @@
   color: var(--text);
 }
 
+.back-btn mat-icon {
+  font-size: 30px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
 .mobile-header.success-header .back-btn {
   color: rgba(255, 255, 255, 0.8);
 }
@@ -80,12 +86,12 @@
 
 .header-title {
   flex: 1;
-  padding: 0 8px;
+  padding: 0 12px;
 }
 
 .page-title {
   font-weight: 700;
-  font-size: 1.0625rem;
+  font-size: 1.4rem;
   color: var(--text);
   margin: 0;
 }
@@ -95,7 +101,7 @@
 }
 
 .header-spacer {
-  width: 36px;
+  width: 48px;
 }
 
 /* Step Indicator */
@@ -103,25 +109,25 @@
   display: flex;
   align-items: center;
   gap: 0;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .step-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 .step-circle {
-  width: 22px;
-  height: 22px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--surface-2);
-  border: 1.5px solid var(--border);
+  border: 2.5px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-3);
   transition: all 0.3s ease;
@@ -140,15 +146,15 @@
 }
 
 .step-circle mat-icon {
-  font-size: 12px !important;
-  width: 12px !important;
-  height: 12px !important;
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .step-label {
-  font-size: 0.6rem;
+  font-size: 0.85rem;
   color: var(--text-3);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .step-item.active .step-label {
@@ -156,10 +162,10 @@
 }
 
 .step-line {
-  width: 24px;
-  height: 1.5px;
+  width: 36px;
+  height: 2.5px;
   background: var(--border);
-  margin: 0 4px;
+  margin: 0 8px;
   transition: all 0.3s ease;
 }
 
@@ -171,7 +177,7 @@
 .mobile-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 24px;
 }
 
 .mobile-content::-webkit-scrollbar {
@@ -184,22 +190,23 @@
 
 /* Balance Card */
 .balance-section {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .balance-card {
-  border-radius: 14px !important;
+  border-radius: 18px !important;
   overflow: hidden;
   position: relative;
   background: var(--brand-grad) !important;
   color: white !important;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.25) !important;
 }
 
 .balance-card mat-card-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px !important;
+  padding: 24px 28px !important;
   position: relative;
   z-index: 1;
 }
@@ -210,22 +217,22 @@
 }
 
 .balance-label {
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  opacity: 0.8;
+  opacity: 0.85;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
 }
 
 .balance-amount {
-  font-size: 1.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .balance-icon {
-  width: 44px;
-  height: 44px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.15);
   display: flex;
@@ -234,9 +241,9 @@
 }
 
 .balance-icon mat-icon {
-  font-size: 24px !important;
-  width: 24px !important;
-  height: 24px !important;
+  font-size: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
   color: white;
 }
 
@@ -255,36 +262,38 @@
 }
 
 .step-title {
-  font-size: 1.0625rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 16px;
+  margin: 0 0 24px;
+  text-align: center;
 }
 
 /* Operators Grid */
 .operators-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 18px;
 }
 
 .operator-card {
-  padding: 16px;
-  border-radius: 14px;
+  padding: 24px;
+  border-radius: 18px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
   color: white;
-  min-height: 100px;
+  min-height: 140px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .operator-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
 }
 
 .operator-card:active {
@@ -292,8 +301,8 @@
 }
 
 .operator-icon {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   display: flex;
@@ -302,9 +311,9 @@
 }
 
 .operator-icon mat-icon {
-  font-size: 20px !important;
-  width: 20px !important;
-  height: 20px !important;
+  font-size: 28px !important;
+  width: 28px !important;
+  height: 28px !important;
   color: white;
 }
 
@@ -314,27 +323,27 @@
 }
 
 .operator-name {
-  font-size: 0.9375rem;
+  font-size: 1.2rem;
   font-weight: 700;
   margin: 0;
 }
 
 .operator-prefix {
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   opacity: 0.8;
 }
 
 .operator-arrow {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: 18px;
+  right: 18px;
   opacity: 0.6;
 }
 
 .operator-arrow mat-icon {
-  font-size: 20px !important;
-  width: 20px !important;
-  height: 20px !important;
+  font-size: 28px !important;
+  width: 28px !important;
+  height: 28px !important;
   color: white;
 }
 
@@ -352,17 +361,17 @@
 .selected-operator {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 16px;
+  padding: 16px 20px;
   background: var(--surface-2);
-  border-radius: 12px;
+  border-radius: 16px;
   border: 0.5px solid var(--border);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .operator-badge {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -370,15 +379,15 @@
 }
 
 .operator-badge mat-icon {
-  font-size: 20px !important;
-  width: 20px !important;
-  height: 20px !important;
+  font-size: 28px !important;
+  width: 28px !important;
+  height: 28px !important;
   color: white;
 }
 
 .selected-operator .operator-name {
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 1.2rem;
   color: var(--text);
   flex: 1;
 }
@@ -388,8 +397,8 @@
   border: none;
   cursor: pointer;
   color: var(--text-3);
-  padding: 4px;
-  border-radius: 4px;
+  padding: 8px;
+  border-radius: 8px;
   transition: all 0.3s ease;
 }
 
@@ -399,85 +408,158 @@
 }
 
 .change-operator mat-icon {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
 }
 
 /* Form */
 .amount-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 
-.full-width {
+/* ============================================================
+   FORM FIELD WITH LABEL ABOVE - NOUVEAU
+   ============================================================ */
+.form-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-2);
+  padding-left: 4px;
+}
+
+.field-label mat-icon {
+  font-size: 22px !important;
+  width: 22px !important;
+  height: 22px !important;
+  color: var(--brand-1);
+}
+
+/* ✅ DÉCALAGE À DROITE POUR L'INPUT */
+.field-input-wrapper {
+  padding-left: 16px;
+}
+
+.field-input-wrapper .full-width {
   width: 100%;
 }
 
+/* Style des champs de formulaire */
+::ng-deep .amount-form .mat-mdc-form-field {
+  width: 100%;
+}
+
+::ng-deep .amount-form .mat-mdc-form-field .mat-mdc-input-element {
+  font-size: 1.1rem !important;
+  padding: 14px 16px !important;
+}
+
+::ng-deep .amount-form .mat-mdc-form-field .mat-mdc-label {
+  font-size: 1rem !important;
+}
+
+::ng-deep .amount-form .mat-mdc-form-field .mat-mdc-hint {
+  font-size: 0.85rem !important;
+}
+
+::ng-deep .amount-form .mat-mdc-form-field input::placeholder {
+  font-size: 1rem !important;
+  color: var(--text-3);
+  opacity: 0.7;
+}
+
+/* Style du select */
+::ng-deep .amount-form .mat-mdc-select {
+  font-size: 1.1rem !important;
+}
+
+::ng-deep .amount-form .mat-mdc-select .mat-mdc-select-value-text {
+  font-size: 1.1rem !important;
+}
+
+/* Quick Amounts Grid */
 .quick-amounts {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
-  padding: 4px 0;
+  padding: 8px 0;
+  justify-content: center;
 }
 
 .quick-amount-btn {
-  padding: 6px 14px;
+  padding: 10px 20px;
   border-radius: 999px;
-  border: 1.5px solid var(--border);
+  border: 2px solid var(--border);
   background: var(--surface);
   color: var(--text-2);
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-family: 'Inter', sans-serif;
+  min-height: 44px;
+  min-width: 70px;
+  justify-content: center;
 }
 
 .quick-amount-btn:hover:not(:disabled) {
   border-color: var(--brand-1);
   color: var(--brand-1);
+  transform: translateY(-2px);
 }
 
 .quick-amount-btn.active {
   background: var(--brand-grad);
   border-color: var(--brand-1);
   color: white;
+  box-shadow: var(--shadow-brand);
 }
 
 .quick-amount-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  transform: none;
 }
 
 .amount-value {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .amount-currency {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   opacity: 0.7;
 }
 
 /* Fee Preview */
 .fee-preview {
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: var(--surface-2);
-  border-radius: 10px;
+  border-radius: 14px;
   border: 0.5px solid var(--border);
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 .fee-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-2);
-  padding: 4px 0;
+  padding: 8px 0;
   gap: 12px;
 }
 
@@ -485,37 +567,39 @@
   font-weight: 700;
   color: var(--text);
   border-top: 0.5px solid var(--border);
-  padding-top: 8px;
-  margin-top: 4px;
+  padding-top: 12px;
+  margin-top: 8px;
 }
 
 .total-amount {
   color: var(--brand-1);
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
 }
 
 /* Action Buttons */
 .action-buttons {
   display: flex;
-  gap: 12px;
-  padding: 16px 0 8px;
+  gap: 16px;
+  padding: 24px 0 12px;
 }
 
 .action-btn {
   flex: 1;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 16px 24px;
+  border-radius: 16px;
   border: none;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 1.05rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 12px;
   transition: all 0.3s ease;
   font-family: 'Inter', sans-serif;
+  min-height: 60px;
 }
 
 .action-btn.primary {
@@ -578,25 +662,25 @@
 /* Confirmation */
 .confirmation-header {
   text-align: center;
-  padding: 8px 0 16px;
+  padding: 16px 0 24px;
 }
 
 .check-icon-container {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: var(--brand-grad-soft);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 12px;
+  margin: 0 auto 16px;
   position: relative;
 }
 
 .check-icon {
-  font-size: 32px !important;
-  width: 32px !important;
-  height: 32px !important;
+  font-size: 40px !important;
+  width: 40px !important;
+  height: 40px !important;
   color: var(--brand-1);
 }
 
@@ -621,14 +705,14 @@
 }
 
 .confirmation-header h2 {
-  font-size: 1.125rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 4px;
+  margin: 0 0 6px;
 }
 
 .confirmation-header p {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-3);
   margin: 0;
 }
@@ -636,23 +720,23 @@
 .confirmation-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .detail-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 16px;
+  padding: 16px 20px;
   background: var(--surface-2);
-  border-radius: 10px;
+  border-radius: 14px;
   border: 0.5px solid var(--border);
 }
 
 .detail-icon {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -660,9 +744,9 @@
 }
 
 .detail-icon mat-icon {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
   color: white;
 }
 
@@ -672,16 +756,16 @@
 }
 
 .detail-label {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--text-3);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
   font-weight: 600;
   display: block;
 }
 
 .detail-value {
-  font-size: 0.9375rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text);
 }
@@ -691,9 +775,9 @@
 }
 
 .fee-summary {
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: var(--surface-2);
-  border-radius: 10px;
+  border-radius: 14px;
   border: 0.5px solid var(--border);
 }
 
@@ -712,19 +796,19 @@
 .warning-message {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: 12px;
+  padding: 14px 18px;
   background: rgba(239, 68, 68, 0.08);
-  border-radius: 10px;
+  border-radius: 14px;
   color: #ef4444;
-  font-size: 0.8125rem;
+  font-size: 0.95rem;
   border: 0.5px solid rgba(239, 68, 68, 0.15);
 }
 
 .warning-message mat-icon {
-  font-size: 20px !important;
-  width: 20px !important;
-  height: 20px !important;
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
 }
 
 /* Success */
@@ -737,44 +821,44 @@
 
 .success-animation {
   text-align: center;
-  padding: 20px;
+  padding: 28px;
 }
 
 .success-checkmark {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 16px;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 20px;
   position: relative;
 }
 
 .check-icon {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   margin: 0 auto;
 }
 
 .icon-line {
-  height: 4px;
+  height: 5px;
   background: #10b981;
   position: absolute;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
 .line-tip {
-  width: 25px;
+  width: 32px;
   transform: rotate(45deg);
-  top: 46px;
-  left: 17px;
+  top: 58px;
+  left: 21px;
   animation: checkTip 0.5s ease 0.3s forwards;
   opacity: 0;
 }
 
 .line-long {
-  width: 47px;
+  width: 60px;
   transform: rotate(-45deg);
-  top: 38px;
-  left: 24px;
+  top: 48px;
+  left: 30px;
   animation: checkLong 0.5s ease 0.5s forwards;
   opacity: 0;
 }
@@ -805,7 +889,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 4px solid #10b981;
+  border: 5px solid #10b981;
   animation: circlePop 0.4s ease forwards;
   opacity: 0;
 }
@@ -826,24 +910,24 @@
   inset: 0;
   border-radius: 50%;
   background: var(--surface);
-  width: 20px;
-  height: 20px;
-  top: 30px;
-  left: 30px;
+  width: 24px;
+  height: 24px;
+  top: 38px;
+  left: 38px;
   z-index: 1;
 }
 
 .success-animation h2 {
-  font-size: 1.25rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 4px;
+  margin: 0 0 6px;
 }
 
 .success-message {
-  font-size: 0.9375rem;
+  font-size: 1.05rem;
   color: var(--text-3);
-  margin: 0 0 16px;
+  margin: 0 0 20px;
 }
 
 .success-message strong {
@@ -853,36 +937,37 @@
 .transaction-details {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 16px 20px;
   background: var(--surface-2);
-  border-radius: 10px;
-  margin-bottom: 16px;
+  border-radius: 14px;
+  margin-bottom: 20px;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8125rem;
+  font-size: 0.95rem;
   color: var(--text-2);
-  padding: 4px 0;
+  padding: 6px 0;
   gap: 12px;
 }
 
 .detail-item .total {
   color: var(--brand-1);
+  font-weight: 700;
 }
 
 .success-actions {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .action-btn.icon {
-  width: 48px;
-  height: 48px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   border: 0.5px solid var(--border);
   background: var(--surface);
@@ -902,19 +987,145 @@
 }
 
 .action-btn.icon mat-icon {
-  font-size: 22px !important;
-  width: 22px !important;
-  height: 22px !important;
+  font-size: 28px !important;
+  width: 28px !important;
+  height: 28px !important;
 }
 
 .redirect-message {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   color: var(--text-3);
   margin: 0;
 }
 
 /* Responsive */
 @media (max-width: 600px) {
+  .mobile-content {
+    padding: 16px;
+  }
+  .operators-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .operator-card {
+    padding: 16px;
+    min-height: 110px;
+  }
+  .operator-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .operator-icon mat-icon {
+    font-size: 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+  }
+  .operator-name {
+    font-size: 1rem;
+  }
+  .balance-amount {
+    font-size: 1.8rem;
+  }
+  .balance-card mat-card-content {
+    padding: 20px 22px !important;
+  }
+  .quick-amount-btn {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    min-height: 38px;
+    min-width: 60px;
+  }
+  .action-buttons {
+    flex-direction: column;
+  }
+  .action-btn {
+    padding: 14px 20px;
+    min-height: 54px;
+    font-size: 0.95rem;
+  }
+  .detail-card {
+    padding: 14px 16px;
+  }
+  .step-indicator {
+    gap: 4px;
+  }
+  .step-line {
+    width: 22px;
+  }
+  .step-label {
+    font-size: 0.7rem;
+  }
+  .step-circle {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+  .mobile-header {
+    padding: 12px 16px;
+    min-height: 68px;
+  }
+  .page-title {
+    font-size: 1.2rem;
+  }
+  .back-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .back-btn mat-icon {
+    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+  }
+  .success-animation .check-icon {
+    width: 80px;
+    height: 80px;
+  }
+  .line-tip {
+    top: 46px;
+    left: 17px;
+    width: 25px;
+  }
+  .line-long {
+    top: 38px;
+    left: 24px;
+    width: 48px;
+  }
+  .icon-fix {
+    width: 20px;
+    height: 20px;
+    top: 30px;
+    left: 30px;
+  }
+  .icon-circle {
+    border-width: 4px;
+  }
+  .action-btn.icon {
+    width: 52px;
+    height: 52px;
+  }
+  .action-btn.icon mat-icon {
+    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+  }
+  .step-title {
+    font-size: 1.2rem;
+  }
+  /* ✅ Décalage réduit sur mobile */
+  .field-input-wrapper {
+    padding-left: 8px;
+  }
+  .field-label {
+    font-size: 0.9rem;
+  }
+  .field-label mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+@media (max-width: 400px) {
   .mobile-content {
     padding: 12px;
   }
@@ -924,114 +1135,131 @@
   }
   .operator-card {
     padding: 12px;
-    min-height: 80px;
+    min-height: 90px;
   }
   .operator-icon {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
   }
   .operator-icon mat-icon {
-    font-size: 16px !important;
-    width: 16px !important;
-    height: 16px !important;
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
   }
   .operator-name {
-    font-size: 0.8125rem;
+    font-size: 0.85rem;
   }
   .balance-amount {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
-  .quick-amount-btn {
-    padding: 4px 10px;
-    font-size: 0.7rem;
+  .balance-card mat-card-content {
+    padding: 16px 18px !important;
   }
-  .action-buttons {
-    flex-direction: column;
+  .balance-label {
+    font-size: 0.8rem;
   }
-  .action-btn {
-    padding: 10px;
+  .balance-icon {
+    width: 48px;
+    height: 48px;
   }
-  .detail-card {
-    padding: 10px 12px;
-  }
-  .step-indicator {
-    gap: 2px;
-  }
-  .step-line {
-    width: 16px;
-  }
-  .step-label {
-    font-size: 0.5rem;
-  }
-  .step-circle {
-    width: 18px;
-    height: 18px;
-    font-size: 0.5rem;
-  }
-  .mobile-header {
-    padding: 8px 12px;
-    min-height: 52px;
-  }
-  .page-title {
-    font-size: 0.9375rem;
-  }
-  .success-animation .check-icon {
-    width: 64px;
-    height: 64px;
-  }
-  .line-tip {
-    top: 37px;
-    left: 14px;
-    width: 20px;
-  }
-  .line-long {
-    top: 30px;
-    left: 20px;
-    width: 38px;
-  }
-  .icon-fix {
-    width: 16px;
-    height: 16px;
-    top: 24px;
-    left: 24px;
-  }
-  .icon-circle {
-    border-width: 3px;
-  }
-}
-
-@media (max-width: 400px) {
-  .operators-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-  .operator-card {
-    padding: 10px;
-    min-height: 68px;
-  }
-  .operator-icon {
-    width: 28px;
-    height: 28px;
-  }
-  .operator-icon mat-icon {
-    font-size: 14px !important;
-    width: 14px !important;
-    height: 14px !important;
-  }
-  .operator-name {
-    font-size: 0.75rem;
-  }
-  .balance-amount {
-    font-size: 1.1rem;
+  .balance-icon mat-icon {
+    font-size: 26px !important;
+    width: 26px !important;
+    height: 26px !important;
   }
   .quick-amounts {
-    gap: 4px;
+    gap: 6px;
   }
   .quick-amount-btn {
-    padding: 3px 8px;
-    font-size: 0.65rem;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    min-height: 32px;
+    min-width: 50px;
   }
   .step-indicator {
     display: none;
+  }
+  .selected-operator {
+    padding: 12px 14px;
+  }
+  .operator-badge {
+    width: 42px;
+    height: 42px;
+  }
+  .operator-badge mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .selected-operator .operator-name {
+    font-size: 1rem;
+  }
+  .fee-preview {
+    padding: 12px 14px;
+  }
+  .fee-row {
+    font-size: 0.85rem;
+  }
+  .action-btn {
+    font-size: 0.85rem;
+    min-height: 48px;
+    padding: 12px 16px;
+  }
+  .confirmation-header h2 {
+    font-size: 1.2rem;
+  }
+  .check-icon-container {
+    width: 64px;
+    height: 64px;
+  }
+  .check-icon {
+    font-size: 32px !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .success-animation h2 {
+    font-size: 1.3rem;
+  }
+  .success-message {
+    font-size: 0.9rem;
+  }
+  .header-title {
+    padding: 0 8px;
+  }
+  .page-title {
+    font-size: 1rem;
+  }
+  .back-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .back-btn mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .action-btn.icon {
+    width: 44px;
+    height: 44px;
+  }
+  .action-btn.icon mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .step-title {
+    font-size: 1.1rem;
+  }
+  /* ✅ Décalage réduit sur très petit mobile */
+  .field-input-wrapper {
+    padding-left: 4px;
+  }
+  .field-label {
+    font-size: 0.8rem;
+  }
+  .field-label mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
 }
