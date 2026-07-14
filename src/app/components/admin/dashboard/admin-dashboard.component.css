@@ -185,6 +185,11 @@
   margin-bottom: 24px;
 }
 
+.admin-stats-grid {
+  display: block;
+  margin-bottom: 16px;
+}
+
 .section-header {
   display: flex;
   align-items: center;

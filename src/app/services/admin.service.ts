@@ -161,13 +161,19 @@ export class AdminService {
             myAdminTransactions: 0,
             myAdminVolume: 0,
             userRole: 'admin',
+            totalCommission: 0,
+            commissionTransactions: 0,
+            recentCommissions: [],
+            commissionRate: 0.5,
+            myCommission: 0,
+            myCommissionTransactions: 0,
           });
         }),
       );
   }
 
   // ============================================================
-  // UTILISATEURS - CORRIGÉ
+  // UTILISATEURS
   // ============================================================
   getAllUsers(): Observable<User[]> {
     console.log('🔍 Appel de getAllUsers()');
@@ -178,28 +184,19 @@ export class AdminService {
         
         let users: User[] = [];
         
-        // Cas 1: Tableau direct
         if (Array.isArray(response)) {
           console.log('✅ Cas 1: Tableau direct');
           users = response;
-        } 
-        // Cas 2: { data: [...] }
-        else if (response && response.data && Array.isArray(response.data)) {
+        } else if (response && response.data && Array.isArray(response.data)) {
           console.log('✅ Cas 2: { data: [...] }');
           users = response.data;
-        } 
-        // Cas 3: { users: [...] }
-        else if (response && response.users && Array.isArray(response.users)) {
+        } else if (response && response.users && Array.isArray(response.users)) {
           console.log('✅ Cas 3: { users: [...] }');
           users = response.users;
-        } 
-        // Cas 4: { results: [...] }
-        else if (response && response.results && Array.isArray(response.results)) {
+        } else if (response && response.results && Array.isArray(response.results)) {
           console.log('✅ Cas 4: { results: [...] }');
           users = response.results;
-        }
-        // Cas 5: Objet à convertir
-        else if (response && typeof response === 'object') {
+        } else if (response && typeof response === 'object') {
           console.log('✅ Cas 5: Conversion d\'objet en tableau');
           const possibleUsers = Object.values(response).filter(item => 
             item && typeof item === 'object' && 
@@ -454,22 +451,29 @@ export class AdminService {
     );
   }
 
+  // ============================================================
+  // COMMISSIONS - CORRIGÉ avec gestion d'erreur 404
+  // ============================================================
   getCommissionStats(): Observable<any> {
     return this.http
       .get<any>(`${this.apiUrl}/dashboard/commissions`, { headers: this.getHeaders() })
       .pipe(
         tap((data) => console.log('💰 Statistiques commissions reçues:', data)),
         catchError((error) => {
-          console.error('❌ Erreur getCommissionStats:', error);
+          console.warn('⚠️ Commission stats non disponibles (peut-être 404)');
+          // ✅ Retourner des valeurs par défaut au lieu de lancer une erreur
           return of({
             totalCommission: 0,
             commissionTransactions: 0,
             recentCommissions: [],
-            commissionRate: 0.5
+            commissionRate: 0.5,
+            myCommission: 0,
+            myCommissionTransactions: 0,
+            userRole: 'admin'
           });
         }),
       );
-    }
+  }
 
   updateAdminProfile(profileData: any): Observable<any> {
     return this.http

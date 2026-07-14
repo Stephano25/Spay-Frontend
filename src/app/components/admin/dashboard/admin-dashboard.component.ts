@@ -1,5 +1,5 @@
 // frontend/src/app/components/admin/dashboard/admin-dashboard.component.ts
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -9,6 +9,7 @@ import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
 import { NotificationService } from '../../../services/notification.service';
 import { TranslationService } from '../../../services/translation.service';
+import { ThemeService } from '../../../services/theme.service';
 import { User } from '../../../models/user.model';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { QRScannerComponent } from '../qr-scanner/qr-scanner.component';
@@ -25,7 +26,6 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -47,12 +47,11 @@ import { BaseComponent } from 'src/app/components/base.component';
     QRScannerComponent,
     QRTransactionFormComponent,
     QRGeneratorComponent,
-    TranslatePipe
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
 })
-export class AdminDashboardComponent extends BaseComponent implements OnInit, OnDestroy, AfterViewInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   user: User | null = null;
   stats: AdminDashboardStats | null = null;
   isLoading = true;
@@ -61,6 +60,8 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
   private charts: Chart[] = [];
   private chartInitialized = false;
   private chartCreationTimeout: any = null;
+  private subscriptions: Subscription[] = [];
+  private isDestroyed = false;
 
   // QR Code properties
   showQRScanner: boolean = false;
@@ -70,6 +71,19 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
   // QR Generator properties
   showQRGenerator: boolean = false;
   qrGeneratorType: 'deposit' | 'withdraw' = 'deposit';
+
+  // ✅ Injection des services
+  private cdr = inject(ChangeDetectorRef);
+  private translationService = inject(TranslationService);
+  private themeService = inject(ThemeService);
+
+  constructor(
+    private adminService: AdminService,
+    private authService: AuthService,
+    private chatService: ChatService,
+    private notificationService: NotificationService,
+    private router: Router,
+  ) {}
 
   get menuItems() {
     const baseMenu = [
@@ -95,18 +109,7 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
     return baseMenu;
   }
 
-  constructor(
-    private adminService: AdminService,
-    private authService: AuthService,
-    private chatService: ChatService,
-    private notificationService: NotificationService,
-    private router: Router,
-  ) {
-    super();
-  }
-
-  // ✅ UN SEUL ngOnInit
-  override ngOnInit(): void {
+  ngOnInit(): void {
     this.loadUserData();
     this.loadDashboardData();
 
@@ -114,7 +117,7 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
     this.subscriptions.push(
       this.translationService.language$.subscribe((lang) => {
         console.log(`🌐 AdminDashboard: Langue changée en ${lang}`);
-        this.cdr.detectChanges();
+        this.safeDetectChanges();
       })
     );
   }
@@ -126,14 +129,38 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
     }, 500);
   }
 
-  override ngOnDestroy(): void {
+  ngOnDestroy(): void {
+    this.isDestroyed = true;
+    
     if (this.chartCreationTimeout) {
       clearTimeout(this.chartCreationTimeout);
       this.chartCreationTimeout = null;
     }
     
     this.destroyAllCharts();
-    super.ngOnDestroy();
+    
+    // ✅ Désabonnement sécurisé
+    this.subscriptions.forEach(sub => {
+      try {
+        if (sub && !sub.closed) {
+          sub.unsubscribe();
+        }
+      } catch (e) {
+        // Ignorer
+      }
+    });
+    this.subscriptions = [];
+  }
+
+  // ✅ Méthode sécurisée pour détecter les changements
+  private safeDetectChanges(): void {
+    if (!this.isDestroyed) {
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {
+        // Ignorer les erreurs de détection
+      }
+    }
   }
 
   private loadUserData(): void {
@@ -146,6 +173,7 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
         if (user && user.role !== 'admin' && user.role !== 'super_admin') {
           this.router.navigate(['/user']);
         }
+        this.safeDetectChanges();
       }),
     );
   }
@@ -162,41 +190,42 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
         }
         
         setTimeout(() => this.createCharts(), 300);
+        this.safeDetectChanges();
       },
       error: (err) => {
         console.error('❌ Erreur chargement dashboard:', err);
         this.isLoading = false;
-        this.stats = {
-          totalUsers: 0,
-          activeUsers: 0,
-          totalTransactions: 0,
-          totalVolume: 0,
-          recentUsers: [],
-          recentTransactions: [],
-          dailyStats: this.generateDefaultDailyStats(),
-          topUsers: [],
-          totalAdmins: 0,
-          totalSuperAdmins: 0,
-          adminTransactions: 0,
-          adminVolume: 0,
-          myAdminTransactions: 0,
-          myAdminVolume: 0,
-          userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
-          totalCommission: 0,
-          commissionTransactions: 0,
-          recentCommissions: [],
-          commissionRate: 0.5,
-          myCommission: 0,
-          myCommissionTransactions: 0,
-        };
-        
-        if (this.isSuperAdmin || this.isAdmin) {
-          this.loadCommissionStats();
-        }
-        
+        this.stats = this.getDefaultStats();
         setTimeout(() => this.createCharts(), 500);
+        this.safeDetectChanges();
       },
     });
+  }
+
+  private getDefaultStats(): AdminDashboardStats {
+    return {
+      totalUsers: 0,
+      activeUsers: 0,
+      totalTransactions: 0,
+      totalVolume: 0,
+      recentUsers: [],
+      recentTransactions: [],
+      dailyStats: this.generateDefaultDailyStats(),
+      topUsers: [],
+      totalAdmins: 0,
+      totalSuperAdmins: 0,
+      adminTransactions: 0,
+      adminVolume: 0,
+      myAdminTransactions: 0,
+      myAdminVolume: 0,
+      userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
+      totalCommission: 0,
+      commissionTransactions: 0,
+      recentCommissions: [],
+      commissionRate: 0.5,
+      myCommission: 0,
+      myCommissionTransactions: 0,
+    };
   }
 
   private loadCommissionStats(): void {
@@ -211,17 +240,10 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
           this.stats.myCommissionTransactions = commissionData.myCommissionTransactions || 0;
           this.stats.userRole = commissionData.userRole || this.stats.userRole;
         }
+        this.safeDetectChanges();
       },
       error: (err) => {
-        console.error('❌ Erreur chargement commissions:', err);
-        if (this.stats) {
-          this.stats.totalCommission = 0;
-          this.stats.commissionTransactions = 0;
-          this.stats.recentCommissions = [];
-          this.stats.commissionRate = 0.5;
-          this.stats.myCommission = 0;
-          this.stats.myCommissionTransactions = 0;
-        }
+        console.warn('⚠️ Erreur chargement commissions:', err);
       }
     });
   }
@@ -234,6 +256,7 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
           this.loadCommissionStats();
         }
         this.updateCharts();
+        this.safeDetectChanges();
       },
       error: (err) => console.error('❌ Erreur refresh silencieux:', err),
     });
@@ -287,42 +310,20 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
       }
     }
 
-    if (!this.stats?.dailyStats || this.stats.dailyStats.length === 0) {
-      this.stats = this.stats || {
-        totalUsers: 0,
-        activeUsers: 0,
-        totalTransactions: 0,
-        totalVolume: 0,
-        recentUsers: [],
-        recentTransactions: [],
-        dailyStats: this.generateDefaultDailyStats(),
-        topUsers: [],
-        totalAdmins: 0,
-        totalSuperAdmins: 0,
-        adminTransactions: 0,
-        adminVolume: 0,
-        myAdminTransactions: 0,
-        myAdminVolume: 0,
-        userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
-        totalCommission: 0,
-        commissionTransactions: 0,
-        recentCommissions: [],
-        commissionRate: 0.5,
-        myCommission: 0,
-        myCommissionTransactions: 0,
-      };
-    }
+    const stats = this.stats || this.getDefaultStats();
+    const dailyStats = stats.dailyStats && stats.dailyStats.length > 0 
+      ? stats.dailyStats 
+      : this.generateDefaultDailyStats();
 
     try {
-      const stats = this.stats;
       const chart = new Chart(canvas, {
         type: 'line',
         data: {
-          labels: stats.dailyStats.map((d) => d.date),
+          labels: dailyStats.map((d) => d.date),
           datasets: [
             {
               label: 'Transactions',
-              data: stats.dailyStats.map((d) => d.transactions || 0),
+              data: dailyStats.map((d) => d.transactions || 0),
               borderColor: '#7c3aed',
               backgroundColor: 'rgba(124, 58, 237, 0.1)',
               tension: 0.4,
@@ -333,7 +334,7 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
             },
             {
               label: 'Volume (kAr)',
-              data: stats.dailyStats.map((d) => (d.volume || 0) / 1000),
+              data: dailyStats.map((d) => (d.volume || 0) / 1000),
               borderColor: '#4f46e5',
               backgroundColor: 'rgba(79, 70, 229, 0.1)',
               tension: 0.4,
@@ -483,14 +484,18 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
 
     try {
       const stats = this.stats;
+      const dailyStats = stats?.dailyStats && stats.dailyStats.length > 0 
+        ? stats.dailyStats 
+        : this.generateDefaultDailyStats();
+
       const chart = new Chart(canvas, {
         type: 'bar',
         data: {
-          labels: stats?.dailyStats?.map((d) => d.date) || [],
+          labels: dailyStats.map((d) => d.date),
           datasets: [
             {
               label: 'Volume (Ar)',
-              data: stats?.dailyStats?.map((d) => d.volume || 0) || [],
+              data: dailyStats.map((d) => d.volume || 0),
               backgroundColor: 'rgba(124, 58, 237, 0.7)',
               borderRadius: 6,
               hoverBackgroundColor: 'rgba(124, 58, 237, 1)',
@@ -538,6 +543,7 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
     this.showQRScanner = true;
     this.qrScanResult = null;
     this.showTransactionForm = false;
+    this.safeDetectChanges();
   }
 
   onQRScanResult(qrData: string): void {
@@ -548,21 +554,25 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
         this.qrScanResult = result;
         this.showTransactionForm = true;
         this.notificationService.showSuccess('QR Code scanné avec succès');
+        this.safeDetectChanges();
       },
       error: (error) => {
         console.error('❌ Erreur scan QR:', error);
         this.notificationService.showError(error?.error?.message || 'QR Code invalide');
+        this.safeDetectChanges();
       },
     });
   }
 
   closeQRScanner(): void {
     this.showQRScanner = false;
+    this.safeDetectChanges();
   }
 
   closeTransactionForm(): void {
     this.showTransactionForm = false;
     this.qrScanResult = null;
+    this.safeDetectChanges();
   }
 
   onTransactionCompleted(result: { success: boolean; message: string; data?: any }): void {
@@ -571,21 +581,25 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
     if (result.success) {
       this.refreshData();
     }
+    this.safeDetectChanges();
   }
 
   openQRGenerator(type: 'deposit' | 'withdraw'): void {
     this.qrGeneratorType = type;
     this.showQRGenerator = true;
+    this.safeDetectChanges();
   }
 
   closeQRGenerator(): void {
     this.showQRGenerator = false;
+    this.safeDetectChanges();
   }
 
   onQRGenerated(response: QRCodeResponse): void {
     this.notificationService.showSuccess(
       `QR Code de ${response.action === 'deposit' ? 'dépôt' : 'retrait'} généré avec succès`
     );
+    this.safeDetectChanges();
   }
 
   refreshData(): void {

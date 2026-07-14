@@ -1,3 +1,4 @@
+// frontend/src/app/interceptors/auth.interceptor.ts
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -27,25 +28,18 @@ export class AuthInterceptor implements HttpInterceptor {
 
     let authReq = req;
     if (token) {
-      // ✅ Vérifier que le token n'est pas undefined
       const cleanToken = token.trim();
       authReq = req.clone({
         headers: req.headers.set('Authorization', `Bearer ${cleanToken}`),
       });
       console.log('🔑 Token ajouté à la requête:', req.url);
-    } else {
-      // ✅ Ne pas logger les requêtes vers des endpoints publics
-      if (!req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
-        console.warn('⚠️ Pas de token pour:', req.url);
-      }
     }
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        // ✅ Ne pas logger les erreurs 404 pour les endpoints qui n'existent pas encore
+        // ✅ Ne pas logger les erreurs 404 de manière excessive
         if (error.status === 404) {
           console.warn(`⚠️ Endpoint non trouvé (404): ${req.url}`);
-          // ✅ Ne pas rediriger pour les 404
           return throwError(() => error);
         }
 

@@ -1,5 +1,5 @@
 // frontend/src/app/components/admin/qr-generator/qr-generator.component.ts
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -15,8 +15,8 @@ import { Clipboard } from '@angular/cdk/clipboard';
 
 import { AdminService, QRCodeResponse } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
-import { TranslatePipe } from 'src/app/pipes/translate.pipe';
-import { BaseComponent } from 'src/app/components/base.component';
+import { TranslationService } from '../../../services/translation.service';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-qr-generator',
@@ -38,7 +38,7 @@ import { BaseComponent } from 'src/app/components/base.component';
   templateUrl: './qr-generator.component.html',
   styleUrls: ['./qr-generator.component.css'],
 })
-export class QRGeneratorComponent extends BaseComponent implements OnInit {
+export class QRGeneratorComponent implements OnInit {
   @Input() defaultType: 'deposit' | 'withdraw' = 'deposit';
   @Output() qrGenerated = new EventEmitter<QRCodeResponse>();
   @Output() closeGenerator = new EventEmitter<void>();
@@ -48,20 +48,23 @@ export class QRGeneratorComponent extends BaseComponent implements OnInit {
   isGenerating: boolean = false;
   qrResponse: QRCodeResponse | null = null;
   qrCodeImage: string = '';
+  private isDestroyed = false;
 
   constructor(
     private adminService: AdminService,
     private notificationService: NotificationService,
     private clipboard: Clipboard,
-  ) {
-    super();
-  }
+  ) {}
 
-  override ngOnInit(): void {
+  ngOnInit(): void {
     this.selectedType = this.defaultType;
     setTimeout(() => {
       this.generateQR();
     }, 500);
+  }
+
+  ngOnDestroy(): void {
+    this.isDestroyed = true;
   }
 
   generateQR(): void {
@@ -90,7 +93,6 @@ export class QRGeneratorComponent extends BaseComponent implements OnInit {
     });
   }
 
-  // ✅ Méthode publique pour la simulation
   simulateQRGeneration(): void {
     const qrData = {
       type: 'admin_transaction',

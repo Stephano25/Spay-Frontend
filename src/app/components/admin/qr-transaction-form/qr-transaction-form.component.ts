@@ -1,5 +1,5 @@
 // frontend/src/app/components/admin/qr-transaction-form/qr-transaction-form.component.ts
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -14,8 +14,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AdminService, QRScanResult } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
-import { TranslatePipe } from 'src/app/pipes/translate.pipe';
-import { BaseComponent } from 'src/app/components/base.component';
+import { TranslationService } from '../../../services/translation.service';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-qr-transaction-form',
@@ -37,7 +37,7 @@ import { BaseComponent } from 'src/app/components/base.component';
   templateUrl: './qr-transaction-form.component.html',
   styleUrls: ['./qr-transaction-form.component.css'],
 })
-export class QRTransactionFormComponent extends BaseComponent implements OnInit {
+export class QRTransactionFormComponent implements OnInit, OnDestroy {
   @Input() scanResult: QRScanResult | null = null;
   @Output() transactionCompleted = new EventEmitter<{ success: boolean; message: string; data?: any }>();
   @Output() cancelled = new EventEmitter<void>();
@@ -49,17 +49,18 @@ export class QRTransactionFormComponent extends BaseComponent implements OnInit 
   isLoading = true;
   isSubmitting = false;
   isAdminTransaction = false;
+  private isDestroyed = false;
 
   quickAmounts = [1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
 
   constructor(
     private adminService: AdminService,
     private notificationService: NotificationService,
-  ) {
-    super();
-  }
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService,
+  ) {}
 
-  override ngOnInit(): void {
+  ngOnInit(): void {
     // ✅ Si le QR a un montant, l'utiliser
     if (this.scanResult?.amount) {
       this.amount = this.scanResult.amount;
@@ -73,8 +74,12 @@ export class QRTransactionFormComponent extends BaseComponent implements OnInit 
     // ✅ Charger les utilisateurs
     this.loadUsers();
     
-    // ✅ Vérifier si c'est une transaction admin (propriété optionnelle)
+    // ✅ Vérifier si c'est une transaction admin
     this.isAdminTransaction = this.scanResult?.isAdminTransaction || false;
+  }
+
+  ngOnDestroy(): void {
+    this.isDestroyed = true;
   }
 
   loadUsers(): void {
@@ -83,11 +88,17 @@ export class QRTransactionFormComponent extends BaseComponent implements OnInit 
       next: (users) => {
         this.users = users;
         this.isLoading = false;
+        if (!this.isDestroyed) {
+          this.cdr.detectChanges();
+        }
       },
       error: (error) => {
         console.error('Erreur chargement utilisateurs:', error);
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
         this.isLoading = false;
+        if (!this.isDestroyed) {
+          this.cdr.detectChanges();
+        }
       },
     });
   }
@@ -97,7 +108,7 @@ export class QRTransactionFormComponent extends BaseComponent implements OnInit 
   }
 
   getAmount(): number {
-    return this.scanResult?.amount || this.amount;
+    return this.scanResult?.amount || this.amount || 0;
   }
 
   getNewBalance(): number {
@@ -223,11 +234,12 @@ export class QRTransactionFormComponent extends BaseComponent implements OnInit 
     this.cancelled.emit();
   }
 
-  formatAmount(amount: number): string {
+  formatAmount(amount: number | null | undefined): string {
     return new Intl.NumberFormat('fr-MG').format(amount || 0);
   }
 
   getUserInitials(user: any): string {
-    return (user?.firstName?.charAt(0) || '') + (user?.lastName?.charAt(0) || '');
+    if (!user) return '';
+    return (user.firstName?.charAt(0) || '') + (user.lastName?.charAt(0) || '');
   }
 }

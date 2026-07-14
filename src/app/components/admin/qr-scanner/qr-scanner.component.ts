@@ -9,8 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslatePipe } from 'src/app/pipes/translate.pipe';
-import { BaseComponent } from 'src/app/components/base.component';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-qr-scanner',
@@ -30,17 +29,17 @@ import { BaseComponent } from 'src/app/components/base.component';
   templateUrl: './qr-scanner.component.html',
   styleUrls: ['./qr-scanner.component.css'],
 })
-export class QRScannerComponent extends BaseComponent implements OnDestroy {
+export class QRScannerComponent implements OnDestroy {
   @Output() scanResult = new EventEmitter<string>();
   @Output() closeScanner = new EventEmitter<void>();
 
   qrInput: string = '';
   isScanning: boolean = false;
   isDragging: boolean = false;
+  private isDestroyed = false;
 
-  override ngOnDestroy(): void {
-    // Nettoyer
-    super.ngOnDestroy();
+  ngOnDestroy(): void {
+    this.isDestroyed = true;
   }
 
   scan(): void {
@@ -112,8 +111,11 @@ export class QRScannerComponent extends BaseComponent implements OnDestroy {
     if (file.type.startsWith('image/')) {
       const input = document.createElement('input');
       input.type = 'file';
-      input.files = files;
-      this.onFileSelected({ target: input } as any);
+      // Créer un FileList pour simuler l'événement
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      const eventObj = { target: { files: dataTransfer.files } } as any;
+      this.onFileSelected(eventObj);
     }
   }
 

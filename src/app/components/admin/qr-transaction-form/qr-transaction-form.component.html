@@ -28,7 +28,7 @@
       <mat-divider></mat-divider>
 
       <!-- QR Code info -->
-      <div class="qr-info-section">
+      <div class="qr-info-section" *ngIf="scanResult">
         <div class="qr-code-display">
           <mat-icon>qr_code</mat-icon>
           <span class="qr-code-text">{{ scanResult.qrCode || scanResult.adminId || ('QR Code scanné' | translate) }}</span>
@@ -50,8 +50,9 @@
           <span>{{ 'Utilisateur concerné' | translate }}</span>
         </div>
 
+        <!-- ✅ Label au-dessus -->
+        <label class="field-label">{{ 'Rechercher un utilisateur' | translate }}</label>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'Rechercher un utilisateur' | translate }}</mat-label>
           <mat-select [(ngModel)]="selectedUserId" placeholder="{{ 'Sélectionnez un utilisateur' | translate }}">
             <mat-option *ngFor="let user of users" [value]="user.id">
               <div class="user-option">
@@ -64,7 +65,7 @@
               </div>
             </mat-option>
           </mat-select>
-          <mat-hint>{{ 'Sélectionnez l\'utilisateur concerné par l\'opération' | translate }}</mat-hint>
+          <mat-hint>{{ "Sélectionnez l'utilisateur concerné par l'opération" | translate }}</mat-hint>
         </mat-form-field>
 
         <!-- Utilisateur sélectionné -->
@@ -94,7 +95,7 @@
 
         <!-- Montant du QR Code -->
         <div class="amount-display" *ngIf="scanResult.amount">
-          <div class="amount-value">{{ formatAmount(scanResult.amount) }} Ar</div>
+          <div class="amount-value">{{ formatAmount(scanResult.amount || 0) }} Ar</div>
           <div class="amount-label">{{ 'Montant fixé par le QR Code' | translate }}</div>
           <mat-icon class="lock-icon">lock</mat-icon>
         </div>
@@ -113,8 +114,9 @@
             </div>
           </div>
 
+          <!-- ✅ Label au-dessus -->
+          <label class="field-label">{{ 'Montant (Ar)' | translate }}</label>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
             <input matInput type="number" [(ngModel)]="amount" min="100" placeholder="1000">
             <mat-icon matSuffix>attach_money</mat-icon>
             <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
@@ -122,9 +124,10 @@
           </mat-form-field>
         </ng-container>
 
+        <!-- ✅ Label au-dessus pour montant fixé -->
+        <label class="field-label" *ngIf="scanResult.amount">{{ 'Montant (Ar)' | translate }}</label>
         <mat-form-field appearance="outline" class="full-width" *ngIf="scanResult.amount">
-          <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
-          <input matInput type="number" [value]="scanResult.amount" disabled>
+          <input matInput type="number" [value]="scanResult.amount || 0" disabled>
           <mat-icon matSuffix>lock</mat-icon>
           <mat-hint>{{ 'Montant fixé par le QR Code' | translate }}</mat-hint>
         </mat-form-field>
@@ -138,8 +141,10 @@
           <mat-icon>notes</mat-icon>
           <span>{{ 'Description' | translate }}</span>
         </div>
+
+        <!-- ✅ Label au-dessus -->
+        <label class="field-label">{{ "Description de l'opération" | translate }}</label>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'Description de l\'opération' | translate }}</mat-label>
           <input matInput [(ngModel)]="description" 
                  [placeholder]="scanResult.action === 'deposit' ? ('Dépôt effectué par l\'administrateur' | translate) : ('Retrait effectué par l\'administrateur' | translate)"
                  maxlength="200">
@@ -151,9 +156,9 @@
 
       <!-- Résumé -->
       <div class="preview" *ngIf="selectedUserId && getAmount() && getAmount() >= 100">
-        <h4 class="preview-title">📋 {{ 'Résumé de l\'opération' | translate }}</h4>
+        <h4 class="preview-title">📋 {{ "Résumé de l'opération" | translate }}</h4>
         <div class="preview-row">
-          <span>{{ 'Type d\'opération' | translate }}</span>
+          <span>{{ "Type d'opération" | translate }}</span>
           <span [class.deposit]="scanResult.action === 'deposit'" [class.withdraw]="scanResult.action === 'withdraw'">
             {{ scanResult.action === 'deposit' ? ('💰 Dépôt' | translate) : ('💳 Retrait' | translate) }}
           </span>

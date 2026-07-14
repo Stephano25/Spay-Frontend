@@ -6,7 +6,7 @@
         <mat-icon>qr_code</mat-icon>
         {{ 'Générer un QR Code' | translate }}
       </mat-card-title>
-      <button mat-icon-button (click)="close()" matTooltip="{{ 'Fermer' | translate }}">
+      <button mat-icon-button (click)="close()" [matTooltip]="'Fermer' | translate">
         <mat-icon>close</mat-icon>
       </button>
     </mat-card-header>
@@ -14,7 +14,7 @@
     <mat-card-content>
       <div class="generator-form">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'Type d\'opération' | translate }}</mat-label>
+          <mat-label>{{ "Type d'opération" | translate }}</mat-label>
           <mat-select [(ngModel)]="selectedType">
             <mat-option value="deposit">💰 {{ 'Dépôt' | translate }}</mat-option>
             <mat-option value="withdraw">💳 {{ 'Retrait' | translate }}</mat-option>
@@ -25,7 +25,7 @@
           <mat-label>{{ 'Montant (optionnel)' | translate }}</mat-label>
           <input matInput type="number" [(ngModel)]="amount" placeholder="1000" min="0">
           <mat-icon matSuffix>attach_money</mat-icon>
-          <mat-hint>{{ 'Laissez vide pour un montant à définir au scan' | translate }}</mat-hint>
+          <mat-hint>{{ "Laissez vide pour un montant à définir au scan" | translate }}</mat-hint>
         </mat-form-field>
 
         <button
@@ -77,11 +77,11 @@
         </div>
 
         <div class="qr-actions">
-          <button mat-stroked-button (click)="copyQRCode()" matTooltip="{{ 'Copier le code' | translate }}">
+          <button mat-stroked-button (click)="copyQRCode()" [matTooltip]="'Copier le code' | translate">
             <mat-icon>content_copy</mat-icon>
             {{ 'Copier' | translate }}
           </button>
-          <button mat-stroked-button (click)="downloadQR()" matTooltip="{{ 'Télécharger' | translate }}">
+          <button mat-stroked-button (click)="downloadQR()" [matTooltip]="'Télécharger' | translate">
             <mat-icon>download</mat-icon>
             {{ 'Télécharger' | translate }}
           </button>
