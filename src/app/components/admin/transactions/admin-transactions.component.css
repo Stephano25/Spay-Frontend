@@ -1,3 +1,4 @@
+/* frontend/src/app/components/admin/transactions/admin-transactions.component.css */
 /* ============================================================
    SPAYE — TRANSACTIONS LIST
    ============================================================ */
@@ -10,7 +11,7 @@
 }
 
 .transactions-container::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 .transactions-container::-webkit-scrollbar-thumb {
   background: var(--border);
@@ -18,13 +19,17 @@
 }
 
 .transactions-card {
-  border-radius: 16px !important;
+  border-radius: 20px !important;
   overflow: hidden;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04) !important;
+  background: var(--surface) !important;
 }
 
 .transactions-card mat-card-header {
   padding: 20px 24px 0 !important;
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .transactions-card mat-card-title {
@@ -33,6 +38,7 @@
   gap: 10px;
   font-size: 1.125rem !important;
   font-weight: 700 !important;
+  color: var(--text) !important;
 }
 
 .transactions-card mat-card-title mat-icon {
@@ -42,6 +48,11 @@
 .transactions-card mat-card-subtitle {
   font-size: 0.875rem !important;
   color: var(--text-3) !important;
+}
+
+.divider {
+  margin: 0 6px;
+  color: var(--border);
 }
 
 .transactions-card mat-card-content {
@@ -73,21 +84,26 @@
 }
 
 .transactions-table thead th {
-  padding: 10px 14px;
+  padding: 12px 14px;
   text-align: left;
   font-weight: 600;
   color: var(--text-2);
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
 .transactions-table tbody td {
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-bottom: 0.5px solid var(--border);
   color: var(--text);
   vertical-align: middle;
+}
+
+.transactions-table tbody tr {
+  transition: background 0.2s ease;
 }
 
 .transactions-table tbody tr:hover {
@@ -98,59 +114,93 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   color: var(--text-3);
-}
-
-.amount {
-  font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.875rem;
   white-space: nowrap;
 }
 
-.mat-chip {
-  font-size: 0.65rem !important;
-  padding: 2px 10px !important;
-  border-radius: 999px !important;
-  min-height: 22px !important;
-  font-weight: 600 !important;
+.amount-cell {
+  white-space: nowrap;
 }
 
-.mat-chip mat-icon {
+.amount {
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+/* Type Chips */
+.type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.type-chip mat-icon {
   font-size: 14px !important;
   width: 14px !important;
   height: 14px !important;
 }
 
 .type-deposit {
-  background: rgba(16, 185, 129, 0.12) !important;
-  color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
 }
 .type-withdraw {
-  background: rgba(239, 68, 68, 0.12) !important;
-  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
 }
 .type-transfer {
-  background: rgba(59, 130, 246, 0.12) !important;
-  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
 }
 .type-payment {
-  background: rgba(124, 58, 237, 0.12) !important;
-  color: #7c3aed !important;
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+}
+.type-mobile {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+.type-commission {
+  background: rgba(236, 72, 153, 0.12);
+  color: #ec4899;
+}
+
+/* Status Chips */
+.status-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .status-completed {
-  background: rgba(16, 185, 129, 0.12) !important;
-  color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
 }
 .status-pending {
-  background: rgba(245, 158, 11, 0.12) !important;
-  color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
 }
 .status-failed {
-  background: rgba(239, 68, 68, 0.12) !important;
-  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
 }
 
+.date-cell {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+/* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -179,36 +229,90 @@
   font-size: 0.875rem;
 }
 
-/* Responsive */
+/* Toolbar Badge */
+.toolbar-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: white;
+  margin-left: 8px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .transactions-card mat-card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 @media (max-width: 768px) {
   .transactions-container {
     padding: 12px;
   }
+  
   .transactions-card mat-card-content {
     padding: 12px 16px 16px !important;
   }
+  
+  .transactions-card mat-card-header {
+    padding: 16px 16px 0 !important;
+  }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .transactions-table thead th,
   .transactions-table tbody td {
-    padding: 6px 8px;
+    padding: 8px 8px;
     font-size: 0.7rem;
   }
+  
   .id-cell {
     font-size: 0.65rem;
   }
+  
   .amount {
     font-size: 0.75rem;
   }
-  .mat-chip {
-    font-size: 0.55rem !important;
-    padding: 1px 6px !important;
-    min-height: 18px !important;
+  
+  .type-chip {
+    font-size: 0.6rem;
+    padding: 2px 8px;
   }
-  .mat-chip mat-icon {
+  
+  .type-chip mat-icon {
     font-size: 12px !important;
     width: 12px !important;
     height: 12px !important;
+  }
+  
+  .status-chip {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+  }
+  
+  .date-cell {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .transactions-table thead th {
+    padding: 6px 4px;
+    font-size: 0.55rem;
+  }
+  
+  .transactions-table tbody td {
+    padding: 6px 4px;
+    font-size: 0.6rem;
   }
 }

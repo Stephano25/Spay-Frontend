@@ -1,18 +1,26 @@
 <!-- frontend/src/app/components/admin/stats/admin-stats.component.html -->
 <mat-toolbar color="primary">
-  <button mat-icon-button (click)="goBack()" matTooltip="{{ 'Retour' | translate }}">
+  <button mat-icon-button (click)="goBack()" [matTooltip]="'Retour' | translate">
     <mat-icon>arrow_back</mat-icon>
   </button>
   <span>{{ 'Statistiques' | translate }}</span>
+  <span class="spacer"></span>
+  <button mat-raised-button color="accent" (click)="refresh()" [disabled]="isLoading">
+    <mat-icon>refresh</mat-icon>
+    {{ 'Actualiser' | translate }}
+  </button>
 </mat-toolbar>
 
 <div class="stats-container">
+  <!-- Loading -->
   <div class="loading-container" *ngIf="isLoading">
     <mat-spinner diameter="60"></mat-spinner>
     <p>{{ 'Chargement des statistiques...' | translate }}</p>
   </div>
 
+  <!-- Stats Content -->
   <div *ngIf="!isLoading && stats" class="stats-content">
+    <!-- KPI Grid -->
     <div class="kpi-grid">
       <mat-card class="kpi-card">
         <mat-card-content>
@@ -55,13 +63,40 @@
       </mat-card>
     </div>
 
+    <!-- Chart Card -->
     <mat-card class="chart-card">
       <mat-card-header>
-        <mat-card-title>{{ 'Activité récente' | translate }}</mat-card-title>
+        <mat-card-title>{{ 'Activité récente (7 jours)' | translate }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ getRecentTransactionsCount() }} {{ 'transactions récentes' | translate }}
+        </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <canvas id="activityChart"></canvas>
       </mat-card-content>
     </mat-card>
+
+    <!-- Stats détaillées pour SuperAdmin -->
+    <div *ngIf="stats.userRole === 'super_admin'" class="extra-stats-grid">
+      <mat-card class="extra-stat-card">
+        <mat-card-content>
+          <div class="extra-stat-icon admins"><mat-icon>shield</mat-icon></div>
+          <div class="extra-stat-info">
+            <div class="extra-stat-value">{{ formatNumber(stats.totalAdmins || 0) }}</div>
+            <div class="extra-stat-label">{{ 'Administrateurs' | translate }}</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="extra-stat-card">
+        <mat-card-content>
+          <div class="extra-stat-icon commission"><mat-icon>monetization_on</mat-icon></div>
+          <div class="extra-stat-info">
+            <div class="extra-stat-value">{{ formatAmount(stats.totalCommission || 0) }} Ar</div>
+            <div class="extra-stat-label">{{ 'Commissions totales' | translate }}</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </div>

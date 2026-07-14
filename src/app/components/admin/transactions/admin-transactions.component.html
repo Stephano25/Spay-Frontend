@@ -4,6 +4,12 @@
     <mat-icon>arrow_back</mat-icon>
   </button>
   <span>{{ 'Gestion des transactions' | translate }}</span>
+  <span class="spacer"></span>
+  <button mat-raised-button color="accent" (click)="refresh()" [disabled]="isLoading">
+    <mat-icon>refresh</mat-icon>
+    {{ 'Actualiser' | translate }}
+  </button>
+  <span class="toolbar-badge">{{ 'Total' | translate }}: {{ transactions.length }}</span>
 </mat-toolbar>
 
 <div class="transactions-container">
@@ -11,17 +17,25 @@
     <mat-card-header>
       <mat-card-title>
         <mat-icon>receipt</mat-icon>
-        {{ 'Gestion des transactions' | translate }}
+        {{ 'Transactions' | translate }}
       </mat-card-title>
-      <mat-card-subtitle>{{ 'Total' | translate }}: {{ transactions.length }} {{ 'transactions' | translate }}</mat-card-subtitle>
+      <mat-card-subtitle>
+        {{ 'Total' | translate }}: {{ transactions.length }} {{ 'transactions' | translate }}
+        <span class="divider">|</span>
+        {{ 'Complétées' | translate }}: {{ getCompletedCount() }}
+        <span class="divider">|</span>
+        {{ 'En attente' | translate }}: {{ getPendingCount() }}
+      </mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
+      <!-- Loading -->
       <div class="loading-container" *ngIf="isLoading">
         <mat-spinner diameter="50"></mat-spinner>
         <p>{{ 'Chargement des transactions...' | translate }}</p>
       </div>
 
+      <!-- Table -->
       <div *ngIf="!isLoading" class="table-container">
         <table class="transactions-table">
           <thead>
@@ -38,27 +52,38 @@
           <tbody>
             <tr *ngFor="let transaction of transactions">
               <td class="id-cell">{{ transaction.id | slice:0:8 }}...</td>
-              <td>{{ transaction.sender?.firstName || 'N/A' }} {{ transaction.sender?.lastName || '' }}</td>
-              <td>{{ transaction.receiver?.firstName || 'N/A' }} {{ transaction.receiver?.lastName || '' }}</td>
-              <td class="amount">{{ formatAmount(transaction.amount) }} Ar</td>
               <td>
-                <mat-chip [class]="'type-' + transaction.type">
+                <span *ngIf="transaction.sender">{{ transaction.sender.firstName || 'N/A' }} {{ transaction.sender.lastName || '' }}</span>
+                <span *ngIf="!transaction.sender && transaction.senderId">ID: {{ transaction.senderId | slice:0:8 }}</span>
+                <span *ngIf="!transaction.sender && !transaction.senderId">-</span>
+              </td>
+              <td>
+                <span *ngIf="transaction.receiver">{{ transaction.receiver.firstName || 'N/A' }} {{ transaction.receiver.lastName || '' }}</span>
+                <span *ngIf="!transaction.receiver && transaction.receiverId">ID: {{ transaction.receiverId | slice:0:8 }}</span>
+                <span *ngIf="!transaction.receiver && !transaction.receiverId">-</span>
+              </td>
+              <td class="amount-cell">
+                <span class="amount">{{ formatAmount(transaction.amount) }} Ar</span>
+              </td>
+              <td>
+                <span class="type-chip" [class]="getTypeClass(transaction.type)">
                   <mat-icon>{{ getTypeIcon(transaction.type) }}</mat-icon>
                   {{ getTypeLabel(transaction.type) | translate }}
-                </mat-chip>
+                </span>
               </td>
               <td>
-                <mat-chip [class]="'status-' + transaction.status">
+                <span class="status-chip" [class]="getStatusClass(transaction.status)">
                   {{ getStatusLabel(transaction.status) | translate }}
-                </mat-chip>
+                </span>
               </td>
-              <td>{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="date-cell">{{ transaction.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
             </tr>
           </tbody>
         </table>
 
+        <!-- Empty State -->
         <div *ngIf="transactions.length === 0" class="empty-state">
-          <mat-icon>receipt</mat-icon>
+          <mat-icon>receipt_long</mat-icon>
           <h3>{{ 'Aucune transaction' | translate }}</h3>
           <p>{{ 'Aucune transaction n\'a été effectuée pour le moment' | translate }}</p>
         </div>

@@ -1,10 +1,21 @@
-/* src/app/components/admin/stats/stats.component.css */
+/* frontend/src/app/components/admin/stats/admin-stats.component.css */
+/* ============================================================
+   SPAYE — ADMIN STATS
+   ============================================================ */
 
 .stats-container {
   padding: 24px;
-  max-width: 1280px;
-  margin: 0 auto;
-  min-height: calc(100vh - 64px);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.stats-container::-webkit-scrollbar {
+  width: 4px;
+}
+.stats-container::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
 }
 
 .loading-container {
@@ -13,7 +24,7 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding: 120px 0;
+  padding: 80px 0;
   color: var(--text-3);
 }
 
@@ -34,7 +45,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── KPI grid ── */
+/* ── KPI Grid ── */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -42,16 +53,16 @@
 }
 
 .kpi-card {
-  border-radius: var(--r-lg, 20px) !important;
+  border-radius: 20px !important;
   background: var(--surface) !important;
   border: 0.5px solid var(--border);
-  box-shadow: 0 2px 10px rgba(15, 14, 26, 0.04);
-  transition: transform var(--trans-base), box-shadow var(--trans-base);
+  box-shadow: 0 2px 10px rgba(15, 14, 26, 0.04) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .kpi-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(15, 14, 26, 0.08);
+  box-shadow: 0 12px 28px rgba(15, 14, 26, 0.08) !important;
 }
 
 .kpi-card mat-card-content {
@@ -77,10 +88,22 @@
   height: 26px;
 }
 
-.kpi-icon.users { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
-.kpi-icon.active { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-.kpi-icon.transactions { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.kpi-icon.volume { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+.kpi-icon.users { 
+  background: rgba(99, 102, 241, 0.12); 
+  color: #6366f1; 
+}
+.kpi-icon.active { 
+  background: rgba(16, 185, 129, 0.12); 
+  color: #10b981; 
+}
+.kpi-icon.transactions { 
+  background: rgba(245, 158, 11, 0.12); 
+  color: #f59e0b; 
+}
+.kpi-icon.volume { 
+  background: rgba(139, 92, 246, 0.12); 
+  color: #8b5cf6; 
+}
 
 .kpi-info {
   display: flex;
@@ -106,16 +129,16 @@
   font-weight: 500;
 }
 
-/* ── Chart card ── */
+/* ── Chart Card ── */
 .chart-card {
-  border-radius: var(--r-lg, 20px) !important;
+  border-radius: 20px !important;
   background: var(--surface) !important;
   border: 0.5px solid var(--border);
-  box-shadow: 0 2px 10px rgba(15, 14, 26, 0.04);
+  box-shadow: 0 2px 10px rgba(15, 14, 26, 0.04) !important;
 }
 
 .chart-card mat-card-header {
-  padding: 20px 20px 4px;
+  padding: 20px 24px 4px !important;
 }
 
 .chart-card mat-card-title {
@@ -125,24 +148,180 @@
   color: var(--text);
 }
 
+.chart-card mat-card-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
 .chart-card mat-card-content {
-  padding: 12px 20px 24px;
+  padding: 12px 24px 24px !important;
 }
 
 .chart-card canvas {
   width: 100% !important;
-  height: 340px !important;
+  height: 300px !important;
 }
 
-/* ── Responsive ── */
+/* ── Extra Stats (SuperAdmin) ── */
+.extra-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.extra-stat-card {
+  border-radius: 20px !important;
+  background: var(--surface) !important;
+  border: 0.5px solid var(--border);
+  box-shadow: 0 2px 10px rgba(15, 14, 26, 0.04) !important;
+}
+
+.extra-stat-card mat-card-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px !important;
+}
+
+.extra-stat-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.extra-stat-icon mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.extra-stat-icon.admins {
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+}
+.extra-stat-icon.commission {
+  background: rgba(236, 72, 153, 0.12);
+  color: #ec4899;
+}
+
+.extra-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.extra-stat-value {
+  font-family: 'Space Grotesk', var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.extra-stat-label {
+  font-size: 0.8125rem;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+/* ── Toolbar ── */
+.spacer {
+  flex: 1;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 1100px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+  }
+  .extra-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-container {
+    padding: 16px;
+  }
+  .chart-card canvas {
+    height: 220px !important;
+  }
 }
 
 @media (max-width: 640px) {
-  .stats-container { padding: 16px; }
-  .kpi-grid { grid-template-columns: 1fr; gap: 12px; }
-  .kpi-card mat-card-content { padding: 16px !important; }
-  .kpi-value { font-size: 1.2rem; }
-  .chart-card canvas { height: 260px !important; }
+  .kpi-grid { 
+    grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+  .extra-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .kpi-card mat-card-content {
+    padding: 16px !important;
+  }
+  .kpi-value {
+    font-size: 1.2rem;
+  }
+  .kpi-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+  .kpi-icon mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+  .extra-stat-card mat-card-content {
+    padding: 16px !important;
+  }
+  .extra-stat-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+  .extra-stat-icon mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  .extra-stat-value {
+    font-size: 1.1rem;
+  }
+  .chart-card mat-card-header {
+    padding: 16px 16px 4px !important;
+  }
+  .chart-card mat-card-content {
+    padding: 8px 16px 16px !important;
+  }
+  .chart-card canvas {
+    height: 180px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-container {
+    padding: 12px;
+  }
+  .kpi-card mat-card-content {
+    padding: 12px !important;
+    gap: 10px;
+  }
+  .kpi-value {
+    font-size: 1rem;
+  }
+  .kpi-label {
+    font-size: 0.7rem;
+  }
 }
