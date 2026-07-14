@@ -3,7 +3,7 @@
   <button mat-icon-button (click)="goBack()" [matTooltip]="'Retour' | translate">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span>{{ isAdminWithdraw ? ('Retrait sur Administrateur' | translate) : ('Retrait d\'argent' | translate) }}</span>
+  <span>{{ isAdminWithdraw ? ('Retrait sur Administrateur' | translate) : ("Retrait d'argent" | translate) }}</span>
   <span class="spacer"></span>
   <span class="toolbar-badge">{{ isAdminWithdraw ? ('Admin' | translate) : ('Utilisateur' | translate) }}</span>
 </mat-toolbar>
@@ -22,7 +22,7 @@
         </div>
         <mat-card-title>{{ 'Effectuer un retrait' | translate }}</mat-card-title>
         <mat-card-subtitle>
-          {{ isAdminWithdraw ? ('Débitez le compte d\'un administrateur' | translate) : ('Débitez le compte d\'un utilisateur' | translate) }}
+          {{ isAdminWithdraw ? ("Débitez le compte d'un administrateur" | translate) : ("Débitez le compte d'un utilisateur" | translate) }}
         </mat-card-subtitle>
       </mat-card-header>
 
@@ -47,8 +47,9 @@
             <span>{{ isAdminWithdraw ? ('Administrateur' | translate) : ('Utilisateur' | translate) }}</span>
           </div>
 
+          <!-- ✅ Label au-dessus -->
+          <label class="field-label">{{ 'Rechercher un' | translate }} {{ isAdminWithdraw ? ('administrateur' | translate) : ('utilisateur' | translate) }}</label>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'Rechercher un' | translate }} {{ isAdminWithdraw ? ('administrateur' | translate) : ('utilisateur' | translate) }}</mat-label>
             <mat-select [(ngModel)]="selectedUserId" placeholder="{{ 'Sélectionnez un' | translate }} {{ isAdminWithdraw ? ('administrateur' | translate) : ('utilisateur' | translate) }}">
               <mat-option *ngFor="let user of (isAdminWithdraw ? admins : users)" [value]="user.id">
                 <div class="user-option">
@@ -64,6 +65,7 @@
                 </div>
               </mat-option>
             </mat-select>
+            <mat-hint>{{ 'Le' | translate }} {{ isAdminWithdraw ? ('administrateur' | translate) : ('utilisateur' | translate) }} {{ 'sélectionné sera débité' | translate }}</mat-hint>
           </mat-form-field>
 
           <div class="selected-user" *ngIf="getSelectedUser()">
@@ -104,8 +106,9 @@
             </div>
           </div>
 
+          <!-- ✅ Label au-dessus -->
+          <label class="field-label">{{ 'Montant (Ar)' | translate }}</label>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
             <input matInput type="number" [(ngModel)]="amount" min="100" placeholder="1000">
             <mat-icon matSuffix>attach_money</mat-icon>
             <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
@@ -119,13 +122,13 @@
             </div>
             <div class="preview-row">
               <span>{{ 'Montant à retirer' | translate }}</span>
-              <span class="preview-amount" style="color:#ef4444;">- {{ formatAmount(amount) }} Ar</span>
+              <span class="preview-amount">- {{ formatAmount(amount) }} Ar</span>
             </div>
             <div class="preview-row total">
               <span>{{ 'Nouveau solde' | translate }}</span>
               <span class="preview-new-balance">{{ formatAmount((getSelectedUser().balance || 0) - amount) }} Ar</span>
             </div>
-            <div class="preview-row" *ngIf="(getSelectedUser().balance || 0) - amount < 0" style="color:#ef4444;font-weight:700;">
+            <div class="preview-insufficient" *ngIf="(getSelectedUser().balance || 0) - amount < 0">
               ⚠️ {{ 'Solde insuffisant' | translate }}
             </div>
           </div>
@@ -136,8 +139,10 @@
             <mat-icon>notes</mat-icon>
             <span>{{ 'Description (optionnelle)' | translate }}</span>
           </div>
+
+          <!-- ✅ Label au-dessus -->
+          <label class="field-label">{{ 'Description' | translate }}</label>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'Description' | translate }}</mat-label>
             <input matInput [(ngModel)]="description" placeholder="{{ 'Ex: Retrait, paiement...' | translate }}" maxlength="200">
             <mat-hint align="end">{{ description ? description.length : 0 }}/200</mat-hint>
           </mat-form-field>
@@ -170,14 +175,14 @@
             <div class="info-icon"><mat-icon>info</mat-icon></div>
             <div>
               <h4>{{ 'Retrait instantané' | translate }}</h4>
-              <p>{{ 'Le montant est débité immédiatement du compte de' | translate }} {{ isAdminWithdraw ? ('l\'administrateur' | translate) : ('l\'utilisateur' | translate) }}</p>
+              <p>{{ 'Le montant est débité immédiatement du compte de' | translate }} {{ isAdminWithdraw ? ("l'administrateur" | translate) : ("l'utilisateur" | translate) }}</p>
             </div>
           </div>
           <div class="info-item">
             <div class="info-icon"><mat-icon>receipt</mat-icon></div>
             <div>
               <h4>{{ 'Historique' | translate }}</h4>
-              <p>{{ 'Une transaction est créée et visible dans l\'historique' | translate }}</p>
+              <p>{{ "Une transaction est créée et visible dans l'historique" | translate }}</p>
             </div>
           </div>
           <div class="info-item">

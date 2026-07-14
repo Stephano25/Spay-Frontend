@@ -13,16 +13,18 @@
 
     <mat-card-content>
       <div class="generator-form">
+        <!-- ✅ Label au-dessus pour le type -->
+        <label class="field-label">{{ "Type d'opération" | translate }}</label>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ "Type d'opération" | translate }}</mat-label>
           <mat-select [(ngModel)]="selectedType">
             <mat-option value="deposit">💰 {{ 'Dépôt' | translate }}</mat-option>
             <mat-option value="withdraw">💳 {{ 'Retrait' | translate }}</mat-option>
           </mat-select>
         </mat-form-field>
 
+        <!-- ✅ Label au-dessus pour le montant -->
+        <label class="field-label">{{ 'Montant (optionnel)' | translate }}</label>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'Montant (optionnel)' | translate }}</mat-label>
           <input matInput type="number" [(ngModel)]="amount" placeholder="1000" min="0">
           <mat-icon matSuffix>attach_money</mat-icon>
           <mat-hint>{{ "Laissez vide pour un montant à définir au scan" | translate }}</mat-hint>
@@ -50,6 +52,7 @@
           <div class="qr-image-wrapper">
             <img [src]="qrCodeImage" alt="QR Code" class="qr-image" (error)="simulateQRGeneration()">
           </div>
+          
           <div class="qr-info">
             <div class="qr-info-item">
               <span class="info-label">{{ 'Type' | translate }}</span>
@@ -57,16 +60,19 @@
                 {{ qrResponse.action === 'deposit' ? ('💰 Dépôt' | translate) : ('💳 Retrait' | translate) }}
               </span>
             </div>
+            
             <div class="qr-info-item" *ngIf="qrResponse.amount">
               <span class="info-label">{{ 'Montant' | translate }}</span>
               <span class="info-value">{{ formatAmount(qrResponse.amount) }} Ar</span>
             </div>
+            
             <div class="qr-info-item">
               <span class="info-label">{{ 'Expiration' | translate }}</span>
               <span class="info-value" [class.expired]="isExpired()">
                 {{ formatExpiration(qrResponse.expiresAt) }}
               </span>
             </div>
+            
             <div class="qr-info-item">
               <span class="info-label">{{ 'Statut' | translate }}</span>
               <span class="info-value" [class.active]="!isExpired()" [class.expired]="isExpired()">

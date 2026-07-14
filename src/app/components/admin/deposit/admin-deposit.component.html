@@ -3,7 +3,7 @@
   <button mat-icon-button (click)="goBack()" [matTooltip]="'Retour' | translate">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span>{{ isAdminDeposit ? ('Dépôt sur Administrateur' | translate) : ('Dépôt d\'argent' | translate) }}</span>
+  <span>{{ isAdminDeposit ? ('Dépôt sur Administrateur' | translate) : ("Dépôt d'argent" | translate) }}</span>
   <span class="spacer"></span>
   <span class="toolbar-badge">{{ isAdminDeposit ? ('Admin' | translate) : ('Utilisateur' | translate) }}</span>
 </mat-toolbar>
@@ -24,7 +24,7 @@
         </div>
         <mat-card-title>{{ 'Effectuer un dépôt' | translate }}</mat-card-title>
         <mat-card-subtitle>
-          {{ isAdminDeposit ? ('Créditez le compte d\'un administrateur' | translate) : ('Créditez le compte d\'un utilisateur' | translate) }}
+          {{ isAdminDeposit ? ("Créditez le compte d'un administrateur" | translate) : ("Créditez le compte d'un utilisateur" | translate) }}
         </mat-card-subtitle>
       </mat-card-header>
 
@@ -51,8 +51,9 @@
             <span>{{ isAdminDeposit ? ('Administrateur' | translate) : ('Utilisateur' | translate) }}</span>
           </div>
 
+          <!-- ✅ Label au-dessus -->
+          <label class="field-label">{{ 'Rechercher un' | translate }} {{ isAdminDeposit ? ('administrateur' | translate) : ('utilisateur' | translate) }}</label>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'Rechercher un' | translate }} {{ isAdminDeposit ? ('administrateur' | translate) : ('utilisateur' | translate) }}</mat-label>
             <mat-select [(ngModel)]="selectedUserId" placeholder="{{ 'Sélectionnez un' | translate }} {{ isAdminDeposit ? ('administrateur' | translate) : ('utilisateur' | translate) }}">
               <mat-option *ngFor="let user of (isAdminDeposit ? admins : users)" [value]="user.id">
                 <div class="user-option">
@@ -111,8 +112,9 @@
             </div>
           </div>
 
+          <!-- ✅ Label au-dessus -->
+          <label class="field-label">{{ 'Montant (Ar)' | translate }}</label>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
             <input matInput type="number" [(ngModel)]="amount" min="100" placeholder="1000" (keyup)="onAmountChange()">
             <mat-icon matSuffix>attach_money</mat-icon>
             <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
@@ -143,8 +145,9 @@
             <span>{{ 'Description (optionnelle)' | translate }}</span>
           </div>
 
+          <!-- ✅ Label au-dessus -->
+          <label class="field-label">{{ 'Description' | translate }}</label>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'Description' | translate }}</mat-label>
             <input matInput [(ngModel)]="description" placeholder="{{ 'Ex: Bonus, récompense, paiement...' | translate }}" maxlength="200">
             <mat-hint align="end">{{ description ? description.length : 0 }}/200</mat-hint>
           </mat-form-field>
@@ -178,14 +181,14 @@
             <div class="info-icon"><mat-icon>info</mat-icon></div>
             <div>
               <h4>{{ 'Dépôt instantané' | translate }}</h4>
-              <p>{{ 'Le montant est crédité immédiatement sur le compte de' | translate }} {{ isAdminDeposit ? ('l\'administrateur' | translate) : ('l\'utilisateur' | translate) }}</p>
+              <p>{{ 'Le montant est crédité immédiatement sur le compte de' | translate }} {{ isAdminDeposit ? ("l'administrateur" | translate) : ("l'utilisateur" | translate) }}</p>
             </div>
           </div>
           <div class="info-item">
             <div class="info-icon"><mat-icon>receipt</mat-icon></div>
             <div>
               <h4>{{ 'Historique' | translate }}</h4>
-              <p>{{ 'Une transaction est créée et visible dans l\'historique' | translate }}</p>
+              <p>{{ "Une transaction est créée et visible dans l'historique" | translate }}</p>
             </div>
           </div>
           <div class="info-item">

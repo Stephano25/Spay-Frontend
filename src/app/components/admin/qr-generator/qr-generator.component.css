@@ -37,10 +37,11 @@
   }
 }
 
+/* ✅ Taille du formulaire augmentée */
 .qr-generator-card {
   background: var(--surface) !important;
   border-radius: 24px !important;
-  max-width: 520px;
+  max-width: 560px !important;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -61,15 +62,15 @@
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  padding: 20px 24px !important;
+  padding: 24px 28px !important;
   border-bottom: 0.5px solid var(--border);
 }
 
 .qr-generator-card mat-card-title {
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
-  font-size: 1.125rem !important;
+  gap: 14px !important;
+  font-size: 1.25rem !important;
   font-weight: 700 !important;
   color: var(--text) !important;
   margin: 0 !important;
@@ -77,20 +78,29 @@
 
 .qr-generator-card mat-card-title mat-icon {
   color: var(--brand-1);
-  font-size: 28px !important;
-  width: 28px !important;
-  height: 28px !important;
+  font-size: 30px !important;
+  width: 30px !important;
+  height: 30px !important;
 }
 
 .qr-generator-card mat-card-content {
-  padding: 24px !important;
+  padding: 24px 28px !important;
+}
+
+/* ✅ Labels au-dessus des champs */
+.field-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-2);
+  margin-bottom: 6px;
 }
 
 /* Form */
 .generator-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .full-width {
@@ -99,13 +109,14 @@
 
 .generate-btn {
   width: 100%;
-  padding: 12px !important;
+  padding: 14px !important;
   border-radius: 12px !important;
   background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
   color: white !important;
   font-weight: 600 !important;
   font-size: 1rem !important;
-  height: 48px !important;
+  height: 52px !important;
+  margin-top: 4px;
 }
 
 .generate-btn:disabled {
@@ -116,12 +127,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 /* QR Result */
 .qr-result {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .qr-result mat-divider {
@@ -133,12 +144,12 @@
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  padding: 12px 0;
+  padding: 16px 0;
 }
 
 .qr-image-wrapper {
-  width: 200px;
-  height: 200px;
+  width: 220px;
+  height: 220px;
   border-radius: 16px;
   border: 2px solid var(--border);
   background: white;
@@ -146,7 +157,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 12px;
+  padding: 16px;
   animation: pulseGlow 3s ease-in-out infinite;
 }
 
@@ -159,29 +170,30 @@
 .qr-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
 }
 
 .qr-info-item {
   display: flex;
   flex-direction: column;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: var(--surface-2);
   border-radius: 10px;
   border: 0.5px solid var(--border);
 }
 
 .info-label {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 600;
+  margin-bottom: 2px;
 }
 
 .info-value {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text);
 }
@@ -202,42 +214,43 @@
 /* QR Actions */
 .qr-actions {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
-  padding: 12px 0 8px;
+  padding: 16px 0 8px;
 }
 
 .qr-actions button {
   border-radius: 10px !important;
-  padding: 0 20px !important;
-  height: 40px !important;
+  padding: 0 24px !important;
+  height: 44px !important;
   font-weight: 500 !important;
+  font-size: 0.875rem !important;
 }
 
 .qr-actions button mat-icon {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
 }
 
 /* Expiry */
 .qr-expiry {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 12px;
+  padding: 14px 18px;
   background: rgba(239, 68, 68, 0.10);
   border-radius: 10px;
   color: #ef4444;
-  font-size: 0.8125rem;
-  margin-top: 12px;
+  font-size: 0.875rem;
+  margin-top: 14px;
   border: 0.5px solid rgba(239, 68, 68, 0.15);
 }
 
 .qr-expiry mat-icon {
-  font-size: 20px !important;
-  width: 20px !important;
-  height: 20px !important;
+  font-size: 22px !important;
+  width: 22px !important;
+  height: 22px !important;
   color: #ef4444;
 }
 
@@ -246,66 +259,86 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 32px 0;
+  gap: 18px;
+  padding: 40px 0;
   color: var(--text-3);
 }
 
 .qr-loading p {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   margin: 0;
 }
 
 /* Responsive */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .qr-generator-card {
     margin: 12px;
     border-radius: 20px !important;
+    max-width: 100% !important;
   }
   .qr-generator-card mat-card-header {
-    padding: 16px 18px !important;
+    padding: 18px 20px !important;
   }
   .qr-generator-card mat-card-content {
-    padding: 18px !important;
+    padding: 18px 20px !important;
+  }
+  .qr-generator-card mat-card-title {
+    font-size: 1.0625rem !important;
   }
   .qr-image-wrapper {
-    width: 160px;
-    height: 160px;
+    width: 180px;
+    height: 180px;
   }
   .qr-info {
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    gap: 8px;
   }
   .qr-info-item {
-    padding: 8px 10px;
+    padding: 10px 12px;
   }
   .qr-actions {
     flex-wrap: wrap;
+    gap: 10px;
   }
   .qr-actions button {
     flex: 1;
     min-width: 80px;
-    font-size: 0.75rem !important;
-    padding: 0 12px !important;
-    height: 36px !important;
+    font-size: 0.8125rem !important;
+    padding: 0 16px !important;
+    height: 40px !important;
+  }
+  .generate-btn {
+    height: 46px !important;
+    font-size: 0.9375rem !important;
   }
 }
 
 @media (max-width: 400px) {
   .qr-image-wrapper {
-    width: 130px;
-    height: 130px;
-    padding: 8px;
+    width: 150px;
+    height: 150px;
+    padding: 12px;
   }
   .qr-generator-card mat-card-title {
     font-size: 0.9375rem !important;
   }
   .qr-info {
     grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .qr-info-item {
+    padding: 8px 12px;
   }
   .qr-actions button {
-    font-size: 0.68rem !important;
-    padding: 0 10px !important;
-    height: 32px !important;
+    font-size: 0.75rem !important;
+    padding: 0 12px !important;
+    height: 36px !important;
+  }
+  .field-label {
+    font-size: 0.8125rem;
+  }
+  .generate-btn {
+    height: 42px !important;
+    font-size: 0.875rem !important;
   }
 }
