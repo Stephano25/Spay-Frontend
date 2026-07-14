@@ -1,5 +1,5 @@
 // src/app/components/chat/chat.component.ts
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -10,6 +10,7 @@ import { FriendService, Friend, SearchUser } from '../../services/friend.service
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { ConfigService } from '../../services/config.service';
+import { TranslationService } from '../../services/translation.service';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,8 +18,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TranslatePipe } from 'src/app/pipes/translate.pipe';
-import { BaseComponent } from '../base.component';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-chat',
@@ -32,7 +32,7 @@ import { BaseComponent } from '../base.component';
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
-export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('messageContainer') messageContainer!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef;
   @ViewChild('editInput') editInput!: ElementRef;
@@ -81,7 +81,6 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
   isMuted = false;
   isCameraOff = false;
 
-  // 🔥 Propriétés pour l'enregistrement vocal
   isRecording = false;
   mediaRecorder: MediaRecorder | null = null;
   audioChunks: BlobPart[] = [];
@@ -100,17 +99,21 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     '🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','💣','💬','👁️','🗣️','👤','👥'
   ];
 
+  private subscriptions: Subscription[] = [];
+
   constructor(
     private chatService: ChatService,
     private friendService: FriendService,
     private authService: AuthService,
     private notificationService: NotificationService,
     private configService: ConfigService,
+    private translationService: TranslationService,
     private router: Router,
-    private route: ActivatedRoute
-  ) {super();}
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  override ngOnInit(): void {
+  ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id || '';
     this.loadConversations();
@@ -124,11 +127,9 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     });
     setTimeout(() => this.forceReloadFriends(), 3000);
 
-    // ✅ S'abonner aux changements de langue
     this.subscriptions.push(
       this.translationService.language$.subscribe((lang) => {
         console.log(`🌐 ChatComponent: Langue changée en ${lang}`);
-        // ✅ Mettre à jour les traductions dans le template
         this.cdr.detectChanges();
       })
     );
@@ -138,7 +139,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     if (this.shouldScrollToBottom) { this.doScrollToBottom(); this.shouldScrollToBottom = false; }
   }
 
-  override ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.subscriptions.forEach(s => s.unsubscribe());
     if (this.typingTimeout) clearTimeout(this.typingTimeout);
     this.endCall();
@@ -150,7 +151,6 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
       clearInterval(this.recordingTimer);
       this.recordingTimer = null;
     }
-    super.ngOnDestroy();
   }
 
   // ✅ Méthode pour revenir à la liste des conversations (bouton retour mobile)
@@ -158,6 +158,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     this.selectedContact = null;
     this.closeAllPanels();
     this.isTyping = false;
+    this.cdr.detectChanges();
   }
 
   // File helpers
@@ -202,6 +203,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
           new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
         this.updateConversationsOnlineStatus();
         this.removeDuplicateConversations();
+        this.cdr.detectChanges();
       },
       error: (err: unknown) => console.error(err)
     });
@@ -217,6 +219,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
         this.isReloadingFriends = false;
         this.updateOnlineFriends();
         this.updateConversationsOnlineStatus();
+        this.cdr.detectChanges();
         callback?.();
         this.chatService.requestOnlineUsers();
       },
@@ -241,6 +244,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
         this.updateOnlineFriends();
         this.updateConversationsOnlineStatus();
         this.processPendingOnlineStatus();
+        this.cdr.detectChanges();
         this.chatService.requestOnlineUsers();
       },
       error: (err: unknown) => { console.error(err); this.isReloadingFriends = false; }
@@ -252,6 +256,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     this.onlineFriends = this.allFriends.filter(f =>
       f.friend?.isOnline === true && f.friendId !== this.currentUserId
     );
+    this.cdr.detectChanges();
   }
 
   updateConversationsOnlineStatus(): void {
@@ -259,11 +264,13 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
       const f = this.allFriends.find(fr => fr.friendId === conv.userId || fr.friend?.id === conv.userId);
       if (f?.friend) conv.isOnline = f.friend.isOnline || false;
     });
+    this.cdr.detectChanges();
   }
 
   private removeDuplicateConversations(): void {
     const seen = new Set<string>();
     this.conversations = this.conversations.filter(c => { if (seen.has(c.userId)) return false; seen.add(c.userId); return true; });
+    this.cdr.detectChanges();
   }
 
   private processPendingOnlineStatus(): void {
@@ -280,6 +287,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     const conv = this.conversations.find(c => c.userId === userId);
     if (conv) conv.isOnline = isOnline;
     if (this.selectedContact?.userId === userId) this.selectedContact.isOnline = isOnline;
+    this.cdr.detectChanges();
   }
 
   // Socket listeners
@@ -287,7 +295,10 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     this.subscriptions.push(
       this.chatService.newMessage$.subscribe(msg => { if (msg) this.handleNewMessage(msg); }),
       this.chatService.typing$.subscribe(data => {
-        if (data && this.selectedContact && data.userId === this.selectedContact.userId) this.isTyping = data.isTyping;
+        if (data && this.selectedContact && data.userId === this.selectedContact.userId) {
+          this.isTyping = data.isTyping;
+          this.cdr.detectChanges();
+        }
       }),
       this.chatService.onlineStatus$.subscribe(data => { if (data) this.handleOnlineStatus(data.userId, data.isOnline); }),
       this.chatService.messageEdited$.subscribe(msg => this.applyMessageUpdate(msg)),
@@ -305,6 +316,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
       if (!this.messages.find(m => m.id === message.id)) {
         this.messages.push(message);
         this.shouldScrollToBottom = true;
+        this.cdr.detectChanges();
       }
       this.chatService.markAsRead(this.selectedContact.userId).subscribe();
     }
@@ -327,18 +339,21 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     }
     this.conversations.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
     this.removeDuplicateConversations();
+    this.cdr.detectChanges();
   }
 
   selectConversation(conv: Conversation): void {
     this.selectedContact = conv;
     this.messages = [];
     this.closeAllPanels();
+    this.cdr.detectChanges();
     this.chatService.getMessages(conv.userId).subscribe({
       next: (msgs: Message[]) => {
         this.messages = msgs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         this.shouldScrollToBottom = true;
         this.chatService.markAsRead(conv.userId).subscribe();
         conv.unreadCount = 0;
+        this.cdr.detectChanges();
       },
       error: (err: unknown) => console.error(err)
     });
@@ -355,15 +370,17 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     this.showNewConversation = !this.showNewConversation;
     this.newConversationQuery = '';
     this.newConversationResults = [];
+    this.cdr.detectChanges();
   }
 
   searchNewConversation(): void {
     const q = this.newConversationQuery.trim();
-    if (!q || q.length < 2) { this.newConversationResults = []; return; }
+    if (!q || q.length < 2) { this.newConversationResults = []; this.cdr.detectChanges(); return; }
     this.isSearchingUsers = true;
+    this.cdr.detectChanges();
     this.friendService.searchUsers(q).subscribe({
-      next: (r: SearchUser[]) => { this.newConversationResults = r; this.isSearchingUsers = false; },
-      error: (err: unknown) => { console.error(err); this.isSearchingUsers = false; }
+      next: (r: SearchUser[]) => { this.newConversationResults = r; this.isSearchingUsers = false; this.cdr.detectChanges(); },
+      error: (err: unknown) => { console.error(err); this.isSearchingUsers = false; this.cdr.detectChanges(); }
     });
   }
 
@@ -383,6 +400,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     this.showNewConversation = false;
     this.newConversationQuery = '';
     this.newConversationResults = [];
+    this.cdr.detectChanges();
   }
 
   openChatWithFriendId(friendId: string): void {
@@ -404,16 +422,18 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     const content = this.newMessage.trim();
     this.messages.push({ id: 'temp-' + Date.now(), senderId: this.currentUserId, receiverId: this.selectedContact.userId, type: 'text', content, isRead: false, isDelivered: false, createdAt: new Date() });
     this.shouldScrollToBottom = true;
+    this.cdr.detectChanges();
     this.chatService.sendMessage({ receiverId: this.selectedContact.userId, type: 'text', content });
     this.newMessage = '';
     this.chatService.sendTyping(this.selectedContact.userId, false);
-    setTimeout(() => { this.isSending = false; }, 500);
+    setTimeout(() => { this.isSending = false; this.cdr.detectChanges(); }, 500);
   }
 
   sendEmoji(emoji: string): void {
     if (!this.selectedContact) return;
     this.messages.push({ id: 'temp-emoji-' + Date.now(), senderId: this.currentUserId, receiverId: this.selectedContact.userId, type: 'emoji', emoji, isRead: false, isDelivered: false, createdAt: new Date() });
     this.shouldScrollToBottom = true;
+    this.cdr.detectChanges();
     this.chatService.sendMessage({ receiverId: this.selectedContact.userId, type: 'emoji', emoji });
     this.showEmojiPicker = false;
   }
@@ -441,7 +461,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
   }
 
   // Files
-  toggleEmojiPicker(): void { this.showEmojiPicker = !this.showEmojiPicker; }
+  toggleEmojiPicker(): void { this.showEmojiPicker = !this.showEmojiPicker; this.cdr.detectChanges(); }
   uploadFile(): void { this.fileInput.nativeElement.click(); }
 
   onFileSelected(event: Event): void {
@@ -450,6 +470,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     if (!file || !this.selectedContact) return;
     if (file.size > 150 * 1024 * 1024) { this.notificationService.showError('Fichier trop volumineux (max 150 Mo)'); return; }
     this.isSending = true;
+    this.cdr.detectChanges();
     this.chatService.uploadFile(file).subscribe({
       next: (result) => {
         const mime = file.type;
@@ -460,15 +481,17 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
         const fileUrl = this.getFileUrl(result.url);
         this.messages.push({ id: 'temp-file-' + Date.now(), senderId: this.currentUserId, receiverId: this.selectedContact!.userId, type, fileUrl, fileName: result.fileName, fileSize: result.fileSize, isRead: false, isDelivered: false, createdAt: new Date() });
         this.shouldScrollToBottom = true;
+        this.cdr.detectChanges();
         this.chatService.sendMessage({ receiverId: this.selectedContact!.userId, type, fileUrl, fileName: result.fileName, fileSize: result.fileSize });
         this.isSending = false;
+        this.cdr.detectChanges();
       },
-      error: (err: unknown) => { console.error(err); this.notificationService.showError('Erreur upload'); this.isSending = false; }
+      error: (err: unknown) => { console.error(err); this.notificationService.showError('Erreur upload'); this.isSending = false; this.cdr.detectChanges(); }
     });
     input.value = '';
   }
 
-  // 🔥 VOICE RECORDING - Version complète
+  // VOICE RECORDING
   async toggleVoiceRecording(): Promise<void> {
     if (this.isRecording) {
       this.stopRecording();
@@ -496,6 +519,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
       
       this.mediaRecorder.start(100);
       this.isRecording = true;
+      this.cdr.detectChanges();
       
       this.recordingTimer = setInterval(() => {
         this.recordingDuration++;
@@ -506,6 +530,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
       console.error('Erreur microphone:', err);
       this.notificationService.showError('Impossible d\'accéder au microphone');
       this.isRecording = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -513,6 +538,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     if (this.mediaRecorder && this.isRecording) {
       this.mediaRecorder.stop();
       this.isRecording = false;
+      this.cdr.detectChanges();
       if (this.recordingTimer) {
         clearInterval(this.recordingTimer);
         this.recordingTimer = null;
@@ -537,6 +563,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     console.log('🎤 Envoi audio, taille:', file.size);
     
     this.isSending = true;
+    this.cdr.detectChanges();
     this.chatService.uploadFile(file).subscribe({
       next: (result) => {
         const fileUrl = this.getFileUrl(result.url);
@@ -554,6 +581,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
           createdAt: new Date()
         });
         this.shouldScrollToBottom = true;
+        this.cdr.detectChanges();
         
         this.chatService.sendMessage({
           receiverId: this.selectedContact!.userId,
@@ -564,12 +592,14 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
         });
         
         this.isSending = false;
+        this.cdr.detectChanges();
         this.notificationService.showSuccess('Message vocal envoyé');
       },
       error: (err: any) => {
         console.error('Erreur audio:', err);
         this.notificationService.showError('Erreur lors de l\'envoi');
         this.isSending = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -581,18 +611,23 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' });
       this.activeCall = { peerId: this.selectedContact.userId, type, status: 'calling' };
+      this.cdr.detectChanges();
       this.chatService.startCall(this.selectedContact.userId, type);
       this.setupPeerConnection();
     } catch (err: unknown) { console.error(err); this.notificationService.showError('Impossible d\'accéder aux périphériques'); }
   }
 
-  handleIncomingCall(data: { from: string; type: 'audio' | 'video' }): void { this.incomingCall = data; }
+  handleIncomingCall(data: { from: string; type: 'audio' | 'video' }): void { 
+    this.incomingCall = data; 
+    this.cdr.detectChanges();
+  }
 
   async acceptCall(): Promise<void> {
     if (!this.incomingCall) return;
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: this.incomingCall.type === 'video' });
       this.activeCall = { peerId: this.incomingCall.from, type: this.incomingCall.type, status: 'active' };
+      this.cdr.detectChanges();
       this.chatService.answerCall(this.incomingCall.from, true);
       this.incomingCall = null;
       this.setupPeerConnection();
@@ -600,12 +635,13 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
   }
 
   rejectCall(): void {
-    if (this.incomingCall) { this.chatService.answerCall(this.incomingCall.from, false); this.incomingCall = null; }
+    if (this.incomingCall) { this.chatService.answerCall(this.incomingCall.from, false); this.incomingCall = null; this.cdr.detectChanges(); }
   }
 
   handleCallAnswered(data: { by: string; accepted: boolean }): void {
     if (data.accepted) { if (this.activeCall) this.activeCall.status = 'active'; }
     else { this.notificationService.showInfo('Appel refusé'); this.endCall(); }
+    this.cdr.detectChanges();
   }
 
   endCall(): void {
@@ -615,31 +651,34 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     this.localStream = null; this.remoteStream = null;
     this.peerConnection = null; this.activeCall = null;
     this.incomingCall = null; this.isMuted = false; this.isCameraOff = false;
+    this.cdr.detectChanges();
   }
 
   toggleMute(): void {
     if (!this.localStream) return;
     this.isMuted = !this.isMuted;
     this.localStream.getAudioTracks().forEach(t => { t.enabled = !this.isMuted; });
+    this.cdr.detectChanges();
   }
 
   toggleCamera(): void {
     if (!this.localStream) return;
     this.isCameraOff = !this.isCameraOff;
     this.localStream.getVideoTracks().forEach(t => { t.enabled = !this.isCameraOff; });
+    this.cdr.detectChanges();
   }
 
   private setupPeerConnection(): void {
     this.peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
     this.localStream?.getTracks().forEach(track => this.peerConnection!.addTrack(track, this.localStream!));
-    this.peerConnection.ontrack = (e: RTCTrackEvent) => { this.remoteStream = e.streams[0]; };
+    this.peerConnection.ontrack = (e: RTCTrackEvent) => { this.remoteStream = e.streams[0]; this.cdr.detectChanges(); };
   }
 
   // Block
   blockUser(): void {
     if (!this.selectedContact) return;
     this.friendService.blockUser(this.selectedContact.userId).subscribe({
-      next: () => { this.notificationService.showSuccess('Utilisateur bloqué'); if (this.selectedContact) this.selectedContact.isOnline = false; },
+      next: () => { this.notificationService.showSuccess('Utilisateur bloqué'); if (this.selectedContact) this.selectedContact.isOnline = false; this.cdr.detectChanges(); },
       error: (err: { error?: { message?: string } }) => this.notificationService.showError(err.error?.message || 'Erreur')
     });
   }
@@ -649,6 +688,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     if (msg.isDeleted) return;
     this.activeMessageId = this.activeMessageId === msg.id ? null : msg.id;
     this.activeReactionPickerId = null;
+    this.cdr.detectChanges();
   }
 
   isOwnMessage(msg: Message): boolean { return msg.senderId === this.currentUserId; }
@@ -657,7 +697,10 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     return Date.now() - new Date(msg.createdAt).getTime() < 15 * 60 * 1000;
   }
   canDeleteMessage(msg: Message): boolean { return this.isOwnMessage(msg) && !msg.isDeleted; }
-  toggleReactionPicker(msg: Message): void { this.activeReactionPickerId = this.activeReactionPickerId === msg.id ? null : msg.id; }
+  toggleReactionPicker(msg: Message): void { 
+    this.activeReactionPickerId = this.activeReactionPickerId === msg.id ? null : msg.id; 
+    this.cdr.detectChanges();
+  }
   myReaction(msg: Message): string | null { return msg.reactions?.find(r => r.userId === this.currentUserId)?.emoji || null; }
 
   toggleReaction(msg: Message, emoji: string): void {
@@ -665,6 +708,7 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
     if (mine === emoji) { this.chatService.removeReaction(msg.id).subscribe((u: Message) => this.applyMessageUpdate(u)); }
     else { this.chatService.reactToMessage(msg.id, emoji).subscribe((u: Message) => this.applyMessageUpdate(u)); }
     this.activeReactionPickerId = null; this.activeMessageId = null;
+    this.cdr.detectChanges();
   }
 
   groupedReactions(msg: Message): { emoji: string; count: number; mine: boolean }[] {
@@ -680,9 +724,10 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
   startEdit(msg: Message): void {
     if (!this.canEditMessage(msg)) return;
     this.editingMessageId = msg.id; this.editContent = msg.content || ''; this.activeMessageId = null;
+    this.cdr.detectChanges();
     setTimeout(() => this.editInput?.nativeElement?.focus(), 50);
   }
-  cancelEdit(): void { this.editingMessageId = null; this.editContent = ''; }
+  cancelEdit(): void { this.editingMessageId = null; this.editContent = ''; this.cdr.detectChanges(); }
 
   saveEdit(): void {
     if (!this.editingMessageId || !this.editContent.trim()) return;
@@ -699,17 +744,19 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
       error: (err: { error?: { message?: string } }) => this.notificationService.showError(err.error?.message || 'Erreur')
     });
     this.activeMessageId = null;
+    this.cdr.detectChanges();
   }
 
   // Transfer
-  openTransferPanel(): void { if (!this.selectedContact) return; this.showTransferPanel = true; this.transferAmount = null; this.activeMessageId = null; }
-  closeTransferPanel(): void { this.showTransferPanel = false; this.transferAmount = null; }
+  openTransferPanel(): void { if (!this.selectedContact) return; this.showTransferPanel = true; this.transferAmount = null; this.activeMessageId = null; this.cdr.detectChanges(); }
+  closeTransferPanel(): void { this.showTransferPanel = false; this.transferAmount = null; this.cdr.detectChanges(); }
 
   confirmTransfer(): void {
     if (!this.selectedContact || !this.transferAmount || this.transferAmount <= 0) return;
     const amount = this.transferAmount;
     this.messages.push({ id: 'temp-money-' + Date.now(), senderId: this.currentUserId, receiverId: this.selectedContact.userId, type: 'money', moneyTransfer: { amount, status: 'pending' }, isRead: false, isDelivered: false, createdAt: new Date() });
     this.shouldScrollToBottom = true;
+    this.cdr.detectChanges();
     this.chatService.sendMessage({ receiverId: this.selectedContact.userId, type: 'money', moneyTransfer: { amount } });
     this.closeTransferPanel();
   }
@@ -718,18 +765,22 @@ export class ChatComponent extends BaseComponent implements OnInit, OnDestroy, A
   private applyMessageUpdate(updated: Message): void {
     const i = this.messages.findIndex(m => m.id === updated.id);
     if (i !== -1) this.messages[i] = { ...this.messages[i], ...updated };
+    this.cdr.detectChanges();
   }
   private applyMessageDeleted(messageId: string): void {
     const i = this.messages.findIndex(m => m.id === messageId);
     if (i !== -1) this.messages[i] = { ...this.messages[i], isDeleted: true, content: '', fileUrl: undefined };
+    this.cdr.detectChanges();
   }
   private closeAllPanels(): void {
     this.activeMessageId = null; this.activeReactionPickerId = null;
     this.editingMessageId = null; this.showTransferPanel = false; this.showEmojiPicker = false;
+    this.cdr.detectChanges();
   }
   closeOverlaysOnClick(): void {
     this.activeMessageId = null; this.activeReactionPickerId = null;
     if (this.showEmojiPicker) this.showEmojiPicker = false;
+    this.cdr.detectChanges();
   }
 
   goBack(): void { this.router.navigate(['/user']); }
