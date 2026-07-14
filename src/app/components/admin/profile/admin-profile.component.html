@@ -20,16 +20,42 @@
     <ng-container *ngIf="!isLoading && admin">
       <mat-card class="profile-card">
         <mat-card-content>
+          <!-- Profile Header avec photo -->
           <div class="profile-header">
-            <div class="profile-avatar">
-              {{ getInitials() }}
+            <div class="profile-avatar-wrapper">
+              <div class="profile-avatar-container">
+                <div *ngIf="previewImage && !imageError" class="profile-avatar-image">
+                  <img [src]="previewImage" [alt]="'Photo de profil' | translate" (error)="imageError = true">
+                  <div class="avatar-overlay" *ngIf="editMode">
+                    <button mat-icon-button (click)="removeProfilePicture()" [matTooltip]="'Supprimer' | translate">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+                <div *ngIf="!previewImage || imageError" class="profile-avatar" [style.background]="'linear-gradient(135deg, #7c3aed, #4f46e5)'">
+                  {{ getInitials() }}
+                </div>
+              </div>
+
+              <div *ngIf="editMode" class="change-photo-section">
+                <input type="file" #fileInput accept="image/*" style="display: none" (change)="onFileSelected($event)">
+                <button mat-raised-button color="primary" (click)="fileInput.click()" [disabled]="isUploading">
+                  <mat-icon>cloud_upload</mat-icon>
+                  {{ previewImage ? ('Changer la photo' | translate) : ('Ajouter une photo' | translate) }}
+                </button>
+                <mat-spinner diameter="20" *ngIf="isUploading"></mat-spinner>
+              </div>
             </div>
+
             <div class="admin-badge">
               <mat-icon>verified</mat-icon>
               <span>{{ admin.role === 'super_admin' ? ('Super Administrateur' | translate) : ('Administrateur' | translate) }}</span>
             </div>
           </div>
 
+          <mat-divider></mat-divider>
+
+          <!-- Balance Section -->
           <div class="balance-section">
             <div class="balance-display">
               <span class="balance-label">{{ 'Solde du portefeuille' | translate }}</span>
@@ -47,23 +73,52 @@
 
           <mat-divider></mat-divider>
 
+          <!-- Edit Mode -->
           <div *ngIf="editMode; else viewMode" class="edit-mode">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'Prénom' | translate }}</mat-label>
-              <input matInput [(ngModel)]="admin.firstName" required />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'Nom' | translate }}</mat-label>
-              <input matInput [(ngModel)]="admin.lastName" required />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'Email' | translate }}</mat-label>
-              <input matInput [(ngModel)]="admin.email" type="email" required />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'Téléphone' | translate }}</mat-label>
-              <input matInput [(ngModel)]="admin.phoneNumber" placeholder="0341234567" />
-            </mat-form-field>
+            <!-- Prénom -->
+            <div class="form-group">
+              <label class="form-label required">{{ 'Prénom' | translate }}</label>
+              <mat-form-field appearance="outline" class="full-width">
+                <input matInput [(ngModel)]="admin.firstName" placeholder="Jean" required />
+              </mat-form-field>
+            </div>
+
+            <!-- Nom -->
+            <div class="form-group">
+              <label class="form-label required">{{ 'Nom' | translate }}</label>
+              <mat-form-field appearance="outline" class="full-width">
+                <input matInput [(ngModel)]="admin.lastName" placeholder="Dupont" required />
+              </mat-form-field>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label class="form-label required">{{ 'Email' | translate }}</label>
+              <mat-form-field appearance="outline" class="full-width">
+                <input matInput [(ngModel)]="admin.email" type="email" placeholder="admin@spaye.com" required />
+              </mat-form-field>
+            </div>
+
+            <!-- Téléphone -->
+            <div class="form-group">
+              <label class="form-label">{{ 'Téléphone' | translate }}</label>
+              <mat-form-field appearance="outline" class="full-width">
+                <input matInput [(ngModel)]="admin.phoneNumber" placeholder="034 12 345 67" />
+                <mat-hint>{{ 'Format: 034 12 345 67' | translate }}</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <!-- Bio -->
+            <div class="form-group">
+              <label class="form-label">{{ 'Bio' | translate }}</label>
+              <mat-form-field appearance="outline" class="full-width">
+                <textarea matInput [(ngModel)]="admin.bio" rows="3" 
+                          placeholder="{{ 'Parlez-nous de vous...' | translate }}" 
+                          maxlength="300"></textarea>
+                <mat-hint align="end">{{ admin.bio?.length || 0 }}/300</mat-hint>
+              </mat-form-field>
+            </div>
+
             <div class="action-buttons">
               <button mat-stroked-button (click)="toggleEditMode()" [disabled]="isSaving">
                 {{ 'Annuler' | translate }}
@@ -78,18 +133,23 @@
             </div>
           </div>
 
+          <!-- View Mode -->
           <ng-template #viewMode>
             <div class="profile-info">
               <div class="info-item">
                 <mat-icon>badge</mat-icon>
                 <div class="info-content">
                   <span class="info-label">{{ 'Rôle' | translate }}</span>
-                  <span class="info-value role-badge" [class.super-admin]="admin.role === 'super_admin'">
-                    {{ admin.role === 'super_admin' ? ('Super Administrateur' | translate) : ('Administrateur' | translate) }}
+                  <span class="info-value">
+                    <span class="role-badge" [class.super-admin]="admin.role === 'super_admin'">
+                      {{ admin.role === 'super_admin' ? ('Super Administrateur' | translate) : ('Administrateur' | translate) }}
+                    </span>
                   </span>
                 </div>
               </div>
+
               <mat-divider></mat-divider>
+
               <div class="info-item">
                 <mat-icon>person</mat-icon>
                 <div class="info-content">
@@ -97,7 +157,9 @@
                   <span class="info-value">{{ admin.firstName }} {{ admin.lastName }}</span>
                 </div>
               </div>
+
               <mat-divider></mat-divider>
+
               <div class="info-item">
                 <mat-icon>email</mat-icon>
                 <div class="info-content">
@@ -105,7 +167,9 @@
                   <span class="info-value">{{ admin.email }}</span>
                 </div>
               </div>
+
               <mat-divider></mat-divider>
+
               <div class="info-item">
                 <mat-icon>phone</mat-icon>
                 <div class="info-content">
@@ -113,7 +177,9 @@
                   <span class="info-value">{{ admin.phoneNumber || ('Non renseigné' | translate) }}</span>
                 </div>
               </div>
+
               <mat-divider></mat-divider>
+
               <div class="info-item">
                 <mat-icon>event</mat-icon>
                 <div class="info-content">
@@ -121,7 +187,9 @@
                   <span class="info-value">{{ admin.createdAt | date:'dd/MM/yyyy' }}</span>
                 </div>
               </div>
+
               <mat-divider></mat-divider>
+
               <div class="info-item">
                 <mat-icon>login</mat-icon>
                 <div class="info-content">
@@ -129,8 +197,19 @@
                   <span class="info-value">{{ admin.lastLogin | date:'dd/MM/yyyy HH:mm' }}</span>
                 </div>
               </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="info-item" *ngIf="admin.bio">
+                <mat-icon>description</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">{{ 'Bio' | translate }}</span>
+                  <span class="info-value">{{ admin.bio }}</span>
+                </div>
+              </div>
             </div>
 
+            <!-- Admin Stats -->
             <div class="admin-stats">
               <h3>{{ 'Statistiques' | translate }}</h3>
               <div class="stats-grid">
@@ -150,6 +229,9 @@
             </div>
           </ng-template>
 
+          <mat-divider></mat-divider>
+
+          <!-- Logout -->
           <button mat-raised-button color="warn" class="logout-btn" (click)="logout()">
             <mat-icon>exit_to_app</mat-icon>
             {{ 'Déconnexion' | translate }}
@@ -160,7 +242,7 @@
   </div>
 </div>
 
-<!-- MODAL TOP-UP POUR SUPERADMIN -->
+<!-- MODAL TOP-UP -->
 <div class="modal-overlay" *ngIf="showTopUpModal" (click)="closeTopUpModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -172,6 +254,7 @@
         <mat-icon>close</mat-icon>
       </button>
     </div>
+
     <div class="modal-body">
       <p class="modal-subtitle">{{ 'Ajoutez des fonds à votre portefeuille administrateur' | translate }}</p>
       
@@ -184,17 +267,21 @@
         </button>
       </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'Montant (Ar)' | translate }}</mat-label>
-        <input matInput type="number" [(ngModel)]="topUpAmount" min="100" placeholder="1000">
-        <mat-icon matSuffix>attach_money</mat-icon>
-        <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
-      </mat-form-field>
+      <div class="form-group">
+        <label class="form-label required">{{ 'Montant (Ar)' | translate }}</label>
+        <mat-form-field appearance="outline" class="full-width">
+          <input matInput type="number" [(ngModel)]="topUpAmount" min="100" placeholder="1000">
+          <mat-icon matSuffix>attach_money</mat-icon>
+          <mat-hint>{{ 'Minimum 100 Ar' | translate }}</mat-hint>
+        </mat-form-field>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'Description (optionnelle)' | translate }}</mat-label>
-        <input matInput [(ngModel)]="topUpDescription" placeholder="{{ 'Top-up portefeuille' | translate }}" maxlength="200">
-      </mat-form-field>
+      <div class="form-group">
+        <label class="form-label">{{ 'Description (optionnelle)' | translate }}</label>
+        <mat-form-field appearance="outline" class="full-width">
+          <input matInput [(ngModel)]="topUpDescription" placeholder="{{ 'Top-up portefeuille' | translate }}" maxlength="200">
+        </mat-form-field>
+      </div>
 
       <div class="preview" *ngIf="topUpAmount >= 100">
         <div class="preview-row">
@@ -207,6 +294,7 @@
         </div>
       </div>
     </div>
+
     <div class="modal-footer">
       <button mat-stroked-button (click)="closeTopUpModal()" [disabled]="isTopUpSubmitting">
         {{ 'Annuler' | translate }}

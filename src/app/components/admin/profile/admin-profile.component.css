@@ -43,15 +43,6 @@
   }
 }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(124, 58, 237, 0.4);
-  }
-}
-
 .profile-card {
   max-width: 700px;
   margin: 0 auto;
@@ -65,7 +56,9 @@
   padding: 28px !important;
 }
 
-/* Profile Header */
+/* ============================================================
+   PROFILE HEADER AVEC PHOTO
+   ============================================================ */
 .profile-header {
   display: flex;
   flex-direction: column;
@@ -73,9 +66,60 @@
   padding: 8px 0 16px;
 }
 
+.profile-avatar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.profile-avatar-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 24px rgba(124, 58, 237, 0.3);
+}
+
+.profile-avatar-image {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.profile-avatar-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.profile-avatar-image:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-overlay button {
+  color: white !important;
+}
+
 .profile-avatar {
-  width: 88px;
-  height: 88px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: white;
@@ -84,9 +128,26 @@
   justify-content: center;
   font-size: 32px;
   font-weight: 700;
-  margin-bottom: 12px;
-  box-shadow: 0 4px 24px rgba(124, 58, 237, 0.3);
-  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.change-photo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.change-photo-section button {
+  border-radius: 999px !important;
+  padding: 0 24px !important;
+  height: 36px !important;
+  font-weight: 600;
+  font-size: 0.8rem !important;
+}
+
+.change-photo-section mat-spinner {
+  transform: scale(0.8);
 }
 
 .admin-badge {
@@ -108,7 +169,86 @@
   color: white !important;
 }
 
-/* Balance Section */
+/* ============================================================
+   FORMULAIRES - Labels en haut
+   ============================================================ */
+.edit-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-2);
+  padding-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-label.required::after {
+  content: '*';
+  color: #ef4444;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.edit-mode .full-width {
+  width: 100%;
+}
+
+::ng-deep .edit-mode .mat-mdc-form-field {
+  width: 100%;
+}
+
+::ng-deep .edit-mode .mat-mdc-form-field .mat-mdc-input-element {
+  font-size: 1rem !important;
+  padding: 12px 14px !important;
+}
+
+::ng-deep .edit-mode .mat-mdc-form-field .mdc-text-field--outlined .mdc-notched-outline__leading,
+::ng-deep .edit-mode .mat-mdc-form-field .mdc-text-field--outlined .mdc-notched-outline__notch,
+::ng-deep .edit-mode .mat-mdc-form-field .mdc-text-field--outlined .mdc-notched-outline__trailing {
+  border-color: var(--border) !important;
+}
+
+::ng-deep .edit-mode .mat-mdc-form-field .mdc-text-field--outlined:hover .mdc-notched-outline__leading,
+::ng-deep .edit-mode .mat-mdc-form-field .mdc-text-field--outlined:hover .mdc-notched-outline__notch,
+::ng-deep .edit-mode .mat-mdc-form-field .mdc-text-field--outlined:hover .mdc-notched-outline__trailing {
+  border-color: var(--brand-1) !important;
+}
+
+::ng-deep .edit-mode .mat-mdc-form-field .mdc-text-field--outlined.mdc-focused .mdc-notched-outline__leading,
+::ng-deep .edit-mode .mat-mdc-form-field .mdc-text-field--outlined.mdc-focused .mdc-notched-outline__notch,
+::ng-deep .edit-mode .mat-mdc-form-field .mdc-text-field--outlined.mdc-focused .mdc-notched-outline__trailing {
+  border-color: var(--brand-1) !important;
+  border-width: 2px !important;
+}
+
+::ng-deep .edit-mode .mat-mdc-form-field .mat-mdc-hint {
+  font-size: 0.75rem !important;
+  color: var(--text-3);
+}
+
+::ng-deep .edit-mode .mat-mdc-form-field textarea {
+  font-size: 1rem !important;
+  padding: 12px 14px !important;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   BALANCE SECTION
+   ============================================================ */
 .balance-section {
   display: flex;
   justify-content: space-between;
@@ -153,7 +293,9 @@
   box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4) !important;
 }
 
-/* Profile Info */
+/* ============================================================
+   PROFILE INFO
+   ============================================================ */
 .profile-info {
   display: flex;
   flex-direction: column;
@@ -220,23 +362,17 @@
   color: #10b981;
 }
 
-/* Edit Mode */
-.edit-mode {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px 0;
-}
-
-.edit-mode .full-width {
-  width: 100%;
-}
-
+/* ============================================================
+   ACTION BUTTONS
+   ============================================================ */
 .action-buttons {
   display: flex;
   gap: 12px;
   padding: 8px 0;
   flex-wrap: wrap;
+  border-top: 0.5px solid var(--border);
+  margin-top: 8px;
+  padding-top: 20px;
 }
 
 .action-buttons button {
@@ -244,6 +380,7 @@
   min-width: 100px;
   border-radius: 10px !important;
   height: 44px !important;
+  font-weight: 600;
 }
 
 .action-buttons button[color='primary'] {
@@ -251,7 +388,19 @@
   color: white !important;
 }
 
-/* Admin Stats */
+.action-buttons button mat-spinner {
+  display: inline-block;
+}
+
+.action-buttons button span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================================
+   ADMIN STATS
+   ============================================================ */
 .admin-stats {
   padding: 16px 0 8px;
 }
@@ -298,7 +447,9 @@
   letter-spacing: 0.3px;
 }
 
-/* Logout */
+/* ============================================================
+   LOGOUT
+   ============================================================ */
 .logout-btn {
   width: 100%;
   padding: 14px !important;
@@ -306,7 +457,9 @@
   border-radius: 12px !important;
 }
 
-/* Modal Top-Up */
+/* ============================================================
+   MODAL TOP-UP
+   ============================================================ */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -394,14 +547,13 @@
 }
 
 .quick-amount-btn.active {
-  background: var(--brand-grad);
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   border-color: var(--brand-1);
   color: white;
 }
 
 .full-width {
   width: 100%;
-  margin-bottom: 12px;
 }
 
 .preview {
@@ -458,46 +610,62 @@
   color: white !important;
 }
 
-/* Responsive */
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 600px) {
   .profile-content {
     padding: 12px;
   }
+  
   .profile-card mat-card-content {
     padding: 20px !important;
   }
+  
+  .profile-avatar-container {
+    width: 80px;
+    height: 80px;
+  }
+  
   .profile-avatar {
-    width: 68px;
-    height: 68px;
     font-size: 24px;
   }
+  
   .balance-amount {
     font-size: 1.375rem;
   }
+  
   .balance-section {
     flex-direction: column;
     align-items: stretch;
   }
+  
   .topup-btn {
     width: 100%;
   }
+  
   .stats-grid {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
+  
   .stat-value {
     font-size: 1.125rem;
   }
+  
   .modal-content {
     margin: 12px;
   }
+  
   .quick-amount-btn {
     padding: 4px 10px;
     font-size: 0.7rem;
   }
+  
   .action-buttons {
     flex-direction: column;
   }
+  
   .action-buttons button {
     flex: unset;
   }
@@ -507,16 +675,26 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
+  
+  .profile-avatar-container {
+    width: 64px;
+    height: 64px;
+  }
+  
   .profile-avatar {
-    width: 56px;
-    height: 56px;
     font-size: 20px;
   }
+  
   .admin-badge {
     font-size: 0.7rem;
     padding: 4px 12px;
   }
+  
   .balance-amount {
     font-size: 1.25rem;
+  }
+  
+  .form-label {
+    font-size: 0.75rem;
   }
 }
