@@ -183,7 +183,16 @@ export class AuthService {
   }
 
   updateCurrentUser(user: User): void {
-    user.profilePicture = this.getFullImageUrl(user.profilePicture) || undefined;
+  // S'assurer que l'URL de la photo est complète
+  if (user.profilePicture && !user.profilePicture.startsWith('http')) {
+    const baseUrl = environment.baseUrl || environment.apiUrl || '';
+      if (user.profilePicture.startsWith('/uploads')) {
+        user.profilePicture = baseUrl + user.profilePicture;
+      } else if (!user.profilePicture.includes('/')) {
+        user.profilePicture = baseUrl + '/uploads/profiles/' + user.profilePicture;
+      }
+    }
+  
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUserSubject.next(user);
   }

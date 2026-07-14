@@ -22,23 +22,26 @@
     @if (!isLoading && user) {
       <mat-card class="profile-card">
         <mat-card-content>
+          <!-- Profile Header -->
           <div class="profile-header">
-            @if (previewImage) {
-              <div class="profile-avatar-image">
-                <img [src]="previewImage" alt="{{ 'Photo de profil' | translate }}">
-                @if (editMode) {
-                  <div class="avatar-overlay">
-                    <button mat-icon-button (click)="removeProfilePicture()" [matTooltip]="'Supprimer' | translate">
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="profile-avatar" [style.background]="'linear-gradient(135deg, #667eea, #764ba2)'">
-                {{ getInitials() }}
-              </div>
-            }
+            <div class="profile-avatar-wrapper">
+              @if (previewImage && !imageError) {
+                <div class="profile-avatar-image">
+                  <img [src]="previewImage" [alt]="'Photo de profil' | translate" (error)="imageError = true">
+                  @if (editMode) {
+                    <div class="avatar-overlay">
+                      <button mat-icon-button (click)="removeProfilePicture()" [matTooltip]="'Supprimer' | translate">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="profile-avatar" [style.background]="'linear-gradient(135deg, #667eea, #764ba2)'">
+                  {{ getInitials() }}
+                </div>
+              }
+            </div>
             
             @if (editMode) {
               <div class="change-photo-section">
@@ -49,36 +52,97 @@
                        (change)="onFileSelected($event)">
                 <button mat-raised-button color="primary" (click)="fileInput.click()" [disabled]="isUploading">
                   <mat-icon>cloud_upload</mat-icon>
-                  {{ previewImage ? ('Changer la photo' | translate) : ('Ajouter une photo' | translate) }}
+                  @if (previewImage) {
+                    {{ 'Changer la photo' | translate }}
+                  } @else {
+                    {{ 'Ajouter une photo' | translate }}
+                  }
                 </button>
                 @if (isUploading) {
                   <mat-spinner diameter="20" class="upload-spinner"></mat-spinner>
+                }
+                @if (previewImage && !isUploading) {
+                  <span class="photo-preview-text">{{ 'Aperçu' | translate }}</span>
                 }
               </div>
             }
           </div>
 
+          <!-- Edit Mode -->
           @if (editMode) {
             <div class="edit-mode">
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'Prénom' | translate }}</mat-label>
-                <input matInput [(ngModel)]="user.firstName" required />
-              </mat-form-field>
+              <!-- Prénom -->
+              <div class="form-group">
+                <label class="form-label required">{{ 'Prénom' | translate }}</label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <input matInput [(ngModel)]="user.firstName" placeholder="Jean" required />
+                </mat-form-field>
+              </div>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'Nom' | translate }}</mat-label>
-                <input matInput [(ngModel)]="user.lastName" required />
-              </mat-form-field>
+              <!-- Nom -->
+              <div class="form-group">
+                <label class="form-label required">{{ 'Nom' | translate }}</label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <input matInput [(ngModel)]="user.lastName" placeholder="Dupont" required />
+                </mat-form-field>
+              </div>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'Email' | translate }}</mat-label>
-                <input matInput [(ngModel)]="user.email" type="email" required />
-              </mat-form-field>
+              <!-- Email -->
+              <div class="form-group">
+                <label class="form-label required">{{ 'Email' | translate }}</label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <input matInput [(ngModel)]="user.email" type="email" placeholder="exemple@email.com" required />
+                </mat-form-field>
+              </div>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'Téléphone' | translate }}</mat-label>
-                <input matInput [(ngModel)]="user.phoneNumber" placeholder="0341234567" />
-              </mat-form-field>
+              <!-- Téléphone -->
+              <div class="form-group">
+                <label class="form-label">{{ 'Téléphone' | translate }}</label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <input matInput [(ngModel)]="user.phoneNumber" placeholder="034 12 345 67" />
+                  <mat-hint>{{ 'Format: 034 12 345 67' | translate }}</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <!-- Site Web -->
+              <div class="form-group">
+                <label class="form-label">{{ 'Site web' | translate }}</label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <input matInput [(ngModel)]="user.website" placeholder="https://spaye.com" />
+                  <mat-hint>{{ 'Ex: https://spaye.com' | translate }}</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <!-- Bio -->
+              <div class="form-group">
+                <label class="form-label">{{ 'Bio' | translate }}</label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <textarea matInput [(ngModel)]="user.bio" rows="4" 
+                            placeholder="{{ 'Parlez-nous de vous...' | translate }}" 
+                            maxlength="500"></textarea>
+                  <mat-hint align="end">{{ user.bio?.length || 0 }}/500</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <!-- Date de naissance -->
+              <div class="form-group">
+                <label class="form-label">{{ 'Date de naissance' | translate }}</label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <input matInput [(ngModel)]="user.birthday" type="date" placeholder="01/01/2000" />
+                </mat-form-field>
+              </div>
+
+              <!-- Genre -->
+              <div class="form-group">
+                <label class="form-label">{{ 'Genre' | translate }}</label>
+                <select class="gender-select" [(ngModel)]="user.gender">
+                  <option value="">{{ 'Sélectionnez votre genre' | translate }}</option>
+                  <option value="male">{{ 'Homme' | translate }}</option>
+                  <option value="female">{{ 'Femme' | translate }}</option>
+                  <option value="other">{{ 'Autre' | translate }}</option>
+                  <option value="prefer_not">{{ 'Préfère ne pas dire' | translate }}</option>
+                </select>
+              </div>
 
               <div class="action-buttons">
                 <button mat-stroked-button (click)="toggleEditMode()" [disabled]="isSaving">
@@ -97,6 +161,7 @@
               </div>
             </div>
           } @else {
+            <!-- View Mode -->
             <div class="profile-info">
               <div class="info-item">
                 <mat-icon>person</mat-icon>
@@ -129,6 +194,48 @@
               <mat-divider></mat-divider>
 
               <div class="info-item">
+                <mat-icon>language</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">{{ 'Site web' | translate }}</span>
+                  <span class="info-value">{{ user.website || ('Non renseigné' | translate) }}</span>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="info-item">
+                <mat-icon>cake</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">{{ 'Date de naissance' | translate }}</span>
+                  <span class="info-value">{{ user.birthday || ('Non renseignée' | translate) }}</span>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="info-item">
+                <mat-icon>wc</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">{{ 'Genre' | translate }}</span>
+                  <span class="info-value">{{ getGenderLabel(user.gender) || ('Non renseigné' | translate) }}</span>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              @if (user.bio) {
+                <div class="info-item">
+                  <mat-icon>description</mat-icon>
+                  <div class="info-content">
+                    <span class="info-label">{{ 'Bio' | translate }}</span>
+                    <span class="info-value">{{ user.bio }}</span>
+                  </div>
+                </div>
+
+                <mat-divider></mat-divider>
+              }
+
+              <div class="info-item">
                 <mat-icon>account_balance_wallet</mat-icon>
                 <div class="info-content">
                   <span class="info-label">{{ 'Solde' | translate }}</span>
@@ -142,21 +249,25 @@
                 <mat-icon>qr_code</mat-icon>
                 <div class="info-content">
                   <span class="info-label">{{ 'QR Code' | translate }}</span>
-                  <span class="info-value qr-code">{{ user.qrCode }}</span>
+                  <span class="info-value qr-code">{{ user.qrCode || 'Non disponible' }}</span>
                 </div>
               </div>
             </div>
 
-            <div class="qr-code-section">
-              <h3>{{ 'Votre QR Code' | translate }}</h3>
-              <div class="qr-code-placeholder">
-                <mat-icon>qr_code_2</mat-icon>
-                <span>{{ user.qrCode }}</span>
+            <!-- QR Code Section -->
+            @if (user.qrCode) {
+              <div class="qr-code-section">
+                <h3>{{ 'Votre QR Code' | translate }}</h3>
+                <div class="qr-code-placeholder">
+                  <mat-icon>qr_code_2</mat-icon>
+                  <span>{{ user.qrCode }}</span>
+                </div>
+                <p class="qr-hint">{{ 'Scannez ce code pour recevoir des paiements' | translate }}</p>
               </div>
-              <p class="qr-hint">{{ 'Scannez ce code pour recevoir des paiements' | translate }}</p>
-            </div>
+            }
           }
 
+          <!-- Logout Button -->
           <button mat-raised-button color="warn" class="logout-btn" (click)="logout()">
             <mat-icon>exit_to_app</mat-icon>
             {{ 'Déconnexion' | translate }}

@@ -1,5 +1,5 @@
 // frontend/src/app/components/user/user.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -9,7 +9,6 @@ import { NotificationService } from '../../services/notification.service';
 import { TranslationService } from '../../services/translation.service';
 import { User } from '../../models/user.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { BaseComponent } from '../base.component';
 import { environment } from '../../../environments/environment';
 
 import { MatCardModule } from '@angular/material/card';
@@ -35,10 +34,11 @@ import { MatGridListModule } from '@angular/material/grid-list';
     MatGridListModule,
     TranslatePipe,
   ],
+  // ✅ CORRECTION : Utiliser le bon template HTML
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
 })
-export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
+export class UserComponent implements OnInit, OnDestroy {
   user: User | null = null;
   balance: number = 0;
   isLoading: boolean = true;
@@ -46,6 +46,7 @@ export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
   profileImageUrl: string | null = null;
   imageError: boolean = false;
   currentLanguage: string = 'fr';
+  private subscriptions: any[] = [];
 
   private avatarColors = [
     '#7c3aed', '#6d28d9', '#4f46e5', '#0891b2', 
@@ -71,22 +72,22 @@ export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
     private walletService: WalletService,
     private transactionService: TransactionService,
     private notificationService: NotificationService,
-    private router: Router
+    private translationService: TranslationService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
-    super();
     console.log('🏠 UserComponent chargé');
   }
 
-  override ngOnInit(): void {
+  ngOnInit(): void {
     console.log('🔄 Initialisation UserComponent');
     this.loadUserData();
     this.loadBalance();
     this.loadStats();
     
-    // ✅ S'abonner aux changements de langue
     this.subscriptions.push(
       this.translationService.language$.subscribe((lang) => {
-        console.log(`🌐 UserComponent: Langue changée en ${lang}`);
+        console.log('🌐 UserComponent: Langue changée en ' + lang);
         this.currentLanguage = lang;
         document.documentElement.lang = lang;
         this.cdr.detectChanges();
@@ -94,23 +95,34 @@ export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
     );
   }
 
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   private getFullImageUrl(url: string | null | undefined): string | null {
     if (!url) return null;
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
     if (url.startsWith('/uploads')) {
-      return `${environment.baseUrl}${url}`;
+      const baseUrl = environment.baseUrl || environment.apiUrl || 'http://localhost:3000';
+      const cleanBase = baseUrl.replace(/\/+$/, '');
+      const cleanUrl = url.replace(/^\/+/, '');
+      return cleanBase + '/' + cleanUrl;
     }
-    if (url.startsWith('/assets')) return url;
+    
+    if (url.startsWith('/assets')) {
+      return url;
+    }
+    
     if (!url.includes('/')) {
-      if (url.startsWith('profile-')) {
-        return `${environment.baseUrl}/uploads/profiles/${url}`;
-      }
-      return `/assets/profiles/${url}`;
+      const baseUrl = environment.baseUrl || environment.apiUrl || 'http://localhost:3000';
+      const cleanBase = baseUrl.replace(/\/+$/, '');
+      return cleanBase + '/uploads/profiles/' + url;
     }
+    
     return url;
   }
 
@@ -118,25 +130,67 @@ export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.authService.currentUser.subscribe((user) => {
         console.log('👤 Utilisateur reçu:', user?.email);
+        console.log('📸 Photo de profil brute:', user?.profilePicture);
+        
         this.user = user;
         this.imageError = false;
         
         if (user) {
           if (user.profilePicture) {
-            this.profileImageUrl = this.getFullImageUrl(user.profilePicture);
-            console.log('🖼️ URL photo de profil:', this.profileImageUrl);
+            const fullUrl = this.getFullImageUrl(user.profilePicture);
+            console.log('🖼️ URL générée:', fullUrl);
+            
+            if (fullUrl) {
+              this.profileImageUrl = fullUrl;
+              this.checkImageExists(fullUrl);
+            } else {
+              this.imageError = true;
+              this.profileImageUrl = null;
+            }
           } else {
             this.profileImageUrl = null;
+            console.log('🖼️ Aucune photo de profil');
           }
         }
         this.isLoading = false;
-        
-        if (user && (user.role === 'admin' || user.role === 'super_admin')) {
-          console.log('🔀 Admin détecté, redirection vers /admin/dashboard');
-          this.router.navigate(['/admin/dashboard']);
-        }
+        this.cdr.detectChanges();
       })
     );
+  }
+
+  private checkImageExists(url: string): void {
+    if (!url || url.length < 10) {
+      console.warn('⚠️ URL invalide:', url);
+      this.imageError = true;
+      this.profileImageUrl = null;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const img = new Image();
+    const timeout = setTimeout(() => {
+      console.warn('⏰ Timeout pour l\'image:', url);
+      this.imageError = true;
+      this.profileImageUrl = null;
+      this.cdr.detectChanges();
+    }, 8000);
+    
+    img.onload = () => {
+      clearTimeout(timeout);
+      console.log('✅ Image chargée avec succès:', url);
+      this.imageError = false;
+      this.cdr.detectChanges();
+    };
+    
+    img.onerror = () => {
+      clearTimeout(timeout);
+      console.warn('❌ Image non trouvée:', url);
+      this.imageError = true;
+      this.profileImageUrl = null;
+      this.cdr.detectChanges();
+    };
+    
+    img.src = url;
   }
 
   private loadBalance(): void {
@@ -145,10 +199,12 @@ export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
         next: (data) => {
           this.balance = data.balance || 0;
           console.log('💰 Solde chargé:', this.balance);
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('❌ Erreur chargement solde:', err);
           this.balance = 0;
+          this.cdr.detectChanges();
         }
       })
     );
@@ -160,10 +216,12 @@ export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
         next: (stats) => {
           this.stats = stats;
           console.log('📊 Stats chargées:', stats);
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('❌ Erreur chargement stats:', err);
           this.stats = { totalTransactions: 0, lastThreeTransactions: [] };
+          this.cdr.detectChanges();
         }
       })
     );
@@ -181,6 +239,7 @@ export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
   refreshData(): void {
     this.loadBalance();
     this.loadStats();
+    this.loadUserData();
     this.notificationService.showInfo('Données actualisées');
   }
 
@@ -195,6 +254,7 @@ export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
     console.warn('❌ Erreur de chargement de l\'image de profil');
     this.imageError = true;
     this.profileImageUrl = null;
+    this.cdr.detectChanges();
   }
 
   getAvatarGradient(): string {
@@ -206,7 +266,7 @@ export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
     }
     const color1 = this.avatarColors[Math.abs(hash) % this.avatarColors.length];
     const color2 = this.avatarColors[(Math.abs(hash) + 3) % this.avatarColors.length];
-    return `linear-gradient(135deg, ${color1}, ${color2})`;
+    return 'linear-gradient(135deg, ' + color1 + ', ' + color2 + ')';
   }
 
   formatAmount(amount: number): string {

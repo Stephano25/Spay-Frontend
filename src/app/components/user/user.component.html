@@ -9,15 +9,19 @@
             [src]="profileImageUrl" 
             alt="Photo de profil" 
             class="profile-avatar-img" 
-            (error)="handleImageError()">
+            (error)="handleImageError()"
+            loading="eager"
+            crossorigin="anonymous">
         } @else {
           <div class="profile-avatar-placeholder" [style.background]="getAvatarGradient()">
             {{ getInitials() }}
           </div>
         }
       </div>
-      <mat-card-title>{{ 'Bienvenue sur SPaye' | translate }}</mat-card-title>
-      <mat-card-subtitle>{{ 'Tableau de bord utilisateur' | translate }}</mat-card-subtitle>
+      <div>
+        <mat-card-title>{{ 'Bienvenue sur SPaye' | translate }}</mat-card-title>
+        <mat-card-subtitle>{{ 'Tableau de bord utilisateur' | translate }}</mat-card-subtitle>
+      </div>
     </mat-card-header>
     
     <mat-card-content>

@@ -90,11 +90,7 @@ export class UserService {
 
   updateUserSettings(settings: UserSettings): Observable<any> {
     localStorage.setItem('user_settings', JSON.stringify(settings));
-    return this.http.patch(`${this.apiUrl}/settings`, settings, { headers: this.getHeaders() }).pipe(
-      // catchError pour ne pas bloquer si le backend n'est pas disponible
-      // on retourne un succès local
-    );
-    // return of({ success: true });
+    return this.http.patch(`${this.apiUrl}/settings`, settings, { headers: this.getHeaders() });
   }
 
   deleteAccount(password: string): Observable<any> {
@@ -174,13 +170,20 @@ export class UserService {
   }
 
   // ============================================================
-  // PROFIL
+  // PHOTO DE PROFIL - UPLOAD CORRIGÉ
   // ============================================================
 
   uploadProfilePhoto(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('profilePicture', file);
-    return this.http.post(`${this.apiUrl}/upload-profile-picture`, formData, {
+
+    console.log('📤 Upload de la photo:', file.name);
+    console.log('📤 Taille:', file.size, 'bytes');
+
+    const url = `${this.apiUrl}/upload-profile-picture`;
+    console.log('📤 URL:', url);
+
+    return this.http.post(url, formData, {
       headers: new HttpHeaders({
         Authorization: `Bearer ${this.authService.getToken()}`
       })
@@ -188,8 +191,14 @@ export class UserService {
   }
 
   removeProfilePhoto(): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/profile-picture`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/profile-picture`, { 
+      headers: this.getHeaders() 
+    });
   }
+
+  // ============================================================
+  // PROFIL
+  // ============================================================
 
   changeEmail(newEmail: string): Observable<any> {
     return this.http.patch(`${this.apiUrl}/email`, { email: newEmail }, { headers: this.getHeaders() });
