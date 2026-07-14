@@ -1,7 +1,4 @@
-/* ============================================================
-   SPAYE — ADMIN USERS
-   ============================================================ */
-
+/* frontend/src/app/components/admin/users/admin-users.component.css */
 .users-container {
   padding: 24px;
   max-height: calc(100vh - 64px);
@@ -9,14 +6,40 @@
   background: var(--bg);
 }
 
+.users-container::-webkit-scrollbar {
+  width: 4px;
+}
+.users-container::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
 .users-card {
-  border-radius: 16px !important;
+  border-radius: 20px !important;
   overflow: hidden;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04) !important;
+  background: var(--surface) !important;
 }
 
 .users-card mat-card-header {
   padding: 20px 24px 0 !important;
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+}
+
+.header-left {
+  flex: 1;
+  min-width: 200px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .users-card mat-card-title {
@@ -25,11 +48,60 @@
   gap: 10px;
   font-size: 1.125rem !important;
   font-weight: 700 !important;
+  color: var(--text) !important;
+}
+
+.users-card mat-card-title mat-icon {
+  color: var(--brand-1);
 }
 
 .users-card mat-card-subtitle {
   font-size: 0.875rem !important;
   color: var(--text-3) !important;
+}
+
+.divider {
+  margin: 0 6px;
+  color: var(--border);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+  border-color: var(--brand-1);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.search-box mat-icon {
+  color: var(--text-3);
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  color: var(--text);
+  font-family: var(--font-body);
+  padding: 6px 0;
+  min-width: 150px;
+}
+
+.search-input::placeholder {
+  color: var(--text-3);
 }
 
 .users-card mat-card-content {
@@ -61,21 +133,26 @@
 }
 
 .users-table thead th {
-  padding: 10px 14px;
+  padding: 12px 14px;
   text-align: left;
   font-weight: 600;
   color: var(--text-2);
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
 .users-table tbody td {
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-bottom: 0.5px solid var(--border);
   color: var(--text);
   vertical-align: middle;
+}
+
+.users-table tbody tr {
+  transition: background 0.2s ease;
 }
 
 .users-table tbody tr:hover {
@@ -85,72 +162,177 @@
 .user-cell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 180px;
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  position: relative;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: 700;
+  font-size: 14px;
   flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.online-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid var(--surface);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .user-name {
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.875rem;
+  color: var(--text);
 }
 
-.balance {
-  font-weight: 600;
+.user-id {
+  font-size: 0.65rem;
+  color: var(--text-3);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8125rem;
+}
+
+.email-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.mat-chip {
-  font-size: 0.65rem !important;
-  padding: 2px 10px !important;
-  border-radius: 999px !important;
-  min-height: 22px !important;
-  font-weight: 600 !important;
+.phone-cell {
+  white-space: nowrap;
 }
 
-.role-user {
-  background: rgba(59, 130, 246, 0.12) !important;
-  color: #3b82f6 !important;
+.balance-cell {
+  white-space: nowrap;
 }
-.role-admin {
-  background: rgba(124, 58, 237, 0.12) !important;
-  color: #7c3aed !important;
+
+.balance {
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  color: var(--text);
 }
-.role-super_admin {
-  background: rgba(245, 158, 11, 0.12) !important;
-  color: #f59e0b !important;
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.role-chip mat-icon {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.role-chip.role-user {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+.role-chip.role-admin {
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+}
+.role-chip.role-super {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.status-label.active {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.status-label.inactive {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.date-cell {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--text-3);
 }
 
 .actions-cell {
   display: flex;
   gap: 2px;
   flex-wrap: wrap;
+  min-width: 200px;
 }
 
-.actions-cell button {
-  width: 30px !important;
-  height: 30px !important;
-  line-height: 30px !important;
+.action-btn {
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
 }
 
-.actions-cell button mat-icon {
-  font-size: 16px !important;
-  width: 16px !important;
-  height: 16px !important;
+.action-btn mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+}
+
+.action-btn.deposit-btn:hover {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #10b981 !important;
+}
+
+.action-btn.withdraw-btn:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #ef4444 !important;
+}
+
+.action-btn.more-btn:hover {
+  background: var(--hover) !important;
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .empty-state {
@@ -181,6 +363,10 @@
   font-size: 0.875rem;
 }
 
+.empty-state button {
+  margin-top: 8px;
+}
+
 .toolbar-badge {
   background: rgba(255, 255, 255, 0.2);
   padding: 4px 14px;
@@ -188,47 +374,181 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.3px;
+  color: white;
 }
 
-/* Responsive */
+.danger-item {
+  color: #ef4444 !important;
+}
+
+.danger-item:hover {
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+.danger-item mat-icon {
+  color: #ef4444 !important;
+}
+
+@media (max-width: 1024px) {
+  .users-card mat-card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .header-right {
+    width: 100%;
+  }
+  
+  .search-box {
+    flex: 1;
+  }
+  
+  .search-input {
+    min-width: 100px;
+  }
+}
+
 @media (max-width: 768px) {
   .users-container {
     padding: 12px;
   }
+  
   .users-card mat-card-content {
     padding: 12px 16px 16px !important;
   }
+  
+  .users-card mat-card-header {
+    padding: 16px 16px 0 !important;
+  }
+  
+  .header-right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
+  
+  .table-container {
+    margin: 0 -8px;
+  }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .users-table thead th,
   .users-table tbody td {
-    padding: 6px 8px;
+    padding: 8px 8px;
     font-size: 0.7rem;
   }
+  
+  .user-cell {
+    min-width: 120px;
+    gap: 8px;
+  }
+  
   .user-avatar {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
+    font-size: 11px;
+  }
+  
+  .user-name {
+    font-size: 0.75rem;
+  }
+  
+  .user-id {
+    display: none;
+  }
+  
+  .balance {
+    font-size: 0.75rem;
+  }
+  
+  .role-chip {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+  }
+  
+  .role-chip mat-icon {
+    font-size: 12px !important;
+    width: 12px !important;
+    height: 12px !important;
+  }
+  
+  .actions-cell {
+    min-width: 140px;
+    gap: 0;
+  }
+  
+  .action-btn {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  
+  .action-btn mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  .status-label {
+    font-size: 0.6rem;
+    padding: 1px 6px;
+  }
+  
+  .date-cell {
+    font-size: 0.65rem;
+  }
+  
+  .email-cell {
+    max-width: 120px;
+  }
+  
+  .online-dot {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .users-table thead th {
+    padding: 6px 4px;
+    font-size: 0.55rem;
+  }
+  
+  .users-table tbody td {
+    padding: 6px 4px;
+    font-size: 0.6rem;
+  }
+  
+  .user-avatar {
+    width: 28px;
+    height: 28px;
     font-size: 9px;
   }
-  .user-name {
-    font-size: 0.7rem;
-  }
+  
   .balance {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
-  .actions-cell button {
+  
+  .action-btn {
     width: 24px !important;
     height: 24px !important;
   }
-  .actions-cell button mat-icon {
+  
+  .action-btn mat-icon {
     font-size: 14px !important;
     width: 14px !important;
     height: 14px !important;
   }
-  .mat-chip {
-    font-size: 0.55rem !important;
-    padding: 1px 6px !important;
-    min-height: 18px !important;
+  
+  .status-toggle {
+    gap: 4px;
+  }
+  
+  .status-label {
+    font-size: 0.5rem;
+    padding: 1px 4px;
   }
 }

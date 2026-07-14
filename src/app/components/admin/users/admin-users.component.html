@@ -5,25 +5,53 @@
   </button>
   <span>{{ 'Gestion des utilisateurs' | translate }}</span>
   <span class="spacer"></span>
-  <span class="toolbar-badge">{{ 'Total' | translate }}: {{ users.length }}</span>
+  <span class="toolbar-badge">{{ 'Total' | translate }}: {{ totalUsersCount }}</span>
 </mat-toolbar>
 
 <div class="users-container">
   <mat-card class="users-card">
     <mat-card-header>
-      <mat-card-title>
-        <mat-icon>people</mat-icon>
-        {{ 'Utilisateurs' | translate }}
-      </mat-card-title>
-      <mat-card-subtitle>{{ 'Total' | translate }}: {{ users.length }} {{ 'utilisateurs' | translate }}</mat-card-subtitle>
+      <div class="header-left">
+        <mat-card-title>
+          <mat-icon>people</mat-icon>
+          {{ 'Utilisateurs' | translate }}
+        </mat-card-title>
+        <mat-card-subtitle>
+          {{ 'Total' | translate }}: {{ totalUsersCount }} {{ 'utilisateurs' | translate }}
+          <span class="divider">|</span>
+          {{ 'Actifs' | translate }}: {{ activeUsersCount }}
+          <span class="divider">|</span>
+          {{ 'Inactifs' | translate }}: {{ inactiveUsersCount }}
+        </mat-card-subtitle>
+      </div>
+      <div class="header-right">
+        <div class="search-box">
+          <mat-icon>search</mat-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (input)="filterUsers()"
+            placeholder="{{ 'Rechercher...' | translate }}"
+            class="search-input">
+          <button *ngIf="searchQuery" mat-icon-button (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <button mat-raised-button color="primary" (click)="loadUsers()" [disabled]="isLoading">
+          <mat-icon>refresh</mat-icon>
+          {{ 'Actualiser' | translate }}
+        </button>
+      </div>
     </mat-card-header>
 
     <mat-card-content>
+      <!-- Loading -->
       <div class="loading-container" *ngIf="isLoading">
         <mat-spinner diameter="50"></mat-spinner>
         <p>{{ 'Chargement des utilisateurs...' | translate }}</p>
       </div>
 
+      <!-- Table -->
       <div *ngIf="!isLoading" class="table-container">
         <table class="users-table">
           <thead>
@@ -39,75 +67,114 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let user of users">
+            <tr *ngFor="let user of filteredUsers">
               <td class="user-cell">
-                <div class="user-avatar">{{ getUserInitials(user) }}</div>
-                <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+                <div class="user-avatar" [style.background]="getAvatarColor(user)">
+                  {{ getUserInitials(user) }}
+                  <span class="online-dot" *ngIf="user.isActive"></span>
+                </div>
+                <div class="user-info">
+                  <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+                  <div class="user-id">{{ user.id | slice:0:12 }}...</div>
+                </div>
               </td>
-              <td>{{ user.email }}</td>
-              <td>{{ user.phoneNumber || '-' }}</td>
-              <td class="balance">{{ formatAmount(user.balance) }} Ar</td>
+              <td class="email-cell">{{ user.email }}</td>
+              <td class="phone-cell">{{ user.phoneNumber || '-' }}</td>
+              <td class="balance-cell">
+                <span class="balance">{{ formatAmount(user.balance) }} Ar</span>
+              </td>
               <td>
-                <mat-chip [class]="'role-' + user.role">
+                <span class="role-chip" [class.role-user]="user.role === 'user'"
+                                        [class.role-admin]="user.role === 'admin'"
+                                        [class.role-super]="user.role === 'super_admin'">
+                  <mat-icon>{{ getRoleIcon(user.role) }}</mat-icon>
                   {{ getRoleLabel(user.role) | translate }}
-                </mat-chip>
+                </span>
               </td>
               <td>
-                <mat-slide-toggle
-                  [checked]="user.isActive"
-                  (change)="toggleUserStatus(user)"
-                  color="primary">
-                  {{ user.isActive ? ('Actif' | translate) : ('Inactif' | translate) }}
-                </mat-slide-toggle>
+                <div class="status-toggle">
+                  <mat-slide-toggle
+                    [checked]="user.isActive"
+                    (change)="toggleUserStatus(user)"
+                    color="primary">
+                  </mat-slide-toggle>
+                  <span class="status-label" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                    {{ user.isActive ? ('Actif' | translate) : ('Inactif' | translate) }}
+                  </span>
+                </div>
               </td>
-              <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td class="date-cell">{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="actions-cell">
+                <!-- QR Scanner Dépôt -->
                 <button
                   mat-icon-button
                   color="primary"
                   (click)="openQRScanner('deposit', user)"
-                  [matTooltip]="'Dépôt par QR Code' | translate">
+                  [matTooltip]="'Dépôt par QR Code' | translate"
+                  class="action-btn deposit-btn">
                   <mat-icon>qr_code_scanner</mat-icon>
                 </button>
+                <!-- QR Scanner Retrait -->
                 <button
                   mat-icon-button
                   color="warn"
                   (click)="openQRScanner('withdraw', user)"
                   [matTooltip]="'Retrait par QR Code' | translate"
-                  [disabled]="user.balance < 100">
+                  [disabled]="user.balance < 100"
+                  class="action-btn withdraw-btn">
                   <mat-icon>qr_code_scanner</mat-icon>
                 </button>
+                <!-- Déposer -->
                 <button
                   mat-icon-button
                   color="primary"
                   (click)="depositMoney(user)"
-                  [matTooltip]="'Déposer' | translate">
+                  [matTooltip]="'Déposer' | translate"
+                  class="action-btn deposit-btn">
                   <mat-icon>add</mat-icon>
                 </button>
+                <!-- Retirer -->
                 <button
                   mat-icon-button
                   color="warn"
                   (click)="withdrawMoney(user)"
                   [matTooltip]="'Retirer' | translate"
-                  [disabled]="user.balance < 100">
+                  [disabled]="user.balance < 100"
+                  class="action-btn withdraw-btn">
                   <mat-icon>remove</mat-icon>
                 </button>
+                <!-- Plus d'actions -->
                 <button
                   mat-icon-button
-                  color="warn"
-                  (click)="deleteUser(user)"
-                  [matTooltip]="'Supprimer' | translate">
-                  <mat-icon>delete</mat-icon>
+                  [matMenuTriggerFor]="moreMenu"
+                  [matTooltip]="'Plus d\'actions' | translate"
+                  class="action-btn more-btn">
+                  <mat-icon>more_vert</mat-icon>
                 </button>
+                <mat-menu #moreMenu="matMenu">
+                  <button mat-menu-item (click)="toggleUserStatus(user)">
+                    <mat-icon>{{ user.isActive ? 'block' : 'check_circle' }}</mat-icon>
+                    <span>{{ user.isActive ? ('Désactiver' | translate) : ('Activer' | translate) }}</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="deleteUser(user)" class="danger-item">
+                    <mat-icon>delete_forever</mat-icon>
+                    <span>{{ 'Supprimer' | translate }}</span>
+                  </button>
+                </mat-menu>
               </td>
             </tr>
           </tbody>
         </table>
 
-        <div *ngIf="users.length === 0" class="empty-state">
+        <!-- Empty State -->
+        <div *ngIf="filteredUsers.length === 0" class="empty-state">
           <mat-icon>people_outline</mat-icon>
-          <h3>{{ 'Aucun utilisateur' | translate }}</h3>
-          <p>{{ 'Aucun utilisateur n\'est enregistré pour le moment' | translate }}</p>
+          <h3>{{ searchQuery ? 'Aucun résultat' : 'Aucun utilisateur' | translate }}</h3>
+          <p>{{ searchQuery ? 'Aucun utilisateur ne correspond à votre recherche' : 'Aucun utilisateur n\'est enregistré pour le moment' | translate }}</p>
+          <button *ngIf="searchQuery" mat-raised-button color="primary" (click)="clearSearch()">
+            {{ 'Effacer la recherche' | translate }}
+          </button>
         </div>
       </div>
     </mat-card-content>

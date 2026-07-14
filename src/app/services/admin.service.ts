@@ -2,6 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, throwError, tap, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { NotificationService } from './notification.service';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
@@ -21,7 +22,6 @@ export interface TopUser {
   totalVolume: number;
 }
 
-// ✅ Interface unifiée et corrigée
 export interface AdminDashboardStats {
   totalUsers: number;
   activeUsers: number;
@@ -31,7 +31,6 @@ export interface AdminDashboardStats {
   recentTransactions: any[];
   dailyStats: DailyStat[];
   topUsers: TopUser[];
-  // ✅ Propriétés optionnelles (le backend les renvoie selon le rôle)
   totalAdmins?: number;
   totalSuperAdmins?: number;
   adminTransactions?: number;
@@ -39,8 +38,6 @@ export interface AdminDashboardStats {
   myAdminTransactions?: number;
   myAdminVolume?: number;
   userRole?: string;
-
-  // ✅ NOUVEAU : Statistiques de commission pour SuperAdmin
   totalCommission?: number;
   commissionTransactions?: number;
   recentCommissions?: any[];
@@ -63,7 +60,6 @@ export interface QRScanResult {
   adminId: string;
   adminName: string;
   amount: number | null;
-
   qrCode?: string;
   expiresAt?: string;
   isAdminTransaction?: boolean;
@@ -149,7 +145,6 @@ export class AdminService {
             this.authService.logout();
           }
           this.notificationService.showError('Erreur chargement des statistiques');
-          // ✅ Retour avec toutes les propriétés attendues
           return of({
             totalUsers: 0,
             activeUsers: 0,
@@ -172,11 +167,59 @@ export class AdminService {
   }
 
   // ============================================================
-  // UTILISATEURS
+  // UTILISATEURS - CORRIGÉ
   // ============================================================
   getAllUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/users`, { headers: this.getHeaders() }).pipe(
-      tap((users) => console.log(`👥 ${users?.length || 0} utilisateurs chargés`)),
+    console.log('🔍 Appel de getAllUsers()');
+    
+    return this.http.get<any>(`${this.apiUrl}/users`, { headers: this.getHeaders() }).pipe(
+      map((response: any) => {
+        console.log('📥 Réponse brute:', response);
+        
+        let users: User[] = [];
+        
+        // Cas 1: Tableau direct
+        if (Array.isArray(response)) {
+          console.log('✅ Cas 1: Tableau direct');
+          users = response;
+        } 
+        // Cas 2: { data: [...] }
+        else if (response && response.data && Array.isArray(response.data)) {
+          console.log('✅ Cas 2: { data: [...] }');
+          users = response.data;
+        } 
+        // Cas 3: { users: [...] }
+        else if (response && response.users && Array.isArray(response.users)) {
+          console.log('✅ Cas 3: { users: [...] }');
+          users = response.users;
+        } 
+        // Cas 4: { results: [...] }
+        else if (response && response.results && Array.isArray(response.results)) {
+          console.log('✅ Cas 4: { results: [...] }');
+          users = response.results;
+        }
+        // Cas 5: Objet à convertir
+        else if (response && typeof response === 'object') {
+          console.log('✅ Cas 5: Conversion d\'objet en tableau');
+          const possibleUsers = Object.values(response).filter(item => 
+            item && typeof item === 'object' && 
+            'id' in item && 
+            'email' in item &&
+            'firstName' in item
+          );
+          
+          if (possibleUsers.length > 0) {
+            users = possibleUsers as User[];
+            console.log(`✅ ${users.length} utilisateurs trouvés dans l'objet`);
+          }
+        }
+        
+        console.log(`👥 ${users?.length || 0} utilisateurs extraits`);
+        return users;
+      }),
+      tap((users) => {
+        console.log(`✅ Service: ${users?.length || 0} utilisateurs retournés`);
+      }),
       catchError((error) => {
         console.error('❌ Erreur chargement utilisateurs:', error);
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
@@ -233,7 +276,7 @@ export class AdminService {
   }
 
   // ============================================================
-  // ADMIN ACTIONS - DÉPÔT (avec QR Code)
+  // ADMIN ACTIONS - DÉPÔT
   // ============================================================
   depositMoney(userId: string, amount: number, description?: string, qrCode?: string): Observable<any> {
     return this.http
@@ -249,7 +292,7 @@ export class AdminService {
   }
 
   // ============================================================
-  // ADMIN ACTIONS - RETRAIT (avec QR Code)
+  // ADMIN ACTIONS - RETRAIT
   // ============================================================
   withdrawMoney(userId: string, amount: number, description?: string, qrCode?: string): Observable<any> {
     return this.http
@@ -265,7 +308,7 @@ export class AdminService {
   }
 
   // ============================================================
-  // QR CODE - Génération et Scan
+  // QR CODE
   // ============================================================
   generateQRCode(type: 'deposit' | 'withdraw', amount?: number): Observable<QRCodeResponse> {
     return this.http
@@ -292,7 +335,7 @@ export class AdminService {
   }
 
   // ============================================================
-  // ADMINISTRATEURS (UNIQUEMENT SUPER_ADMIN)
+  // ADMINISTRATEURS
   // ============================================================
   createAdmin(adminData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/admins`, adminData, { headers: this.getHeaders() }).pipe(
@@ -411,9 +454,6 @@ export class AdminService {
     );
   }
 
-  /**
-  * Récupère les statistiques des commissions (SuperAdmin uniquement)
-  */
   getCommissionStats(): Observable<any> {
     return this.http
       .get<any>(`${this.apiUrl}/dashboard/commissions`, { headers: this.getHeaders() })
