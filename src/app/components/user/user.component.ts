@@ -10,6 +10,7 @@ import { TranslationService } from '../../services/translation.service';
 import { User } from '../../models/user.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { environment } from '../../../environments/environment';
+import { BaseComponent } from '../base.component';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -34,11 +35,10 @@ import { MatGridListModule } from '@angular/material/grid-list';
     MatGridListModule,
     TranslatePipe,
   ],
-  // ✅ CORRECTION : Utiliser le bon template HTML
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
 })
-export class UserComponent implements OnInit, OnDestroy {
+export class UserComponent extends BaseComponent implements OnInit, OnDestroy {
   user: User | null = null;
   balance: number = 0;
   isLoading: boolean = true;
@@ -46,7 +46,6 @@ export class UserComponent implements OnInit, OnDestroy {
   profileImageUrl: string | null = null;
   imageError: boolean = false;
   currentLanguage: string = 'fr';
-  private subscriptions: any[] = [];
 
   private avatarColors = [
     '#7c3aed', '#6d28d9', '#4f46e5', '#0891b2', 
@@ -72,31 +71,22 @@ export class UserComponent implements OnInit, OnDestroy {
     private walletService: WalletService,
     private transactionService: TransactionService,
     private notificationService: NotificationService,
-    private translationService: TranslationService,
     private router: Router,
-    private cdr: ChangeDetectorRef
   ) {
+    super();
     console.log('🏠 UserComponent chargé');
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
+    super.ngOnInit();
     console.log('🔄 Initialisation UserComponent');
     this.loadUserData();
     this.loadBalance();
     this.loadStats();
-    
-    this.subscriptions.push(
-      this.translationService.language$.subscribe((lang) => {
-        console.log('🌐 UserComponent: Langue changée en ' + lang);
-        this.currentLanguage = lang;
-        document.documentElement.lang = lang;
-        this.cdr.detectChanges();
-      })
-    );
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
   }
 
   private getFullImageUrl(url: string | null | undefined): string | null {
@@ -273,12 +263,20 @@ export class UserComponent implements OnInit, OnDestroy {
     return new Intl.NumberFormat('fr-MG').format(amount || 0);
   }
 
+  /**
+   * Ouvre le scanner de QR Code pour un DÉPÔT
+   * Le label "Dépôt" est affiché sur le bouton
+   */
   openDepositScanner(): void {
     this.router.navigate(['/user/scan-pay'], { 
       queryParams: { type: 'deposit' } 
     });
   }
 
+  /**
+   * Ouvre le scanner de QR Code pour un RETRAIT
+   * Le label "Retrait" est affiché sur le bouton
+   */
   openWithdrawScanner(): void {
     this.router.navigate(['/user/scan-pay'], { 
       queryParams: { type: 'withdraw' } 

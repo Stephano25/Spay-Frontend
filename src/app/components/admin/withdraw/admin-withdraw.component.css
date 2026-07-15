@@ -1,8 +1,4 @@
 /* frontend/src/app/components/admin/withdraw/admin-withdraw.component.css */
-/* ============================================================
-   SPAYE — WITHDRAW
-   ============================================================ */
-
 .withdraw-container {
   padding: 24px;
   max-height: calc(100vh - 64px);
@@ -106,7 +102,6 @@
   border-color: var(--border) !important;
 }
 
-/* Result Alert */
 .result-alert {
   display: flex;
   align-items: center;
@@ -140,7 +135,6 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Form Sections */
 .form-section {
   padding: 12px 0;
 }
@@ -162,7 +156,6 @@
   color: var(--text-3);
 }
 
-/* ✅ Labels au-dessus des champs */
 .field-label {
   display: block;
   font-weight: 600;
@@ -175,7 +168,6 @@
   width: 100%;
 }
 
-/* User Option */
 .user-option {
   display: flex;
   align-items: center;
@@ -229,7 +221,6 @@
   white-space: nowrap;
 }
 
-/* Selected User */
 .selected-user {
   margin: 14px 0 10px;
 }
@@ -309,7 +300,6 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Quick Amounts */
 .quick-amounts {
   margin-bottom: 14px;
 }
@@ -354,8 +344,7 @@
   color: white;
 }
 
-/* Withdraw Preview */
-.deposit-preview {
+.withdraw-preview {
   padding: 16px 20px;
   background: var(--surface-2);
   border-radius: 12px;
@@ -381,8 +370,11 @@
 }
 
 .preview-amount {
-  color: #ef4444;
   font-weight: 700;
+}
+
+.preview-amount.withdraw {
+  color: #ef4444;
 }
 
 .preview-new-balance {
@@ -394,10 +386,10 @@
 .preview-insufficient {
   color: #ef4444;
   font-weight: 700;
-  padding-top: 4px;
+  padding-top: 6px;
+  font-size: 0.875rem;
 }
 
-/* Info Card */
 .info-card {
   border-radius: 16px !important;
 }
@@ -458,10 +450,86 @@
   letter-spacing: 0.3px;
 }
 
-/* Responsive */
+.qr-section {
+  padding: 12px 0;
+  margin-top: 8px;
+}
+
+.qr-section .section-label {
+  margin-bottom: 12px;
+}
+
+.qr-actions-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.qr-action-btn {
+  border-radius: 10px !important;
+  padding: 0 20px !important;
+  height: 44px !important;
+  font-weight: 600 !important;
+  flex: 1;
+  min-width: 160px;
+}
+
+.qr-action-btn mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.qr-action-btn[color='primary'] {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+  color: white !important;
+}
+
+.qr-action-btn[color='accent'] {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: white !important;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.mat-mdc-select-panel {
+  max-height: 300px !important;
+}
+
+.mat-mdc-option {
+  min-height: 48px !important;
+  padding: 4px 16px !important;
+}
+
+.mat-mdc-option:hover {
+  background: var(--hover) !important;
+}
+
+.mat-mdc-option.mat-mdc-option-active {
+  background: var(--brand-grad-soft) !important;
+}
+
+.mat-mdc-select-trigger {
+  padding: 4px 0 !important;
+  min-height: 40px !important;
+}
+
+.mat-mdc-select-value-text {
+  font-weight: 500 !important;
+}
+
 @media (max-width: 768px) {
   .info-grid {
     grid-template-columns: 1fr 1fr;
+  }
+  .qr-actions-row {
+    flex-direction: column;
+  }
+  .qr-action-btn {
+    width: 100%;
+    min-width: unset;
   }
 }
 
@@ -498,6 +566,13 @@
   .amount-chip {
     padding: 6px 12px;
     font-size: 0.75rem;
+  }
+  .qr-actions-row {
+    flex-direction: column;
+  }
+  .qr-action-btn {
+    width: 100%;
+    min-width: unset;
   }
 }
 

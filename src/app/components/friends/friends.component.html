@@ -46,7 +46,7 @@
           <button class="fr-icon-btn" (click)="stopQRScan()"><mat-icon>close</mat-icon></button>
         </div>
         <div class="scanner-wrap">
-          <video id="qr-video" class="scanner-video" playsinline muted></video>
+          <div id="qr-video" class="scanner-video"></div>
           <div class="scan-frame">
             <span class="corner tl"></span><span class="corner tr"></span>
             <span class="corner bl"></span><span class="corner br"></span>
@@ -91,20 +91,89 @@
     <!-- ── Ajouter un ami ── -->
     @if (showAddFriend) {
       <div class="fr-card add-card">
-        <div class="card-title"><mat-icon>person_add</mat-icon> {{ 'Ajouter un ami' | translate }}</div>
-        <mat-form-field appearance="outline" class="full-w">
-          <mat-label>{{ 'Rechercher par nom, email ou téléphone' | translate }}</mat-label>
-          <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" placeholder="exemple@email.com">
-          <mat-icon matSuffix>search</mat-icon>
-        </mat-form-field>
+        <div class="card-title">
+          <mat-icon>person_add</mat-icon> 
+          {{ 'Ajouter un ami' | translate }}
+        </div>
 
-        @if (isSearching) {
-          <div class="center-row"><mat-spinner diameter="24"></mat-spinner></div>
+        <!-- Options de recherche -->
+        <div class="search-options">
+          <button class="search-option-btn" [class.active]="searchBy === 'name'" (click)="searchBy = 'name'; clearSearch()">
+            <mat-icon>person</mat-icon>
+            {{ 'Par nom' | translate }}
+          </button>
+          <button class="search-option-btn" [class.active]="searchBy === 'email'" (click)="searchBy = 'email'; clearSearch()">
+            <mat-icon>email</mat-icon>
+            {{ 'Par email' | translate }}
+          </button>
+          <button class="search-option-btn" [class.active]="searchBy === 'phone'" (click)="searchBy = 'phone'; clearSearch()">
+            <mat-icon>phone</mat-icon>
+            {{ 'Par téléphone' | translate }}
+          </button>
+        </div>
+
+        <!-- Recherche par nom -->
+        @if (searchBy === 'name') {
+          <div class="search-field-group">
+            <label class="field-label">{{ 'Nom complet' | translate }}</label>
+            <mat-form-field appearance="outline" class="full-w large-field">
+              <mat-label>{{ 'Rechercher par nom ou prénom' | translate }}</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="nameSearch" 
+                (ngModelChange)="searchByName()" 
+                placeholder="ex: Jean Dupont"
+                autofocus>
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+            <small class="field-hint">{{ 'Entrez au moins 2 caractères' | translate }}</small>
+          </div>
         }
 
-        @if (searchResults.length > 0 && !isSearching) {
+        <!-- Recherche par email -->
+        @if (searchBy === 'email') {
+          <div class="search-field-group">
+            <label class="field-label">{{ 'Adresse email' | translate }}</label>
+            <mat-form-field appearance="outline" class="full-w large-field">
+              <mat-label>{{ 'Email de l\'utilisateur' | translate }}</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="emailSearch" 
+                (keyup.enter)="searchByEmail()" 
+                placeholder="exemple@email.com"
+                type="email">
+              <mat-icon matSuffix (click)="searchByEmail()" style="cursor: pointer;">search</mat-icon>
+            </mat-form-field>
+            <small class="field-hint">{{ 'Entrez l\'adresse email exacte' | translate }}</small>
+          </div>
+        }
+
+        <!-- Recherche par téléphone -->
+        @if (searchBy === 'phone') {
+          <div class="search-field-group">
+            <label class="field-label">{{ 'Numéro de téléphone' | translate }}</label>
+            <mat-form-field appearance="outline" class="full-w large-field">
+              <mat-label>{{ 'Téléphone de l\'utilisateur' | translate }}</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="phoneNumber" 
+                (keyup.enter)="searchByPhone()" 
+                placeholder="+261 34 00 000 00"
+                type="tel">
+              <mat-icon matSuffix (click)="searchByPhone()" style="cursor: pointer;">search</mat-icon>
+            </mat-form-field>
+            <small class="field-hint">{{ 'Entrez le numéro avec l\'indicatif' | translate }}</small>
+          </div>
+        }
+
+        <!-- Résultats de recherche -->
+        @if (isSearching || isSearchingByPhone) {
+          <div class="center-row"><mat-spinner diameter="32"></mat-spinner></div>
+        }
+
+        @if (searchResults.length > 0 && !isSearching && !isSearchingByPhone) {
           <div class="results-section">
-            <p class="section-label">{{ 'Résultats' | translate }}</p>
+            <p class="section-label">{{ 'Résultats de recherche' | translate }}</p>
             <div class="user-grid">
               @for (user of searchResults; track user.id) {
                 <div class="user-card">
@@ -114,16 +183,19 @@
                   <div class="user-info">
                     <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
                     <span class="user-email">{{ user.email }}</span>
+                    @if (user.phoneNumber) {
+                      <span class="user-phone">{{ user.phoneNumber }}</span>
+                    }
                   </div>
                   <div class="user-action">
                     @if (user.isBlocked) {
-                      <button class="tag-btn blocked"><mat-icon>block</mat-icon> {{ 'Bloqué' | translate }}</button>
+                      <button class="tag-btn blocked" disabled><mat-icon>block</mat-icon> {{ 'Bloqué' | translate }}</button>
                     } @else if (user.isFriend) {
-                      <button class="tag-btn friend"><mat-icon>check</mat-icon> {{ 'Ami' | translate }}</button>
+                      <button class="tag-btn friend" disabled><mat-icon>check</mat-icon> {{ 'Ami' | translate }}</button>
                     } @else if (user.hasPendingRequest) {
-                      <button class="tag-btn pending"><mat-icon>hourglass_empty</mat-icon> {{ 'Envoyée' | translate }}</button>
+                      <button class="tag-btn pending" disabled><mat-icon>hourglass_empty</mat-icon> {{ 'Envoyée' | translate }}</button>
                     } @else {
-                      <button class="add-btn" (click)="sendFriendRequest(user.id)">
+                      <button class="add-btn large" (click)="sendFriendRequest(user.id)">
                         <mat-icon>person_add</mat-icon> {{ 'Ajouter' | translate }}
                       </button>
                     }
@@ -134,7 +206,8 @@
           </div>
         }
 
-        @if (suggestions.length > 0 && !searchQuery) {
+        <!-- Suggestions -->
+        @if (suggestions.length > 0 && !nameSearch && !emailSearch && !phoneNumber && !isSearching && !isSearchingByPhone) {
           <div class="results-section">
             <p class="section-label">{{ 'Suggestions' | translate }}</p>
             <div class="user-grid">
@@ -146,12 +219,15 @@
                   <div class="user-info">
                     <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
                     <span class="user-email">{{ user.email }}</span>
+                    @if (user.phoneNumber) {
+                      <span class="user-phone">{{ user.phoneNumber }}</span>
+                    }
                   </div>
                   <div class="user-action">
                     @if (user.hasPendingRequest) {
-                      <button class="tag-btn pending"><mat-icon>hourglass_empty</mat-icon> {{ 'Envoyée' | translate }}</button>
+                      <button class="tag-btn pending" disabled><mat-icon>hourglass_empty</mat-icon> {{ 'Envoyée' | translate }}</button>
                     } @else {
-                      <button class="add-btn" (click)="sendFriendRequest(user.id)">
+                      <button class="add-btn large" (click)="sendFriendRequest(user.id)">
                         <mat-icon>person_add</mat-icon> {{ 'Ajouter' | translate }}
                       </button>
                     }
@@ -159,6 +235,13 @@
                 </div>
               }
             </div>
+          </div>
+        }
+
+        @if (!nameSearch && !emailSearch && !phoneNumber && !isSearching && !isSearchingByPhone && suggestions.length === 0 && !isLoading) {
+          <div class="empty-mini">
+            <mat-icon>people_outline</mat-icon>
+            <p>{{ 'Aucune suggestion pour le moment' | translate }}</p>
           </div>
         }
       </div>
@@ -193,7 +276,7 @@
       </div>
     }
 
-    <!-- ── Demandes reçues ── -->
+    <!-- ── Demandes reçues (CORRIGÉ) ── -->
     @if (friendRequests.length > 0) {
       <div class="fr-section">
         <div class="section-toggle" (click)="toggleRequestsList()">
@@ -207,15 +290,36 @@
         <div class="section-content" [class.open]="showRequestsList">
           @for (req of friendRequests; track req.id) {
             @if (req.sender) {
-              <div class="friend-row">
+              <div class="friend-row request-row">
                 <div class="av av-md" [style.background]="getAvatarColor(req.sender.firstName)">
                   {{ getInitials(req.sender.firstName, req.sender.lastName) }}
                 </div>
                 <div class="friend-meta">
                   <span class="friend-name">{{ req.sender.firstName }} {{ req.sender.lastName }}</span>
                   <span class="friend-sub">{{ req.sender.email }}</span>
+                  <span class="request-date">{{ 'Demande du' | translate }} {{ req.createdAt | date:'dd/MM/yyyy à HH:mm' }}</span>
                 </div>
-                <div class="row-actions">
+                <div class="row-actions request-actions">
+                  <button class="accept-btn" (click)="acceptRequest(req.id)" matTooltip="{{ 'Accepter' | translate }}">
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button class="decline-btn" (click)="declineRequest(req.id)" matTooltip="{{ 'Refuser' | translate }}">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <!-- Fallback si le sender est manquant -->
+              <div class="friend-row request-row error-row">
+                <div class="av av-md" style="background: #9ca3af;">
+                  ?
+                </div>
+                <div class="friend-meta">
+                  <span class="friend-name">{{ 'Demande d\'ami' | translate }}</span>
+                  <span class="friend-sub">{{ 'ID:' | translate }} {{ req.senderId }}</span>
+                  <span class="request-date">{{ 'Demande du' | translate }} {{ req.createdAt | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="row-actions request-actions">
                   <button class="accept-btn" (click)="acceptRequest(req.id)" matTooltip="{{ 'Accepter' | translate }}">
                     <mat-icon>check</mat-icon>
                   </button>
@@ -226,6 +330,24 @@
               </div>
             }
           }
+        </div>
+      </div>
+    } @else {
+      <!-- Message quand il n'y a pas de demandes -->
+      <div class="fr-section">
+        <div class="section-toggle" (click)="toggleRequestsList()">
+          <div class="section-toggle-left">
+            <mat-icon>notifications_off</mat-icon>
+            <span>{{ 'Demandes reçues' | translate }}</span>
+            <span class="count-badge">0</span>
+          </div>
+          <mat-icon class="toggle-arrow" [class.rotated]="showRequestsList">expand_more</mat-icon>
+        </div>
+        <div class="section-content" [class.open]="showRequestsList">
+          <div class="empty-mini">
+            <mat-icon>inbox</mat-icon>
+            <p>{{ 'Aucune demande d\'ami reçue' | translate }}</p>
+          </div>
         </div>
       </div>
     }

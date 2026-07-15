@@ -3,11 +3,18 @@
   <button mat-icon-button (click)="goBack()" matTooltip="{{ 'Retour' | translate }}">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span>{{ 'Paramètres d'administration' | translate }}</span>
+  <span>{{ 'Paramètres d\'administration' | translate }}</span>
   <span class="spacer"></span>
+  <button mat-icon-button (click)="exportSettings()" matTooltip="{{ 'Exporter' | translate }}">
+    <mat-icon>download</mat-icon>
+  </button>
+  <button mat-icon-button (click)="fileInput.click()" matTooltip="{{ 'Importer' | translate }}">
+    <mat-icon>upload</mat-icon>
+  </button>
   <button mat-icon-button (click)="resetAllSettings()" matTooltip="{{ 'Réinitialiser' | translate }}">
     <mat-icon>settings_backup_restore</mat-icon>
   </button>
+  <input #fileInput type="file" accept=".json" (change)="importSettings($event)" style="display:none">
 </mat-toolbar>
 
 <div class="settings-page">
@@ -50,7 +57,9 @@
       <!-- Onglets -->
       <mat-tab-group class="settings-tabs" (selectedIndexChange)="activeTab = $event" [selectedIndex]="activeTab">
         
-        <!-- Onglet Général -->
+        <!-- ============================================================
+             ONGLET GÉNÉRAL
+             ============================================================ -->
         <mat-tab label="{{ 'Général' | translate }}">
           <div class="tab-content">
             <form [formGroup]="generalForm" (ngSubmit)="saveGeneralSettings()">
@@ -65,61 +74,97 @@
                 <mat-card-content>
                   <!-- Ligne 1 -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Nom du site' | translate }}</mat-label>
-                      <input matInput formControlName="siteName" placeholder="SPaye">
-                      <mat-icon matSuffix>business</mat-icon>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'URL du site' | translate }}</mat-label>
-                      <input matInput formControlName="siteUrl" placeholder="https://spaye.com">
-                      <mat-icon matSuffix>link</mat-icon>
-                    </mat-form-field>
+                    <div class="half-width">
+                      <label class="field-label-above">
+                        {{ 'Nom du site' | translate }}
+                        <span class="required">*</span>
+                      </label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Nom du site' | translate }}</mat-label>
+                        <input matInput formControlName="siteName" placeholder="SPaye">
+                        <mat-icon matSuffix>business</mat-icon>
+                      </mat-form-field>
+                    </div>
+                    <div class="half-width">
+                      <label class="field-label-above">
+                        {{ 'URL du site' | translate }}
+                        <span class="required">*</span>
+                      </label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'URL du site' | translate }}</mat-label>
+                        <input matInput formControlName="siteUrl" placeholder="https://spaye.com">
+                        <mat-icon matSuffix>link</mat-icon>
+                      </mat-form-field>
+                    </div>
                   </div>
 
                   <!-- Ligne 2 -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Email admin' | translate }}</mat-label>
-                      <input matInput formControlName="adminEmail" type="email" placeholder="admin@spaye.com">
-                      <mat-icon matSuffix>email</mat-icon>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Email support' | translate }}</mat-label>
-                      <input matInput formControlName="supportEmail" type="email" placeholder="support@spaye.com">
-                      <mat-icon matSuffix>support</mat-icon>
-                    </mat-form-field>
+                    <div class="half-width">
+                      <label class="field-label-above">
+                        {{ 'Email admin' | translate }}
+                        <span class="required">*</span>
+                      </label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Email admin' | translate }}</mat-label>
+                        <input matInput formControlName="adminEmail" type="email" placeholder="admin@spaye.com">
+                        <mat-icon matSuffix>email</mat-icon>
+                      </mat-form-field>
+                    </div>
+                    <div class="half-width">
+                      <label class="field-label-above">
+                        {{ 'Email support' | translate }}
+                        <span class="required">*</span>
+                      </label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Email support' | translate }}</mat-label>
+                        <input matInput formControlName="supportEmail" type="email" placeholder="support@spaye.com">
+                        <mat-icon matSuffix>support</mat-icon>
+                      </mat-form-field>
+                    </div>
                   </div>
 
                   <!-- Ligne 3 -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Rôle par défaut' | translate }}</mat-label>
-                      <mat-select formControlName="defaultUserRole">
-                        <mat-option *ngFor="let role of userRoles" [value]="role.value">{{ role.label | translate }}</mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Taille max fichier (Mo)' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="maxFileSize" placeholder="150">
-                      <mat-icon matSuffix>file_upload</mat-icon>
-                    </mat-form-field>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Rôle par défaut' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Rôle par défaut' | translate }}</mat-label>
+                        <mat-select formControlName="defaultUserRole">
+                          <mat-option *ngFor="let role of userRoles" [value]="role.value">{{ role.label | translate }}</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Taille max fichier (Mo)' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Taille max fichier (Mo)' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="maxFileSize" placeholder="150">
+                        <mat-icon matSuffix>file_upload</mat-icon>
+                      </mat-form-field>
+                    </div>
                   </div>
 
                   <!-- Ligne 4 -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Timeout session (min)' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="sessionTimeout" placeholder="30">
-                      <mat-icon matSuffix>timer</mat-icon>
-                    </mat-form-field>
-                    <div class="toggle-group half-width">
-                      <mat-slide-toggle formControlName="maintenanceMode" color="primary">
-                        {{ 'Mode maintenance' | translate }}
-                      </mat-slide-toggle>
-                      <mat-slide-toggle formControlName="registrationEnabled" color="primary">
-                        {{ 'Inscriptions ouvertes' | translate }}
-                      </mat-slide-toggle>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Timeout session (min)' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Timeout session (min)' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="sessionTimeout" placeholder="30">
+                        <mat-icon matSuffix>timer</mat-icon>
+                      </mat-form-field>
+                    </div>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Options' | translate }}</label>
+                      <div class="toggle-group">
+                        <mat-slide-toggle formControlName="maintenanceMode" color="primary">
+                          {{ 'Mode maintenance' | translate }}
+                        </mat-slide-toggle>
+                        <mat-slide-toggle formControlName="registrationEnabled" color="primary">
+                          {{ 'Inscriptions ouvertes' | translate }}
+                        </mat-slide-toggle>
+                      </div>
                     </div>
                   </div>
                 </mat-card-content>
@@ -137,7 +182,9 @@
           </div>
         </mat-tab>
 
-        <!-- Onglet Apparence -->
+        <!-- ============================================================
+             ONGLET APPARTENANCE
+             ============================================================ -->
         <mat-tab label="{{ 'Apparence' | translate }}">
           <div class="tab-content">
             <mat-card class="settings-card">
@@ -152,7 +199,7 @@
                 <form [formGroup]="customizationForm">
                   <!-- Thème -->
                   <div class="form-group">
-                    <label class="form-label">{{ 'Thème' | translate }}</label>
+                    <label class="field-label-above">{{ 'Thème' | translate }}</label>
                     <div class="theme-buttons">
                       <button type="button" *ngFor="let theme of themes" class="theme-btn"
                               [class.active]="customizationForm.get('theme')?.value === theme.value"
@@ -165,7 +212,7 @@
 
                   <!-- Langue -->
                   <div class="form-group">
-                    <label class="form-label">{{ 'Langue' | translate }}</label>
+                    <label class="field-label-above">{{ 'Langue' | translate }}</label>
                     <div class="language-buttons">
                       <button type="button" *ngFor="let lang of languages" class="language-btn"
                               [class.active]="selectedLanguage === lang.value"
@@ -179,12 +226,12 @@
                   <!-- Couleurs -->
                   <div class="form-row">
                     <div class="half-width color-picker-group">
-                      <label class="form-label">{{ 'Couleur primaire' | translate }}</label>
+                      <label class="field-label-above">{{ 'Couleur primaire' | translate }}</label>
                       <input type="color" class="color-input" [value]="customizationForm.get('primaryColor')?.value"
                              (change)="updatePrimaryColor($event)">
                     </div>
                     <div class="half-width color-picker-group">
-                      <label class="form-label">{{ 'Couleur secondaire' | translate }}</label>
+                      <label class="field-label-above">{{ 'Couleur secondaire' | translate }}</label>
                       <input type="color" class="color-input" [value]="customizationForm.get('secondaryColor')?.value"
                              (change)="updateSecondaryColor($event)">
                     </div>
@@ -192,7 +239,7 @@
 
                   <!-- CSS personnalisé -->
                   <div class="form-group">
-                    <label class="form-label">{{ 'CSS personnalisé' | translate }}</label>
+                    <label class="field-label-above">{{ 'CSS personnalisé' | translate }}</label>
                     <textarea class="custom-textarea" rows="4" [value]="customizationForm.get('customCSS')?.value"
                               (input)="updateCustomCSS($event)" placeholder="/* Ajoutez votre CSS personnalisé ici */"></textarea>
                   </div>
@@ -211,7 +258,9 @@
           </div>
         </mat-tab>
 
-        <!-- Onglet Système -->
+        <!-- ============================================================
+             ONGLET SYSTÈME
+             ============================================================ -->
         <mat-tab label="{{ 'Système' | translate }}">
           <div class="tab-content">
             <mat-card class="settings-card">
@@ -254,7 +303,9 @@
           </div>
         </mat-tab>
 
-        <!-- Onglet Sécurité -->
+        <!-- ============================================================
+             ONGLET SÉCURITÉ
+             ============================================================ -->
         <mat-tab label="{{ 'Sécurité' | translate }}">
           <div class="tab-content">
             <form [formGroup]="securityForm" (ngSubmit)="saveSecuritySettings()">
@@ -270,6 +321,7 @@
                   <!-- 2FA -->
                   <div class="form-row">
                     <div class="full-width">
+                      <label class="field-label-above">{{ 'Authentification' | translate }}</label>
                       <mat-slide-toggle formControlName="twoFactorAuth" color="primary">
                         {{ 'Authentification à deux facteurs (2FA)' | translate }}
                       </mat-slide-toggle>
@@ -278,49 +330,67 @@
 
                   <!-- Longueur mot de passe -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Longueur min mot de passe' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="passwordMinLength" placeholder="8">
-                    </mat-form-field>
-                    <div class="toggle-group half-width">
-                      <mat-slide-toggle formControlName="passwordRequireUppercase" color="primary">
-                        {{ 'Majuscule requise' | translate }}
-                      </mat-slide-toggle>
-                      <mat-slide-toggle formControlName="passwordRequireNumbers" color="primary">
-                        {{ 'Chiffre requis' | translate }}
-                      </mat-slide-toggle>
-                      <mat-slide-toggle formControlName="passwordRequireSpecial" color="primary">
-                        {{ 'Caractère spécial requis' | translate }}
-                      </mat-slide-toggle>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Longueur min mot de passe' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Longueur min mot de passe' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="passwordMinLength" placeholder="8">
+                      </mat-form-field>
+                    </div>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Exigences' | translate }}</label>
+                      <div class="toggle-group">
+                        <mat-slide-toggle formControlName="passwordRequireUppercase" color="primary">
+                          {{ 'Majuscule requise' | translate }}
+                        </mat-slide-toggle>
+                        <mat-slide-toggle formControlName="passwordRequireNumbers" color="primary">
+                          {{ 'Chiffre requis' | translate }}
+                        </mat-slide-toggle>
+                        <mat-slide-toggle formControlName="passwordRequireSpecial" color="primary">
+                          {{ 'Caractère spécial requis' | translate }}
+                        </mat-slide-toggle>
+                      </div>
                     </div>
                   </div>
 
                   <!-- Tentatives de connexion -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Max tentatives de connexion' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="maxLoginAttempts" placeholder="5">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Durée de verrouillage (min)' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="lockoutDuration" placeholder="30">
-                    </mat-form-field>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Max tentatives de connexion' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Max tentatives de connexion' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="maxLoginAttempts" placeholder="5">
+                      </mat-form-field>
+                    </div>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Durée de verrouillage (min)' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Durée de verrouillage (min)' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="lockoutDuration" placeholder="30">
+                      </mat-form-field>
+                    </div>
                   </div>
 
                   <!-- Vérifications -->
                   <div class="form-row">
-                    <div class="toggle-group half-width">
-                      <mat-slide-toggle formControlName="requireEmailVerification" color="primary">
-                        {{ 'Vérification email requise' | translate }}
-                      </mat-slide-toggle>
-                      <mat-slide-toggle formControlName="requirePhoneVerification" color="primary">
-                        {{ 'Vérification téléphone requise' | translate }}
-                      </mat-slide-toggle>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Vérifications' | translate }}</label>
+                      <div class="toggle-group">
+                        <mat-slide-toggle formControlName="requireEmailVerification" color="primary">
+                          {{ 'Vérification email requise' | translate }}
+                        </mat-slide-toggle>
+                        <mat-slide-toggle formControlName="requirePhoneVerification" color="primary">
+                          {{ 'Vérification téléphone requise' | translate }}
+                        </mat-slide-toggle>
+                      </div>
                     </div>
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Timeout session (min)' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="sessionTimeout" placeholder="60">
-                    </mat-form-field>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Timeout session (min)' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Timeout session (min)' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="sessionTimeout" placeholder="60">
+                      </mat-form-field>
+                    </div>
                   </div>
                 </mat-card-content>
                 <mat-card-actions>
@@ -337,7 +407,9 @@
           </div>
         </mat-tab>
 
-        <!-- Onglet Paiement -->
+        <!-- ============================================================
+             ONGLET PAIEMENT
+             ============================================================ -->
         <mat-tab label="{{ 'Paiement' | translate }}">
           <div class="tab-content">
             <form [formGroup]="paymentForm" (ngSubmit)="savePaymentSettings()">
@@ -352,35 +424,51 @@
                 <mat-card-content>
                   <!-- Montants -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Transaction min (Ar)' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="minTransaction" placeholder="100">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Transaction max (Ar)' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="maxTransaction" placeholder="5000000">
-                    </mat-form-field>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Transaction min (Ar)' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Transaction min (Ar)' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="minTransaction" placeholder="100">
+                      </mat-form-field>
+                    </div>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Transaction max (Ar)' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Transaction max (Ar)' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="maxTransaction" placeholder="5000000">
+                      </mat-form-field>
+                    </div>
                   </div>
 
                   <!-- Limites -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Limite journalière (Ar)' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="dailyTransferLimit" placeholder="5000000">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Limite mensuelle (Ar)' | translate }}</mat-label>
-                      <input matInput type="number" formControlName="monthlyTransferLimit" placeholder="50000000">
-                    </mat-form-field>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Limite journalière (Ar)' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Limite journalière (Ar)' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="dailyTransferLimit" placeholder="5000000">
+                      </mat-form-field>
+                    </div>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Limite mensuelle (Ar)' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Limite mensuelle (Ar)' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="monthlyTransferLimit" placeholder="50000000">
+                      </mat-form-field>
+                    </div>
                   </div>
 
                   <!-- Devise -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Devise' | translate }}</mat-label>
-                      <input matInput formControlName="currency" placeholder="Ar">
-                    </mat-form-field>
-                    <div class="toggle-group half-width">
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Devise' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Devise' | translate }}</mat-label>
+                        <input matInput formControlName="currency" placeholder="Ar">
+                      </mat-form-field>
+                    </div>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Options' | translate }}</label>
                       <mat-slide-toggle formControlName="mobileMoneyEnabled" color="primary">
                         {{ 'Mobile Money activé' | translate }}
                       </mat-slide-toggle>
@@ -390,7 +478,7 @@
                   <!-- Opérateurs Mobile Money -->
                   <div class="form-row">
                     <div class="full-width">
-                      <label class="form-label">{{ 'Opérateurs Mobile Money' | translate }}</label>
+                      <label class="field-label-above">{{ 'Opérateurs Mobile Money' | translate }}</label>
                       <div class="operator-toggle-group" formGroupName="mobileMoneyOperators">
                         <mat-slide-toggle formControlName="airtel" color="primary">
                           <span class="operator-label">📱 Airtel</span>
@@ -408,7 +496,7 @@
                   <!-- Frais -->
                   <div class="form-row">
                     <div class="full-width">
-                      <label class="form-label">{{ 'Frais de transfert (%)' | translate }}</label>
+                      <label class="field-label-above">{{ 'Frais de transfert (%)' | translate }}</label>
                       <div class="fees-grid" formGroupName="transferFees">
                         <mat-form-field appearance="outline" class="fee-field">
                           <mat-label>Airtel</mat-label>
@@ -448,7 +536,9 @@
           </div>
         </mat-tab>
 
-        <!-- Onglet Notifications -->
+        <!-- ============================================================
+             ONGLET NOTIFICATIONS
+             ============================================================ -->
         <mat-tab label="{{ 'Notifications' | translate }}">
           <div class="tab-content">
             <form [formGroup]="notificationForm" (ngSubmit)="saveNotificationSettings()">
@@ -464,7 +554,7 @@
                   <!-- Canaux -->
                   <div class="form-row">
                     <div class="full-width">
-                      <label class="form-label">{{ 'Canaux de notification' | translate }}</label>
+                      <label class="field-label-above">{{ 'Canaux de notification' | translate }}</label>
                       <div class="notification-channels">
                         <mat-slide-toggle formControlName="emailNotifications" color="primary">
                           📧 {{ 'Email' | translate }}
@@ -482,7 +572,7 @@
                   <!-- Alertes admin -->
                   <div class="form-row">
                     <div class="full-width">
-                      <label class="form-label">{{ 'Alertes administrateur' | translate }}</label>
+                      <label class="field-label-above">{{ 'Alertes administrateur' | translate }}</label>
                       <div class="admin-alerts" formGroupName="adminAlerts">
                         <mat-slide-toggle formControlName="newUser" color="primary">
                           {{ 'Nouvel utilisateur' | translate }}
@@ -505,12 +595,15 @@
 
                   <!-- Fréquence -->
                   <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'Fréquence des emails' | translate }}</mat-label>
-                      <mat-select formControlName="emailFrequency">
-                        <mat-option *ngFor="let freq of emailFrequencies" [value]="freq.value">{{ freq.label | translate }}</mat-option>
-                      </mat-select>
-                    </mat-form-field>
+                    <div class="half-width">
+                      <label class="field-label-above">{{ 'Fréquence des emails' | translate }}</label>
+                      <mat-form-field appearance="outline">
+                        <mat-label>{{ 'Fréquence des emails' | translate }}</mat-label>
+                        <mat-select formControlName="emailFrequency">
+                          <mat-option *ngFor="let freq of emailFrequencies" [value]="freq.value">{{ freq.label | translate }}</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
                   </div>
                 </mat-card-content>
                 <mat-card-actions>

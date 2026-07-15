@@ -1,9 +1,12 @@
+// frontend/src/app/components/admin/admins/admin-admins.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AdminService } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
+import { BaseComponent } from '../../base.component';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
@@ -16,8 +19,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatRippleModule } from '@angular/material/core';
-import { TranslatePipe } from 'src/app/pipes/translate.pipe';
-import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-admin-admins',
@@ -63,6 +64,8 @@ export class AdminAdminsComponent extends BaseComponent implements OnInit {
   }
 
   override ngOnInit(): void {
+    super.ngOnInit();
+    
     const user = this.authService.getCurrentUser();
     this.currentAdminId = user?.id || '';
     this.isSuperAdmin = user?.role === 'super_admin';
@@ -83,11 +86,13 @@ export class AdminAdminsComponent extends BaseComponent implements OnInit {
       next: (admins) => {
         this.admins = admins;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Erreur chargement admins:', error);
         this.notificationService.showError('Erreur lors du chargement');
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -96,6 +101,7 @@ export class AdminAdminsComponent extends BaseComponent implements OnInit {
     this.adminService.getDashboardStats().subscribe({
       next: (data) => {
         this.stats = data;
+        this.cdr.detectChanges();
       },
       error: () => {
         // Garder les valeurs par défaut
@@ -108,9 +114,11 @@ export class AdminAdminsComponent extends BaseComponent implements OnInit {
       next: () => {
         admin.isActive = !admin.isActive;
         this.notificationService.showSuccess(`Admin ${admin.isActive ? 'activé' : 'désactivé'}`);
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.notificationService.showError('Erreur lors de la mise à jour');
+        this.cdr.detectChanges();
       },
     });
   }
@@ -126,15 +134,16 @@ export class AdminAdminsComponent extends BaseComponent implements OnInit {
         next: () => {
           this.admins = this.admins.filter((a) => a.id !== admin.id);
           this.notificationService.showSuccess('Admin supprimé');
+          this.cdr.detectChanges();
         },
         error: (error) => {
           this.notificationService.showError('Erreur lors de la suppression');
+          this.cdr.detectChanges();
         },
       });
     }
   }
 
-  // ✅ Navigation
   navigateTo(route: string): void {
     this.router.navigate([`/admin/${route}`]);
   }
@@ -157,17 +166,14 @@ export class AdminAdminsComponent extends BaseComponent implements OnInit {
     this.router.navigate(['/admin/dashboard']);
   }
 
-  // ✅ Ouvrir le dépôt admin
   openAdminDeposit(): void {
     this.router.navigate(['/admin/deposit'], { queryParams: { target: 'admin' } });
   }
 
-  // ✅ Ouvrir le retrait admin
   openAdminWithdraw(): void {
     this.router.navigate(['/admin/withdraw'], { queryParams: { target: 'admin' } });
   }
 
-  // ✅ Déposer sur un admin spécifique
   depositToAdmin(admin: any): void {
     this.router.navigate(['/admin/deposit'], {
       queryParams: { adminId: admin.id, target: 'admin' }

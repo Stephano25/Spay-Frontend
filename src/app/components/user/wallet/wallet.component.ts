@@ -15,6 +15,7 @@ import { Wallet } from '../../../models/wallet.model';
 import { Transaction } from '../../../models/transaction.model';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { TranslationService } from '../../../services/translation.service';
+import { BaseComponent } from '../../base.component';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -41,12 +42,6 @@ const ANIMATIONS = [
       ], { optional: true })
     ])
   ]),
-  trigger('listItem', [
-    transition(':enter', [
-      style({ opacity: 0, transform: 'translateX(-8px)' }),
-      animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
-    ])
-  ])
 ];
 
 @Component({
@@ -66,7 +61,7 @@ const ANIMATIONS = [
   styleUrls: ['./wallet.component.css'],
   animations: ANIMATIONS,
 })
-export class WalletComponent implements OnInit, OnDestroy {
+export class WalletComponent extends BaseComponent implements OnInit, OnDestroy {
   wallet: Wallet | null = null;
 
   totalDeposits = 0;
@@ -80,7 +75,6 @@ export class WalletComponent implements OnInit, OnDestroy {
   errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
 
   private destroy$ = new Subject<void>();
-  private subscriptions: any[] = [];
 
   private readonly TRANSACTION_ICONS: Record<string, string> = {
     deposit: 'arrow_downward',
@@ -105,28 +99,20 @@ export class WalletComponent implements OnInit, OnDestroy {
     private walletService: WalletService,
     private transactionService: TransactionService,
     private notificationService: NotificationService,
-    private translationService: TranslationService,
     private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {}
-
-  ngOnInit(): void {
-    this.loadData();
-    
-    // S'abonner aux changements de langue
-    this.subscriptions.push(
-      this.translationService.language$.subscribe((lang) => {
-        console.log(`🌐 WalletComponent: Langue changée en ${lang}`);
-        this.cdr.detectChanges();
-      })
-    );
+  ) {
+    super();
   }
 
-  ngOnDestroy(): void {
+  override ngOnInit(): void {
+    super.ngOnInit();
+    this.loadData();
+  }
+
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
     this.destroy$.next();
     this.destroy$.complete();
-    // Nettoyer les souscriptions
-    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   loadData(): void {
@@ -142,6 +128,7 @@ export class WalletComponent implements OnInit, OnDestroy {
         finalize(() => {
           this.isLoading = false;
           this.isRefreshing = false;
+          this.cdr.detectChanges();
         })
       )
       .subscribe({
@@ -183,10 +170,7 @@ export class WalletComponent implements OnInit, OnDestroy {
     console.log('🔵 Navigation vers Envoyer de l\'argent');
     this.router.navigate(['/user/wallet/send']).catch(err => {
       console.error('❌ Erreur navigation sendMoney:', err);
-      this.router.navigate(['/wallet/send']).catch(err2 => {
-        console.error('❌ Erreur fallback sendMoney:', err2);
-        this.router.navigate(['/send-money']);
-      });
+      this.router.navigate(['/wallet/send']);
     });
   }
 
@@ -194,10 +178,7 @@ export class WalletComponent implements OnInit, OnDestroy {
     console.log('🔵 Navigation vers Recevoir de l\'argent');
     this.router.navigate(['/user/wallet/receive']).catch(err => {
       console.error('❌ Erreur navigation receiveMoney:', err);
-      this.router.navigate(['/wallet/receive']).catch(err2 => {
-        console.error('❌ Erreur fallback receiveMoney:', err2);
-        this.router.navigate(['/receive-money']);
-      });
+      this.router.navigate(['/wallet/receive']);
     });
   }
 
@@ -243,11 +224,6 @@ export class WalletComponent implements OnInit, OnDestroy {
 
   getTransactionIcon(txn: Transaction): string {
     return this.TRANSACTION_ICONS[txn.type] ?? 'receipt';
-  }
-
-  getTransactionClass(txn: Transaction): string {
-    if (txn.type === 'transfer') return 'transfer';
-    return this.EXPENSE_TYPES.has(txn.type) ? 'expense' : 'income';
   }
 
   getAmountClass(txn: Transaction): string {

@@ -233,6 +233,9 @@
   color: var(--text);
 }
 
+/* ============================================================
+   MENU ICONS - Dépôt et Retrait
+   ============================================================ */
 .menu-icon {
   position: relative;
 }
@@ -778,9 +781,9 @@
   }
 }
 
-/* Ajouter à la fin du fichier user.component.css */
-
-/* Forcer l'affichage de l'image avec toutes les précautions */
+/* ============================================================
+   AVATAR - FORCER L'AFFICHAGE
+   ============================================================ */
 .profile-avatar-container {
   width: 56px;
   height: 56px;

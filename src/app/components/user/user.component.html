@@ -60,25 +60,25 @@
         </mat-card>
       }
       
-      <!-- DÉPÔT - Scanner -->
+      <!-- DÉPÔT - Scanner avec label -->
       <mat-card class="menu-card" (click)="openDepositScanner()">
         <mat-card-content>
           <div class="menu-icon deposit">
             <mat-icon>qr_code_scanner</mat-icon>
           </div>
-          <span>{{ 'Scanner' | translate }}</span>
-          <span class="menu-badge user">Scanner</span>
+          <span>{{ 'Dépôt' | translate }}</span>
+          <span class="menu-badge user">{{ 'Scanner' | translate }}</span>
         </mat-card-content>
       </mat-card>
 
-      <!-- RETRAIT - Scanner -->
+      <!-- RETRAIT - Scanner avec label -->
       <mat-card class="menu-card" (click)="openWithdrawScanner()">
         <mat-card-content>
           <div class="menu-icon withdraw">
             <mat-icon>qr_code_scanner</mat-icon>
           </div>
-          <span>{{ 'Scanner' | translate }}</span>
-          <span class="menu-badge user">Scanner</span>
+          <span>{{ 'Retrait' | translate }}</span>
+          <span class="menu-badge user">{{ 'Scanner' | translate }}</span>
         </mat-card-content>
       </mat-card>
     </div>

@@ -29,9 +29,7 @@
       <mat-card-content class="card-content-scroll">
         <form [formGroup]="adminForm" (ngSubmit)="onSubmit()" class="admin-form">
 
-          <!-- ============================================================ -->
           <!-- SECTION 1 : INFORMATIONS PERSONNELLES -->
-          <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>person</mat-icon>
@@ -39,33 +37,39 @@
             </div>
 
             <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>{{ 'Prénom' | translate }} *</mat-label>
-                <input matInput formControlName="firstName" placeholder="Jean">
-                <mat-icon matSuffix>person</mat-icon>
-                <mat-error *ngIf="f['firstName'].invalid && f['firstName'].touched">
-                  <span *ngIf="f['firstName'].errors?.['required']">{{ 'Le prénom est requis' | translate }}</span>
-                  <span *ngIf="f['firstName'].errors?.['minlength']">{{ 'Minimum 2 caractères' | translate }}</span>
-                </mat-error>
-              </mat-form-field>
+              <div class="form-field">
+                <label class="field-label">{{ 'Prénom' | translate }} *</label>
+                <div class="field-wrapper">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <input matInput formControlName="firstName" placeholder="Jean">
+                    <mat-icon matSuffix>person</mat-icon>
+                    <mat-error *ngIf="f['firstName'].invalid && f['firstName'].touched">
+                      <span *ngIf="f['firstName'].errors?.['required']">{{ 'Le prénom est requis' | translate }}</span>
+                      <span *ngIf="f['firstName'].errors?.['minlength']">{{ 'Minimum 2 caractères' | translate }}</span>
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
 
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>{{ 'Nom' | translate }} *</mat-label>
-                <input matInput formControlName="lastName" placeholder="Dupont">
-                <mat-icon matSuffix>person</mat-icon>
-                <mat-error *ngIf="f['lastName'].invalid && f['lastName'].touched">
-                  <span *ngIf="f['lastName'].errors?.['required']">{{ 'Le nom est requis' | translate }}</span>
-                  <span *ngIf="f['lastName'].errors?.['minlength']">{{ 'Minimum 2 caractères' | translate }}</span>
-                </mat-error>
-              </mat-form-field>
+              <div class="form-field">
+                <label class="field-label">{{ 'Nom' | translate }} *</label>
+                <div class="field-wrapper">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <input matInput formControlName="lastName" placeholder="Dupont">
+                    <mat-icon matSuffix>person</mat-icon>
+                    <mat-error *ngIf="f['lastName'].invalid && f['lastName'].touched">
+                      <span *ngIf="f['lastName'].errors?.['required']">{{ 'Le nom est requis' | translate }}</span>
+                      <span *ngIf="f['lastName'].errors?.['minlength']">{{ 'Minimum 2 caractères' | translate }}</span>
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
             </div>
           </div>
 
           <mat-divider></mat-divider>
 
-          <!-- ============================================================ -->
           <!-- SECTION 2 : CONTACT -->
-          <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>contact_mail</mat-icon>
@@ -73,33 +77,39 @@
             </div>
 
             <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>{{ 'Email' | translate }} *</mat-label>
-                <input matInput formControlName="email" placeholder="admin@email.com" type="email">
-                <mat-icon matSuffix>email</mat-icon>
-                <mat-error *ngIf="f['email'].invalid && f['email'].touched">
-                  <span *ngIf="f['email'].errors?.['required']">{{ 'L\'email est requis' | translate }}</span>
-                  <span *ngIf="f['email'].errors?.['email']">{{ 'Email invalide' | translate }}</span>
-                </mat-error>
-              </mat-form-field>
+              <div class="form-field">
+                <label class="field-label">{{ 'Email' | translate }} *</label>
+                <div class="field-wrapper">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <input matInput formControlName="email" placeholder="admin@email.com" type="email">
+                    <mat-icon matSuffix>email</mat-icon>
+                    <mat-error *ngIf="f['email'].invalid && f['email'].touched">
+                      <span *ngIf="f['email'].errors?.['required']">{{ 'L\'email est requis' | translate }}</span>
+                      <span *ngIf="f['email'].errors?.['email']">{{ 'Email invalide' | translate }}</span>
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
 
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>{{ 'Téléphone' | translate }}</mat-label>
-                <input matInput formControlName="phoneNumber" placeholder="0341234567">
-                <mat-icon matSuffix>phone</mat-icon>
-                <mat-hint>{{ '9-10 chiffres' | translate }}</mat-hint>
-                <mat-error *ngIf="f['phoneNumber'].invalid && f['phoneNumber'].touched">
-                  {{ 'Numéro invalide (9-10 chiffres)' | translate }}
-                </mat-error>
-              </mat-form-field>
+              <div class="form-field">
+                <label class="field-label">{{ 'Téléphone' | translate }}</label>
+                <div class="field-wrapper">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <input matInput formControlName="phoneNumber" placeholder="0341234567">
+                    <mat-icon matSuffix>phone</mat-icon>
+                    <mat-hint>{{ '9-10 chiffres' | translate }}</mat-hint>
+                    <mat-error *ngIf="f['phoneNumber'].invalid && f['phoneNumber'].touched">
+                      {{ 'Numéro invalide (9-10 chiffres)' | translate }}
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
             </div>
           </div>
 
           <mat-divider></mat-divider>
 
-          <!-- ============================================================ -->
           <!-- SECTION 3 : SÉCURITÉ -->
-          <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>security</mat-icon>
@@ -107,35 +117,43 @@
             </div>
 
             <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>{{ 'Mot de passe' | translate }} *</mat-label>
-                <input matInput
-                       [type]="hidePassword ? 'password' : 'text'"
-                       formControlName="password"
-                       placeholder="••••••••">
-                <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-                  <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                </button>
-                <mat-hint>{{ 'Minimum 8 caractères' | translate }}</mat-hint>
-                <mat-error *ngIf="f['password'].invalid && f['password'].touched">
-                  <span *ngIf="f['password'].errors?.['required']">{{ 'Le mot de passe est requis' | translate }}</span>
-                  <span *ngIf="f['password'].errors?.['minlength']">{{ 'Minimum 8 caractères' | translate }}</span>
-                </mat-error>
-              </mat-form-field>
+              <div class="form-field">
+                <label class="field-label">{{ 'Mot de passe' | translate }} *</label>
+                <div class="field-wrapper">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <input matInput
+                           [type]="hidePassword ? 'password' : 'text'"
+                           formControlName="password"
+                           placeholder="••••••••">
+                    <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+                      <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    <mat-hint>{{ 'Minimum 8 caractères' | translate }}</mat-hint>
+                    <mat-error *ngIf="f['password'].invalid && f['password'].touched">
+                      <span *ngIf="f['password'].errors?.['required']">{{ 'Le mot de passe est requis' | translate }}</span>
+                      <span *ngIf="f['password'].errors?.['minlength']">{{ 'Minimum 8 caractères' | translate }}</span>
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
 
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>{{ 'Confirmer le mot de passe' | translate }} *</mat-label>
-                <input matInput
-                       [type]="hideConfirmPassword ? 'password' : 'text'"
-                       formControlName="confirmPassword"
-                       placeholder="••••••••">
-                <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
-                  <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                </button>
-                <mat-error *ngIf="adminForm.errors?.['passwordMismatch'] && f['confirmPassword'].touched">
-                  {{ 'Les mots de passe ne correspondent pas' | translate }}
-                </mat-error>
-              </mat-form-field>
+              <div class="form-field">
+                <label class="field-label">{{ 'Confirmer le mot de passe' | translate }} *</label>
+                <div class="field-wrapper">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <input matInput
+                           [type]="hideConfirmPassword ? 'password' : 'text'"
+                           formControlName="confirmPassword"
+                           placeholder="••••••••">
+                    <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
+                      <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    <mat-error *ngIf="adminForm.errors?.['passwordMismatch'] && f['confirmPassword'].touched">
+                      {{ 'Les mots de passe ne correspondent pas' | translate }}
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
             </div>
 
             <!-- Force du mot de passe -->
@@ -155,9 +173,7 @@
 
           <mat-divider></mat-divider>
 
-          <!-- ============================================================ -->
           <!-- SECTION 4 : RÔLE ET STATUT -->
-          <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>settings</mat-icon>
@@ -165,54 +181,63 @@
             </div>
 
             <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field role-field-outer">
-                <mat-label>{{ 'Rôle' | translate }} *</mat-label>
-                <mat-select formControlName="role" panelClass="role-select-panel">
-                  <mat-select-trigger *ngIf="adminForm.value.role">
-                    <span class="trigger-content">
-                      <mat-icon
-                        class="trigger-icon"
-                        [style.color]="getRoleStyle(adminForm.value.role).color">
-                        {{ getRoleIcon(adminForm.value.role) }}
-                      </mat-icon>
-                      <span class="trigger-label">{{ getRoleLabel(adminForm.value.role) | translate }}</span>
-                    </span>
-                  </mat-select-trigger>
+              <div class="form-field role-field-outer">
+                <label class="field-label">{{ 'Rôle' | translate }} *</label>
+                <div class="field-wrapper">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-select formControlName="role" panelClass="role-select-panel">
+                      <mat-select-trigger *ngIf="adminForm.value.role">
+                        <span class="trigger-content">
+                          <mat-icon
+                            class="trigger-icon"
+                            [style.color]="getRoleStyle(adminForm.value.role).color">
+                            {{ getRoleIcon(adminForm.value.role) }}
+                          </mat-icon>
+                          <span class="trigger-label">{{ getRoleLabel(adminForm.value.role) | translate }}</span>
+                        </span>
+                      </mat-select-trigger>
 
-                  <mat-option *ngFor="let role of roles" [value]="role.value">
-                    <div class="role-option">
-                      <mat-icon [style.color]="role.color">{{ role.icon }}</mat-icon>
-                      <div class="role-option-content">
-                        <span class="role-option-label">{{ role.label | translate }}</span>
-                        <span class="role-option-desc">{{ role.description | translate }}</span>
-                      </div>
-                      <span class="role-badge-small"
-                            [style.background]="role.bgColor"
-                            [style.color]="role.color">
-                        {{ role.value === 'super_admin' ? ('Complet' | translate) : ('Limité' | translate) }}
-                      </span>
-                    </div>
-                  </mat-option>
-                </mat-select>
-                <mat-hint>{{ 'Sélectionnez le rôle de l\'administrateur' | translate }}</mat-hint>
-                <mat-error *ngIf="f['role'].invalid && f['role'].touched">
-                  {{ 'Le rôle est requis' | translate }}
-                </mat-error>
-              </mat-form-field>
+                      <mat-option *ngFor="let role of roles" [value]="role.value">
+                        <div class="role-option">
+                          <mat-icon [style.color]="role.color">{{ role.icon }}</mat-icon>
+                          <div class="role-option-content">
+                            <span class="role-option-label">{{ role.label | translate }}</span>
+                            <span class="role-option-desc">{{ role.description | translate }}</span>
+                          </div>
+                          <span class="role-badge-small"
+                                [style.background]="role.bgColor"
+                                [style.color]="role.color">
+                            {{ role.value === 'super_admin' ? ('Complet' | translate) : ('Limité' | translate) }}
+                          </span>
+                        </div>
+                      </mat-option>
+                    </mat-select>
+                    <mat-hint>{{ 'Sélectionnez le rôle de l\'administrateur' | translate }}</mat-hint>
+                    <mat-error *ngIf="f['role'].invalid && f['role'].touched">
+                      {{ 'Le rôle est requis' | translate }}
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
 
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>{{ 'Référence' | translate }} *</mat-label>
-                <input matInput formControlName="reference" placeholder="ADMIN-001">
-                <mat-icon matSuffix>badge</mat-icon>
-                <mat-hint>{{ 'Identifiant unique (3-20 caractères)' | translate }}</mat-hint>
-                <mat-error *ngIf="f['reference'].invalid && f['reference'].touched">
-                  <span *ngIf="f['reference'].errors?.['required']">{{ 'La référence est requise' | translate }}</span>
-                  <span *ngIf="f['reference'].errors?.['minlength']">{{ 'Minimum 3 caractères' | translate }}</span>
-                  <span *ngIf="f['reference'].errors?.['maxlength']">{{ 'Maximum 20 caractères' | translate }}</span>
-                </mat-error>
-              </mat-form-field>
+              <div class="form-field">
+                <label class="field-label">{{ 'Référence' | translate }} *</label>
+                <div class="field-wrapper">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <input matInput formControlName="reference" placeholder="ADMIN-001">
+                    <mat-icon matSuffix>badge</mat-icon>
+                    <mat-hint>{{ 'Identifiant unique (3-20 caractères)' | translate }}</mat-hint>
+                    <mat-error *ngIf="f['reference'].invalid && f['reference'].touched">
+                      <span *ngIf="f['reference'].errors?.['required']">{{ 'La référence est requise' | translate }}</span>
+                      <span *ngIf="f['reference'].errors?.['minlength']">{{ 'Minimum 3 caractères' | translate }}</span>
+                      <span *ngIf="f['reference'].errors?.['maxlength']">{{ 'Maximum 20 caractères' | translate }}</span>
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
             </div>
 
+            <!-- Affichage du rôle sélectionné -->
             <div class="selected-role-display" *ngIf="adminForm.value.role">
               <div class="role-chip"
                    [style.background]="getRoleStyle(adminForm.value.role).backgroundColor"
@@ -242,9 +267,7 @@
 
           <mat-divider></mat-divider>
 
-          <!-- ============================================================ -->
           <!-- SECTION 5 : QR CODE -->
-          <!-- ============================================================ -->
           <div class="form-section">
             <div class="section-header">
               <mat-icon>qr_code</mat-icon>
@@ -317,9 +340,7 @@
 
           <mat-divider></mat-divider>
 
-          <!-- ============================================================ -->
           <!-- SECTION 6 : RÉSUMÉ -->
-          <!-- ============================================================ -->
           <div class="summary-section" *ngIf="adminForm.valid">
             <div class="summary-header">
               <mat-icon>summarize</mat-icon>
@@ -365,9 +386,7 @@
             </div>
           </div>
 
-          <!-- ============================================================ -->
           <!-- BOUTONS D'ACTION -->
-          <!-- ============================================================ -->
           <div class="form-actions">
             <button mat-stroked-button type="button" (click)="cancel()" [disabled]="isSubmitting" class="cancel-btn">
               <mat-icon>close</mat-icon>

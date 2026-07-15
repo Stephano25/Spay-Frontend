@@ -1,3 +1,4 @@
+// frontend/src/app/components/user/wallet/send-money/send-money.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -7,6 +8,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { WalletService } from '../../../../services/wallet.service';
 import { Friend, FriendService } from '../../../../services/friend.service';
 import { NotificationService } from '../../../../services/notification.service';
+import { TranslatePipe } from '../../../../pipes/translate.pipe';
+import { BaseComponent } from '../../../base.component';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -20,8 +23,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSliderModule } from '@angular/material/slider';
-import { TranslatePipe } from 'src/app/pipes/translate.pipe';
-import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-send-money',
@@ -105,9 +106,12 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
     private friendService: FriendService,
     private notificationService: NotificationService,
     private router: Router
-  ) {super();}
+  ) {
+    super();
+  }
 
   override ngOnInit() {
+    super.ngOnInit();
     this.loadBalance();
     this.loadFriends();
   }
@@ -116,15 +120,21 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
   loadBalance() {
     this.walletService.getBalance().subscribe({
       next: (data) => {
-        this.balance = data.balance;
+        this.balance = data.balance || 0;
+        console.log('💰 Solde chargé:', this.balance);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Erreur chargement solde:', err);
         this.walletService.getWallet().subscribe({
           next: (wallet) => {
-            this.balance = wallet.balance;
+            this.balance = wallet.balance || 0;
+            this.cdr.detectChanges();
           },
-          error: () => {}
+          error: () => {
+            this.balance = 0;
+            this.cdr.detectChanges();
+          }
         });
       }
     });
@@ -136,11 +146,13 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
       next: (friends: Friend[]) => {
         this.friends = friends;
         this.filteredFriends = friends;
+        this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Erreur chargement amis:', err);
         this.friends = [];
         this.filteredFriends = [];
+        this.cdr.detectChanges();
       }
     });
   }
@@ -158,6 +170,7 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
         return firstName.includes(query) || lastName.includes(query) || email.includes(query);
       });
     }
+    this.cdr.detectChanges();
   }
 
   // ✅ Sélection d'un ami
@@ -167,10 +180,11 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
       this.receiverName = `${friend.friend.firstName || ''} ${friend.friend.lastName || ''}`.trim();
       this.searchQuery = this.receiverName;
       this.filteredFriends = [];
+      this.cdr.detectChanges();
     }
   }
 
-  // ✅ Bouton "Envoyer" - fonctionne
+  // ✅ Bouton "Envoyer" 
   sendMoney() {
     if (!this.receiverId) {
       this.notificationService.showError('Veuillez sélectionner un destinataire');
@@ -193,11 +207,13 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
     }
     
     this.step = 'confirm';
+    this.cdr.detectChanges();
   }
 
   // ✅ Confirmation d'envoi
   confirmSend() {
     this.isSubmitting = true;
+    this.cdr.detectChanges();
     
     this.walletService.transferMoney({
       receiverId: this.receiverId,
@@ -209,6 +225,7 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
         this.isSubmitting = false;
         this.step = 'success';
         this.showSuccess = true;
+        this.cdr.detectChanges();
         
         setTimeout(() => {
           this.router.navigate(['/user/wallet']).catch(() => {
@@ -221,14 +238,16 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
         this.notificationService.showError(err.error?.message || 'Erreur lors de l\'envoi');
         this.isSubmitting = false;
         this.step = 'form';
+        this.cdr.detectChanges();
       }
     });
   }
 
-  // ✅ Bouton "Retour" - fonctionne
+  // ✅ Bouton "Retour"
   goBack() {
     if (this.step === 'confirm') {
       this.step = 'form';
+      this.cdr.detectChanges();
     } else if (this.step === 'success') {
       this.router.navigate(['/user/wallet']).catch(() => {
         this.router.navigate(['/wallet']);
@@ -240,7 +259,7 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
     }
   }
 
-  // ✅ Bouton "Réinitialiser" - fonctionne
+  // ✅ Réinitialisation
   reset() {
     this.receiverId = '';
     this.receiverName = '';
@@ -251,16 +270,12 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
     this.searchQuery = '';
     this.showSuccess = false;
     this.transactionId = '';
-  }
-
-  // ✅ Boutons de montants prédéfinis
-  selectAmount(amount: number) {
-    this.amount = amount;
+    this.cdr.detectChanges();
   }
 
   // ✅ Utilitaires
   formatAmount(amount: number): string {
-    return new Intl.NumberFormat('fr-MG').format(amount);
+    return new Intl.NumberFormat('fr-MG').format(amount || 0);
   }
 
   get remainingBalance(): number {
@@ -282,10 +297,10 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
   
   formatAmountWithSuffix(amount: number): string {
     if (amount >= 1000000) {
-      return (amount / 1000000).toFixed(1) + ' M';
+      return (amount / 1000000).toFixed(1) + 'M';
     }
     if (amount >= 1000) {
-      return (amount / 1000).toFixed(0) + ' k';
+      return (amount / 1000).toFixed(0) + 'k';
     }
     return amount.toString();
   }
@@ -294,19 +309,6 @@ export class SendMoneyComponent extends BaseComponent implements OnInit {
     return this.amount >= this.MIN_AMOUNT && 
            this.amount <= this.MAX_AMOUNT && 
            this.amount <= this.balance;
-  }
-  
-  getAmountErrorMessage(): string {
-    if (this.amount < this.MIN_AMOUNT) {
-      return `Minimum: ${this.formatAmount(this.MIN_AMOUNT)} Ar`;
-    }
-    if (this.amount > this.MAX_AMOUNT) {
-      return `Maximum: ${this.formatAmount(this.MAX_AMOUNT)} Ar`;
-    }
-    if (this.amount > this.balance) {
-      return 'Solde insuffisant';
-    }
-    return '';
   }
 
   onPinInput(event: any, index: number) {

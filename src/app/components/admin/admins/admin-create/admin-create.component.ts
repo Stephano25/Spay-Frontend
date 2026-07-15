@@ -1,5 +1,5 @@
 // frontend/src/app/components/admin/admins/admin-create/admin-create.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -7,6 +7,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AdminService } from '../../../../services/admin.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { AuthService } from '../../../../services/auth.service';
+import { TranslationService } from '../../../../services/translation.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,8 +20,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { TranslatePipe } from 'src/app/pipes/translate.pipe';
-import { BaseComponent } from 'src/app/components/base.component';
+import { TranslatePipe } from '../../../../pipes/translate.pipe';
+
 @Component({
   selector: 'app-admin-create',
   standalone: true,
@@ -45,7 +46,7 @@ import { BaseComponent } from 'src/app/components/base.component';
   templateUrl: './admin-create.component.html',
   styleUrls: ['./admin-create.component.css'],
 })
-export class AdminCreateComponent extends BaseComponent implements OnInit {
+export class AdminCreateComponent implements OnInit {
   adminForm!: FormGroup;
   isSubmitting = false;
   hidePassword = true;
@@ -54,6 +55,7 @@ export class AdminCreateComponent extends BaseComponent implements OnInit {
   qrCodeGenerated = false;
   qrCodeImage: string | null = null;
   isGeneratingQR = false;
+  private isDestroyed = false;
 
   // ✅ Liste des rôles avec icônes et descriptions
   roles = [
@@ -80,10 +82,12 @@ export class AdminCreateComponent extends BaseComponent implements OnInit {
     private adminService: AdminService,
     private authService: AuthService,
     private notificationService: NotificationService,
+    private translationService: TranslationService,
     private router: Router,
-  ) { super ();}
+    private cdr: ChangeDetectorRef,
+  ) {}
 
-  override ngOnInit(): void {
+  ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.isSuperAdmin = user?.role === 'super_admin';
 
@@ -94,6 +98,25 @@ export class AdminCreateComponent extends BaseComponent implements OnInit {
     }
 
     this.initForm();
+
+    // ✅ S'abonner aux changements de langue
+    this.translationService.language$.subscribe(() => {
+      this.safeDetectChanges();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.isDestroyed = true;
+  }
+
+  private safeDetectChanges(): void {
+    if (!this.isDestroyed) {
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {
+        // Ignorer
+      }
+    }
   }
 
   initForm(): void {
@@ -161,6 +184,7 @@ export class AdminCreateComponent extends BaseComponent implements OnInit {
     }
 
     this.isGeneratingQR = true;
+    this.safeDetectChanges();
 
     this.adminService.generateQRCode('deposit').subscribe({
       next: (response) => {
@@ -168,11 +192,13 @@ export class AdminCreateComponent extends BaseComponent implements OnInit {
         this.qrCodeGenerated = true;
         this.isGeneratingQR = false;
         this.notificationService.showSuccess('QR Code généré avec succès');
+        this.safeDetectChanges();
       },
       error: (error) => {
         console.error('Erreur génération QR:', error);
         this.isGeneratingQR = false;
         this.notificationService.showError('Erreur lors de la génération du QR Code');
+        this.safeDetectChanges();
       },
     });
   }
@@ -197,6 +223,8 @@ export class AdminCreateComponent extends BaseComponent implements OnInit {
     }
 
     this.isSubmitting = true;
+    this.safeDetectChanges();
+    
     const formData = { 
       ...this.adminForm.value,
       qrCode: this.qrCodeImage 
@@ -207,12 +235,14 @@ export class AdminCreateComponent extends BaseComponent implements OnInit {
       next: () => {
         this.notificationService.showSuccess('Administrateur créé avec succès');
         this.isSubmitting = false;
+        this.safeDetectChanges();
         this.router.navigate(['/admin/admins']);
       },
       error: (error: any) => {
         console.error('Erreur création admin:', error);
         this.notificationService.showError(error.error?.message || 'Erreur lors de la création');
         this.isSubmitting = false;
+        this.safeDetectChanges();
       },
     });
   }
@@ -232,11 +262,11 @@ export class AdminCreateComponent extends BaseComponent implements OnInit {
     if (/[0-9]/.test(password)) score += 15;
     if (/[^A-Za-z0-9]/.test(password)) score += 15;
 
-    if (score < 40) return { label: 'Très faible', color: '#ef4444', width: score };
-    if (score < 60) return { label: 'Faible', color: '#f59e0b', width: score };
-    if (score < 80) return { label: 'Bon', color: '#3b82f6', width: score };
-    if (score < 100) return { label: 'Fort', color: '#10b981', width: score };
-    return { label: 'Très fort', color: '#10b981', width: score };
+    if (score < 40) return { label: 'Très faible', color: '#ef4444', width: Math.min(score, 100) };
+    if (score < 60) return { label: 'Faible', color: '#f59e0b', width: Math.min(score, 100) };
+    if (score < 80) return { label: 'Bon', color: '#3b82f6', width: Math.min(score, 100) };
+    if (score < 100) return { label: 'Fort', color: '#10b981', width: Math.min(score, 100) };
+    return { label: 'Très fort', color: '#10b981', width: Math.min(score, 100) };
   }
 
   // ============================================================

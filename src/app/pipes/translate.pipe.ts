@@ -6,21 +6,24 @@ import { TranslationService } from '../services/translation.service';
 @Pipe({
   name: 'translate',
   standalone: true,
-  pure: false // ✅ ESSENTIEL pour la réactivité
+  pure: false
 })
 export class TranslatePipe implements PipeTransform, OnDestroy {
-  private translationService = inject(TranslationService);
-  private cdr = inject(ChangeDetectorRef);
-  private langSubscription: Subscription;
+  private translationService: TranslationService;
+  private cdr: ChangeDetectorRef;
+  private langSubscription: Subscription | null = null;
   private lastKey: string = '';
   private lastTranslation: string = '';
   private currentLang: string = '';
 
   constructor() {
+    this.translationService = inject(TranslationService);
+    this.cdr = inject(ChangeDetectorRef);
+    
     this.langSubscription = this.translationService.language$.subscribe((lang) => {
       console.log(`🔄 TranslatePipe: Langue changée vers ${lang}`);
       this.currentLang = lang;
-      this.lastKey = ''; // ✅ Force le recalcul
+      this.lastKey = ''; // Force le recalcul
       this.cdr.markForCheck();
     });
   }
@@ -30,13 +33,10 @@ export class TranslatePipe implements PipeTransform, OnDestroy {
     
     const currentLang = this.translationService.getCurrentLanguage();
     
-    // ✅ Recalculer si la clé ou la langue a changé
     if (this.lastKey !== key || this.currentLang !== currentLang) {
       this.lastKey = key;
       this.currentLang = currentLang;
       this.lastTranslation = this.translationService.translate(key);
-      console.log(`🔄 TranslatePipe: Traduction de "${key}" -> "${this.lastTranslation}" (${currentLang})`);
-      this.cdr.markForCheck();
     }
     return this.lastTranslation;
   }
@@ -44,6 +44,7 @@ export class TranslatePipe implements PipeTransform, OnDestroy {
   ngOnDestroy(): void {
     if (this.langSubscription) {
       this.langSubscription.unsubscribe();
+      this.langSubscription = null;
     }
   }
 }

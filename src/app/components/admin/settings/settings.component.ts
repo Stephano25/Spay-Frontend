@@ -1,5 +1,5 @@
 // frontend/src/app/components/admin/settings/settings.component.ts
-import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
+import { Component, OnInit, OnDestroy, Renderer2, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -8,10 +8,9 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { AdminService } from '../../../services/admin.service';
-import { ThemeService } from '../../../services/theme.service';
-import { TranslationService } from '../../../services/translation.service';
 import { User } from '../../../models/user.model';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { BaseComponent } from '../../base.component';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,7 +30,6 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
-import { BaseComponent } from 'src/app/components/base.component';
 
 @Component({
   selector: 'app-admin-settings',
@@ -64,7 +62,7 @@ import { BaseComponent } from 'src/app/components/base.component';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
 })
-export class AdminSettingsComponent extends BaseComponent implements OnInit, OnDestroy {
+export class AdminSettingsComponent extends BaseComponent implements OnInit, OnDestroy, AfterViewInit {
   admin: User | null = null;
   
   generalSettings = {
@@ -194,25 +192,8 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
     { value: 'super_admin', label: 'Super Admin' }
   ];
 
-  get currentThemeLabel(): string {
-    const theme = this.themes.find(t => t.value === this.customizationSettings.theme);
-    return theme ? theme.label : 'Thème';
-  }
-
-  get currentThemeIcon(): string {
-    const theme = this.customizationSettings.theme;
-    return theme === 'light' ? 'light_mode' : theme === 'dark' ? 'dark_mode' : 'settings_suggest';
-  }
-
-  get currentLanguageLabel(): string {
-    const lang = this.languages.find(l => l.value === this.selectedLanguage);
-    return lang ? lang.label : 'Langue';
-  }
-
-  get currentLanguageFlag(): string {
-    const lang = this.languages.find(l => l.value === this.selectedLanguage);
-    return lang ? lang.flag : '🇫🇷';
-  }
+  private adminSettingsSubscriptions: Subscription[] = [];
+  private resizeObserver: ResizeObserver | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -226,22 +207,76 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
   }
 
   override ngOnInit(): void {
+    super.ngOnInit();
+    this.initForms();
     this.loadAdminData();
     this.loadSettings();
     this.loadThemeFromService();
     this.loadLanguageFromService();
 
-    this.subscriptions.push(
-      this.translationService.language$.subscribe((lang) => {
-        console.log(`🌐 AdminSettings: Langue changée en ${lang}`);
-        this.selectedLanguage = lang;
-        this.cdr.detectChanges();
-      })
-    );
+    const langSub = this.translationService.language$.subscribe((lang) => {
+      console.log(`🌐 AdminSettings: Langue changée en ${lang}`);
+      this.selectedLanguage = lang;
+      this.safeMarkForCheck();
+    });
+    this.adminSettingsSubscriptions.push(langSub);
+
+    // ⭐ Ajouter un écouteur de redimensionnement
+    window.addEventListener('resize', this.handleResize.bind(this));
+  }
+
+  ngAfterViewInit(): void {
+    // ⭐ Ajuster la hauteur après le chargement du DOM
+    setTimeout(() => {
+      this.adjustTabContentHeight();
+    }, 300);
   }
 
   override ngOnDestroy(): void {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    window.removeEventListener('resize', this.handleResize.bind(this));
+    this.adminSettingsSubscriptions.forEach(sub => sub.unsubscribe());
     super.ngOnDestroy();
+  }
+
+  // ⭐ Gestion du redimensionnement
+  private handleResize(): void {
+    this.adjustTabContentHeight();
+  }
+
+  // ⭐ Ajuster la hauteur du contenu des tabs
+  private adjustTabContentHeight(): void {
+    try {
+      const toolbar = document.querySelector('.settings-toolbar');
+      const profileCard = document.querySelector('.admin-profile-card');
+      const tabGroup = document.querySelector('.settings-tabs');
+      
+      if (!toolbar || !profileCard || !tabGroup) return;
+
+      const toolbarHeight = toolbar.clientHeight || 64;
+      const profileHeight = profileCard.clientHeight || 150;
+      const tabHeaderHeight = 48;
+      const padding = 32;
+      
+      // Calculer la hauteur disponible pour le contenu des tabs
+      const windowHeight = window.innerHeight;
+      const availableHeight = windowHeight - toolbarHeight - profileHeight - tabHeaderHeight - padding - 40;
+      
+      // Appliquer la hauteur calculée à tous les contenus de tabs
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach((el: any) => {
+        if (el instanceof HTMLElement) {
+          const minHeight = Math.max(200, availableHeight);
+          el.style.maxHeight = `${minHeight}px`;
+          el.style.overflowY = 'auto';
+        }
+      });
+    } catch (error) {
+      console.warn('⚠️ Erreur lors de l\'ajustement de la hauteur:', error);
+    }
   }
 
   private initForms(): void {
@@ -314,67 +349,84 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
   }
 
   private loadAdminData(): void {
-    this.subscriptions.push(
-      this.authService.currentUser.subscribe((user: User | null) => {
-        this.admin = user;
-      })
-    );
+    const sub = this.authService.currentUser.subscribe((user: User | null) => {
+      this.admin = user;
+      this.safeMarkForCheck();
+    });
+    this.adminSettingsSubscriptions.push(sub);
   }
 
   private loadSettings(): void {
     this.isLoading = true;
     
-    this.subscriptions.push(
-      this.adminService.getSettings().subscribe({
-        next: (settings: any) => {
-          if (settings?.general) {
-            this.generalSettings = { ...this.generalSettings, ...settings.general };
-            this.securitySettings = { ...this.securitySettings, ...settings.security };
-            this.paymentSettings = { ...this.paymentSettings, ...settings.payment };
-            this.updateForms();
-          }
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Erreur chargement settings:', error);
-          const savedSettings = localStorage.getItem('admin_settings');
-          if (savedSettings) {
-            try {
-              const localSettings = JSON.parse(savedSettings);
-              this.generalSettings = { ...this.generalSettings, ...localSettings.general };
-              this.securitySettings = { ...this.securitySettings, ...localSettings.security };
-              this.paymentSettings = { ...this.paymentSettings, ...localSettings.payment };
-              this.updateForms();
-            } catch (e) {
-              console.error('Erreur chargement settings locaux:', e);
-            }
-          }
-          this.isLoading = false;
+    const settingsSub = this.adminService.getSettings().subscribe({
+      next: (settings: any) => {
+        if (settings?.general) {
+          this.generalSettings = { ...this.generalSettings, ...settings.general };
+          this.securitySettings = { ...this.securitySettings, ...settings.security };
+          this.paymentSettings = { ...this.paymentSettings, ...settings.payment };
+          this.updateForms();
         }
-      })
-    );
-
-    this.subscriptions.push(
-      this.adminService.getSystemLogs().subscribe({
-        next: (logs: any[]) => {
-          if (logs && logs.length) {
-            this.systemLogs = logs;
+        this.isLoading = false;
+        this.safeMarkForCheck();
+        // Ajuster la hauteur après chargement
+        setTimeout(() => this.adjustTabContentHeight(), 100);
+      },
+      error: (error) => {
+        console.error('❌ Erreur chargement settings:', error);
+        const savedSettings = localStorage.getItem('admin_settings');
+        if (savedSettings) {
+          try {
+            const localSettings = JSON.parse(savedSettings);
+            this.generalSettings = { ...this.generalSettings, ...localSettings.general };
+            this.securitySettings = { ...this.securitySettings, ...localSettings.security };
+            this.paymentSettings = { ...this.paymentSettings, ...localSettings.payment };
+            this.updateForms();
+          } catch (e) {
+            console.error('❌ Erreur chargement settings locaux:', e);
           }
-        },
-        error: (error) => console.error('Erreur chargement logs:', error)
-      })
-    );
+        }
+        this.isLoading = false;
+        this.safeMarkForCheck();
+      }
+    });
+    this.adminSettingsSubscriptions.push(settingsSub);
 
-    this.subscriptions.push(
-      this.adminService.getSystemStats().subscribe({
-        next: (stats: any) => {
-          if (stats) {
-            this.systemStats = { ...this.systemStats, ...stats };
-          }
-        },
-        error: (error) => console.error('Erreur chargement stats système:', error)
-      })
-    );
+    const logsSub = this.adminService.getSystemLogs().subscribe({
+      next: (logs: any[]) => {
+        if (logs && logs.length) {
+          this.systemLogs = logs;
+        }
+        this.safeMarkForCheck();
+      },
+      error: (error) => {
+        if (error.status === 404) {
+          console.warn('⚠️ Endpoint logs non trouvé');
+        } else {
+          console.error('❌ Erreur chargement logs:', error);
+        }
+        this.safeMarkForCheck();
+      }
+    });
+    this.adminSettingsSubscriptions.push(logsSub);
+
+    const statsSub = this.adminService.getSystemStats().subscribe({
+      next: (stats: any) => {
+        if (stats) {
+          this.systemStats = { ...this.systemStats, ...stats };
+        }
+        this.safeMarkForCheck();
+      },
+      error: (error) => {
+        if (error.status === 404) {
+          console.warn('⚠️ Endpoint stats non trouvé');
+        } else {
+          console.error('❌ Erreur chargement stats système:', error);
+        }
+        this.safeMarkForCheck();
+      }
+    });
+    this.adminSettingsSubscriptions.push(statsSub);
   }
 
   private loadThemeFromService(): void {
@@ -406,121 +458,111 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
     this.customizationForm.patchValue(this.customizationSettings);
   }
 
-  // ============================================================
-  // SAUVEGARDE DES PARAMÈTRES
-  // ============================================================
-
-  saveGeneralSettings(): void {
-    if (this.generalForm.invalid) return;
-    this.isSaving = true;
-    const updatedSettings = {
-      general: { ...this.generalSettings, ...this.generalForm.value },
+  private getFullSettings(): any {
+    return {
+      general: this.generalSettings,
       security: this.securitySettings,
       payment: this.paymentSettings,
       notification: this.notificationSettings,
       customization: this.customizationSettings
     };
+  }
+
+  saveGeneralSettings(): void {
+    if (this.generalForm.invalid) return;
+    this.isSaving = true;
     
-    this.subscriptions.push(
-      this.adminService.updateSettings(updatedSettings).subscribe({
-        next: () => {
-          this.generalSettings = updatedSettings.general;
-          this.notificationService.showSuccess('Paramètres généraux sauvegardés');
-          this.isSaving = false;
-        },
-        error: (error) => {
-          console.error('Erreur sauvegarde:', error);
-          this.notificationService.showError('Erreur lors de la sauvegarde');
-          this.isSaving = false;
-        }
-      })
-    );
+    const updatedSettings = this.getFullSettings();
+    updatedSettings.general = { ...this.generalSettings, ...this.generalForm.value };
+    
+    const sub = this.adminService.updateSettings(updatedSettings).subscribe({
+      next: () => {
+        this.generalSettings = updatedSettings.general;
+        this.notificationService.showSuccess('Paramètres généraux sauvegardés');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      },
+      error: (error) => {
+        console.error('❌ Erreur sauvegarde:', error);
+        this.notificationService.showError('Erreur lors de la sauvegarde');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      }
+    });
+    this.adminSettingsSubscriptions.push(sub);
   }
 
   saveSecuritySettings(): void {
     if (this.securityForm.invalid) return;
     this.isSaving = true;
-    const updatedSettings = {
-      general: this.generalSettings,
-      security: { ...this.securitySettings, ...this.securityForm.value },
-      payment: this.paymentSettings,
-      notification: this.notificationSettings,
-      customization: this.customizationSettings
-    };
     
-    this.subscriptions.push(
-      this.adminService.updateSettings(updatedSettings).subscribe({
-        next: () => {
-          this.securitySettings = updatedSettings.security;
-          this.notificationService.showSuccess('Paramètres de sécurité sauvegardés');
-          this.isSaving = false;
-        },
-        error: (error) => {
-          console.error('Erreur sauvegarde:', error);
-          this.notificationService.showError('Erreur lors de la sauvegarde');
-          this.isSaving = false;
-        }
-      })
-    );
+    const updatedSettings = this.getFullSettings();
+    updatedSettings.security = { ...this.securitySettings, ...this.securityForm.value };
+    
+    const sub = this.adminService.updateSettings(updatedSettings).subscribe({
+      next: () => {
+        this.securitySettings = updatedSettings.security;
+        this.notificationService.showSuccess('Paramètres de sécurité sauvegardés');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      },
+      error: (error) => {
+        console.error('❌ Erreur sauvegarde:', error);
+        this.notificationService.showError('Erreur lors de la sauvegarde');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      }
+    });
+    this.adminSettingsSubscriptions.push(sub);
   }
 
   savePaymentSettings(): void {
     if (this.paymentForm.invalid) return;
     this.isSaving = true;
-    const updatedSettings = {
-      general: this.generalSettings,
-      security: this.securitySettings,
-      payment: { ...this.paymentSettings, ...this.paymentForm.value },
-      notification: this.notificationSettings,
-      customization: this.customizationSettings
-    };
     
-    this.subscriptions.push(
-      this.adminService.updateSettings(updatedSettings).subscribe({
-        next: () => {
-          this.paymentSettings = updatedSettings.payment;
-          this.notificationService.showSuccess('Paramètres de paiement sauvegardés');
-          this.isSaving = false;
-        },
-        error: (error) => {
-          console.error('Erreur sauvegarde:', error);
-          this.notificationService.showError('Erreur lors de la sauvegarde');
-          this.isSaving = false;
-        }
-      })
-    );
+    const updatedSettings = this.getFullSettings();
+    updatedSettings.payment = { ...this.paymentSettings, ...this.paymentForm.value };
+    
+    const sub = this.adminService.updateSettings(updatedSettings).subscribe({
+      next: () => {
+        this.paymentSettings = updatedSettings.payment;
+        this.notificationService.showSuccess('Paramètres de paiement sauvegardés');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      },
+      error: (error) => {
+        console.error('❌ Erreur sauvegarde:', error);
+        this.notificationService.showError('Erreur lors de la sauvegarde');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      }
+    });
+    this.adminSettingsSubscriptions.push(sub);
   }
 
   saveNotificationSettings(): void {
     if (this.notificationForm.invalid) return;
     this.isSaving = true;
-    const updatedSettings = {
-      general: this.generalSettings,
-      security: this.securitySettings,
-      payment: this.paymentSettings,
-      notification: { ...this.notificationSettings, ...this.notificationForm.value },
-      customization: this.customizationSettings
-    };
     
-    this.subscriptions.push(
-      this.adminService.updateSettings(updatedSettings).subscribe({
-        next: () => {
-          this.notificationSettings = updatedSettings.notification;
-          this.notificationService.showSuccess('Paramètres de notification sauvegardés');
-          this.isSaving = false;
-        },
-        error: (error) => {
-          console.error('Erreur sauvegarde:', error);
-          this.notificationService.showError('Erreur lors de la sauvegarde');
-          this.isSaving = false;
-        }
-      })
-    );
+    const updatedSettings = this.getFullSettings();
+    updatedSettings.notification = { ...this.notificationSettings, ...this.notificationForm.value };
+    
+    const sub = this.adminService.updateSettings(updatedSettings).subscribe({
+      next: () => {
+        this.notificationSettings = updatedSettings.notification;
+        this.notificationService.showSuccess('Paramètres de notification sauvegardés');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      },
+      error: (error) => {
+        console.error('❌ Erreur sauvegarde:', error);
+        this.notificationService.showError('Erreur lors de la sauvegarde');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      }
+    });
+    this.adminSettingsSubscriptions.push(sub);
   }
-
-  // ============================================================
-  // THÈME, LANGUE, POLICE
-  // ============================================================
 
   setTheme(themeValue: string): void {
     console.log(`🎨 AdminSettings: Sélection du thème ${themeValue}`);
@@ -535,6 +577,7 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
     );
     
     this.notificationService.showSuccess(`Thème changé en ${this.getThemeName(themeValue)}`);
+    this.safeMarkForCheck();
   }
 
   setLanguage(langValue: string): void {
@@ -542,20 +585,16 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
     
     this.selectedLanguage = langValue;
     
-    // ✅ Application immédiate via TranslationService
-    this.translationService.applyLanguageToAll(langValue);
-    
-    // ✅ Application via ThemeService
+    this.translationService.setLanguage(langValue);
     this.themeService.applyLanguage(langValue);
     
-    // ✅ Sauvegarde
     localStorage.setItem('admin_language', langValue);
     localStorage.setItem('user_language', langValue);
     
     this.customizationForm.patchValue({ language: langValue });
     
     this.notificationService.showSuccess(`Langue changée en ${this.getLanguageName(langValue)}`);
-    this.cdr.detectChanges();
+    this.safeMarkForCheck();
   }
 
   setFontSize(sizeValue: string): void {
@@ -565,11 +604,8 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
     
     const sizeNames: Record<string, string> = { small: 'Petite', medium: 'Moyenne', large: 'Grande' };
     this.notificationService.showSuccess(`Taille de police changée en ${sizeNames[sizeValue] || sizeValue}`);
+    this.safeMarkForCheck();
   }
-
-  // ============================================================
-  // SAUVEGARDE DES PARAMÈTRES DE PERSONNALISATION
-  // ============================================================
 
   saveCustomizationSettings(): void {
     if (this.customizationForm.invalid) return;
@@ -591,16 +627,21 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
     this.translationService.setLanguage(this.selectedLanguage);
     this.themeService.applyLanguage(this.selectedLanguage);
 
-    setTimeout(() => {
-      this.notificationService.showSuccess('Paramètres de personnalisation sauvegardés');
-      this.isSaving = false;
-      this.cdr.detectChanges();
-    }, 500);
+    const sub = this.adminService.updateSettings(this.getFullSettings()).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Paramètres de personnalisation sauvegardés');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      },
+      error: (error) => {
+        console.error('❌ Erreur sauvegarde:', error);
+        this.notificationService.showError('Erreur lors de la sauvegarde');
+        this.isSaving = false;
+        this.safeMarkForCheck();
+      }
+    });
+    this.adminSettingsSubscriptions.push(sub);
   }
-
-  // ============================================================
-  // MISE À JOUR DES COULEURS
-  // ============================================================
 
   updatePrimaryColor(event: any): void {
     const color = event.target.value;
@@ -611,6 +652,7 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
       color,
       this.customizationSettings.secondaryColor
     );
+    this.safeMarkForCheck();
   }
 
   updateSecondaryColor(event: any): void {
@@ -622,6 +664,7 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
       this.customizationSettings.primaryColor,
       color
     );
+    this.safeMarkForCheck();
   }
 
   updateCustomCSS(event: any): void {
@@ -629,6 +672,7 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
     this.customizationForm.patchValue({ customCSS: css });
     this.customizationSettings.customCSS = css;
     this.applyCustomCSS(css);
+    this.safeMarkForCheck();
   }
 
   private applyCustomCSS(css: string): void {
@@ -650,10 +694,6 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
     const lang = this.languages.find(l => l.value === langValue);
     return lang?.label || 'Français';
   }
-
-  // ============================================================
-  // RÉINITIALISATION
-  // ============================================================
 
   resetAllSettings(): void {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les paramètres ?')) {
@@ -691,13 +731,11 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
       this.themeService.applyLanguage('fr');
       
       this.notificationService.showInfo('Paramètres généraux réinitialisés');
+      this.safeMarkForCheck();
+      
       setTimeout(() => window.location.reload(), 1500);
     }
   }
-
-  // ============================================================
-  // EXPORT / IMPORT
-  // ============================================================
 
   exportSettings(): void {
     const settings = {
@@ -743,16 +781,15 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
           this.customizationSettings.secondaryColor
         );
         this.notificationService.showSuccess('Paramètres importés avec succès');
+        this.safeMarkForCheck();
       } catch (error) {
+        console.error('❌ Erreur importation:', error);
         this.notificationService.showError('Erreur lors de l\'importation');
+        this.safeMarkForCheck();
       }
     };
     reader.readAsText(file);
   }
-
-  // ============================================================
-  // UTILITAIRES
-  // ============================================================
 
   formatLogDate(date: Date): string {
     const now = new Date();
@@ -779,10 +816,6 @@ export class AdminSettingsComponent extends BaseComponent implements OnInit, OnD
   formatNumber(value: number): string {
     return value.toString();
   }
-
-  // ============================================================
-  // NAVIGATION
-  // ============================================================
 
   logout(): void {
     this.authService.logout();

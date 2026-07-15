@@ -215,117 +215,158 @@
       </div>
     </div>
 
-    <!-- COMMISSIONS -->
-    <div *ngIf="!isSuperAdmin && stats" class="commission-stats">
-      <div class="section-header">
-        <h2 class="section-title"><mat-icon>receipt_long</mat-icon> {{ 'Mes commissions' | translate }}</h2>
-        <span class="section-subtitle">{{ 'Taux' | translate }}: {{ stats.commissionRate || 0.5 }}%</span>
-      </div>
-      <div class="kpi-grid mini">
-        <mat-card class="kpi-card mini" matRipple>
-          <mat-card-content>
-            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
-              <mat-icon>payments</mat-icon>
-            </div>
-            <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats!.myCommission || 0) }} Ar</div>
-              <div class="kpi-label">{{ 'Mes commissions' | translate }}</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="kpi-card mini" matRipple>
-          <mat-card-content>
-            <div class="kpi-icon mini" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-              <mat-icon>receipt</mat-icon>
-            </div>
-            <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.myCommissionTransactions || 0) }}</div>
-              <div class="kpi-label">{{ 'Transactions avec commission' | translate }}</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-      <mat-card class="recent-card" *ngIf="stats.recentCommissions && stats.recentCommissions.length > 0">
-        <mat-card-header>
-          <mat-card-title><mat-icon>history</mat-icon> {{ 'Mes dernières commissions' | translate }}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="recent-list">
-            <div *ngFor="let c of stats.recentCommissions.slice(0,5)" class="recent-item">
-              <div class="transaction-icon completed"><mat-icon>payments</mat-icon></div>
-              <div class="recent-info">
-                <div class="recent-name">{{ c.type === 'deposit' ? ('Dépôt' | translate) : ('Retrait' | translate) }} - {{ c.userName || 'Utilisateur' }}</div>
-                <div class="recent-volume">{{ 'Commission' | translate }}: {{ formatVolume(c.commission) }} Ar {{ 'sur' | translate }} {{ formatVolume(c.amount) }} Ar</div>
-              </div>
-              <div class="recent-date">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+    <!-- ============================================================ -->
+    <!-- COMMISSIONS - VERSION UNIQUE ET CORRIGÉE                      -->
+    <!-- ============================================================ -->
 
-    <div *ngIf="isSuperAdmin && stats" class="commission-stats">
+    <!-- Pour Super Admin : Vue d'ensemble de toutes les commissions -->
+    <div *ngIf="isSuperAdmin && stats" class="commission-dashboard">
       <div class="section-header">
-        <h2 class="section-title"><mat-icon>receipt_long</mat-icon> {{ 'Total commissions' | translate }}</h2>
-        <span class="section-subtitle">{{ 'Taux' | translate }}: {{ stats.commissionRate || 0.5 }}%</span>
+        <h2 class="section-title">
+          <mat-icon>monetization_on</mat-icon>
+          {{ 'Gestion des commissions' | translate }}
+        </h2>
+        <span class="section-subtitle">{{ 'Total des commissions' | translate }}: {{ formatVolume((stats.totalSuperAdminCommission || 0) + (stats.totalAdminCommission || 0)) }} Ar</span>
       </div>
+
+      <!-- KPIs Commissions Super Admin -->
       <div class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
-            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="kpi-icon mini" style="background: rgba(124,58,237,0.12); color: #7c3aed;">
               <mat-icon>payments</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats!.totalCommission || 0) }} Ar</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume((stats.totalSuperAdminCommission || 0) + (stats.totalAdminCommission || 0)) }} Ar</div>
               <div class="kpi-label">{{ 'Total commissions' | translate }}</div>
             </div>
           </mat-card-content>
         </mat-card>
+
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats.commissionTransactions || 0) }}</div>
+              <div class="kpi-label">{{ 'Transactions avec commission' | translate }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+              <mat-icon>supervisor_account</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats.adminCommissions?.length || 0) }}</div>
+              <div class="kpi-label">{{ 'Admins avec commissions' | translate }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Commissions par Admin -->
+      <div *ngIf="stats.adminCommissions && stats.adminCommissions.length > 0">
+        <div class="section-header">
+          <h3 class="section-title">
+            <mat-icon>group</mat-icon>
+            {{ 'Commissions par administrateur' | translate }}
+          </h3>
+        </div>
+
+        <div class="admin-commission-grid">
+          <mat-card *ngFor="let admin of stats.adminCommissions" class="commission-card">
+            <mat-card-content>
+              <div class="admin-commission-header">
+                <!-- ✅ CORRECTION : Utilisation de charAt avec fallback -->
+                <div class="admin-avatar">{{ (admin.adminName || 'A').charAt(0) }}</div>
+                <div class="admin-info">
+                  <div class="admin-name">{{ admin.adminName || 'Admin' }}</div>
+                  <div class="admin-stats">
+                    <span>{{ admin.transactionCount || 0 }} transactions</span>
+                    <span class="total-commission">{{ formatVolume(admin.totalCommission || 0) }} Ar</span>
+                  </div>
+                </div>
+              </div>
+              <div class="commission-breakdown" *ngIf="admin.commissions && admin.commissions.length > 0">
+                <div *ngFor="let c of admin.commissions.slice(0, 5)" class="commission-item">
+                  <span class="commission-type">{{ c.sourceType === 'admin_withdrawal' ? 'Retrait' : 'Transfert' }}</span>
+                  <span class="commission-amount">+ {{ formatVolume(c.amount) }} Ar</span>
+                  <span class="commission-date">{{ c.createdAt | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <button *ngIf="admin.commissions.length > 5" mat-button color="primary" (click)="navigateTo('stats')">
+                  {{ 'Voir toutes les commissions' | translate }} ({{ admin.commissions.length }})
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pour Admin normal : Mes commissions -->
+    <div *ngIf="!isSuperAdmin && stats" class="commission-stats">
+      <div class="section-header">
+        <h2 class="section-title">
+          <mat-icon>receipt_long</mat-icon>
+          {{ 'Mes commissions' | translate }}
+        </h2>
+        <span class="section-subtitle">{{ 'Taux' | translate }}: {{ stats.commissionRate || 0.5 }}%</span>
+      </div>
+
+      <div class="kpi-grid mini">
+        <mat-card class="kpi-card mini" matRipple>
+          <mat-card-content>
+            <div class="kpi-icon mini" style="background: rgba(16,185,129,0.12); color: #10b981;">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats.myCommission || 0) }} Ar</div>
+              <div class="kpi-label">{{ 'Mes commissions' | translate }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
             <div class="kpi-icon mini" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
               <mat-icon>receipt</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.commissionTransactions || 0) }}</div>
-              <div class="kpi-label">{{ 'Transactions avec commission' | translate }}</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="kpi-card mini" matRipple>
-          <mat-card-content>
-            <div class="kpi-icon mini" style="background: rgba(124,58,237,0.12); color: #7c3aed;">
-              <mat-icon>account_balance_wallet</mat-icon>
-            </div>
-            <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats!.myCommission || 0) }} Ar</div>
-              <div class="kpi-label">{{ 'Mes commissions' | translate }}</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="kpi-card mini" matRipple>
-          <mat-card-content>
-            <div class="kpi-icon mini" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
-              <mat-icon>receipt</mat-icon>
-            </div>
-            <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats!.myCommissionTransactions || 0) }}</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats.myCommissionTransactions || 0) }}</div>
               <div class="kpi-label">{{ 'Transactions avec commission' | translate }}</div>
             </div>
           </mat-card-content>
         </mat-card>
       </div>
+
+      <!-- Dernières commissions -->
       <mat-card class="recent-card" *ngIf="stats.recentCommissions && stats.recentCommissions.length > 0">
         <mat-card-header>
-          <mat-card-title><mat-icon>history</mat-icon> {{ 'Dernières commissions' | translate }}</mat-card-title>
+          <mat-card-title>
+            <mat-icon>history</mat-icon>
+            {{ 'Mes dernières commissions' | translate }}
+          </mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
-            <div *ngFor="let c of stats.recentCommissions.slice(0,5)" class="recent-item">
-              <div class="transaction-icon completed"><mat-icon>payments</mat-icon></div>
+            <div *ngFor="let c of stats.recentCommissions.slice(0, 5)" class="recent-item">
+              <div class="transaction-icon completed">
+                <mat-icon>payments</mat-icon>
+              </div>
               <div class="recent-info">
-                <div class="recent-name">{{ c.type === 'deposit' ? ('Dépôt' | translate) : ('Retrait' | translate) }} - {{ c.userName || 'Utilisateur' }}</div>
-                <div class="recent-volume">{{ 'Commission' | translate }}: {{ formatVolume(c.commission) }} Ar {{ 'sur' | translate }} {{ formatVolume(c.amount) }} Ar</div>
+                <div class="recent-name">
+                  {{ c.sourceType === 'admin_withdrawal' ? ('Retrait Admin' | translate) : ('Transfert' | translate) }}
+                  - {{ c.sourceUserId || 'Utilisateur' }}
+                </div>
+                <div class="recent-volume">
+                  {{ 'Commission' | translate }}: {{ formatVolume(c.amount) }} Ar
+                  {{ 'sur' | translate }} {{ formatVolume(c.transactionAmount) }} Ar
+                  ({{ c.rate }}%)
+                </div>
               </div>
               <div class="recent-date">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
             </div>
@@ -491,16 +532,32 @@
           <mat-card-title><mat-icon>timeline</mat-icon> {{ 'Activité quotidienne' | translate }}</mat-card-title>
           <mat-card-subtitle>{{ 'Transactions et volume sur 7 jours' | translate }}</mat-card-subtitle>
         </mat-card-header>
-        <mat-card-content><div class="chart-container"><canvas id="activityChart"></canvas></div></mat-card-content>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas id="activityChart"></canvas>
+          </div>
+        </mat-card-content>
       </mat-card>
       <div class="charts-small-grid">
         <mat-card class="chart-card small">
-          <mat-card-header><mat-card-title><mat-icon>pie_chart</mat-icon> {{ 'Utilisateurs' | translate }}</mat-card-title></mat-card-header>
-          <mat-card-content><div class="chart-container small"><canvas id="usersChart"></canvas></div></mat-card-content>
+          <mat-card-header>
+            <mat-card-title><mat-icon>pie_chart</mat-icon> {{ 'Utilisateurs' | translate }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-container small">
+              <canvas id="usersChart"></canvas>
+            </div>
+          </mat-card-content>
         </mat-card>
         <mat-card class="chart-card small">
-          <mat-card-header><mat-card-title><mat-icon>bar_chart</mat-icon> {{ 'Revenus' | translate }}</mat-card-title></mat-card-header>
-          <mat-card-content><div class="chart-container small"><canvas id="revenueChart"></canvas></div></mat-card-content>
+          <mat-card-header>
+            <mat-card-title><mat-icon>bar_chart</mat-icon> {{ 'Revenus' | translate }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-container small">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </mat-card-content>
         </mat-card>
       </div>
     </div>
@@ -511,33 +568,51 @@
     </div>
 
     <div class="recent-grid" *ngIf="stats">
+      <!-- Utilisateurs récents -->
       <mat-card class="recent-card">
         <mat-card-header>
           <mat-card-title><mat-icon>person_add</mat-icon> {{ 'Utilisateurs récents' | translate }}</mat-card-title>
-          <button mat-button color="primary" class="view-all" (click)="navigateTo('users')">{{ 'Voir tout' | translate }} <mat-icon>arrow_forward</mat-icon></button>
+          <button mat-button color="primary" class="view-all" (click)="navigateTo('users')">
+            {{ 'Voir tout' | translate }} <mat-icon>arrow_forward</mat-icon>
+          </button>
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
             <div *ngFor="let user of stats.recentUsers.slice(0,5)" class="recent-item">
-              <div class="recent-avatar" [style.background]="user.isActive ? '#10b981' : '#f59e0b'">{{ getInitials(user.firstName, user.lastName) }}</div>
-              <div class="recent-info"><div class="recent-name">{{ user.firstName }} {{ user.lastName }}</div><div class="recent-email">{{ user.email }}</div></div>
-              <div class="recent-status" [class.active]="user.isActive">{{ user.isActive ? ('Actif' | translate) : ('Inactif' | translate) }}</div>
+              <div class="recent-avatar" [style.background]="user.isActive ? '#10b981' : '#f59e0b'">
+                {{ getInitials(user.firstName, user.lastName) }}
+              </div>
+              <div class="recent-info">
+                <div class="recent-name">{{ user.firstName }} {{ user.lastName }}</div>
+                <div class="recent-email">{{ user.email }}</div>
+              </div>
+              <div class="recent-status" [class.active]="user.isActive">
+                {{ user.isActive ? ('Actif' | translate) : ('Inactif' | translate) }}
+              </div>
               <div class="recent-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
 
+      <!-- Transactions récentes -->
       <mat-card class="recent-card">
         <mat-card-header>
           <mat-card-title><mat-icon>receipt</mat-icon> {{ 'Transactions récentes' | translate }}</mat-card-title>
-          <button mat-button color="primary" class="view-all" (click)="navigateTo('transactions')">{{ 'Voir tout' | translate }} <mat-icon>arrow_forward</mat-icon></button>
+          <button mat-button color="primary" class="view-all" (click)="navigateTo('transactions')">
+            {{ 'Voir tout' | translate }} <mat-icon>arrow_forward</mat-icon>
+          </button>
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
             <div *ngFor="let t of stats.recentTransactions.slice(0,5)" class="recent-item">
-              <div class="transaction-icon" [class.completed]="t.status === 'completed'"><mat-icon>{{ t.status === 'completed' ? 'check_circle' : 'pending' }}</mat-icon></div>
-              <div class="recent-info"><div class="recent-name">{{ t.type }} - {{ formatVolume(t.amount) }} Ar</div><div class="recent-email">ID: {{ t.id | slice:0:8 }}</div></div>
+              <div class="transaction-icon" [class.completed]="t.status === 'completed'">
+                <mat-icon>{{ t.status === 'completed' ? 'check_circle' : 'pending' }}</mat-icon>
+              </div>
+              <div class="recent-info">
+                <div class="recent-name">{{ t.type }} - {{ formatVolume(t.amount) }} Ar</div>
+                <div class="recent-email">ID: {{ t.id | slice:0:8 }}</div>
+              </div>
               <div class="recent-status" [class.completed]="t.status === 'completed'">{{ t.status }}</div>
               <div class="recent-date">{{ t.createdAt | date:'HH:mm' }}</div>
             </div>
@@ -545,16 +620,22 @@
         </mat-card-content>
       </mat-card>
 
+      <!-- Top utilisateurs -->
       <mat-card class="recent-card">
         <mat-card-header>
           <mat-card-title><mat-icon>star</mat-icon> {{ 'Top utilisateurs' | translate }}</mat-card-title>
-          <button mat-button color="primary" class="view-all" (click)="navigateTo('stats')">{{ 'Voir tout' | translate }} <mat-icon>arrow_forward</mat-icon></button>
+          <button mat-button color="primary" class="view-all" (click)="navigateTo('stats')">
+            {{ 'Voir tout' | translate }} <mat-icon>arrow_forward</mat-icon>
+          </button>
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
             <div *ngFor="let u of stats.topUsers; let i=index" class="recent-item">
               <div class="rank-badge" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">{{ i+1 }}</div>
-              <div class="recent-info"><div class="recent-name">{{ u.name }}</div><div class="recent-email">{{ u.transactionCount }} {{ 'transactions' | translate }} · {{ formatVolume(u.totalVolume) }} Ar</div></div>
+              <div class="recent-info">
+                <div class="recent-name">{{ u.name }}</div>
+                <div class="recent-email">{{ u.transactionCount }} {{ 'transactions' | translate }} · {{ formatVolume(u.totalVolume) }} Ar</div>
+              </div>
               <div class="recent-volume">{{ formatVolume(u.totalVolume) }} Ar</div>
             </div>
           </div>

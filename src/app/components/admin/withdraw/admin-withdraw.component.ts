@@ -3,9 +3,12 @@ import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { AdminService } from '../../../services/admin.service';
+import { AdminService, QRScanResult, QRCodeResponse } from '../../../services/admin.service';
 import { NotificationService } from '../../../services/notification.service';
 import { TranslationService } from '../../../services/translation.service';
+import { QRScannerComponent } from '../qr-scanner/qr-scanner.component';
+import { QRTransactionFormComponent } from '../qr-transaction-form/qr-transaction-form.component';
+import { QRGeneratorComponent } from '../qr-generator/qr-generator.component';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +19,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatDividerModule } from '@angular/material/divider';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
@@ -34,7 +38,11 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatToolbarModule,
-    TranslatePipe
+    MatDividerModule,
+    TranslatePipe,
+    QRScannerComponent,
+    QRTransactionFormComponent,
+    QRGeneratorComponent
   ],
   templateUrl: './admin-withdraw.component.html',
   styleUrls: ['./admin-withdraw.component.css'],
@@ -51,6 +59,13 @@ export class AdminWithdrawComponent implements OnInit {
   targetAdminId: string | null = null;
   private isDestroyed = false;
 
+  // QR Code properties
+  showQRScanner: boolean = false;
+  qrScanResult: QRScanResult | null = null;
+  showTransactionForm: boolean = false;
+  showQRGenerator: boolean = false;
+  qrGeneratorType: 'deposit' | 'withdraw' = 'withdraw';
+
   withdrawResult: {
     success: boolean;
     message: string;
@@ -59,7 +74,6 @@ export class AdminWithdrawComponent implements OnInit {
 
   quickAmounts = [1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
 
-  // ✅ Injection des services
   private cdr = inject(ChangeDetectorRef);
   private translationService = inject(TranslationService);
 
@@ -71,7 +85,6 @@ export class AdminWithdrawComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // ✅ S'abonner aux changements de langue
     this.translationService.language$.subscribe(() => {
       this.safeDetectChanges();
     });
@@ -92,28 +105,29 @@ export class AdminWithdrawComponent implements OnInit {
     this.isDestroyed = true;
   }
 
-  // ✅ Méthode sécurisée pour détecter les changements
   private safeDetectChanges(): void {
     if (!this.isDestroyed) {
       try {
         this.cdr.detectChanges();
-      } catch (e) {
-        // Ignorer
-      }
+      } catch (e) {}
     }
   }
 
   loadUsers(): void {
     this.isLoading = true;
+    this.safeDetectChanges();
+    
     this.adminService.getAllUsers().subscribe({
       next: (users) => {
-        this.users = users;
+        console.log('✅ Utilisateurs chargés:', users);
+        this.users = Array.isArray(users) ? users : [];
         this.isLoading = false;
         this.safeDetectChanges();
       },
       error: (error) => {
-        console.error('Erreur chargement utilisateurs:', error);
+        console.error('❌ Erreur chargement utilisateurs:', error);
         this.notificationService.showError('Erreur lors du chargement des utilisateurs');
+        this.users = [];
         this.isLoading = false;
         this.safeDetectChanges();
       },
@@ -122,9 +136,12 @@ export class AdminWithdrawComponent implements OnInit {
 
   loadAdmins(): void {
     this.isLoading = true;
+    this.safeDetectChanges();
+    
     this.adminService.getAdmins().subscribe({
       next: (admins) => {
-        this.admins = admins;
+        console.log('✅ Administrateurs chargés:', admins);
+        this.admins = Array.isArray(admins) ? admins : [];
         this.isLoading = false;
         
         if (this.targetAdminId) {
@@ -136,8 +153,9 @@ export class AdminWithdrawComponent implements OnInit {
         this.safeDetectChanges();
       },
       error: (error) => {
-        console.error('Erreur chargement admins:', error);
+        console.error('❌ Erreur chargement admins:', error);
         this.notificationService.showError('Erreur lors du chargement des administrateurs');
+        this.admins = [];
         this.isLoading = false;
         this.safeDetectChanges();
       },
@@ -147,6 +165,87 @@ export class AdminWithdrawComponent implements OnInit {
   selectQuickAmount(amount: number): void {
     this.amount = amount;
   }
+
+  // ============================================================
+  // QR CODE METHODS
+  // ============================================================
+
+  openQRGenerator(): void {
+    this.qrGeneratorType = 'withdraw';
+    this.showQRGenerator = true;
+    this.safeDetectChanges();
+  }
+
+  closeQRGenerator(): void {
+    this.showQRGenerator = false;
+    this.safeDetectChanges();
+  }
+
+  onQRGenerated(response: QRCodeResponse): void {
+    console.log('✅ QR Code généré:', response);
+    this.notificationService.showSuccess('QR Code généré avec succès');
+    setTimeout(() => {
+      this.closeQRGenerator();
+      this.openQRScanner();
+    }, 500);
+  }
+
+  openQRScanner(): void {
+    this.showQRScanner = true;
+    this.qrScanResult = null;
+    this.showTransactionForm = false;
+    this.safeDetectChanges();
+  }
+
+  onQRScanResult(qrData: string): void {
+    console.log('📥 QR Code scanné:', qrData);
+    this.showQRScanner = false;
+    this.safeDetectChanges();
+    
+    this.adminService.scanQRCode(qrData).subscribe({
+      next: (result) => {
+        console.log('✅ Résultat scan QR:', result);
+        this.qrScanResult = result;
+        this.showTransactionForm = true;
+        this.safeDetectChanges();
+        this.notificationService.showSuccess('QR Code scanné avec succès');
+      },
+      error: (error) => {
+        console.error('❌ Erreur scan QR:', error);
+        this.notificationService.showError(error?.error?.message || 'QR Code invalide');
+        this.safeDetectChanges();
+      },
+    });
+  }
+
+  closeQRScanner(): void {
+    this.showQRScanner = false;
+    this.safeDetectChanges();
+  }
+
+  closeTransactionForm(): void {
+    this.showTransactionForm = false;
+    this.qrScanResult = null;
+    this.safeDetectChanges();
+  }
+
+  onTransactionCompleted(result: { success: boolean; message: string; data?: any }): void {
+    console.log('✅ Transaction complétée:', result);
+    this.showTransactionForm = false;
+    this.qrScanResult = null;
+    this.safeDetectChanges();
+    if (result.success) {
+      if (this.isAdminWithdraw) {
+        this.loadAdmins();
+      } else {
+        this.loadUsers();
+      }
+    }
+  }
+
+  // ============================================================
+  // WITHDRAW SUBMISSION
+  // ============================================================
 
   onSubmit(): void {
     if (!this.selectedUserId) {
@@ -244,6 +343,12 @@ export class AdminWithdrawComponent implements OnInit {
 
   getUserInitials(user: any): string {
     return (user?.firstName?.charAt(0) || '') + (user?.lastName?.charAt(0) || '');
+  }
+
+  onAmountChange(): void {
+    if (this.amount && this.amount < 0) {
+      this.amount = 0;
+    }
   }
 
   goBack(): void {
