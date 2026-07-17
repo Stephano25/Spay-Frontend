@@ -84,23 +84,32 @@
   ══════════════════════════════════════ -->
   <main class="chat-main" *ngIf="selectedContact; else noChat">
 
-    <!-- Header -->
+    <!-- Header avec bouton retour VERS DASHBOARD -->
     <header class="chat-header">
-      <button class="icon-btn mobile-back" (click)="goBackToConversations()" matTooltip="{{ 'Retour' | translate }}">
+      <button class="mobile-back" (click)="goBack()" matTooltip="{{ 'Retour au dashboard' | translate }}">
         <mat-icon>arrow_back</mat-icon>
       </button>
+      
       <div class="av av-md" [style.background]="getAvatarColor(selectedContact.firstName)">
         {{ getInitials(selectedContact.firstName, selectedContact.lastName) }}
         <span class="status-dot" [class.online]="selectedContact.isOnline"></span>
       </div>
+      
       <div class="contact-meta">
         <span class="contact-name">{{ selectedContact.firstName }} {{ selectedContact.lastName }}</span>
         <span class="contact-status">
-          <ng-container *ngIf="isTyping"><span class="typing-anim">{{ 'En train d\'écrire' | translate }}<span class="dots"><span>.</span><span>.</span><span>.</span></span></span></ng-container>
-          <ng-container *ngIf="!isTyping && selectedContact.isOnline"><span class="online-label">{{ '● En ligne' | translate }}</span></ng-container>
-          <ng-container *ngIf="!isTyping && !selectedContact.isOnline"><span class="offline-label">{{ 'Hors ligne' | translate }}</span></ng-container>
+          <ng-container *ngIf="isTyping">
+            <span class="typing-anim">{{ 'En train d\'écrire' | translate }}<span class="dots"><span>.</span><span>.</span><span>.</span></span></span>
+          </ng-container>
+          <ng-container *ngIf="!isTyping && selectedContact.isOnline">
+            <span class="online-label">{{ '● En ligne' | translate }}</span>
+          </ng-container>
+          <ng-container *ngIf="!isTyping && !selectedContact.isOnline">
+            <span class="offline-label">{{ 'Hors ligne' | translate }}</span>
+          </ng-container>
         </span>
       </div>
+      
       <div class="header-actions">
         <button class="icon-btn" (click)="openTransferPanel(); $event.stopPropagation()" matTooltip="{{ 'Envoyer de l\'argent' | translate }}">
           <mat-icon>payments</mat-icon>
@@ -172,12 +181,131 @@
           </div>
         </div>
 
-        <!-- Message standard -->
+        <!-- ══════════════════════════════════════
+             MESSAGE VOCAL - UNIQUEMENT BANDE SONORE
+        ══════════════════════════════════════ -->
+        <div class="msg-row" [class.own]="isOwnMessage(msg)" *ngIf="!msg.isDeleted && msg.type === 'audio'">
+          <div class="msg-wrap">
+            <div class="audio-wrap">
+              <!-- Bouton Play/Pause -->
+              <div class="audio-icon-wrap" [class.playing]="isAudioPlaying(msg.id)" (click)="toggleAudioPlay(msg)">
+                <mat-icon>{{ isAudioPlaying(msg.id) ? 'pause' : 'play_arrow' }}</mat-icon>
+              </div>
+
+              <!-- Bande sonore - Animation UNIQUEMENT si isAudioPlaying est true -->
+              <div class="audio-waveform" (click)="toggleAudioPlay(msg)">
+                <div class="audio-bar">
+                  <div class="bar anim-1" [class.active]="isAudioPlaying(msg.id)"></div>
+                  <div class="bar anim-2" [class.active]="isAudioPlaying(msg.id)"></div>
+                  <div class="bar anim-3" [class.active]="isAudioPlaying(msg.id)"></div>
+                  <div class="bar anim-4" [class.active]="isAudioPlaying(msg.id)"></div>
+                  <div class="bar anim-5" [class.active]="isAudioPlaying(msg.id)"></div>
+                  <div class="bar anim-6" [class.active]="isAudioPlaying(msg.id)"></div>
+                  <div class="bar anim-7" [class.active]="isAudioPlaying(msg.id)"></div>
+                  <div class="bar anim-8" [class.active]="isAudioPlaying(msg.id)"></div>
+                  <div class="bar anim-9" [class.active]="isAudioPlaying(msg.id)"></div>
+                  <div class="bar anim-10" [class.active]="isAudioPlaying(msg.id)"></div>
+                </div>
+              </div>
+
+              <!-- Durée et téléchargement -->
+              <div class="audio-controls">
+                <span class="audio-duration">{{ getAudioDuration(msg) }}</span>
+                <button class="audio-download-btn" (click)="downloadAudio(msg)" matTooltip="{{ 'Télécharger' | translate }}">
+                  <mat-icon>download</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Réactions -->
+            <div class="reactions-bar" *ngIf="groupedReactions(msg).length">
+              <span class="react-chip" *ngFor="let r of groupedReactions(msg)" [class.mine]="r.mine"
+                    (click)="toggleReaction(msg, r.emoji); $event.stopPropagation()">
+                {{ r.emoji }}<span *ngIf="r.count > 1"> {{ r.count }}</span>
+              </span>
+            </div>
+
+            <span class="msg-time">{{ formatTime(msg.createdAt) }}</span>
+
+            <!-- Actions -->
+            <div class="msg-ctx" [class.show]="activeMessageId === msg.id" (click)="$event.stopPropagation()">
+              <button class="ctx-btn" (click)="toggleReactionPicker(msg)"><mat-icon>add_reaction</mat-icon></button>
+              <button class="ctx-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)"><mat-icon>delete</mat-icon></button>
+            </div>
+            <button class="ctx-trigger" (click)="toggleMessageActions(msg); $event.stopPropagation()">
+              <mat-icon>more_horiz</mat-icon>
+            </button>
+
+            <!-- Picker réaction -->
+            <div class="react-picker" *ngIf="activeReactionPickerId === msg.id" (click)="$event.stopPropagation()">
+              <span *ngFor="let e of quickReactions" (click)="toggleReaction(msg, e)">{{ e }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vidéo - Style Facebook -->
+        <div class="msg-row" [class.own]="isOwnMessage(msg)" 
+             *ngIf="!msg.isDeleted && isVideoMessage(msg)">
+          <div class="msg-wrap">
+            <div class="video-container" (click)="playVideo(msg, $event)">
+              <video 
+                [src]="getFileUrl(msg.fileUrl)" 
+                controls 
+                preload="metadata"
+                class="msg-video"
+                [poster]="getVideoThumbnail(msg)"
+                playsinline
+                webkit-playsinline>
+                {{ 'Votre navigateur ne supporte pas la vidéo.' | translate }}
+              </video>
+              <div class="video-overlay" *ngIf="!isVideoPlaying(msg.id)">
+                <mat-icon class="play-icon">play_circle_filled</mat-icon>
+                <span class="video-duration">{{ getVideoDuration(msg) }}</span>
+              </div>
+              <div class="video-actions">
+                <button class="download-btn" (click)="downloadVideo(msg); $event.stopPropagation()" 
+                        matTooltip="{{ 'Télécharger' | translate }}">
+                  <mat-icon>download</mat-icon>
+                </button>
+              </div>
+            </div>
+            
+            <div class="reactions-bar" *ngIf="groupedReactions(msg).length">
+              <span class="react-chip" *ngFor="let r of groupedReactions(msg)" [class.mine]="r.mine"
+                    (click)="toggleReaction(msg, r.emoji); $event.stopPropagation()">
+                {{ r.emoji }}<span *ngIf="r.count > 1"> {{ r.count }}</span>
+              </span>
+            </div>
+            
+            <span class="msg-time">{{ formatTime(msg.createdAt) }}</span>
+            
+            <div class="msg-ctx" [class.show]="activeMessageId === msg.id" (click)="$event.stopPropagation()">
+              <button class="ctx-btn" (click)="toggleReactionPicker(msg)"><mat-icon>add_reaction</mat-icon></button>
+              <button class="ctx-btn danger" *ngIf="canDeleteMessage(msg)" (click)="deleteMessage(msg)"><mat-icon>delete</mat-icon></button>
+            </div>
+            <button class="ctx-trigger" (click)="toggleMessageActions(msg); $event.stopPropagation()">
+              <mat-icon>more_horiz</mat-icon>
+            </button>
+            
+            <div class="react-picker" *ngIf="activeReactionPickerId === msg.id" (click)="$event.stopPropagation()">
+              <span *ngFor="let e of quickReactions" (click)="toggleReaction(msg, e)">{{ e }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             MESSAGE STANDARD (texte, emoji, image, document)
+             ⚠️ EXCLURE audio (type 'audio' et fichiers audio)
+             ⚠️ EXCLURE vidéo
+        ══════════════════════════════════════ -->
         <div class="msg-row" [class.own]="isOwnMessage(msg)"
-             *ngIf="!msg.isDeleted && msg.type !== 'money'">
+             *ngIf="!msg.isDeleted && 
+                    msg.type !== 'money' && 
+                    msg.type !== 'audio' && 
+                    !isVideoMessage(msg) &&
+                    !isAudioFile(msg)">
           <div class="msg-wrap">
 
-            <!-- Édition inline -->
             <div class="edit-wrap" *ngIf="editingMessageId === msg.id" (click)="$event.stopPropagation()">
               <input #editInput type="text" [(ngModel)]="editContent"
                      (keyup.enter)="saveEdit()" (keyup.escape)="cancelEdit()" class="edit-input">
@@ -185,7 +313,6 @@
               <button class="edit-cancel" (click)="cancelEdit()"><mat-icon>close</mat-icon></button>
             </div>
 
-            <!-- Bulle -->
             <div class="bubble" *ngIf="editingMessageId !== msg.id"
                  [class.own-bubble]="isOwnMessage(msg)"
                  [class.emoji-bubble]="msg.type === 'emoji'">
@@ -197,7 +324,7 @@
               <span *ngIf="msg.type === 'emoji'" class="big-emoji">{{ msg.emoji }}</span>
 
               <!-- Image -->
-              <div *ngIf="msg.type === 'image' || (msg.type === 'file' && getFileType(msg) === 'image')" class="media-wrap">
+              <div *ngIf="msg.type === 'image' || (msg.type === 'file' && isImageFile(msg))" class="media-wrap">
                 <img [src]="getFileUrl(msg.fileUrl)" alt="image" class="msg-img"
                      (error)="msg.fileUrl = undefined" loading="lazy">
                 <a [href]="getFileUrl(msg.fileUrl)" download class="dl-overlay" matTooltip="{{ 'Télécharger' | translate }}">
@@ -205,24 +332,8 @@
                 </a>
               </div>
 
-              <!-- Vidéo -->
-              <div *ngIf="getFileType(msg) === 'video'" class="media-wrap video-wrap">
-                <video [src]="getFileUrl(msg.fileUrl)" controls class="msg-video" preload="metadata">
-                  {{ 'Votre navigateur ne supporte pas la vidéo.' | translate }}
-                </video>
-                <a [href]="getFileUrl(msg.fileUrl)" download class="dl-btn-sm">
-                  <mat-icon>download</mat-icon> {{ 'Télécharger' | translate }}
-                </a>
-              </div>
-
-              <!-- Audio -->
-              <div *ngIf="getFileType(msg) === 'audio'" class="audio-wrap">
-                <mat-icon class="audio-icon">graphic_eq</mat-icon>
-                <audio [src]="getFileUrl(msg.fileUrl)" controls class="msg-audio" preload="metadata"></audio>
-              </div>
-
               <!-- Document -->
-              <div *ngIf="msg.type === 'file' && getFileType(msg) === 'document'" class="doc-wrap">
+              <div *ngIf="msg.type === 'file' && isDocumentFile(msg)" class="doc-wrap">
                 <div class="doc-icon-wrap">
                   <mat-icon>{{ getFileIcon(msg.fileName) }}</mat-icon>
                 </div>
@@ -252,7 +363,7 @@
               <mat-icon class="read-tick" *ngIf="isOwnMessage(msg) && !msg.isRead">done</mat-icon>
             </span>
 
-            <!-- Actions contextuelles -->
+            <!-- Actions -->
             <div class="msg-ctx" [class.show]="activeMessageId === msg.id"
                  *ngIf="editingMessageId !== msg.id" (click)="$event.stopPropagation()">
               <button class="ctx-btn" (click)="toggleReactionPicker(msg)"><mat-icon>add_reaction</mat-icon></button>
@@ -270,6 +381,7 @@
             </div>
           </div>
         </div>
+
       </ng-container>
     </div>
 

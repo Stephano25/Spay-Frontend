@@ -1,3 +1,4 @@
+// frontend/src/app/services/chat.service.ts
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
@@ -16,6 +17,7 @@ export interface Message {
   fileUrl?: string;
   fileName?: string;
   fileSize?: number;
+  mimeType?: string;
   emoji?: string;
   isRead: boolean;
   isDelivered: boolean;
@@ -23,6 +25,8 @@ export interface Message {
   editedAt?: Date;
   isDeleted?: boolean;
   createdAt: Date;
+  duration?: number; // Pour les vidéos et audios
+  thumbnail?: string; // Miniature pour les vidéos
   moneyTransfer?: {
     amount: number;
     status: 'pending' | 'completed' | 'failed';
@@ -43,7 +47,7 @@ export interface Conversation {
   firstName: string;
   lastName: string;
   profilePicture?: string;
-  lastMessage?: { content: string; type: string; createdAt: Date };
+  lastMessage?: { content: string; type: string; createdAt: Date; fileUrl?: string; fileName?: string };
   lastMessageTime: Date;
   unreadCount: number;
   isOnline?: boolean;
@@ -53,9 +57,7 @@ export interface Conversation {
 export class ChatService implements OnDestroy {
   private socket: Socket | null = null;
   private apiUrl = `${environment.apiUrl}/chat`;
-  
-  // ✅ CORRECTION: Utiliser window.location.origin pour le socket
-  private socketUrl = environment.socketUrl || window.location.origin;
+  private socketUrl = environment.socketUrl || environment.apiUrl || 'http://localhost:3000';
 
   private newMessageSubject = new BehaviorSubject<Message | null>(null);
   private typingSubject = new BehaviorSubject<{ userId: string; isTyping: boolean } | null>(null);
@@ -84,7 +86,7 @@ export class ChatService implements OnDestroy {
   private authSubscription: Subscription;
   private isConnecting = false;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 10;
   private connectionTimeout: any = null;
 
   constructor(
@@ -94,6 +96,7 @@ export class ChatService implements OnDestroy {
   ) {
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       if (user && !this.isConnecting) {
+        console.log('👤 Utilisateur connecté, connexion socket...');
         setTimeout(() => this.connectSocket(), 500);
       } else if (!user) {
         this.disconnect();
@@ -109,11 +112,15 @@ export class ChatService implements OnDestroy {
     });
   }
 
-  // ✅ CORRECTION: Connexion Socket avec l'URL correcte
   private connectSocket(): void {
     const token = this.authService.getToken();
-    if (!token || this.isConnecting) {
-      console.log('⚠️ Pas de token ou déjà en connexion');
+    if (!token) {
+      console.log('⚠️ Pas de token, impossible de se connecter au socket');
+      return;
+    }
+
+    if (this.isConnecting) {
+      console.log('⚠️ Déjà en cours de connexion');
       return;
     }
 
@@ -129,19 +136,23 @@ export class ChatService implements OnDestroy {
       this.socket = null;
     }
 
-    // ✅ Utiliser l'origine du navigateur (http://localhost:4200)
-    // Le proxy Nginx redirigera vers le backend
-    const baseUrl = this.socketUrl || window.location.origin;
+    let baseUrl = this.socketUrl;
+    if (baseUrl.startsWith('/')) {
+      baseUrl = window.location.origin + baseUrl;
+    }
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+      baseUrl = 'http://' + baseUrl;
+    }
+
     console.log(`🔌 Connexion au socket: ${baseUrl}`);
 
     this.socket = io(baseUrl, {
       auth: { token },
-      // ✅ Polling d'abord, puis websocket (plus fiable)
-      transports: ['polling', 'websocket'],
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: this.maxReconnectAttempts,
-      reconnectionDelay: 2000,
-      reconnectionDelayMax: 10000,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       timeout: 30000,
       forceNew: true,
       withCredentials: false,
@@ -157,6 +168,7 @@ export class ChatService implements OnDestroy {
         this.connectionTimeout = null;
       }
       this.socket?.emit('getOnlineUsers');
+      this.notificationService?.showSuccess('Connecté au serveur de messagerie');
     });
 
     this.socket.on('disconnect', (reason) => {
@@ -171,28 +183,41 @@ export class ChatService implements OnDestroy {
 
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
         console.error('❌ Nombre maximum de tentatives de reconnexion atteint');
+        this.notificationService?.showError('Impossible de se connecter au serveur de messagerie');
         this.disconnect();
       }
     });
 
     this.socket.on('reconnect_attempt', () => {
       const t = this.authService.getToken();
-      if (t && this.socket) this.socket.auth = { token: t };
+      if (t && this.socket) {
+        this.socket.auth = { token: t };
+      }
     });
 
     this.socket.on('newMessage', (msg: Message) => {
+      console.log('📩 Nouveau message reçu:', msg);
       if (this.processedMessageIds.has(msg.id)) return;
       this.processedMessageIds.add(msg.id);
       setTimeout(() => this.processedMessageIds.delete(msg.id), 10000);
-      this.notificationService.playNotificationSound?.();
+      
+      this.notificationService?.playNotificationSound?.();
       this.newMessageSubject.next(msg);
       this.showPushNotification(msg);
     });
 
-    this.socket.on('userTyping', (data) => this.typingSubject.next(data));
-    this.socket.on('userOnline', (data) => this.onlineStatusSubject.next(data));
+    this.socket.on('userTyping', (data) => {
+      console.log('✍️ Typing:', data);
+      this.typingSubject.next(data);
+    });
+
+    this.socket.on('userOnline', (data) => {
+      console.log('🟢 Online:', data);
+      this.onlineStatusSubject.next(data);
+    });
 
     this.socket.on('onlineUsers', (users: string[]) => {
+      console.log('👥 Utilisateurs en ligne:', users);
       const myId = this.authService.getCurrentUser()?.id;
       users.forEach(userId => {
         if (userId !== myId) {
@@ -201,18 +226,53 @@ export class ChatService implements OnDestroy {
       });
     });
 
-    this.socket.on('messageEdited', (msg: Message) => this.messageEditedSubject.next(msg));
-    this.socket.on('messageDeleted', (data: { messageId: string }) => this.messageDeletedSubject.next(data));
-    this.socket.on('messageReaction', (msg: Message) => this.messageReactionSubject.next(msg));
-    this.socket.on('messageBlocked', (data) => this.messageBlockedSubject.next(data));
-    this.socket.on('incomingCall', (data) => this.incomingCallSubject.next(data));
-    this.socket.on('callAnswered', (data) => this.callAnsweredSubject.next(data));
-    this.socket.on('error', (err) => console.error('❌ Erreur socket:', err));
+    this.socket.on('messageEdited', (msg: Message) => {
+      console.log('✏️ Message modifié:', msg);
+      this.messageEditedSubject.next(msg);
+    });
+
+    this.socket.on('messageDeleted', (data: { messageId: string }) => {
+      console.log('🗑️ Message supprimé:', data);
+      this.messageDeletedSubject.next(data);
+    });
+
+    this.socket.on('messageReaction', (msg: Message) => {
+      console.log('😊 Réaction:', msg);
+      this.messageReactionSubject.next(msg);
+    });
+
+    this.socket.on('messageBlocked', (data) => {
+      console.log('🚫 Message bloqué:', data);
+      this.messageBlockedSubject.next(data);
+    });
+
+    this.socket.on('incomingCall', (data) => {
+      console.log('📞 Appel entrant:', data);
+      this.incomingCallSubject.next(data);
+    });
+
+    this.socket.on('callAnswered', (data) => {
+      console.log('📞 Appel répondus:', data);
+      this.callAnsweredSubject.next(data);
+    });
+
+    this.socket.on('error', (err) => {
+      console.error('❌ Erreur socket:', err);
+    });
+
+    if (!this.connectionTimeout) {
+      this.connectionTimeout = setInterval(() => {
+        if (!this.socket?.connected && !this.isConnecting) {
+          console.log('🔄 Tentative de reconnexion automatique...');
+          this.connectSocket();
+        }
+      }, 30000);
+    }
   }
 
   disconnect(): void {
     if (this.connectionTimeout) {
-      clearTimeout(this.connectionTimeout);
+      clearInterval(this.connectionTimeout);
       this.connectionTimeout = null;
     }
     if (this.socket) {
@@ -221,9 +281,10 @@ export class ChatService implements OnDestroy {
     }
     this.isConnecting = false;
     this.reconnectAttempts = 0;
+    console.log('🔌 Socket déconnecté');
   }
 
-  // ── REST API avec headers ──
+  // ── REST API ──
 
   getConversations(): Observable<Conversation[]> {
     return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`, { headers: this.getHeaders() }).pipe(
@@ -231,33 +292,84 @@ export class ChatService implements OnDestroy {
     );
   }
 
-  getMessages(userId: string): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`, { headers: this.getHeaders() }).pipe(
+  /**
+   * ✅ Récupère TOUS les messages entre deux utilisateurs
+   */
+  getMessages(userId: string, page: number = 1, limit: number = 100): Observable<Message[]> {
+    return this.http.get<Message[]>(`${this.apiUrl}/messages/${userId}`, { 
+      headers: this.getHeaders(),
+      params: { page: page.toString(), limit: limit.toString() }
+    }).pipe(
       catchError(() => of([])),
     );
   }
 
   sendMessage(message: any): void {
+    if (!message.receiverId) {
+      console.error('❌ Pas de receiverId');
+      this.notificationService?.showError('Destinataire manquant');
+      return;
+    }
+
+    // ✅ Ajouter le mimeType pour les fichiers
+    if (message.fileUrl) {
+      message.mimeType = message.mimeType || this.getMimeTypeFromUrl(message.fileUrl);
+    }
+
     if (!this.socket?.connected) {
+      console.log('🔄 Socket non connecté, tentative de reconnexion...');
       this.connectSocket();
-      // ✅ Attendre la connexion avant d'envoyer
-      const maxAttempts = 5;
+      
       let attempts = 0;
+      const maxAttempts = 10;
       const trySend = () => {
         attempts++;
         if (this.socket?.connected) {
+          console.log('✅ Socket reconnecté, envoi du message...');
           this.socket.emit('sendMessage', message);
         } else if (attempts < maxAttempts) {
           setTimeout(trySend, 500);
         } else {
-          console.warn('⚠️ Socket non connecté, message non envoyé');
-          this.notificationService.showError('Connexion au serveur impossible');
+          console.warn('⚠️ Socket non connecté après ' + maxAttempts + ' tentatives');
+          this.notificationService?.showError('Connexion au serveur impossible');
         }
       };
       setTimeout(trySend, 1000);
       return;
     }
+
+    console.log('📤 Envoi du message:', message);
     this.socket.emit('sendMessage', message);
+  }
+
+  private getMimeTypeFromUrl(url: string): string {
+    const ext = url.split('.').pop()?.toLowerCase() || '';
+    const mimeTypes: Record<string, string> = {
+      'mp4': 'video/mp4',
+      'webm': 'video/webm',
+      'mov': 'video/quicktime',
+      'avi': 'video/x-msvideo',
+      'mp3': 'audio/mpeg',
+      'wav': 'audio/wav',
+      'ogg': 'audio/ogg',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'gif': 'image/gif',
+      'webp': 'image/webp',
+      'svg': 'image/svg+xml',
+      'pdf': 'application/pdf',
+      'doc': 'application/msword',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'xls': 'application/vnd.ms-excel',
+      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'ppt': 'application/vnd.ms-powerpoint',
+      'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'zip': 'application/zip',
+      'rar': 'application/x-rar-compressed',
+      'txt': 'text/plain',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
   }
 
   sendTyping(receiverId: string, isTyping: boolean): void {
@@ -279,15 +391,15 @@ export class ChatService implements OnDestroy {
     this.connectSocket();
   }
 
-  uploadFile(file: File): Observable<{ url: string; fileName: string; fileSize: number }> {
+  uploadFile(file: File): Observable<{ url: string; fileName: string; fileSize: number; mimeType: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<{ url: string; fileName: string; fileSize: number }>(
+    return this.http.post<{ url: string; fileName: string; fileSize: number; mimeType: string }>(
       `${this.apiUrl}/upload`,
       formData,
       { headers: new HttpHeaders({ Authorization: `Bearer ${this.authService.getToken()}` }) },
     ).pipe(
-      catchError(() => of({ url: '', fileName: '', fileSize: 0 })),
+      catchError(() => of({ url: '', fileName: '', fileSize: 0, mimeType: '' })),
     );
   }
 
@@ -318,7 +430,9 @@ export class ChatService implements OnDestroy {
   }
 
   requestOnlineUsers(): void {
-    if (this.socket?.connected) this.socket.emit('getOnlineUsers');
+    if (this.socket?.connected) {
+      this.socket.emit('getOnlineUsers');
+    }
   }
 
   isSocketConnected(): boolean {
@@ -327,21 +441,32 @@ export class ChatService implements OnDestroy {
 
   private async requestNotificationPermission(): Promise<void> {
     if (!('Notification' in window)) return;
-    if (Notification.permission === 'default') await Notification.requestPermission();
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
   }
 
   private showPushNotification(message: Message): void {
     if (!document.hidden) return;
     if (Notification.permission !== 'granted') return;
-    const title = `📩 ${message.sender?.firstName || 'Nouveau message'}`;
-    const body = message.content || (message.type === 'emoji' ? message.emoji : '') || message.type || 'Message';
-    new Notification(title, { body, icon: '/assets/icons/icon-192x192.png' });
+    
+    try {
+      const title = `📩 ${message.sender?.firstName || 'Nouveau message'}`;
+      const body = message.content || (message.type === 'emoji' ? message.emoji : '') || message.type || 'Message';
+      new Notification(title, { 
+        body, 
+        icon: '/assets/icons/icon-192x192.png',
+        silent: false,
+      });
+    } catch (error) {
+      console.warn('Erreur notification:', error);
+    }
   }
 
   ngOnDestroy(): void {
     this.authSubscription?.unsubscribe();
     if (this.connectionTimeout) {
-      clearTimeout(this.connectionTimeout);
+      clearInterval(this.connectionTimeout);
       this.connectionTimeout = null;
     }
     this.disconnect();
