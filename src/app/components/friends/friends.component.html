@@ -1,4 +1,3 @@
-<!-- frontend/src/app/components/friends/friends.component.html -->
 <div class="fr-root">
 
   <!-- ── Header ── -->
@@ -92,7 +91,7 @@
     @if (showAddFriend) {
       <div class="fr-card add-card">
         <div class="card-title">
-          <mat-icon>person_add</mat-icon> 
+          <mat-icon>person_add</mat-icon>
           {{ 'Ajouter un ami' | translate }}
         </div>
 
@@ -118,10 +117,10 @@
             <label class="field-label">{{ 'Nom complet' | translate }}</label>
             <mat-form-field appearance="outline" class="full-w large-field">
               <mat-label>{{ 'Rechercher par nom ou prénom' | translate }}</mat-label>
-              <input 
-                matInput 
-                [(ngModel)]="nameSearch" 
-                (ngModelChange)="searchByName()" 
+              <input
+                matInput
+                [(ngModel)]="nameSearch"
+                (ngModelChange)="searchByName()"
                 placeholder="ex: Jean Dupont"
                 autofocus>
               <mat-icon matSuffix>search</mat-icon>
@@ -136,10 +135,10 @@
             <label class="field-label">{{ 'Adresse email' | translate }}</label>
             <mat-form-field appearance="outline" class="full-w large-field">
               <mat-label>{{ 'Email de l\'utilisateur' | translate }}</mat-label>
-              <input 
-                matInput 
-                [(ngModel)]="emailSearch" 
-                (keyup.enter)="searchByEmail()" 
+              <input
+                matInput
+                [(ngModel)]="emailSearch"
+                (keyup.enter)="searchByEmail()"
                 placeholder="exemple@email.com"
                 type="email">
               <mat-icon matSuffix (click)="searchByEmail()" style="cursor: pointer;">search</mat-icon>
@@ -154,10 +153,10 @@
             <label class="field-label">{{ 'Numéro de téléphone' | translate }}</label>
             <mat-form-field appearance="outline" class="full-w large-field">
               <mat-label>{{ 'Téléphone de l\'utilisateur' | translate }}</mat-label>
-              <input 
-                matInput 
-                [(ngModel)]="phoneNumber" 
-                (keyup.enter)="searchByPhone()" 
+              <input
+                matInput
+                [(ngModel)]="phoneNumber"
+                (keyup.enter)="searchByPhone()"
                 placeholder="+261 34 00 000 00"
                 type="tel">
               <mat-icon matSuffix (click)="searchByPhone()" style="cursor: pointer;">search</mat-icon>
@@ -192,6 +191,16 @@
                       <button class="tag-btn blocked" disabled><mat-icon>block</mat-icon> {{ 'Bloqué' | translate }}</button>
                     } @else if (user.isFriend) {
                       <button class="tag-btn friend" disabled><mat-icon>check</mat-icon> {{ 'Ami' | translate }}</button>
+                    } @else if (user.hasIncomingRequest) {
+                      <!-- ✅ Cet utilisateur m'a envoyé une demande : je peux l'accepter ou la refuser ici -->
+                      <div class="row-actions request-actions">
+                        <button class="accept-btn" (click)="acceptRequest(user.requestId!)" matTooltip="{{ 'Accepter' | translate }}">
+                          <mat-icon>check</mat-icon>
+                        </button>
+                        <button class="decline-btn" (click)="declineRequest(user.requestId!)" matTooltip="{{ 'Refuser' | translate }}">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
                     } @else if (user.hasPendingRequest) {
                       <button class="tag-btn pending" disabled><mat-icon>hourglass_empty</mat-icon> {{ 'Envoyée' | translate }}</button>
                     } @else {
@@ -224,7 +233,21 @@
                     }
                   </div>
                   <div class="user-action">
-                    @if (user.hasPendingRequest) {
+                    @if (user.isBlocked) {
+                      <button class="tag-btn blocked" disabled><mat-icon>block</mat-icon> {{ 'Bloqué' | translate }}</button>
+                    } @else if (user.isFriend) {
+                      <button class="tag-btn friend" disabled><mat-icon>check</mat-icon> {{ 'Ami' | translate }}</button>
+                    } @else if (user.hasIncomingRequest) {
+                      <!-- ✅ Cet utilisateur m'a envoyé une demande : je peux l'accepter ou la refuser ici -->
+                      <div class="row-actions request-actions">
+                        <button class="accept-btn" (click)="acceptRequest(user.requestId!)" matTooltip="{{ 'Accepter' | translate }}">
+                          <mat-icon>check</mat-icon>
+                        </button>
+                        <button class="decline-btn" (click)="declineRequest(user.requestId!)" matTooltip="{{ 'Refuser' | translate }}">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    } @else if (user.hasPendingRequest) {
                       <button class="tag-btn pending" disabled><mat-icon>hourglass_empty</mat-icon> {{ 'Envoyée' | translate }}</button>
                     } @else {
                       <button class="add-btn large" (click)="sendFriendRequest(user.id)">
@@ -276,7 +299,7 @@
       </div>
     }
 
-    <!-- ── Demandes reçues (CORRIGÉ) ── -->
+    <!-- ── Demandes reçues ── -->
     @if (friendRequests.length > 0) {
       <div class="fr-section">
         <div class="section-toggle" (click)="toggleRequestsList()">

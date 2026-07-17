@@ -1,4 +1,3 @@
-// frontend/src/app/interceptors/auth.interceptor.ts
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -31,6 +30,7 @@ export class AuthInterceptor implements HttpInterceptor {
       const cleanToken = token.trim();
       authReq = req.clone({
         headers: req.headers.set('Authorization', `Bearer ${cleanToken}`),
+        withCredentials: true,
       });
       console.log('🔑 Token ajouté à la requête:', req.url);
     }
@@ -44,6 +44,13 @@ export class AuthInterceptor implements HttpInterceptor {
         }
 
         console.error('❌ Erreur HTTP:', error.status, req.url);
+
+        // ✅ Gérer les erreurs 403 différemment
+        if (error.status === 403) {
+          console.warn('⚠️ Accès interdit (403) - Vérifiez vos permissions');
+          // Ne pas déconnecter automatiquement pour les erreurs 403
+          // L'utilisateur peut avoir des permissions limitées
+        }
 
         if (error.status === 401) {
           console.warn('⚠️ Token expiré ou invalide, déconnexion...');

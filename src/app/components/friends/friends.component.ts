@@ -10,9 +10,11 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { FriendService, Friend, FriendRequest, SearchUser } from '../../services/friend.service';
+import { SocketService } from '../../services/socket.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { BaseComponent } from '../base.component';
 
+// Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -78,8 +80,12 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
   isSearching = false;
   isSearchingByPhone = false;
   currentUserId = '';
+  private socketSubscribed = false;
+  private socketRetryCount = 0;
+  private maxSocketRetries = 5;
 
   private friendSubscriptions: Subscription[] = [];
+  private socketSubscriptions: Subscription[] = [];
   private html5QrCode: Html5Qrcode | null = null;
   private isScanning = false;
 
@@ -87,22 +93,36 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     private authService: AuthService,
     private notificationService: NotificationService,
     private friendService: FriendService,
+    private socketService: SocketService,
     private router: Router,
     protected override cdr: ChangeDetectorRef
   ) {
     super();
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id || '';
+    console.log('👤 ID utilisateur courant:', this.currentUserId);
   }
 
   override ngOnInit(): void {
     super.ngOnInit();
     this.loadAllData();
+
+    // ✅ S'abonner aux événements socket
+    this.initSocketConnection();
+
+    // ✅ S'abonner aux changements de langue
+    this.subscriptions.push(
+      this.translationService.language$.subscribe((lang) => {
+        console.log(`🌐 FriendsComponent: Langue changée en ${lang}`);
+        this.cdr.detectChanges();
+      })
+    );
   }
 
   override ngOnDestroy(): void {
     this.stopQRScan();
     this.friendSubscriptions.forEach(sub => sub.unsubscribe());
+    this.socketSubscriptions.forEach(sub => sub.unsubscribe());
     super.ngOnDestroy();
   }
 
@@ -110,7 +130,243 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     return this.friends.filter(f => f.friend?.isOnline === true);
   }
 
-  // === Chargement des données ===
+  // ============================================================
+  // INITIALISATION SOCKET
+  // ============================================================
+
+  /**
+   * ✅ Initialise la connexion socket avec gestion de reconnexion
+   */
+  private initSocketConnection(): void {
+    // Vérifier si le socket est déjà connecté
+    if (this.socketService.isConnected()) {
+      console.log('✅ [FriendsComponent] Socket déjà connecté');
+      this.listenToSocketEvents();
+      return;
+    }
+
+    // S'abonner aux changements de statut du socket
+    const sub = this.socketService.onConnectionStatus().subscribe({
+      next: (connected: boolean) => {
+        if (connected && !this.socketSubscribed) {
+          console.log('✅ [FriendsComponent] Socket connecté, abonnement aux événements');
+          this.listenToSocketEvents();
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('❌ [FriendsComponent] Erreur de connexion socket:', err);
+      }
+    });
+    this.socketSubscriptions.push(sub);
+
+    // Si le socket n'est pas connecté, forcer la connexion
+    if (!this.socketService.isConnected()) {
+      console.log('🔄 [FriendsComponent] Connexion du socket...');
+      this.socketService.connect();
+    }
+
+    // ✅ Tentative de reconnexion périodique si le socket n'est pas connecté
+    this.attemptSocketConnection();
+  }
+
+  /**
+   * ✅ Tentative de reconnexion périodique
+   */
+  private attemptSocketConnection(): void {
+    if (this.socketSubscribed || this.socketRetryCount >= this.maxSocketRetries) {
+      return;
+    }
+
+    setTimeout(() => {
+      this.socketRetryCount++;
+      if (!this.socketSubscribed) {
+        if (this.socketService.isConnected()) {
+          console.log('✅ [FriendsComponent] Socket connecté (tentative ' + this.socketRetryCount + ')');
+          this.listenToSocketEvents();
+        } else {
+          console.log(`🔄 [FriendsComponent] Tentative de reconnexion ${this.socketRetryCount}/${this.maxSocketRetries}...`);
+          this.socketService.connect();
+          this.attemptSocketConnection();
+        }
+      }
+    }, 2000);
+  }
+
+  // ============================================================
+  // ÉCOUTE DES ÉVÉNEMENTS SOCKET (TEMPS RÉEL)
+  // ============================================================
+
+  /**
+   * ✅ Écoute les événements socket pour les mises à jour en temps réel
+   */
+  private listenToSocketEvents(): void {
+    // Éviter les doublons
+    if (this.socketSubscribed) {
+      console.log('⚠️ [FriendsComponent] Déjà abonné aux événements socket');
+      return;
+    }
+
+    // Vérifier que le socket est connecté
+    if (!this.socketService.isConnected()) {
+      console.warn('⚠️ [FriendsComponent] Socket non connecté, impossible de s\'abonner');
+      return;
+    }
+
+    console.log('📡 [FriendsComponent] Abonnement aux événements socket...');
+    this.socketSubscribed = true;
+    this.socketRetryCount = 0;
+
+    // ✅ Nouvelle demande d'ami reçue
+    const sub1 = this.socketService.on('friendRequest').subscribe({
+      next: (data: any) => {
+        console.log('📩 [Socket] Nouvelle demande d\'ami reçue:', data);
+        
+        // ✅ Ajouter la demande manuellement à la liste
+        if (data.requestId && data.sender) {
+          const tempRequest: FriendRequest = {
+            id: data.requestId,
+            senderId: data.sender.id || data.from || 'inconnu',
+            receiverId: this.currentUserId,
+            status: 'pending',
+            createdAt: new Date(),
+            sender: {
+              id: data.sender.id || data.from || 'inconnu',
+              firstName: data.sender.firstName || 'Utilisateur',
+              lastName: data.sender.lastName || '',
+              email: data.sender.email || '',
+              profilePicture: data.sender.profilePicture || null,
+            }
+          };
+          
+          // ✅ Ajouter à la liste (éviter doublons)
+          const exists = this.friendRequests.some(r => r.id === tempRequest.id);
+          if (!exists) {
+            this.friendRequests = [tempRequest, ...this.friendRequests];
+            this.showRequestsList = true;
+            this.notificationService.showSuccess('Nouvelle demande d\'ami reçue !');
+            this.cdr.detectChanges();
+            console.log('✅ Demande ajoutée manuellement:', tempRequest);
+          }
+        }
+        
+        // ✅ Recharger depuis le backend pour synchroniser
+        setTimeout(() => {
+          this.loadRequests();
+          this.cdr.detectChanges();
+        }, 1000);
+      },
+      error: (err) => {
+        console.error('❌ [Socket] Erreur événement friendRequest:', err);
+      }
+    });
+    this.socketSubscriptions.push(sub1);
+
+    // ✅ Demande d'ami acceptée
+    const sub2 = this.socketService.on('friendRequestAccepted').subscribe({
+      next: (data: any) => {
+        console.log('✅ [Socket] Demande d\'ami acceptée:', data);
+        // ✅ Supprimer la demande de la liste
+        this.friendRequests = this.friendRequests.filter(r => r.id !== data.requestId);
+        setTimeout(() => {
+          this.loadAllData();
+          this.cdr.detectChanges();
+        }, 500);
+        this.notificationService.showSuccess('Demande d\'ami acceptée !');
+      },
+      error: (err) => {
+        console.error('❌ [Socket] Erreur événement friendRequestAccepted:', err);
+      }
+    });
+    this.socketSubscriptions.push(sub2);
+
+    // ✅ Demande d'ami refusée
+    const sub3 = this.socketService.on('friendRequestDeclined').subscribe({
+      next: (data: any) => {
+        console.log('❌ [Socket] Demande d\'ami refusée:', data);
+        // Supprimer la demande de la liste si elle existe
+        this.friendRequests = this.friendRequests.filter(r => r.id !== data.requestId);
+        setTimeout(() => {
+          this.loadRequests();
+          this.cdr.detectChanges();
+        }, 500);
+        this.notificationService.showInfo('Demande d\'ami refusée');
+      },
+      error: (err) => {
+        console.error('❌ [Socket] Erreur événement friendRequestDeclined:', err);
+      }
+    });
+    this.socketSubscriptions.push(sub3);
+
+    // ✅ Ami supprimé
+    const sub4 = this.socketService.on('friendRemoved').subscribe({
+      next: (data: any) => {
+        console.log('🗑️ [Socket] Ami supprimé:', data);
+        setTimeout(() => {
+          this.loadFriends();
+          this.cdr.detectChanges();
+        }, 500);
+      },
+      error: (err) => {
+        console.error('❌ [Socket] Erreur événement friendRemoved:', err);
+      }
+    });
+    this.socketSubscriptions.push(sub4);
+
+    // ✅ Utilisateur bloqué
+    const sub5 = this.socketService.on('userBlocked').subscribe({
+      next: (data: any) => {
+        console.log('🚫 [Socket] Utilisateur bloqué:', data);
+        setTimeout(() => {
+          this.loadAllData();
+          this.cdr.detectChanges();
+        }, 500);
+      },
+      error: (err) => {
+        console.error('❌ [Socket] Erreur événement userBlocked:', err);
+      }
+    });
+    this.socketSubscriptions.push(sub5);
+
+    // ✅ Utilisateur débloqué
+    const sub6 = this.socketService.on('userUnblocked').subscribe({
+      next: (data: any) => {
+        console.log('🔓 [Socket] Utilisateur débloqué:', data);
+        setTimeout(() => {
+          this.loadAllData();
+          this.cdr.detectChanges();
+        }, 500);
+      },
+      error: (err) => {
+        console.error('❌ [Socket] Erreur événement userUnblocked:', err);
+      }
+    });
+    this.socketSubscriptions.push(sub6);
+
+    // ✅ Statut utilisateur
+    const sub7 = this.socketService.on('userStatus').subscribe({
+      next: (data: any) => {
+        console.log('🟢 [Socket] Changement de statut:', data);
+        const friend = this.friends.find(f => f.friend?.id === data.userId);
+        if (friend && friend.friend) {
+          friend.friend.isOnline = data.isOnline;
+          friend.friend.lastSeen = data.lastSeen;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('❌ [Socket] Erreur événement userStatus:', err);
+      }
+    });
+    this.socketSubscriptions.push(sub7);
+
+    console.log('✅ [FriendsComponent] Tous les événements socket sont écoutés');
+  }
+
+  // ============================================================
+  // CHARGEMENT DES DONNÉES
+  // ============================================================
+
   loadAllData(): void {
     this.isLoading = true;
     this.loadFriends();
@@ -129,11 +385,12 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
         );
         this.friends = unique;
         console.log('📋 Amis:', this.friends.length);
-        this.cdr.detectChanges();
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
-        console.error('Erreur chargement amis:', err);
+        console.error('❌ Erreur chargement amis:', err);
+        this.notificationService.showError('Erreur lors du chargement des amis');
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -141,35 +398,47 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     this.friendSubscriptions.push(sub);
   }
 
+  /**
+   * ✅ loadRequests corrigé - conserve les demandes existantes si le backend ne renvoie rien
+   */
   loadRequests(): void {
-    console.log('📩 Chargement des demandes d\'amis...');
+    console.log('📩 [Frontend] Chargement des demandes d\'amis reçues...');
+    
     const sub = this.friendService.getFriendRequests().subscribe({
       next: (requests: FriendRequest[]) => {
-        // Filtrer pour ne garder que les demandes en attente
-        this.friendRequests = requests.filter(r => r.status === 'pending' || r.status === 'PENDING');
-        console.log('📩 Demandes reçues:', this.friendRequests.length);
-        console.log('📩 Détail des demandes:', JSON.stringify(this.friendRequests, null, 2));
+        console.log('📩 [Frontend] Demandes reçues (brut):', requests.length);
         
-        this.friendRequests.forEach((req, index) => {
-          console.log(`📩 Demande ${index + 1}:`, {
-            id: req.id,
-            senderId: req.senderId,
-            receiverId: req.receiverId,
-            status: req.status,
-            createdAt: req.createdAt,
-            sender: req.sender ? {
-              id: req.sender.id,
-              name: `${req.sender.firstName} ${req.sender.lastName}`,
-              email: req.sender.email
-            } : '❌ Sender manquant'
+        // ✅ Si le backend ne renvoie rien, garder les demandes existantes
+        if (requests.length === 0 && this.friendRequests.length > 0) {
+          console.log(`📩 [Frontend] Conservation des demandes existantes (${this.friendRequests.length})`);
+          // Ne pas modifier this.friendRequests
+        } else {
+          // Filtrer les demandes en attente
+          this.friendRequests = requests.filter(r => r.status === 'pending');
+        }
+        
+        console.log('📩 [Frontend] Demandes en attente:', this.friendRequests.length);
+        
+        // ✅ Log détaillé des demandes
+        if (this.friendRequests.length > 0) {
+          this.friendRequests.forEach((req, index) => {
+            console.log(`📩 [Frontend] Demande ${index + 1}:`, {
+              id: req.id,
+              senderId: req.senderId,
+              receiverId: req.receiverId,
+              status: req.status,
+              senderName: req.sender ? `${req.sender.firstName} ${req.sender.lastName}` : '❌ Sender manquant'
+            });
           });
-        });
+        }
         
+        this.isLoading = false;
         this.cdr.detectChanges();
       },
       error: (err: any) => {
-        console.error('❌ Erreur chargement demandes:', err);
-        this.friendRequests = [];
+        console.error('❌ [Frontend] Erreur chargement demandes:', err);
+        // En cas d'erreur, garder les demandes existantes
+        this.isLoading = false;
         this.cdr.detectChanges();
       }
     });
@@ -198,12 +467,18 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
         console.log('🚫 Bloqués:', this.blockedUsers.length);
         this.cdr.detectChanges();
       },
-      error: (err: any) => console.error('Erreur chargement bloqués:', err)
+      error: (err: any) => {
+        console.error('Erreur chargement bloqués:', err);
+        this.cdr.detectChanges();
+      }
     });
     this.friendSubscriptions.push(sub);
   }
 
-  // === Méthodes de recherche ===
+  // ============================================================
+  // MÉTHODES DE RECHERCHE
+  // ============================================================
+
   clearSearch(): void {
     this.nameSearch = '';
     this.emailSearch = '';
@@ -244,6 +519,7 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
         console.error('Erreur recherche:', err);
         this.isSearching = false;
         this.searchResults = [];
+        this.notificationService.showError('Erreur lors de la recherche');
         this.cdr.detectChanges();
       }
     });
@@ -259,6 +535,7 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     this.isSearching = true;
     const sub = this.friendService.searchUsers(email).subscribe({
       next: (results: SearchUser[]) => {
+        // ✅ Filtrer pour ne garder que l'utilisateur avec l'email exact
         this.searchResults = results.filter(u => 
           u.email?.toLowerCase() === email.toLowerCase()
         );
@@ -272,6 +549,7 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
         console.error('Erreur recherche par email:', err);
         this.isSearching = false;
         this.searchResults = [];
+        this.notificationService.showError('Erreur lors de la recherche');
         this.cdr.detectChanges();
       }
     });
@@ -298,13 +576,17 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
         console.error('Erreur recherche par téléphone:', err);
         this.isSearchingByPhone = false;
         this.searchResults = [];
+        this.notificationService.showError('Erreur lors de la recherche');
         this.cdr.detectChanges();
       }
     });
     this.friendSubscriptions.push(sub);
   }
 
-  // === QR Code ===
+  // ============================================================
+  // QR CODE
+  // ============================================================
+
   async showMyQRCode(): Promise<void> {
     try {
       const qrData = JSON.stringify({ 
@@ -347,6 +629,8 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
       }
 
       try {
+        videoElement.innerHTML = '';
+        
         this.html5QrCode = new Html5Qrcode('qr-video');
         this.isScanning = true;
 
@@ -419,7 +703,10 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     }
   }
 
-  // === Actions ===
+  // ============================================================
+  // ACTIONS
+  // ============================================================
+
   toggleFriendsList(): void { 
     this.showFriendsList = !this.showFriendsList; 
   }
@@ -432,6 +719,9 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     this.router.navigate(['/user']); 
   }
 
+  /**
+   * ✅ Envoie une demande d'ami
+   */
   sendFriendRequest(userId: string): void {
     if (!userId || userId === this.currentUserId) {
       this.notificationService.showWarning('Vous ne pouvez pas vous ajouter vous-même');
@@ -444,22 +734,32 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
       return;
     }
 
-    const existingRequest = this.friendRequests.find(r => r.sender?.id === userId);
+    const existingRequest = this.friendRequests.find(r => 
+      r.senderId === userId && r.status === 'pending'
+    );
     if (existingRequest) {
       this.notificationService.showWarning('Une demande est déjà en attente');
       return;
     }
 
+    this.notificationService.showInfo('Envoi de la demande en cours...');
+
     const sub = this.friendService.sendFriendRequest(userId).subscribe({
       next: (response) => {
-        this.notificationService.showSuccess('Demande d\'ami envoyée avec succès');
-        this.loadAllData();
-        this.showAddFriend = false;
-        this.clearSearch();
-        this.cdr.detectChanges();
+        console.log('✅ Demande envoyée avec succès:', response);
+        this.notificationService.showSuccess('Demande d\'ami envoyée avec succès !');
+        
+        setTimeout(() => {
+          console.log('🔄 Rechargement des données après envoi de demande...');
+          this.loadAllData();
+          this.showRequestsList = true;
+          this.showAddFriend = false;
+          this.clearSearch();
+          this.cdr.detectChanges();
+        }, 1500);
       },
       error: (err: any) => {
-        console.error('Erreur envoi demande:', err);
+        console.error('❌ Erreur envoi demande:', err);
         const errorMsg = err.error?.message || err.message || 'Erreur lors de l\'envoi de la demande';
         this.notificationService.showError(errorMsg);
         this.cdr.detectChanges();
@@ -468,9 +768,13 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     this.friendSubscriptions.push(sub);
   }
 
+  /**
+   * ✅ Accepte une demande d'ami
+   */
   acceptRequest(requestId: string): void {
     if (!requestId) {
       console.error('❌ ID de demande manquant');
+      this.notificationService.showError('ID de demande manquant');
       return;
     }
     
@@ -478,22 +782,34 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     const sub = this.friendService.acceptFriendRequest(requestId).subscribe({
       next: (response) => {
         console.log('✅ Demande acceptée avec succès:', response);
-        this.notificationService.showSuccess('Demande acceptée');
-        this.loadAllData();
-        this.cdr.detectChanges();
+        this.notificationService.showSuccess('Demande acceptée !');
+        
+        // ✅ Supprimer la demande de la liste immédiatement
+        this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
+        
+        // ✅ Recharger les données
+        setTimeout(() => {
+          this.loadAllData();
+          this.cdr.detectChanges();
+        }, 500);
       },
       error: (err: any) => {
         console.error('❌ Erreur acceptation:', err);
-        this.notificationService.showError(err.error?.message || 'Erreur lors de l\'acceptation');
+        const errorMsg = err.error?.message || err.message || 'Erreur lors de l\'acceptation';
+        this.notificationService.showError(errorMsg);
         this.cdr.detectChanges();
       }
     });
     this.friendSubscriptions.push(sub);
   }
 
+  /**
+   * ✅ Refuse une demande d'ami
+   */
   declineRequest(requestId: string): void {
     if (!requestId) {
       console.error('❌ ID de demande manquant');
+      this.notificationService.showError('ID de demande manquant');
       return;
     }
     
@@ -501,13 +817,15 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     const sub = this.friendService.declineFriendRequest(requestId).subscribe({
       next: (response) => {
         console.log('✅ Demande refusée avec succès:', response);
+        // ✅ Supprimer la demande de la liste immédiatement
         this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
         this.notificationService.showInfo('Demande refusée');
         this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Erreur refus:', err);
-        this.notificationService.showError(err.error?.message || 'Erreur lors du refus');
+        const errorMsg = err.error?.message || err.message || 'Erreur lors du refus';
+        this.notificationService.showError(errorMsg);
         this.cdr.detectChanges();
       }
     });
@@ -521,8 +839,10 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
       const sub = this.friendService.removeFriend(friendId).subscribe({
         next: () => {
           this.notificationService.showSuccess('Ami supprimé');
-          this.loadAllData();
-          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.loadAllData();
+            this.cdr.detectChanges();
+          }, 500);
         },
         error: (err: any) => {
           console.error('Erreur suppression:', err);
@@ -541,8 +861,10 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
       const sub = this.friendService.blockUser(userId).subscribe({
         next: () => {
           this.notificationService.showSuccess('Utilisateur bloqué');
-          this.loadAllData();
-          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.loadAllData();
+            this.cdr.detectChanges();
+          }, 500);
         },
         error: (err: any) => {
           console.error('Erreur blocage:', err);
@@ -561,8 +883,10 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
       const sub = this.friendService.unblockUser(userId).subscribe({
         next: () => {
           this.notificationService.showSuccess('Utilisateur débloqué');
-          this.loadAllData();
-          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.loadAllData();
+            this.cdr.detectChanges();
+          }, 500);
         },
         error: (err: any) => {
           console.error('Erreur déblocage:', err);
@@ -574,7 +898,10 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     }
   }
 
-  // === Navigation ===
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
+
   chatWithFriend(friendId: string): void {
     if (!friendId) return;
     this.router.navigate(['/chat'], { queryParams: { friendId } });
@@ -590,7 +917,10 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     this.router.navigate(['/profile', friendId]);
   }
 
-  // === Helpers ===
+  // ============================================================
+  // HELPERS
+  // ============================================================
+
   getInitials(first?: string, last?: string): string {
     const f = first?.charAt(0) || '';
     const l = last?.charAt(0) || '';
@@ -620,5 +950,9 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
+  }
+
+  formatAmount(amount: number): string {
+    return new Intl.NumberFormat('fr-MG').format(amount || 0);
   }
 }
