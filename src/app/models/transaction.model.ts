@@ -16,14 +16,14 @@ export interface Transaction {
   createdAt: Date;
   updatedAt?: Date;
   
-  // ✅ CHAMPS DE COMMISSION
+  // ✅ CHAMPS DE COMMISSION COMPLETS
   commission?: {
     total: number;
     superAdminCommission: number;
     adminCommission: number;
     superAdminId: string;
     adminId: string | null;
-    type: 'user_transfer' | 'admin_withdrawal' | 'admin_deposit';
+    type: 'user_transfer' | 'admin_withdrawal' | 'admin_deposit' | 'user_deposit';
     rate: number;
     breakdown: string;
   };
@@ -59,7 +59,7 @@ export interface Commission {
   amount: number;
   rate: number;
   type: 'super_admin' | 'admin';
-  sourceType: 'user_transfer' | 'admin_withdrawal' | 'admin_deposit';
+  sourceType: 'user_transfer' | 'admin_withdrawal' | 'admin_deposit' | 'user_deposit';
   sourceUserId?: string;
   sourceAdminId?: string;
   transactionAmount: number;

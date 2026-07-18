@@ -21,7 +21,6 @@ export class TransactionService {
   // ============================================================
   // STATISTIQUES
   // ============================================================
-
   getUserDashboardStats(): Observable<DashboardStats> {
     return this.http.get<DashboardStats>(`${this.apiUrl}/user/stats`).pipe(
       tap(data => console.log('📊 Stats user:', data)),
@@ -35,7 +34,6 @@ export class TransactionService {
   // ============================================================
   // TRANSACTIONS
   // ============================================================
-
   getAllTransactions(): Observable<Transaction[]> {
     return this.http.get<Transaction[]>(`${this.apiUrl}/all`).pipe(
       catchError(error => {
@@ -67,120 +65,12 @@ export class TransactionService {
   }
 
   // ============================================================
-  // COMMISSIONS - CALCUL
+  // ENVOI D'ARGENT (avec commission 5%)
   // ============================================================
-
-  /**
-   * Calcule les commissions pour une transaction
-   * @param amount - Montant de la transaction
-   * @param type - Type de transaction
-   * @param adminId - ID de l'admin qui effectue le retrait (optionnel)
-   */
-  calculateCommission(amount: number, type: string, adminId?: string): {
-    superAdminCommission: number;
-    adminCommission: number;
-    totalCommission: number;
-    breakdown: string;
-  } {
-    let superAdminCommission = 0;
-    let adminCommission = 0;
-    let totalCommission = 0;
-    let breakdown = '';
-
-    if (type === 'user_transfer') {
-      // ✅ Transaction utilisateur → utilisateur : 1.5% pour Super Admin
-      superAdminCommission = amount * 0.015;
-      totalCommission = superAdminCommission;
-      breakdown = `Super Admin: ${superAdminCommission.toFixed(2)} Ar (1.5%)`;
-    } 
-    else if (type === 'admin_withdrawal' && adminId) {
-      // ✅ Retrait utilisateur → Admin : 1% Super Admin + 0.5% Admin
-      superAdminCommission = amount * 0.01;
-      adminCommission = amount * 0.005;
-      totalCommission = superAdminCommission + adminCommission;
-      breakdown = `Super Admin: ${superAdminCommission.toFixed(2)} Ar (1%) + Admin: ${adminCommission.toFixed(2)} Ar (0.5%)`;
-    }
-    else if (type === 'admin_deposit') {
-      // ✅ Dépôt Admin → Utilisateur : 1% pour Super Admin
-      superAdminCommission = amount * 0.01;
-      totalCommission = superAdminCommission;
-      breakdown = `Super Admin: ${superAdminCommission.toFixed(2)} Ar (1%)`;
-    }
-
-    return {
-      superAdminCommission,
-      adminCommission,
-      totalCommission,
-      breakdown
-    };
-  }
-
-  /**
-   * Crée une transaction avec commission
-   */
-  createTransactionWithCommission(
-    transactionData: any,
-    commissionData: {
-      superAdminId: string;
-      adminId?: string;
-      type: 'user_transfer' | 'admin_withdrawal' | 'admin_deposit';
-    }
-  ): Observable<Transaction> {
-    const amount = transactionData.amount;
-    const commission = this.calculateCommission(amount, commissionData.type, commissionData.adminId);
-
-    const payload = {
-      ...transactionData,
-      commission: {
-        total: commission.totalCommission,
-        superAdminCommission: commission.superAdminCommission,
-        adminCommission: commission.adminCommission,
-        superAdminId: commissionData.superAdminId,
-        adminId: commissionData.adminId || null,
-        type: commissionData.type,
-        rate: commissionData.type === 'user_transfer' ? 1.5 : commissionData.type === 'admin_withdrawal' ? 1.0 : 1.0,
-        breakdown: commission.breakdown
-      }
-    };
-
-    return this.http.post<Transaction>(`${this.apiUrl}/with-commission`, payload).pipe(
-      tap((tx) => {
-        console.log('💰 Transaction avec commission créée:', tx);
-        this.notificationService.showSuccess(
-          `Transaction effectuée avec ${commission.totalCommission.toFixed(2)} Ar de commission`
-        );
-      }),
-      catchError((error) => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors de la transaction');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  // ============================================================
-  // ENVOI D'ARGENT - MODIFIÉ AVEC COMMISSION
-  // ============================================================
-
   sendMoney(data: { receiverId: string; amount: number; description?: string }): Observable<Transaction> {
-    // ✅ Calculer la commission pour Super Admin (1.5%)
-    const commission = this.calculateCommission(data.amount, 'user_transfer');
-    
-    const payload = {
-      ...data,
-      commission: {
-        total: commission.totalCommission,
-        superAdminCommission: commission.superAdminCommission,
-        type: 'user_transfer',
-        rate: 1.5,
-        breakdown: commission.breakdown
-      }
-    };
-
-    return this.http.post<Transaction>(`${this.apiUrl}/send`, payload).pipe(
+    return this.http.post<Transaction>(`${this.apiUrl}/send`, data).pipe(
       tap(() => {
-        this.notificationService.showSuccess(
-          `Argent envoyé avec succès (Commission: ${commission.totalCommission.toFixed(2)} Ar)`
-        );
+        this.notificationService.showSuccess('Argent envoyé avec succès');
       }),
       catchError((error) => {
         this.notificationService.showError(error.error?.message || 'Erreur lors de l\'envoi');
@@ -190,50 +80,8 @@ export class TransactionService {
   }
 
   // ============================================================
-  // RETRAIT ADMIN - MODIFIÉ AVEC COMMISSION
-  // ============================================================
-
-  /**
-   * Retrait Admin → Utilisateur - MODIFIÉ pour inclure la commission
-   */
-  adminWithdraw(userId: string, amount: number, adminId: string, description?: string): Observable<Transaction> {
-    // ✅ Calculer la commission (1% Super Admin + 0.5% Admin)
-    const commission = this.calculateCommission(amount, 'admin_withdrawal', adminId);
-    
-    const payload = {
-      userId,
-      amount,
-      adminId,
-      description: description || `Retrait par Admin ${adminId}`,
-      commission: {
-        total: commission.totalCommission,
-        superAdminCommission: commission.superAdminCommission,
-        adminCommission: commission.adminCommission,
-        superAdminId: 'SUPER_ADMIN_ID', // À remplacer par l'ID réel du Super Admin
-        adminId: adminId,
-        type: 'admin_withdrawal',
-        rate: 1.0,
-        breakdown: commission.breakdown
-      }
-    };
-
-    return this.http.post<Transaction>(`${this.apiUrl}/admin-withdraw`, payload).pipe(
-      tap(() => {
-        this.notificationService.showSuccess(
-          `Retrait effectué (Commission: ${commission.totalCommission.toFixed(2)} Ar)`
-        );
-      }),
-      catchError((error) => {
-        this.notificationService.showError(error.error?.message || 'Erreur lors du retrait');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  // ============================================================
   // MOBILE MONEY
   // ============================================================
-
   mobileMoneyTransfer(data: { operator: string; phoneNumber: string; amount: number }): Observable<Transaction> {
     const cleanData = {
       operator: data.operator,
@@ -254,7 +102,6 @@ export class TransactionService {
   // ============================================================
   // SCAN & PAY
   // ============================================================
-
   scanAndPay(data: { receiverQrCode: string; amount: number; description?: string }): Observable<Transaction> {
     return this.http.post<Transaction>(`${this.apiUrl}/scan-pay`, data).pipe(
       tap(() => this.notificationService.showSuccess('Paiement effectué avec succès')),
@@ -268,7 +115,6 @@ export class TransactionService {
   // ============================================================
   // UTILITAIRES
   // ============================================================
-
   formatAmount(amount: number): string {
     return new Intl.NumberFormat('fr-MG', {
       minimumFractionDigits: 0,

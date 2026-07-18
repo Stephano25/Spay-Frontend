@@ -80,7 +80,31 @@ export class AdminStatsComponent implements OnInit, OnDestroy {
         this.stats = stats;
         this.isLoading = false;
         this.cdr.detectChanges();
-        setTimeout(() => this.createChart(), 300);
+        
+        // ✅ Charger les commissions séparément
+        if (stats.userRole === 'super_admin' || stats.userRole === 'admin') {
+          this.adminService.getCommissionStats().subscribe({
+            next: (commissionData) => {
+              if (this.stats) {
+                this.stats.totalSuperAdminCommission = commissionData.totalSuperAdminCommission || 0;
+                this.stats.totalAdminCommission = commissionData.totalAdminCommission || 0;
+                this.stats.totalCommissionTransactions = commissionData.totalCommissionTransactions || 0;
+                this.stats.recentCommissions = commissionData.recentCommissions || [];
+                this.stats.adminCommissions = commissionData.adminCommissions || [];
+                this.stats.myCommission = commissionData.myCommission || 0;
+                this.stats.myCommissionTransactions = commissionData.myCommissionTransactions || 0;
+              }
+              this.cdr.detectChanges();
+              setTimeout(() => this.createChart(), 300);
+            },
+            error: () => {
+              console.warn('⚠️ Erreur chargement commissions');
+              setTimeout(() => this.createChart(), 300);
+            }
+          });
+        } else {
+          setTimeout(() => this.createChart(), 300);
+        }
       },
       error: (error) => {
         console.error('❌ Erreur chargement stats:', error);
@@ -168,7 +192,7 @@ export class AdminStatsComponent implements OnInit, OnDestroy {
               padding: 16,
               font: {
                 size: 11,
-                weight: 500 // ✅ Correction: utiliser un nombre au lieu d'une chaîne
+                weight: 500
               }
             }
           },

@@ -80,18 +80,21 @@
     <p>{{ 'Chargement...' | translate }}</p>
   </div>
 
-  <ng-container *ngIf="!isLoading">
-    <!-- KPI CARDS -->
+  <!-- ✅ UTILISER stats! POUR DIRE À TYPESCRIPT QUE stats N'EST PAS NULL -->
+  <ng-container *ngIf="!isLoading && stats">
+    <!-- ============================================================ -->
+    <!-- KPI CARDS                                                     -->
+    <!-- ============================================================ -->
     <div class="kpi-grid">
       <mat-card class="kpi-card" (click)="navigateTo('users')" matRipple>
         <mat-card-content>
           <div class="kpi-icon users"><mat-icon>people</mat-icon></div>
           <div class="kpi-info">
-            <div class="kpi-value">{{ formatNumber(stats?.totalUsers || 0) }}</div>
+            <div class="kpi-value">{{ formatNumber(stats!.totalUsers || 0) }}</div>
             <div class="kpi-label">{{ 'Utilisateurs' | translate }}</div>
             <div class="kpi-trend positive">
               <mat-icon>trending_up</mat-icon>
-              <span>{{ stats?.totalUsers ? ((stats?.activeUsers || 0) / (stats?.totalUsers || 1) * 100).toFixed(1) : 0 }}% {{ 'actifs' | translate }}</span>
+              <span>{{ stats!.totalUsers ? ((stats!.activeUsers || 0) / (stats!.totalUsers || 1) * 100).toFixed(1) : 0 }}% {{ 'actifs' | translate }}</span>
             </div>
           </div>
         </mat-card-content>
@@ -101,7 +104,7 @@
         <mat-card-content>
           <div class="kpi-icon active"><mat-icon>online_prediction</mat-icon></div>
           <div class="kpi-info">
-            <div class="kpi-value">{{ formatNumber(stats?.activeUsers || 0) }}</div>
+            <div class="kpi-value">{{ formatNumber(stats!.activeUsers || 0) }}</div>
             <div class="kpi-label">{{ 'Actifs aujourd\'hui' | translate }}</div>
             <div class="kpi-trend positive">
               <mat-icon>trending_up</mat-icon>
@@ -115,7 +118,7 @@
         <mat-card-content>
           <div class="kpi-icon transactions"><mat-icon>swap_horiz</mat-icon></div>
           <div class="kpi-info">
-            <div class="kpi-value">{{ formatNumber(stats?.totalTransactions || 0) }}</div>
+            <div class="kpi-value">{{ formatNumber(stats!.totalTransactions || 0) }}</div>
             <div class="kpi-label">{{ 'Transactions' | translate }}</div>
             <div class="kpi-trend positive">
               <mat-icon>trending_up</mat-icon>
@@ -129,7 +132,7 @@
         <mat-card-content>
           <div class="kpi-icon volume"><mat-icon>account_balance_wallet</mat-icon></div>
           <div class="kpi-info">
-            <div class="kpi-value">{{ formatVolume(stats?.totalVolume || 0) }} Ar</div>
+            <div class="kpi-value">{{ formatVolume(stats!.totalVolume || 0) }} Ar</div>
             <div class="kpi-label">{{ 'Volume total' | translate }}</div>
             <div class="kpi-trend positive">
               <mat-icon>trending_up</mat-icon>
@@ -140,8 +143,11 @@
       </mat-card>
     </div>
 
-    <!-- STATS ADMIN -->
-    <div class="admin-stats-grid" *ngIf="stats">
+    <!-- ============================================================ -->
+    <!-- STATS ADMIN                                                   -->
+    <!-- ============================================================ -->
+    <div class="admin-stats-grid">
+      <!-- Admin normal -->
       <div *ngIf="!isSuperAdmin" class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
@@ -167,6 +173,7 @@
         </mat-card>
       </div>
 
+      <!-- Super Admin -->
       <div *ngIf="isSuperAdmin" class="kpi-grid mini">
         <mat-card class="kpi-card mini" matRipple>
           <mat-card-content>
@@ -216,17 +223,18 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- COMMISSIONS - VERSION UNIQUE ET CORRIGÉE                      -->
+    <!-- COMMISSIONS - SUPER ADMIN                                    -->
     <!-- ============================================================ -->
-
-    <!-- Pour Super Admin : Vue d'ensemble de toutes les commissions -->
-    <div *ngIf="isSuperAdmin && stats" class="commission-dashboard">
+    <div *ngIf="isSuperAdmin" class="commission-dashboard">
       <div class="section-header">
         <h2 class="section-title">
           <mat-icon>monetization_on</mat-icon>
           {{ 'Gestion des commissions' | translate }}
         </h2>
-        <span class="section-subtitle">{{ 'Total des commissions' | translate }}: {{ formatVolume((stats.totalSuperAdminCommission || 0) + (stats.totalAdminCommission || 0)) }} Ar</span>
+        <span class="section-subtitle">
+          {{ 'Total des commissions' | translate }}: 
+          {{ formatVolume((stats!.totalSuperAdminCommission || 0) + (stats!.totalAdminCommission || 0)) }} Ar
+        </span>
       </div>
 
       <!-- KPIs Commissions Super Admin -->
@@ -237,7 +245,9 @@
               <mat-icon>payments</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume((stats.totalSuperAdminCommission || 0) + (stats.totalAdminCommission || 0)) }} Ar</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">
+                {{ formatVolume((stats!.totalSuperAdminCommission || 0) + (stats!.totalAdminCommission || 0)) }} Ar
+              </div>
               <div class="kpi-label">{{ 'Total commissions' | translate }}</div>
             </div>
           </mat-card-content>
@@ -249,7 +259,9 @@
               <mat-icon>receipt</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats.commissionTransactions || 0) }}</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">
+                {{ formatNumber(stats!.totalCommissionTransactions || 0) }}
+              </div>
               <div class="kpi-label">{{ 'Transactions avec commission' | translate }}</div>
             </div>
           </mat-card-content>
@@ -261,7 +273,9 @@
               <mat-icon>supervisor_account</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats.adminCommissions?.length || 0) }}</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">
+                {{ formatNumber(stats!.adminCommissions?.length || 0) }}
+              </div>
               <div class="kpi-label">{{ 'Admins avec commissions' | translate }}</div>
             </div>
           </mat-card-content>
@@ -269,7 +283,7 @@
       </div>
 
       <!-- Commissions par Admin -->
-      <div *ngIf="stats.adminCommissions && stats.adminCommissions.length > 0">
+      <div *ngIf="stats!.adminCommissions && stats!.adminCommissions.length > 0">
         <div class="section-header">
           <h3 class="section-title">
             <mat-icon>group</mat-icon>
@@ -278,10 +292,9 @@
         </div>
 
         <div class="admin-commission-grid">
-          <mat-card *ngFor="let admin of stats.adminCommissions" class="commission-card">
+          <mat-card *ngFor="let admin of stats!.adminCommissions" class="commission-card">
             <mat-card-content>
               <div class="admin-commission-header">
-                <!-- ✅ CORRECTION : Utilisation de charAt avec fallback -->
                 <div class="admin-avatar">{{ (admin.adminName || 'A').charAt(0) }}</div>
                 <div class="admin-info">
                   <div class="admin-name">{{ admin.adminName || 'Admin' }}</div>
@@ -305,16 +318,24 @@
           </mat-card>
         </div>
       </div>
+
+      <!-- Message si aucune commission -->
+      <div *ngIf="!stats!.adminCommissions || stats!.adminCommissions.length === 0" class="empty-state-mini">
+        <mat-icon>monetization_off</mat-icon>
+        <p>{{ 'Aucune commission enregistrée pour le moment' | translate }}</p>
+      </div>
     </div>
 
-    <!-- Pour Admin normal : Mes commissions -->
-    <div *ngIf="!isSuperAdmin && stats" class="commission-stats">
+    <!-- ============================================================ -->
+    <!-- COMMISSIONS - ADMIN NORMAL                                   -->
+    <!-- ============================================================ -->
+    <div *ngIf="!isSuperAdmin" class="commission-stats">
       <div class="section-header">
         <h2 class="section-title">
           <mat-icon>receipt_long</mat-icon>
           {{ 'Mes commissions' | translate }}
         </h2>
-        <span class="section-subtitle">{{ 'Taux' | translate }}: {{ stats.commissionRate || 0.5 }}%</span>
+        <span class="section-subtitle">{{ 'Taux' | translate }}: {{ stats!.commissionRate || 0.5 }}%</span>
       </div>
 
       <div class="kpi-grid mini">
@@ -324,7 +345,9 @@
               <mat-icon>payments</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatVolume(stats.myCommission || 0) }} Ar</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">
+                {{ formatVolume(stats!.myCommission || 0) }} Ar
+              </div>
               <div class="kpi-label">{{ 'Mes commissions' | translate }}</div>
             </div>
           </mat-card-content>
@@ -336,7 +359,9 @@
               <mat-icon>receipt</mat-icon>
             </div>
             <div class="kpi-info">
-              <div class="kpi-value" style="font-size: 1.2rem;">{{ formatNumber(stats.myCommissionTransactions || 0) }}</div>
+              <div class="kpi-value" style="font-size: 1.2rem;">
+                {{ formatNumber(stats!.myCommissionTransactions || 0) }}
+              </div>
               <div class="kpi-label">{{ 'Transactions avec commission' | translate }}</div>
             </div>
           </mat-card-content>
@@ -344,7 +369,7 @@
       </div>
 
       <!-- Dernières commissions -->
-      <mat-card class="recent-card" *ngIf="stats.recentCommissions && stats.recentCommissions.length > 0">
+      <mat-card class="recent-card" *ngIf="stats!.recentCommissions && stats!.recentCommissions.length > 0">
         <mat-card-header>
           <mat-card-title>
             <mat-icon>history</mat-icon>
@@ -353,14 +378,14 @@
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
-            <div *ngFor="let c of stats.recentCommissions.slice(0, 5)" class="recent-item">
+            <div *ngFor="let c of stats!.recentCommissions.slice(0, 5)" class="recent-item">
               <div class="transaction-icon completed">
                 <mat-icon>payments</mat-icon>
               </div>
               <div class="recent-info">
                 <div class="recent-name">
                   {{ c.sourceType === 'admin_withdrawal' ? ('Retrait Admin' | translate) : ('Transfert' | translate) }}
-                  - {{ c.sourceUserId || 'Utilisateur' }}
+                  - {{ c.userName || 'Utilisateur' }}
                 </div>
                 <div class="recent-volume">
                   {{ 'Commission' | translate }}: {{ formatVolume(c.amount) }} Ar
@@ -375,7 +400,9 @@
       </mat-card>
     </div>
 
-    <!-- MENU DE NAVIGATION -->
+    <!-- ============================================================ -->
+    <!-- MENU DE NAVIGATION                                          -->
+    <!-- ============================================================ -->
     <div class="section-header">
       <h2 class="section-title"><mat-icon>dashboard</mat-icon> {{ 'Gestion' | translate }}</h2>
       <span class="section-subtitle">{{ 'Accédez rapidement à vos fonctionnalités' | translate }}</span>
@@ -396,7 +423,7 @@
           <mat-card-content>
             <div class="menu-icon users"><mat-icon>people</mat-icon></div>
             <span>{{ 'Utilisateurs' | translate }}</span>
-            <span class="menu-badge">{{ formatNumber(stats?.totalUsers || 0) }}</span>
+            <span class="menu-badge">{{ formatNumber(stats!.totalUsers || 0) }}</span>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -406,7 +433,7 @@
           <mat-card-content>
             <div class="menu-icon transactions"><mat-icon>receipt</mat-icon></div>
             <span>{{ 'Transactions' | translate }}</span>
-            <span class="menu-badge">{{ formatNumber(stats?.totalTransactions || 0) }}</span>
+            <span class="menu-badge">{{ formatNumber(stats!.totalTransactions || 0) }}</span>
           </mat-card-content>
         </mat-card>
       </mat-grid-tile>
@@ -525,8 +552,10 @@
       </mat-grid-tile>
     </mat-grid-list>
 
-    <!-- CHARTES -->
-    <div class="charts-grid" *ngIf="stats">
+    <!-- ============================================================ -->
+    <!-- CHARTES                                                     -->
+    <!-- ============================================================ -->
+    <div class="charts-grid">
       <mat-card class="chart-card main-chart">
         <mat-card-header>
           <mat-card-title><mat-icon>timeline</mat-icon> {{ 'Activité quotidienne' | translate }}</mat-card-title>
@@ -562,12 +591,14 @@
       </div>
     </div>
 
-    <!-- DONNÉES RÉCENTES -->
-    <div class="section-header" *ngIf="stats">
+    <!-- ============================================================ -->
+    <!-- DONNÉES RÉCENTES                                            -->
+    <!-- ============================================================ -->
+    <div class="section-header">
       <h2 class="section-title"><mat-icon>history</mat-icon> {{ 'Activité récente' | translate }}</h2>
     </div>
 
-    <div class="recent-grid" *ngIf="stats">
+    <div class="recent-grid">
       <!-- Utilisateurs récents -->
       <mat-card class="recent-card">
         <mat-card-header>
@@ -578,7 +609,7 @@
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
-            <div *ngFor="let user of stats.recentUsers.slice(0,5)" class="recent-item">
+            <div *ngFor="let user of (stats!.recentUsers || []).slice(0,5)" class="recent-item">
               <div class="recent-avatar" [style.background]="user.isActive ? '#10b981' : '#f59e0b'">
                 {{ getInitials(user.firstName, user.lastName) }}
               </div>
@@ -605,7 +636,7 @@
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
-            <div *ngFor="let t of stats.recentTransactions.slice(0,5)" class="recent-item">
+            <div *ngFor="let t of (stats!.recentTransactions || []).slice(0,5)" class="recent-item">
               <div class="transaction-icon" [class.completed]="t.status === 'completed'">
                 <mat-icon>{{ t.status === 'completed' ? 'check_circle' : 'pending' }}</mat-icon>
               </div>
@@ -630,7 +661,7 @@
         </mat-card-header>
         <mat-card-content>
           <div class="recent-list">
-            <div *ngFor="let u of stats.topUsers; let i=index" class="recent-item">
+            <div *ngFor="let u of (stats!.topUsers || []); let i=index" class="recent-item">
               <div class="rank-badge" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">{{ i+1 }}</div>
               <div class="recent-info">
                 <div class="recent-name">{{ u.name }}</div>
@@ -643,7 +674,9 @@
       </mat-card>
     </div>
 
-    <!-- QR GENERATOR -->
+    <!-- ============================================================ -->
+    <!-- QR GENERATOR / SCANNER / TRANSACTION FORM                    -->
+    <!-- ============================================================ -->
     <app-qr-generator
       *ngIf="showQRGenerator"
       [defaultType]="qrGeneratorType"
@@ -651,14 +684,12 @@
       (closeGenerator)="closeQRGenerator()">
     </app-qr-generator>
 
-    <!-- QR SCANNER -->
     <app-qr-scanner
       *ngIf="showQRScanner"
       (scanResult)="onQRScanResult($event)"
       (closeScanner)="closeQRScanner()">
     </app-qr-scanner>
 
-    <!-- QR TRANSACTION FORM -->
     <app-qr-transaction-form
       *ngIf="showTransactionForm && qrScanResult"
       [scanResult]="qrScanResult"

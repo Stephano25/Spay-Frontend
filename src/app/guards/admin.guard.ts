@@ -1,3 +1,4 @@
+// frontend/src/app/guards/admin.guard.ts
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -31,10 +32,15 @@ export class AdminGuard implements CanActivate {
     }
 
     // ✅ Routes nécessitant SuperAdmin
-    const superAdminRoutes = ['admins', 'admins/create'];
+    const superAdminRoutes = ['admins', 'admins/create', 'create'];
     const currentRoute = route.routeConfig?.path || '';
+    const fullUrl = state.url || '';
     
-    if (superAdminRoutes.some(r => currentRoute.includes(r))) {
+    const isSuperAdminRoute = superAdminRoutes.some(r => 
+      currentRoute.includes(r) || fullUrl.includes(r)
+    );
+    
+    if (isSuperAdminRoute) {
       if (user.role !== 'super_admin') {
         this.notificationService.showError('Accès réservé aux Super Administrateurs');
         this.router.navigate(['/admin/dashboard']);

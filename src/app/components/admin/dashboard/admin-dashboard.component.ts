@@ -117,6 +117,11 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
         this.isSuperAdmin = user?.role === 'super_admin';
         this.isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
         
+        console.log('👤 Utilisateur connecté:', user?.email);
+        console.log('👑 Rôle:', user?.role);
+        console.log('👑 isSuperAdmin:', this.isSuperAdmin);
+        console.log('🔑 isAdmin:', this.isAdmin);
+        
         if (user && user.role !== 'admin' && user.role !== 'super_admin') {
           this.router.navigate(['/user']);
         }
@@ -127,13 +132,42 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
 
   private loadDashboardData(): void {
     this.isLoading = true;
+    console.log('🔄 Chargement des données du dashboard...');
+    console.log('👑 isSuperAdmin:', this.isSuperAdmin);
+    
     this.adminService.getDashboardStats().subscribe({
       next: (data) => {
+        console.log('📊 Données reçues du backend:', JSON.stringify(data, null, 2));
+        console.log('📊 userRole reçu:', data?.userRole);
+        console.log('📊 totalUsers:', data?.totalUsers);
+        console.log('📊 totalAdmins:', data?.totalAdmins);
+        console.log('📊 totalSuperAdminCommission:', data?.totalSuperAdminCommission);
+        console.log('📊 totalAdminCommission:', data?.totalAdminCommission);
+        console.log('📊 adminCommissions:', data?.adminCommissions);
+        
+        // ✅ Si le backend renvoie un rôle, l'utiliser
+        if (data?.userRole) {
+          this.isSuperAdmin = data.userRole === 'super_admin';
+          this.isAdmin = data.userRole === 'admin' || data.userRole === 'super_admin';
+          console.log('✅ Rôle mis à jour depuis les données:', data.userRole);
+        }
+        
         this.stats = data;
         this.isLoading = false;
         
+        // ✅ FORCER le chargement des commissions SI le backend ne les a pas incluses
         if (this.isSuperAdmin || this.isAdmin) {
-          this.loadCommissionStats();
+          console.log('🔄 Vérification des commissions...');
+          // Vérifier si les commissions sont déjà dans les données
+          if (!data?.adminCommissions || data.adminCommissions.length === 0) {
+            console.log('🔄 Chargement des commissions depuis l\'API dédiée...');
+            this.loadCommissionStats();
+          } else {
+            console.log('✅ Commissions déjà présentes dans les données');
+            console.log('📊 adminCommissions:', data.adminCommissions);
+            console.log('📊 totalSuperAdminCommission:', data.totalSuperAdminCommission);
+            console.log('📊 totalAdminCommission:', data.totalAdminCommission);
+          }
         }
         
         setTimeout(() => this.createCharts(), 300);
@@ -166,38 +200,47 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
       myAdminTransactions: 0,
       myAdminVolume: 0,
       userRole: this.isSuperAdmin ? 'super_admin' : 'admin',
-      totalCommission: 0,
-      commissionTransactions: 0,
+      totalSuperAdminCommission: 0,
+      totalAdminCommission: 0,
+      totalCommissionTransactions: 0,
       recentCommissions: [],
       commissionRate: 0.5,
       myCommission: 0,
       myCommissionTransactions: 0,
       adminCommissions: [],
-      totalSuperAdminCommission: 0,
-      totalAdminCommission: 0,
     };
   }
 
   private loadCommissionStats(): void {
+    console.log('💰 Chargement des statistiques de commissions...');
     this.adminService.getCommissionStats().subscribe({
       next: (commissionData: CommissionStats) => {
+        console.log('💰 Données commissions reçues:', JSON.stringify(commissionData, null, 2));
+        
         if (this.stats) {
-          // ✅ Utiliser les bonnes propriétés
-          this.stats.totalCommission = commissionData.totalSuperAdminCommission + commissionData.totalAdminCommission;
-          this.stats.commissionTransactions = commissionData.totalCommissionTransactions;
-          this.stats.recentCommissions = commissionData.recentCommissions;
+          // ✅ Mettre à jour les champs de commission
+          this.stats.totalSuperAdminCommission = commissionData.totalSuperAdminCommission || 0;
+          this.stats.totalAdminCommission = commissionData.totalAdminCommission || 0;
+          this.stats.totalCommissionTransactions = commissionData.totalCommissionTransactions || 0;
+          this.stats.recentCommissions = commissionData.recentCommissions || [];
           this.stats.commissionRate = commissionData.commissionRate || 0.5;
           this.stats.myCommission = commissionData.myCommission || 0;
           this.stats.myCommissionTransactions = commissionData.myCommissionTransactions || 0;
           this.stats.userRole = commissionData.userRole || this.stats.userRole;
           this.stats.adminCommissions = commissionData.adminCommissions || [];
-          this.stats.totalSuperAdminCommission = commissionData.totalSuperAdminCommission || 0;
-          this.stats.totalAdminCommission = commissionData.totalAdminCommission || 0;
+          
+          console.log('✅ Stats après mise à jour commissions:');
+          console.log('  totalSuperAdminCommission:', this.stats.totalSuperAdminCommission);
+          console.log('  totalAdminCommission:', this.stats.totalAdminCommission);
+          console.log('  totalCommissionTransactions:', this.stats.totalCommissionTransactions);
+          console.log('  adminCommissions length:', this.stats.adminCommissions?.length || 0);
+          
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
       },
       error: (err) => {
         console.warn('⚠️ Erreur chargement commissions:', err);
+        // Garder les valeurs par défaut
       }
     });
   }
@@ -535,6 +578,7 @@ export class AdminDashboardComponent extends BaseComponent implements OnInit, On
   }
 
   refreshData(): void {
+    console.log('🔄 Rafraîchissement manuel des données');
     this.loadDashboardData();
   }
 

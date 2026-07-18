@@ -92,7 +92,10 @@
         <mat-card-content>
           <div class="extra-stat-icon commission"><mat-icon>monetization_on</mat-icon></div>
           <div class="extra-stat-info">
-            <div class="extra-stat-value">{{ formatAmount(stats.totalCommission || 0) }} Ar</div>
+            <!-- ✅ Correction : utiliser totalSuperAdminCommission + totalAdminCommission -->
+            <div class="extra-stat-value">
+              {{ formatAmount((stats.totalSuperAdminCommission || 0) + (stats.totalAdminCommission || 0)) }} Ar
+            </div>
             <div class="extra-stat-label">{{ 'Commissions totales' | translate }}</div>
           </div>
         </mat-card-content>

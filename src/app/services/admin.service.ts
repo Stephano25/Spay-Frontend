@@ -23,6 +23,7 @@ export interface TopUser {
   totalVolume: number;
 }
 
+// ✅ INTERFACE COMPLÈTE POUR LE DASHBOARD
 export interface AdminDashboardStats {
   totalUsers: number;
   activeUsers: number;
@@ -32,6 +33,7 @@ export interface AdminDashboardStats {
   recentTransactions: any[];
   dailyStats: DailyStat[];
   topUsers: TopUser[];
+  // Stats selon le rôle
   totalAdmins?: number;
   totalSuperAdmins?: number;
   adminTransactions?: number;
@@ -39,15 +41,15 @@ export interface AdminDashboardStats {
   myAdminTransactions?: number;
   myAdminVolume?: number;
   userRole?: string;
-  totalCommission?: number;
-  commissionTransactions?: number;
+  // ✅ COMMISSIONS
+  totalSuperAdminCommission?: number;
+  totalAdminCommission?: number;
+  totalCommissionTransactions?: number;
   recentCommissions?: Commission[];
   commissionRate?: number;
   myCommission?: number;
   myCommissionTransactions?: number;
   adminCommissions?: CommissionStats['adminCommissions'];
-  totalSuperAdminCommission?: number;
-  totalAdminCommission?: number;
 }
 
 export interface QRCodeResponse {
@@ -136,19 +138,115 @@ export class AdminService {
   }
 
   // ============================================================
-  // DASHBOARD
+  // DASHBOARD - VERSION CORRIGÉE AVEC PARSING ROBUSTE
   // ============================================================
   getDashboardStats(): Observable<AdminDashboardStats> {
+    console.log('🔍 Appel API /admin/dashboard/stats');
     return this.http
-      .get<AdminDashboardStats>(`${this.apiUrl}/dashboard/stats`, { headers: this.getHeaders() })
+      .get<any>(`${this.apiUrl}/dashboard/stats`, { headers: this.getHeaders() })
       .pipe(
-        tap((data) => console.log('📊 Stats admin reçues:', data)),
+        map((response) => {
+          console.log('📊 Réponse brute du backend:', JSON.stringify(response, null, 2));
+          
+          // ✅ Si la réponse est directement le tableau d'utilisateurs
+          if (Array.isArray(response)) {
+            console.log('⚠️ La réponse est un tableau, conversion...');
+            return {
+              totalUsers: response.length || 0,
+              activeUsers: response.filter((u: any) => u.isActive !== false).length || 0,
+              totalTransactions: 0,
+              totalVolume: 0,
+              recentUsers: response.slice(0, 5),
+              recentTransactions: [],
+              dailyStats: [],
+              topUsers: [],
+              totalAdmins: response.filter((u: any) => u.role === 'admin' || u.role === 'super_admin').length || 0,
+              totalSuperAdmins: response.filter((u: any) => u.role === 'super_admin').length || 0,
+              adminTransactions: 0,
+              adminVolume: 0,
+              myAdminTransactions: 0,
+              myAdminVolume: 0,
+              userRole: 'admin',
+              totalSuperAdminCommission: 0,
+              totalAdminCommission: 0,
+              totalCommissionTransactions: 0,
+              recentCommissions: [],
+              commissionRate: 0.5,
+              myCommission: 0,
+              myCommissionTransactions: 0,
+              adminCommissions: [],
+            };
+          }
+          
+          // ✅ Si la réponse a une propriété 'data'
+          let data = response;
+          if (response && response.data) {
+            data = response.data;
+            console.log('📊 Utilisation de response.data');
+          }
+          
+          // ✅ Si la réponse a une propriété 'stats'
+          if (response && response.stats) {
+            data = response.stats;
+            console.log('📊 Utilisation de response.stats');
+          }
+          
+          // ✅ Si la réponse a une propriété 'result'
+          if (response && response.result) {
+            data = response.result;
+            console.log('📊 Utilisation de response.result');
+          }
+          
+          // ✅ Si la réponse a une propriété 'users' (cas du backend)
+          if (response && response.users) {
+            data = response;
+            console.log('📊 Utilisation de response.users');
+          }
+          
+          // ✅ Construction de l'objet final
+          const stats: AdminDashboardStats = {
+            totalUsers: this.safeGet(data, 'totalUsers', 0),
+            activeUsers: this.safeGet(data, 'activeUsers', 0),
+            totalTransactions: this.safeGet(data, 'totalTransactions', 0),
+            totalVolume: this.safeGet(data, 'totalVolume', 0),
+            recentUsers: this.safeGet(data, 'recentUsers', []),
+            recentTransactions: this.safeGet(data, 'recentTransactions', []),
+            dailyStats: this.safeGet(data, 'dailyStats', []),
+            topUsers: this.safeGet(data, 'topUsers', []),
+            totalAdmins: this.safeGet(data, 'totalAdmins', 0),
+            totalSuperAdmins: this.safeGet(data, 'totalSuperAdmins', 0),
+            adminTransactions: this.safeGet(data, 'adminTransactions', 0),
+            adminVolume: this.safeGet(data, 'adminVolume', 0),
+            myAdminTransactions: this.safeGet(data, 'myAdminTransactions', 0),
+            myAdminVolume: this.safeGet(data, 'myAdminVolume', 0),
+            userRole: this.safeGet(data, 'userRole', 'admin'),
+            totalSuperAdminCommission: this.safeGet(data, 'totalSuperAdminCommission', 0),
+            totalAdminCommission: this.safeGet(data, 'totalAdminCommission', 0),
+            totalCommissionTransactions: this.safeGet(data, 'totalCommissionTransactions', 0),
+            recentCommissions: this.safeGet(data, 'recentCommissions', []),
+            commissionRate: this.safeGet(data, 'commissionRate', 0.5),
+            myCommission: this.safeGet(data, 'myCommission', 0),
+            myCommissionTransactions: this.safeGet(data, 'myCommissionTransactions', 0),
+            adminCommissions: this.safeGet(data, 'adminCommissions', []),
+          };
+          
+          console.log('✅ Stats finales construites:', JSON.stringify(stats, null, 2));
+          console.log('👥 totalUsers:', stats.totalUsers);
+          console.log('👤 totalAdmins:', stats.totalAdmins);
+          console.log('💰 totalSuperAdminCommission:', stats.totalSuperAdminCommission);
+          
+          return stats;
+        }),
+        tap((data) => {
+          console.log('📊 Stats finales après parsing:', data);
+        }),
         catchError((error) => {
           console.error('❌ Erreur getDashboardStats:', error);
           if (error.status === 401) {
             this.authService.logout();
           }
           this.notificationService.showError('Erreur chargement des statistiques');
+          // ✅ Retourner des valeurs par défaut
           return of({
             totalUsers: 0,
             activeUsers: 0,
@@ -165,15 +263,79 @@ export class AdminService {
             myAdminTransactions: 0,
             myAdminVolume: 0,
             userRole: 'admin',
-            totalCommission: 0,
-            commissionTransactions: 0,
+            totalSuperAdminCommission: 0,
+            totalAdminCommission: 0,
+            totalCommissionTransactions: 0,
             recentCommissions: [],
             commissionRate: 0.5,
             myCommission: 0,
             myCommissionTransactions: 0,
             adminCommissions: [],
+          });
+        }),
+      );
+  }
+
+  // ✅ Méthode utilitaire pour récupérer les valeurs en toute sécurité
+  private safeGet<T>(obj: any, key: string, defaultValue: T): T {
+    if (!obj) return defaultValue;
+    const value = obj[key];
+    return value !== undefined && value !== null ? value : defaultValue;
+  }
+
+  // ============================================================
+  // COMMISSIONS - VERSION CORRIGÉE AVEC PARSING ROBUSTE
+  // ============================================================
+  getCommissionStats(): Observable<CommissionStats> {
+    console.log('💰 Appel API /admin/dashboard/commissions');
+    return this.http
+      .get<any>(`${this.apiUrl}/dashboard/commissions`, { headers: this.getHeaders() })
+      .pipe(
+        map((response) => {
+          console.log('💰 Réponse brute commissions:', JSON.stringify(response, null, 2));
+          
+          // ✅ Si la réponse a une propriété 'data'
+          let data = response;
+          if (response && response.data) {
+            data = response.data;
+          }
+          
+          // ✅ Si la réponse a une propriété 'result'
+          if (response && response.result) {
+            data = response.result;
+          }
+          
+          // ✅ S'assurer que toutes les propriétés existent
+          const stats: CommissionStats = {
+            totalSuperAdminCommission: this.safeGet(data, 'totalSuperAdminCommission', 0),
+            totalAdminCommission: this.safeGet(data, 'totalAdminCommission', 0),
+            totalCommissionTransactions: this.safeGet(data, 'totalCommissionTransactions', 0),
+            recentCommissions: this.safeGet(data, 'recentCommissions', []),
+            adminCommissions: this.safeGet(data, 'adminCommissions', []),
+            superAdminTotalCommission: this.safeGet(data, 'superAdminTotalCommission', 0),
+            myCommission: this.safeGet(data, 'myCommission', 0),
+            myCommissionTransactions: this.safeGet(data, 'myCommissionTransactions', 0),
+            commissionRate: this.safeGet(data, 'commissionRate', 0.5),
+            userRole: this.safeGet(data, 'userRole', 'admin')
+          };
+          
+          console.log('💰 Statistiques commissions parsées:', stats);
+          return stats;
+        }),
+        tap((data) => console.log('💰 Commissions finales:', data)),
+        catchError((error) => {
+          console.warn('⚠️ Commission stats non disponibles (peut-être 404)');
+          return of({
             totalSuperAdminCommission: 0,
             totalAdminCommission: 0,
+            totalCommissionTransactions: 0,
+            recentCommissions: [],
+            adminCommissions: [],
+            superAdminTotalCommission: 0,
+            myCommission: 0,
+            myCommissionTransactions: 0,
+            commissionRate: 0.5,
+            userRole: 'admin'
           });
         }),
       );
@@ -429,14 +591,13 @@ export class AdminService {
   }
 
   // ============================================================
-  // SYSTÈME - CORRIGÉ AVEC GESTION DES ERREURS 404
+  // SYSTÈME
   // ============================================================
   getSystemLogs(): Observable<any[]> {
     console.log('📋 Récupération des logs système...');
     return this.http.get<any[]>(`${this.apiUrl}/system/logs`, { headers: this.getHeaders() }).pipe(
       tap((logs) => console.log(`📋 ${logs?.length || 0} logs récupérés`)),
       catchError((error) => {
-        // ⭐ CORRECTION: Gérer silencieusement l'erreur 404
         if (error.status === 404) {
           console.warn('⚠️ Endpoint /admin/system/logs non trouvé - utilisation de données simulées');
           return of([]);
@@ -452,7 +613,6 @@ export class AdminService {
     return this.http.get<any>(`${this.apiUrl}/system/stats`, { headers: this.getHeaders() }).pipe(
       tap((stats) => console.log('📊 Statistiques système récupérées:', stats)),
       catchError((error) => {
-        // ⭐ CORRECTION: Gérer silencieusement l'erreur 404
         if (error.status === 404) {
           console.warn('⚠️ Endpoint /admin/system/stats non trouvé - utilisation de données simulées');
           return of({
@@ -492,66 +652,6 @@ export class AdminService {
         return throwError(() => error);
       }),
     );
-  }
-
-  // ============================================================
-  // COMMISSIONS
-  // ============================================================
-
-  getCommissionStats(): Observable<CommissionStats> {
-    return this.http
-      .get<CommissionStats>(`${this.apiUrl}/dashboard/commissions`, { headers: this.getHeaders() })
-      .pipe(
-        tap((data) => console.log('💰 Statistiques commissions reçues:', data)),
-        catchError((error) => {
-          console.warn('⚠️ Commission stats non disponibles (peut-être 404)');
-          return of({
-            totalSuperAdminCommission: 0,
-            totalAdminCommission: 0,
-            totalCommissionTransactions: 0,
-            recentCommissions: [],
-            adminCommissions: [],
-            superAdminTotalCommission: 0,
-            myCommission: 0,
-            myCommissionTransactions: 0,
-            commissionRate: 0.5,
-            userRole: 'admin'
-          });
-        }),
-      );
-  }
-
-  getAdminCommissions(adminId: string): Observable<Commission[]> {
-    return this.http
-      .get<Commission[]>(`${this.apiUrl}/commissions/admin/${adminId}`, { headers: this.getHeaders() })
-      .pipe(
-        catchError((error) => {
-          console.error('❌ Erreur chargement commissions admin:', error);
-          return of([]);
-        }),
-      );
-  }
-
-  getAdminCommissionTotal(adminId: string): Observable<{ total: number; count: number }> {
-    return this.http
-      .get<{ total: number; count: number }>(`${this.apiUrl}/commissions/admin/${adminId}/total`, { headers: this.getHeaders() })
-      .pipe(
-        catchError((error) => {
-          console.error('❌ Erreur chargement total commissions:', error);
-          return of({ total: 0, count: 0 });
-        }),
-      );
-  }
-
-  getSuperAdminCommissions(): Observable<Commission[]> {
-    return this.http
-      .get<Commission[]>(`${this.apiUrl}/commissions/super-admin`, { headers: this.getHeaders() })
-      .pipe(
-        catchError((error) => {
-          console.error('❌ Erreur chargement commissions Super Admin:', error);
-          return of([]);
-        }),
-      );
   }
 
   updateAdminProfile(profileData: any): Observable<any> {
