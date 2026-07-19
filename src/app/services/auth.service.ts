@@ -1,3 +1,4 @@
+// frontend/src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -117,7 +118,7 @@ export class AuthService {
     );
   }
 
-  // ✅ GOOGLE OAUTH - Redirection vers le backend
+  // ✅ GOOGLE LOGIN - Redirection vers le backend
   loginWithGoogle(): void {
     const googleAuthUrl = `${this.apiUrl}/auth/google`;
     console.log('🔀 Redirection vers Google:', googleAuthUrl);
@@ -126,6 +127,8 @@ export class AuthService {
 
   // ✅ GOOGLE CALLBACK - Traitement du callback
   handleGoogleCallback(token: string): void {
+    console.log('🔄 Google Callback - Token reçu:', token ? token.substring(0, 20) + '...' : 'AUCUN');
+    
     if (token) {
       localStorage.setItem('token', token);
       this.getProfile().subscribe({
@@ -153,8 +156,13 @@ export class AuthService {
     }
   }
 
+  // ✅ GET PROFILE
   getProfile(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/auth/profile`, { headers: this.getHeaders() }).pipe(
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+    return this.http.get<User>(`${this.apiUrl}/auth/profile`, { headers }).pipe(
       tap(user => {
         user.profilePicture = this.getFullImageUrl(user.profilePicture) || undefined;
         this.updateCurrentUser(user);
@@ -170,6 +178,7 @@ export class AuthService {
     );
   }
 
+  // ✅ UPDATE PROFILE
   updateProfile(userData: Partial<User>): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/users/profile`, userData, { headers: this.getHeaders() }).pipe(
       tap(updated => {
@@ -182,10 +191,10 @@ export class AuthService {
     );
   }
 
+  // ✅ UPDATE CURRENT USER
   updateCurrentUser(user: User): void {
-  // S'assurer que l'URL de la photo est complète
-  if (user.profilePicture && !user.profilePicture.startsWith('http')) {
-    const baseUrl = environment.baseUrl || environment.apiUrl || '';
+    if (user.profilePicture && !user.profilePicture.startsWith('http')) {
+      const baseUrl = environment.baseUrl || environment.apiUrl || '';
       if (user.profilePicture.startsWith('/uploads')) {
         user.profilePicture = baseUrl + user.profilePicture;
       } else if (!user.profilePicture.includes('/')) {
@@ -197,6 +206,7 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
+  // ✅ CHANGE PASSWORD
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/change-password`, { currentPassword, newPassword }, { headers: this.getHeaders() }).pipe(
       tap(() => this.notificationService.showSuccess('Mot de passe modifié')),
@@ -204,6 +214,7 @@ export class AuthService {
     );
   }
 
+  // ✅ UPLOAD PROFILE PICTURE
   uploadProfilePicture(formData: FormData): Observable<any> {
     const uploadUrl = `${this.apiUrl}/users/upload-profile-picture`;
       
@@ -226,6 +237,7 @@ export class AuthService {
     );
   }
 
+  // ✅ DELETE PROFILE PICTURE
   deleteProfilePicture(): Observable<any> {
     return this.http.delete(`${this.apiUrl}/users/profile-picture`, { headers: this.getHeaders() }).pipe(
       tap(() => {
@@ -240,6 +252,7 @@ export class AuthService {
     );
   }
 
+  // ✅ LOGOUT
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -248,6 +261,7 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
+  // ✅ GETTERS
   getToken(): string | null {
     return localStorage.getItem('token');
   }

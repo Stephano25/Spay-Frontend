@@ -1,11 +1,11 @@
 // frontend/src/environments/environment.ts (Développement)
 export const environment = {
   production: false,
-  // ✅ URL complète du backend pour Google OAuth
-  apiUrl: 'http://localhost:3000/api',
-  socketUrl: 'http://localhost:3000',
-  baseUrl: 'http://localhost:3000',
-  uploadUrl: 'http://localhost:3000/uploads',
+  // ✅ Utiliser l'URL ngrok
+  apiUrl: 'https://astonish-uneaten-either.ngrok-free.dev/api',
+  socketUrl: 'https://astonish-uneaten-either.ngrok-free.dev',
+  baseUrl: 'https://astonish-uneaten-either.ngrok-free.dev',
+  uploadUrl: 'https://astonish-uneaten-either.ngrok-free.dev/uploads',
   
   isWeb: true,
   isReactNative: false,

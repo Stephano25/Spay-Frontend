@@ -1,3 +1,4 @@
+// angular/src/app/interceptors/auth.interceptor.ts
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -37,7 +38,6 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        // ✅ Ne pas logger les erreurs 404 de manière excessive
         if (error.status === 404) {
           console.warn(`⚠️ Endpoint non trouvé (404): ${req.url}`);
           return throwError(() => error);
@@ -45,11 +45,8 @@ export class AuthInterceptor implements HttpInterceptor {
 
         console.error('❌ Erreur HTTP:', error.status, req.url);
 
-        // ✅ Gérer les erreurs 403 différemment
         if (error.status === 403) {
           console.warn('⚠️ Accès interdit (403) - Vérifiez vos permissions');
-          // Ne pas déconnecter automatiquement pour les erreurs 403
-          // L'utilisateur peut avoir des permissions limitées
         }
 
         if (error.status === 401) {

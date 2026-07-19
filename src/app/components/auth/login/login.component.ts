@@ -71,7 +71,7 @@ export class LoginComponent implements OnInit {
 
     this.isLoading = true;
     const { email, password } = this.loginForm.value;
-    
+
     this.authService.login(email, password).subscribe({
       next: () => {
         this.isLoading = false;
@@ -83,12 +83,14 @@ export class LoginComponent implements OnInit {
   }
 
   // ✅ Google OAuth - Redirection vers le backend
+  // On tague explicitement "platform=web" pour que le backend sache
+  // vers quelle URL rediriger une fois l'auth Google terminée
+  // (voir GoogleAuthGuard côté backend).
   continueWithGoogle(): void {
-    // Utiliser l'URL complète du backend
-    const googleAuthUrl = `${environment.apiUrl}/auth/google`;
+    const googleAuthUrl = `${environment.apiUrl}/auth/google?platform=web`;
     console.log('🔀 Redirection vers Google:', googleAuthUrl);
-    
-    // Redirection complète vers le backend qui gère OAuth
+
+    // Redirection complète (pas via HttpClient) vers le backend qui gère OAuth
     window.location.href = googleAuthUrl;
   }
 
