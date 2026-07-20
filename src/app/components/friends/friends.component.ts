@@ -134,18 +134,13 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
   // INITIALISATION SOCKET
   // ============================================================
 
-  /**
-   * ✅ Initialise la connexion socket avec gestion de reconnexion
-   */
   private initSocketConnection(): void {
-    // Vérifier si le socket est déjà connecté
     if (this.socketService.isConnected()) {
       console.log('✅ [FriendsComponent] Socket déjà connecté');
       this.listenToSocketEvents();
       return;
     }
 
-    // S'abonner aux changements de statut du socket
     const sub = this.socketService.onConnectionStatus().subscribe({
       next: (connected: boolean) => {
         if (connected && !this.socketSubscribed) {
@@ -160,19 +155,14 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     });
     this.socketSubscriptions.push(sub);
 
-    // Si le socket n'est pas connecté, forcer la connexion
     if (!this.socketService.isConnected()) {
       console.log('🔄 [FriendsComponent] Connexion du socket...');
       this.socketService.connect();
     }
 
-    // ✅ Tentative de reconnexion périodique si le socket n'est pas connecté
     this.attemptSocketConnection();
   }
 
-  /**
-   * ✅ Tentative de reconnexion périodique
-   */
   private attemptSocketConnection(): void {
     if (this.socketSubscribed || this.socketRetryCount >= this.maxSocketRetries) {
       return;
@@ -194,20 +184,15 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
   }
 
   // ============================================================
-  // ÉCOUTE DES ÉVÉNEMENTS SOCKET (TEMPS RÉEL)
+  // ÉCOUTE DES ÉVÉNEMENTS SOCKET
   // ============================================================
 
-  /**
-   * ✅ Écoute les événements socket pour les mises à jour en temps réel
-   */
   private listenToSocketEvents(): void {
-    // Éviter les doublons
     if (this.socketSubscribed) {
       console.log('⚠️ [FriendsComponent] Déjà abonné aux événements socket');
       return;
     }
 
-    // Vérifier que le socket est connecté
     if (!this.socketService.isConnected()) {
       console.warn('⚠️ [FriendsComponent] Socket non connecté, impossible de s\'abonner');
       return;
@@ -222,7 +207,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
       next: (data: any) => {
         console.log('📩 [Socket] Nouvelle demande d\'ami reçue:', data);
         
-        // ✅ Ajouter la demande manuellement à la liste
         if (data.requestId && data.sender) {
           const tempRequest: FriendRequest = {
             id: data.requestId,
@@ -239,7 +223,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
             }
           };
           
-          // ✅ Ajouter à la liste (éviter doublons)
           const exists = this.friendRequests.some(r => r.id === tempRequest.id);
           if (!exists) {
             this.friendRequests = [tempRequest, ...this.friendRequests];
@@ -250,7 +233,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
           }
         }
         
-        // ✅ Recharger depuis le backend pour synchroniser
         setTimeout(() => {
           this.loadRequests();
           this.cdr.detectChanges();
@@ -266,7 +248,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     const sub2 = this.socketService.on('friendRequestAccepted').subscribe({
       next: (data: any) => {
         console.log('✅ [Socket] Demande d\'ami acceptée:', data);
-        // ✅ Supprimer la demande de la liste
         this.friendRequests = this.friendRequests.filter(r => r.id !== data.requestId);
         setTimeout(() => {
           this.loadAllData();
@@ -284,7 +265,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     const sub3 = this.socketService.on('friendRequestDeclined').subscribe({
       next: (data: any) => {
         console.log('❌ [Socket] Demande d\'ami refusée:', data);
-        // Supprimer la demande de la liste si elle existe
         this.friendRequests = this.friendRequests.filter(r => r.id !== data.requestId);
         setTimeout(() => {
           this.loadRequests();
@@ -398,9 +378,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     this.friendSubscriptions.push(sub);
   }
 
-  /**
-   * ✅ loadRequests corrigé - conserve les demandes existantes si le backend ne renvoie rien
-   */
   loadRequests(): void {
     console.log('📩 [Frontend] Chargement des demandes d\'amis reçues...');
     
@@ -408,18 +385,14 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
       next: (requests: FriendRequest[]) => {
         console.log('📩 [Frontend] Demandes reçues (brut):', requests.length);
         
-        // ✅ Si le backend ne renvoie rien, garder les demandes existantes
         if (requests.length === 0 && this.friendRequests.length > 0) {
           console.log(`📩 [Frontend] Conservation des demandes existantes (${this.friendRequests.length})`);
-          // Ne pas modifier this.friendRequests
         } else {
-          // Filtrer les demandes en attente
           this.friendRequests = requests.filter(r => r.status === 'pending');
         }
         
         console.log('📩 [Frontend] Demandes en attente:', this.friendRequests.length);
         
-        // ✅ Log détaillé des demandes
         if (this.friendRequests.length > 0) {
           this.friendRequests.forEach((req, index) => {
             console.log(`📩 [Frontend] Demande ${index + 1}:`, {
@@ -437,7 +410,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
       },
       error: (err: any) => {
         console.error('❌ [Frontend] Erreur chargement demandes:', err);
-        // En cas d'erreur, garder les demandes existantes
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -535,7 +507,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     this.isSearching = true;
     const sub = this.friendService.searchUsers(email).subscribe({
       next: (results: SearchUser[]) => {
-        // ✅ Filtrer pour ne garder que l'utilisateur avec l'email exact
         this.searchResults = results.filter(u => 
           u.email?.toLowerCase() === email.toLowerCase()
         );
@@ -686,17 +657,31 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     }
   }
 
+  // ✅ TRAITE UN QR CODE SCANNÉ - CORRIGÉ
   private processScannedQR(data: string): void {
     try {
+      console.log('📱 Traitement du QR code scanné:', data);
+      
+      // Essayer de parser le JSON
       const parsed = JSON.parse(data);
+      
       if (parsed.userId && parsed.type === 'add_friend') {
+        console.log('✅ QR code valide - userId:', parsed.userId);
         this.sendFriendRequest(parsed.userId);
       } else {
         this.notificationService.showError('QR code invalide');
       }
     } catch (error) {
-      if (data && data.length > 5) {
-        this.sendFriendRequest(data);
+      // Si ce n'est pas du JSON, essayer de traiter comme un simple ID
+      console.log('📱 QR code non-JSON, traitement comme ID:', data);
+      if (data && data.length > 5 && data.length < 50) {
+        // Vérifier si c'est un ID valide (24 caractères hexadécimaux)
+        const isValidId = /^[0-9a-fA-F]{24}$/.test(data);
+        if (isValidId) {
+          this.sendFriendRequest(data);
+        } else {
+          this.notificationService.showError('QR code invalide');
+        }
       } else {
         this.notificationService.showError('QR code invalide');
       }
@@ -704,41 +689,38 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
   }
 
   // ============================================================
-  // ACTIONS
+  // ACTIONS - DEMANDES D'AMIS
   // ============================================================
 
-  toggleFriendsList(): void { 
-    this.showFriendsList = !this.showFriendsList; 
-  }
-  
-  toggleRequestsList(): void { 
-    this.showRequestsList = !this.showRequestsList; 
-  }
-  
-  goBack(): void { 
-    this.router.navigate(['/user']); 
-  }
-
-  /**
-   * ✅ Envoie une demande d'ami
-   */
+  // ✅ ENVOIE UNE DEMANDE D'AMI - CORRIGÉ
   sendFriendRequest(userId: string): void {
     if (!userId || userId === this.currentUserId) {
       this.notificationService.showWarning('Vous ne pouvez pas vous ajouter vous-même');
       return;
     }
 
+    // Vérifier si déjà ami
     const existingFriend = this.friends.find(f => f.friend?.id === userId);
     if (existingFriend) {
       this.notificationService.showWarning('Cet utilisateur est déjà dans vos amis');
       return;
     }
 
+    // Vérifier si une demande est déjà en attente (envoyée par moi)
     const existingRequest = this.friendRequests.find(r => 
-      r.senderId === userId && r.status === 'pending'
+      r.senderId === this.currentUserId && r.receiverId === userId && r.status === 'pending'
     );
     if (existingRequest) {
       this.notificationService.showWarning('Une demande est déjà en attente');
+      return;
+    }
+
+    // Vérifier si une demande est déjà en attente (envoyée par l'autre)
+    const existingIncoming = this.friendRequests.find(r => 
+      r.senderId === userId && r.receiverId === this.currentUserId && r.status === 'pending'
+    );
+    if (existingIncoming) {
+      this.notificationService.showInfo('Cet utilisateur vous a déjà envoyé une demande');
       return;
     }
 
@@ -750,7 +732,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
         this.notificationService.showSuccess('Demande d\'ami envoyée avec succès !');
         
         setTimeout(() => {
-          console.log('🔄 Rechargement des données après envoi de demande...');
           this.loadAllData();
           this.showRequestsList = true;
           this.showAddFriend = false;
@@ -768,9 +749,7 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     this.friendSubscriptions.push(sub);
   }
 
-  /**
-   * ✅ Accepte une demande d'ami
-   */
+  // ✅ ACCEPTE UNE DEMANDE D'AMI
   acceptRequest(requestId: string): void {
     if (!requestId) {
       console.error('❌ ID de demande manquant');
@@ -784,10 +763,8 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
         console.log('✅ Demande acceptée avec succès:', response);
         this.notificationService.showSuccess('Demande acceptée !');
         
-        // ✅ Supprimer la demande de la liste immédiatement
         this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
         
-        // ✅ Recharger les données
         setTimeout(() => {
           this.loadAllData();
           this.cdr.detectChanges();
@@ -803,9 +780,7 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     this.friendSubscriptions.push(sub);
   }
 
-  /**
-   * ✅ Refuse une demande d'ami
-   */
+  // ✅ REFUSE UNE DEMANDE D'AMI
   declineRequest(requestId: string): void {
     if (!requestId) {
       console.error('❌ ID de demande manquant');
@@ -817,7 +792,6 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     const sub = this.friendService.declineFriendRequest(requestId).subscribe({
       next: (response) => {
         console.log('✅ Demande refusée avec succès:', response);
-        // ✅ Supprimer la demande de la liste immédiatement
         this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
         this.notificationService.showInfo('Demande refusée');
         this.cdr.detectChanges();
@@ -831,6 +805,10 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
     });
     this.friendSubscriptions.push(sub);
   }
+
+  // ============================================================
+  // ACTIONS - GESTION DES AMIS
+  // ============================================================
 
   removeFriend(friendId: string): void {
     if (!friendId) return;
@@ -915,6 +893,22 @@ export class FriendsComponent extends BaseComponent implements OnInit, OnDestroy
   viewFriendProfile(friendId: string): void {
     if (!friendId) return;
     this.router.navigate(['/profile', friendId]);
+  }
+
+  // ============================================================
+  // UI HELPERS
+  // ============================================================
+
+  toggleFriendsList(): void { 
+    this.showFriendsList = !this.showFriendsList; 
+  }
+  
+  toggleRequestsList(): void { 
+    this.showRequestsList = !this.showRequestsList; 
+  }
+  
+  goBack(): void { 
+    this.router.navigate(['/user']); 
   }
 
   // ============================================================

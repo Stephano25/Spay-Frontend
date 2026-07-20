@@ -61,20 +61,15 @@ export class QRTransactionFormComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // ✅ Si le QR a un montant, l'utiliser
     if (this.scanResult?.amount) {
       this.amount = this.scanResult.amount;
     }
     
-    // ✅ Description par défaut
     this.description = this.scanResult?.action === 'deposit' 
       ? 'Dépôt via QR Code' 
       : 'Retrait via QR Code';
     
-    // ✅ Charger les utilisateurs
     this.loadUsers();
-    
-    // ✅ Vérifier si c'est une transaction admin
     this.isAdminTransaction = this.scanResult?.isAdminTransaction || false;
   }
 
@@ -142,7 +137,6 @@ export class QRTransactionFormComponent implements OnInit, OnDestroy {
   }
 
   submit(): void {
-    // ✅ Vérifications
     if (!this.selectedUserId) {
       this.notificationService.showError('Veuillez sélectionner un utilisateur');
       return;
@@ -182,7 +176,6 @@ export class QRTransactionFormComponent implements OnInit, OnDestroy {
     const finalDescription = this.description || (this.scanResult?.action === 'deposit' ? 'Dépôt via QR Code' : 'Retrait via QR Code');
 
     if (this.scanResult?.action === 'deposit') {
-      // ✅ DÉPÔT
       this.adminService.depositMoney(this.selectedUserId, amount, finalDescription, qrData).subscribe({
         next: (response) => {
           this.isSubmitting = false;
@@ -205,7 +198,6 @@ export class QRTransactionFormComponent implements OnInit, OnDestroy {
         },
       });
     } else {
-      // ✅ RETRAIT
       this.adminService.withdrawMoney(this.selectedUserId, amount, finalDescription, qrData).subscribe({
         next: (response) => {
           this.isSubmitting = false;

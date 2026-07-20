@@ -4,7 +4,6 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Observable, catchError, tap, of, throwError, timeout, map, retry, retryWhen, delay, take } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-// ── Interfaces ──────────────────────────────────────────────
 export interface Friend {
   id: string;
   userId: string;
@@ -55,9 +54,9 @@ export interface SearchUser {
   phoneNumber?: string;
   profilePicture?: string;
   isFriend?: boolean;
-  hasPendingRequest?: boolean;   // ✅ true si J'AI envoyé la demande (en attente)
-  hasIncomingRequest?: boolean;  // ✅ true si CET UTILISATEUR m'a envoyé une demande
-  requestId?: string;            // ✅ id de la demande, présent si hasIncomingRequest = true
+  hasPendingRequest?: boolean;
+  hasIncomingRequest?: boolean;  // ✅ Ajouté
+  requestId?: string;            // ✅ Ajouté
   isBlocked?: boolean;
   blockedBy?: string;
 }
@@ -76,16 +75,13 @@ export interface BlockStatus {
   canMessage: boolean;
 }
 
-// ── Service ──────────────────────────────────────────────────
 @Injectable({ providedIn: 'root' })
 export class FriendService {
   private apiUrl = `${environment.apiUrl}/friends`;
   private readonly TIMEOUT_MS = 30000;
   private readonly MAX_RETRIES = 2;
 
-  constructor(
-    private http: HttpClient,
-  ) {}
+  constructor(private http: HttpClient) {}
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
@@ -111,7 +107,6 @@ export class FriendService {
       let errorMessage = 'Une erreur est survenue';
       if (error.status === 0 || error.message === 'Timeout has occurred') {
         errorMessage = 'Impossible de se connecter au serveur. Vérifiez que le backend est en cours d\'exécution.';
-        console.error('🔴 Le backend semble inaccessible. Vérifiez que le serveur est en cours d\'exécution sur le port 3000.');
       } else if (error.status === 401) {
         errorMessage = 'Session expirée. Veuillez vous reconnecter.';
       } else if (error.status === 403) {
@@ -132,7 +127,6 @@ export class FriendService {
     };
   }
 
-  // ✅ Méthode avec retryWhen pour gérer les erreurs de connexion
   private requestWithRetry<T>(request: Observable<T>): Observable<T> {
     return request.pipe(
       timeout(this.TIMEOUT_MS),
@@ -165,9 +159,6 @@ export class FriendService {
     );
   }
 
-  /**
-   * ✅ Récupère les demandes d'amis reçues par l'utilisateur
-   */
   getFriendRequests(): Observable<FriendRequest[]> {
     console.log('📩 [Frontend] Récupération des demandes d\'amis reçues...');
 
@@ -179,18 +170,6 @@ export class FriendService {
     ).pipe(
       tap((data: FriendRequest[]) => {
         console.log(`📩 [Frontend] ${data?.length || 0} demandes d'ami récupérées`);
-
-        if (data && data.length > 0) {
-          data.forEach((req, index) => {
-            console.log(`📩 [Frontend] Demande ${index + 1}:`, {
-              id: req.id,
-              senderId: req.senderId,
-              receiverId: req.receiverId,
-              status: req.status,
-              senderName: req.sender ? `${req.sender.firstName} ${req.sender.lastName}` : '❌ Sender manquant'
-            });
-          });
-        }
       }),
       catchError(this.handleError<FriendRequest[]>('getFriendRequests', []))
     );
@@ -245,6 +224,19 @@ export class FriendService {
     ).pipe(
       tap((data: SearchUser[]) => {
         console.log(`🔍 ${data?.length || 0} résultats pour "${query}"`);
+        // ✅ Log des résultats pour déboguer
+        if (data && data.length > 0) {
+          data.forEach((user, index) => {
+            console.log(`🔍 Résultat ${index + 1}:`, {
+              id: user.id,
+              name: `${user.firstName} ${user.lastName}`,
+              isFriend: user.isFriend,
+              hasPendingRequest: user.hasPendingRequest,
+              hasIncomingRequest: user.hasIncomingRequest,
+              requestId: user.requestId
+            });
+          });
+        }
       }),
       catchError(this.handleError<SearchUser[]>('searchUsers', []))
     );

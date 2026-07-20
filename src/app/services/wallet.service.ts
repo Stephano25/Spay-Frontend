@@ -1,4 +1,4 @@
-// src/app/services/wallet.service.ts
+// frontend/src/app/services/wallet.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
@@ -29,7 +29,6 @@ export class WalletService {
 
   /**
    * Vérifie le solde (retourne un nombre)
-   * ✅ Méthode unifiée et corrigée
    */
   checkBalance(): Observable<number> {
     return this.getBalance().pipe(

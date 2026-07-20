@@ -7,14 +7,12 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { Html5Qrcode } from 'html5-qrcode';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
-// Services
 import { TransactionService } from '../../services/transaction.service';
 import { NotificationService } from '../../services/notification.service';
 import { WalletService } from '../../services/wallet.service';
 import { AdminService } from '../../services/admin.service';
 import { TranslationService } from '../../services/translation.service';
 
-// Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';

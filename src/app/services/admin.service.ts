@@ -23,7 +23,6 @@ export interface TopUser {
   totalVolume: number;
 }
 
-// ✅ INTERFACE COMPLÈTE POUR LE DASHBOARD
 export interface AdminDashboardStats {
   totalUsers: number;
   activeUsers: number;
@@ -33,7 +32,6 @@ export interface AdminDashboardStats {
   recentTransactions: any[];
   dailyStats: DailyStat[];
   topUsers: TopUser[];
-  // Stats selon le rôle
   totalAdmins?: number;
   totalSuperAdmins?: number;
   adminTransactions?: number;
@@ -41,7 +39,6 @@ export interface AdminDashboardStats {
   myAdminTransactions?: number;
   myAdminVolume?: number;
   userRole?: string;
-  // ✅ COMMISSIONS
   totalSuperAdminCommission?: number;
   totalAdminCommission?: number;
   totalCommissionTransactions?: number;
@@ -138,7 +135,7 @@ export class AdminService {
   }
 
   // ============================================================
-  // DASHBOARD - VERSION CORRIGÉE AVEC PARSING ROBUSTE
+  // DASHBOARD
   // ============================================================
   getDashboardStats(): Observable<AdminDashboardStats> {
     console.log('🔍 Appel API /admin/dashboard/stats');
@@ -148,7 +145,6 @@ export class AdminService {
         map((response) => {
           console.log('📊 Réponse brute du backend:', JSON.stringify(response, null, 2));
           
-          // ✅ Si la réponse est directement le tableau d'utilisateurs
           if (Array.isArray(response)) {
             console.log('⚠️ La réponse est un tableau, conversion...');
             return {
@@ -178,32 +174,20 @@ export class AdminService {
             };
           }
           
-          // ✅ Si la réponse a une propriété 'data'
           let data = response;
           if (response && response.data) {
             data = response.data;
-            console.log('📊 Utilisation de response.data');
           }
-          
-          // ✅ Si la réponse a une propriété 'stats'
           if (response && response.stats) {
             data = response.stats;
-            console.log('📊 Utilisation de response.stats');
           }
-          
-          // ✅ Si la réponse a une propriété 'result'
           if (response && response.result) {
             data = response.result;
-            console.log('📊 Utilisation de response.result');
           }
-          
-          // ✅ Si la réponse a une propriété 'users' (cas du backend)
           if (response && response.users) {
             data = response;
-            console.log('📊 Utilisation de response.users');
           }
           
-          // ✅ Construction de l'objet final
           const stats: AdminDashboardStats = {
             totalUsers: this.safeGet(data, 'totalUsers', 0),
             activeUsers: this.safeGet(data, 'activeUsers', 0),
@@ -231,10 +215,6 @@ export class AdminService {
           };
           
           console.log('✅ Stats finales construites:', JSON.stringify(stats, null, 2));
-          console.log('👥 totalUsers:', stats.totalUsers);
-          console.log('👤 totalAdmins:', stats.totalAdmins);
-          console.log('💰 totalSuperAdminCommission:', stats.totalSuperAdminCommission);
-          
           return stats;
         }),
         tap((data) => {
@@ -246,7 +226,6 @@ export class AdminService {
             this.authService.logout();
           }
           this.notificationService.showError('Erreur chargement des statistiques');
-          // ✅ Retourner des valeurs par défaut
           return of({
             totalUsers: 0,
             activeUsers: 0,
@@ -276,7 +255,6 @@ export class AdminService {
       );
   }
 
-  // ✅ Méthode utilitaire pour récupérer les valeurs en toute sécurité
   private safeGet<T>(obj: any, key: string, defaultValue: T): T {
     if (!obj) return defaultValue;
     const value = obj[key];
@@ -284,7 +262,7 @@ export class AdminService {
   }
 
   // ============================================================
-  // COMMISSIONS - VERSION CORRIGÉE AVEC PARSING ROBUSTE
+  // COMMISSIONS
   // ============================================================
   getCommissionStats(): Observable<CommissionStats> {
     console.log('💰 Appel API /admin/dashboard/commissions');
@@ -294,18 +272,14 @@ export class AdminService {
         map((response) => {
           console.log('💰 Réponse brute commissions:', JSON.stringify(response, null, 2));
           
-          // ✅ Si la réponse a une propriété 'data'
           let data = response;
           if (response && response.data) {
             data = response.data;
           }
-          
-          // ✅ Si la réponse a une propriété 'result'
           if (response && response.result) {
             data = response.result;
           }
           
-          // ✅ S'assurer que toutes les propriétés existent
           const stats: CommissionStats = {
             totalSuperAdminCommission: this.safeGet(data, 'totalSuperAdminCommission', 0),
             totalAdminCommission: this.safeGet(data, 'totalAdminCommission', 0),
